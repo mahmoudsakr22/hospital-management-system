@@ -112,12 +112,27 @@
   </script>
   <style>
     body {
-      background: linear-gradient(135deg, #cbe8ff, #e9fff5);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      margin: 0;
       font-family: 'Cairo', sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* خلفية متحركة */
+    .animated-bg {
+      position: fixed;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(-45deg, #cbe8ff, #e0fff4, #f1faff, #d1f7ff);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .glass-card {
@@ -144,9 +159,12 @@
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center">
 
-  <main class="w-full max-w-md px-6">
+  <!-- الخلفية المتحركة -->
+  <div class="animated-bg"></div>
+
+  <main class="w-full max-w-md px-6 z-10">
     <section class="glass-card rounded-2xl p-8 text-center">
 
       <!-- شعار -->
@@ -154,7 +172,7 @@
         <h1 class="text-primary text-3xl font-bold flex items-center justify-center gap-2">
           🏥 مستشفى الحياة الذكية
         </h1>
-        <p class="text-gray-700 mt-2">مرحبًا بك، الرجاء تسجيل الدخول 👇</p>
+        <p class="text-gray-800 mt-2">مرحبًا بك، الرجاء تسجيل الدخول 👇</p>
       </div>
 
       <!-- النموذج -->
@@ -189,7 +207,7 @@
       if (username === "doctor" && password === "1234") {
         localStorage.setItem("user", username);
         alert("مرحبًا بك يا دكتور 👨‍⚕️");
-        window.location.href = "emergency.html"; // غيّر الصفحة حسب مشروعك
+        window.location.href = "emergency.html";
       } else {
         alert("بيانات الدخول غير صحيحة!");
       }
@@ -198,6 +216,7 @@
 
 </body>
 </html>
+
 
         <!-- ✅ مكتبة Swiper -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
