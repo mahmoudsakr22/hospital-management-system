@@ -111,40 +111,73 @@
     }
   </script>
   <style>
-    html, body {
-      height: 100%;
+    body {
+      background: linear-gradient(135deg, #cbe8ff, #e9fff5);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .form-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 1rem;
+      color: #0077b6;
+    }
+
+    input::placeholder {
+      color: #666;
+    }
+
+    input:focus {
+      background-color: rgba(255, 255, 255, 0.6);
     }
   </style>
 </head>
+<body>
 
-<body class="bg-gradient-to-br from-blue-200 via-white to-green-100 min-h-screen flex items-center justify-center">
+  <main class="w-full max-w-md px-6">
+    <section class="glass-card rounded-2xl p-8 text-center">
 
-  <main class="max-w-md w-full px-4">
-    <section class="backdrop-blur-md bg-white/30 border border-white/40 shadow-2xl rounded-xl p-8 text-center">
-      
-      <!-- شعار المستشفى -->
-      <div class="mb-4">
-        <h1 class="text-primary text-2xl font-bold flex items-center justify-center gap-2">
-           مستشفى الحياة الذكية
+      <!-- شعار -->
+      <div class="mb-6">
+        <h1 class="text-primary text-3xl font-bold flex items-center justify-center gap-2">
+          🏥 مستشفى الحياة الذكية
         </h1>
+        <p class="text-gray-700 mt-2">مرحبًا بك، الرجاء تسجيل الدخول 👇</p>
       </div>
 
-      <!-- ترحيب -->
-      <p class="text-gray-700 font-semibold mb-6">مرحبًا بك الرجاء تسجيل الدخول للوصول إلى نظام المستشفى.</p>
-
-      <!-- نموذج الدخول -->
-      <div class="flex flex-col items-center gap-4">
-        <input type="text" id="username" placeholder="اسم المستخدم"
-               class="border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary bg-white/60 placeholder-gray-600">
+      <!-- النموذج -->
+      <div class="flex flex-col gap-5 text-right">
         
-        <input type="password" id="password" placeholder="كلمة المرور"
-               class="border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary bg-white/60 placeholder-gray-600">
+        <div class="relative">
+          <span class="form-icon">👤</span>
+          <input type="text" id="username" placeholder="اسم المستخدم"
+            class="w-full pr-10 py-2 px-4 rounded-md border border-gray-300 bg-white/50 focus:ring-2 focus:ring-primary focus:outline-none transition">
+        </div>
+
+        <div class="relative">
+          <span class="form-icon">🔒</span>
+          <input type="password" id="password" placeholder="كلمة المرور"
+            class="w-full pr-10 py-2 px-4 rounded-md border border-gray-300 bg-white/50 focus:ring-2 focus:ring-primary focus:outline-none transition">
+        </div>
 
         <button onclick="login()"
-                class="bg-primary text-white px-6 py-2 rounded-md font-bold hover:bg-blue-600 transition">
+          class="bg-primary text-white py-2 px-6 rounded-full font-bold hover:bg-blue-800 transition-all transform hover:scale-105">
           تسجيل الدخول
         </button>
       </div>
+
     </section>
   </main>
 
@@ -155,8 +188,8 @@
 
       if (username === "doctor" && password === "1234") {
         localStorage.setItem("user", username);
-        alert("مرحبًا دكتور 👨‍⚕️");
-        window.location.href = "emergency.html"; // غيرها لصفحتك التالية إذا حبيت
+        alert("مرحبًا بك يا دكتور 👨‍⚕️");
+        window.location.href = "emergency.html"; // غيّر الصفحة حسب مشروعك
       } else {
         alert("بيانات الدخول غير صحيحة!");
       }
@@ -165,7 +198,6 @@
 
 </body>
 </html>
-
 
         <!-- ✅ مكتبة Swiper -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
