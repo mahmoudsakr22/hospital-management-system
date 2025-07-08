@@ -89,84 +89,35 @@
   }
 </script>
 
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>تسجيل الدخول - مستشفى الحياة الذكية</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        fontFamily: { sans: ['Cairo', 'sans-serif'] },
-        extend: {
-          colors: {
-            primary: "#0077b6",
-            secondary: "#28a745"
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fadeIn {
-      animation: fadeIn 0.8s ease-out;
-    }
-  </style>
-</head>
-<body class="min-h-screen bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center font-sans">
-
-  <section class="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-xl p-6 w-full max-w-sm text-white animate-fadeIn">
-    
-    <div class="text-center mb-5">
-      <h2 class="text-2xl font-bold mb-1">تسجيل الدخول</h2>
-      <p class="text-sm text-white/70">من فضلك أدخل بياناتك للدخول</p>
+<section class="bg-white rounded-lg shadow-md p-6 mb-6 text-center max-w-md mx-auto">
+    <h2 class="text-2xl font-bold mb-4">تسجيل الدخول</h2>
+    <div class="flex flex-col items-center gap-3">
+        <input type="text" placeholder="اسم المستخدم" id="username" 
+               class="border border-gray-300 rounded-md px-4 py-2 w-full">
+        <input type="password" placeholder="كلمة المرور" id="password" 
+               class="border border-gray-300 rounded-md px-4 py-2 w-full">
+        <button onclick="login()" 
+                class="bg-primary text-white px-6 py-2 rounded-md font-bold hover:bg-blue-600 transition">
+            تسجيل الدخول
+        </button>
     </div>
+</section>
 
-    <div class="space-y-4">
-      <!-- المستخدم -->
-      <div class="relative">
-        <input type="text" id="username" placeholder="اسم المستخدم"
-               class="w-full bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-md pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/50 transition">
-        <span class="absolute left-3 top-2.5 text-white/70 text-lg">👤</span>
-      </div>
+<script>
+function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
-      <!-- كلمة المرور -->
-      <div class="relative">
-        <input type="password" id="password" placeholder="كلمة المرور"
-               class="w-full bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-md pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/50 transition">
-        <span class="absolute left-3 top-2.5 text-white/70 text-lg">🔒</span>
-      </div>
-
-      <!-- زر الدخول -->
-      <button onclick="login()" class="w-full bg-secondary hover:bg-green-600 text-white font-bold py-2 rounded-md text-sm transition">
-        دخول
-      </button>
-    </div>
-  </section>
-
-  <script>
-    function login() {
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-
-      if (user === 'admin' && pass === '123') {
-        alert('تم تسجيل الدخول بنجاح ✅');
-        window.location.href = "emergency.html"; // غيّرها حسب الصفحة المطلوبة
-      } else {
-        alert('❌ اسم المستخدم أو كلمة المرور غير صحيحة');
-      }
+    if(username && password) {
+        // تخزين الاسم مؤقتًا
+        localStorage.setItem("username", username);
+        // التوجيه إلى صفحة الطوارئ أو أي صفحة تالية
+        window.location.href = "emergency.html";
+    } else {
+        alert("يرجى إدخال اسم المستخدم وكلمة المرور");
     }
-  </script>
-
-</body>
-</html>
+}
+</script>
 
 
         <!-- ✅ مكتبة Swiper -->
