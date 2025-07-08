@@ -3,100 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>قسم الطوارئ</title>
+  <title>قسم الطوارئ - مستشفى الحياة الذكية</title>
   <style>
     body {
       font-family: 'Cairo', sans-serif;
-      background-color: #f2f2f2;
-      margin: 0; padding: 0;
+      background-color: #f4f8fc;
+      margin: 0;
+      padding: 0;
     }
+
     header {
-      background-color: #0077b6;
+      background: linear-gradient(to left, #0077b6, #00b4d8);
       color: white;
       text-align: center;
-      padding: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    h1 {
+
+    header h1 {
       margin: 0;
+      font-size: 2rem;
+      letter-spacing: 1px;
     }
+
+    .search-bar {
+      margin: 1rem auto;
+      text-align: center;
+    }
+
+    .search-bar input {
+      padding: 0.6rem;
+      width: 280px;
+      font-size: 1rem;
+      border: 2px solid #0077b6;
+      border-radius: 8px;
+      outline: none;
+    }
+
     .container {
       padding: 2rem;
     }
+
     .cards {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
       justify-content: center;
     }
+
     .card {
       background-color: white;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 1rem;
-      width: 250px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: 260px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       text-align: right;
+      position: relative;
+      transition: transform 0.3s ease;
     }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
     .card h3 {
-      margin-top: 0;
+      margin: 0 0 0.3rem;
+      font-size: 1.2rem;
     }
+
+    .icon {
+      font-size: 1.4rem;
+      margin-left: 6px;
+    }
+
     .card p {
-      margin: 0.5rem 0;
+      margin: 0.3rem 0;
+      font-size: 0.95rem;
     }
+
     .card button {
       margin-top: 1rem;
       background-color: #0077b6;
       color: white;
       border: none;
       padding: 0.5rem 1rem;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
     }
+
+    .alert {
+      background-color: #ffcccc;
+      color: #b30000;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
     footer {
       background-color: #0077b6;
       color: white;
       text-align: center;
       padding: 1rem;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
+      margin-top: 2rem;
     }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>قسم الطوارئ - مستشفى الحياة الذكية</h1>
+    <h1>مستشفى الحياة الذكية - قسم الطوارئ</h1>
   </header>
 
+  <!-- 🔍 شريط البحث -->
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="ابحث باستخدام رقم المريض (ID)..." onkeyup="searchPatient()" />
+  </div>
+
   <div class="container">
-    <h2>الحالات الحالية:</h2>
-    <div class="cards">
-      
-      <!-- مريض أحمد -->
-      <div class="card">
-        <h3>أحمد عبد الله</h3>
+    <div class="cards" id="cardContainer">
+
+      <!-- مريض 1 -->
+      <div class="card" data-id="setf454">
+        <h3><span class="icon">♂️</span> أحمد عبد الله</h3>
         <p><strong>العمر:</strong> 45 سنة</p>
+        <p><strong>العنوان:</strong> كوم حمادة</p>
         <p><strong>الحالة:</strong> آلام صدرية مفاجئة</p>
         <p><strong>القسم:</strong> الطوارئ</p>
-        <button onclick="viewProfile('ahmed')">عرض الملف</button>
+        <button onclick="viewProfile()">عرض الملف</button>
       </div>
 
       <!-- مريض 2 -->
-      <div class="card">
-        <h3>سعيد محمود</h3>
+      <div class="card" data-id="s3d002">
+        <div class="alert">⚠️ حالة حرجة</div>
+        <h3><span class="icon">♂️</span> سعيد محمود</h3>
         <p><strong>العمر:</strong> 52 سنة</p>
+        <p><strong>العنوان:</strong> طنطا</p>
         <p><strong>الحالة:</strong> ارتفاع ضغط الدم</p>
         <p><strong>القسم:</strong> الطوارئ</p>
-        <button onclick="alert('لم يتم تفعيل هذا المريض بعد')">عرض الملف</button>
+        <button>عرض الملف</button>
       </div>
 
-      <!-- مريض 3 -->
-      <div class="card">
-        <h3>فاطمة محمد</h3>
-        <p><strong>العمر:</strong> 30 سنة</p>
-        <p><strong>الحالة:</strong> كسر في الذراع</p>
-        <p><strong>القسم:</strong> الطوارئ</p>
-        <button onclick="alert('لم يتم تفعيل هذا المريض بعد')">عرض الملف</button>
-      </div>
+      <!-- باقي الحالات -->
+      <div class="card" data-id="f001"><h3><span class="icon">♀️</span> فاطمة محمد</h3><p><strong>العمر:</strong> 30 سنة</p><p><strong>العنوان:</strong> قويسنا</p><p><strong>الحالة:</strong> كسر في الذراع</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
+      <div class="card" data-id="m003"><h3><span class="icon">♂️</span> محمد السيد</h3><p><strong>العمر:</strong> 41 سنة</p><p><strong>العنوان:</strong> دمنهور</p><p><strong>الحالة:</strong> التهاب رئوي</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
+      <div class="card" data-id="r004"><h3><span class="icon">♀️</span> رانيا علي</h3><p><strong>العمر:</strong> 36 سنة</p><p><strong>العنوان:</strong> المنصورة</p><p><strong>الحالة:</strong> نزيف داخلي</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
+      <div class="card" data-id="k005"><h3><span class="icon">👦</span> كريم عبد الوهاب</h3><p><strong>العمر:</strong> 12 سنة</p><p><strong>العنوان:</strong> كفر الشيخ</p><p><strong>الحالة:</strong> ارتفاع حرارة</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
+      <div class="card" data-id="h006"><h3><span class="icon">♀️</span> هدى إبراهيم</h3><p><strong>العمر:</strong> 50 سنة</p><p><strong>العنوان:</strong> الإسكندرية</p><p><strong>الحالة:</strong> دوخة وفقد وعي</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
+      <div class="card" data-id="y007"><h3><span class="icon">♂️</span> ياسر حسن</h3><p><strong>العمر:</strong> 39 سنة</p><p><strong>العنوان:</strong> كفر الدوار</p><p><strong>الحالة:</strong> حمى شديدة</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
+      <div class="card" data-id="n008"><h3><span class="icon">♀️</span> نجلاء فتحي</h3><p><strong>العمر:</strong> 60 سنة</p><p><strong>العنوان:</strong> المحلة</p><p><strong>الحالة:</strong> كسور متعددة</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
+      <div class="card" data-id="s009"><h3><span class="icon">👧</span> سلمى علاء</h3><p><strong>العمر:</strong> 9 سنوات</p><p><strong>العنوان:</strong> شبين الكوم</p><p><strong>الحالة:</strong> جفاف وإعياء</p><p><strong>القسم:</strong> الطوارئ</p><button>عرض الملف</button></div>
 
     </div>
   </div>
@@ -106,10 +171,18 @@
   </footer>
 
   <script>
-    function viewProfile(id) {
-      if (id === 'ahmed') {
-        window.open("patient.html", "_blank");
-      }
+    function viewProfile() {
+      window.open("patient.html", "_blank");
+    }
+
+    function searchPatient() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const cards = document.querySelectorAll(".card");
+
+      cards.forEach(card => {
+        const id = card.getAttribute("data-id").toLowerCase();
+        card.style.display = id.includes(input) ? "block" : "none";
+      });
     }
   </script>
 </body>
