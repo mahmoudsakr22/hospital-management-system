@@ -1,98 +1,97 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>بوابة المريض - البحث عن مريض</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom, #e0f7fa, #ffffff);
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-    header {
-      background-color: #0077b6;
-      color: white;
-      padding: 20px;
-      font-size: 28px;
-      font-weight: bold;
-    }
-    .hospital-image {
-      max-width: 100%;
-      height: auto;
-      margin-top: 10px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    .description {
-      margin: 30px auto;
-      max-width: 700px;
-      font-size: 18px;
-      line-height: 1.8;
-      color: #333;
-      padding: 0 20px;
-    }
-    .search-container {
-      background-color: rgba(255, 255, 255, 0.9);
-      margin: 30px auto;
-      padding: 30px;
-      border-radius: 20px;
-      max-width: 400px;
-      box-shadow: 0 6px 15px rgba(0, 119, 182, 0.3);
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    button {
-      background-color: #0077b6;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #005f8a;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة المريض - البحث عن مريض</title>
+    <meta name="description" content="بوابة البحث عن المرضى في مستشفى الحياة الذكية">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#0077b6",
+                        secondary: "#005f8a",
+                        lightblue: "#e0f7fa"
+                    },
+                    fontFamily: {
+                        arabic: ["'Segoe UI'", "Tahoma", "Geneva", "Verdana", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
 </head>
-<body>
+<body class="min-h-screen bg-gradient-to-b from-blue-50 to-white font-arabic">
+    <header class="bg-primary text-white text-center py-6 shadow-md">
+        <h1 class="text-3xl font-bold">🏥 مستشفى الحياة الذكية</h1>
+    </header>
 
-  <header>🏥 مستشفى الحياة الذكية</header>
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex justify-center mb-8">
+            <img 
+                src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" 
+                alt="صورة المستشفى" 
+                class="w-full max-w-4xl rounded-xl shadow-lg"
+                loading="lazy"
+            >
+        </div>
 
-  <img class="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-3/9593fa1d076b2d5c518e241ff94f4170_high.webp" alt="صورة المستشفى">
+        <div class="max-w-3xl mx-auto text-center mb-12">
+            <p class="text-lg text-gray-700 leading-relaxed">
+                مرحبًا بكم في بوابة مستشفى الحياة الذكية، حيث ندمج بين التقنية والطب لتقديم أفضل رعاية صحية.
+                من خلال هذه الصفحة يمكنك البحث عن ملفات المرضى باستخدام رقم التعريف الخاص بهم بكل سهولة وأمان.
+            </p>
+        </div>
 
-  <div class="description">
-    مرحبًا بكم في بوابة مستشفى الحياة الذكية، حيث ندمج بين التقنية والطب لتقديم أفضل رعاية صحية.
-    من خلال هذه الصفحة يمكنك البحث عن ملفات المرضى باستخدام رقم التعريف الخاص بهم بكل سهولة وأمان.
-  </div>
+        <div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-xl">
+            <div class="text-center mb-6">
+                <i class="fas fa-search text-primary text-3xl mb-2"></i>
+                <h2 class="text-2xl font-semibold text-gray-800">البحث عن مريض</h2>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <input 
+                        type="text" 
+                        id="patientID" 
+                        placeholder="ادخل رقم تعريف المريض (ID)" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                    >
+                </div>
+                <button 
+                    onclick="searchPatient()"
+                    class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-medium transition duration-300"
+                >
+                    بحث
+                </button>
+            </div>
+        </div>
+    </main>
 
-  <div class="search-container">
-    <h2>🔎 البحث عن مريض</h2>
-    <input type="text" id="patientID" placeholder="ادخل رقم تعريف المريض (ID)">
-    <button onclick="searchPatient()">بحث</button>
-  </div>
+    <footer class="bg-gray-100 py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-600">
+            <p>© 2023 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
 
-  <script>
-    function searchPatient() {
-      const id = document.getElementById('patientID').value.trim();
-      if (id !== '') {
-        // مثال: فتح صفحة ملف المريض، يمكن تعديله حسب الحاجة
-        window.location.href = `patient.html?id=${id}`;
-      } else {
-        alert('من فضلك أدخل رقم المريض.');
-      }
-    }
-  </script>
-
+    <script>
+        function searchPatient() {
+            const id = document.getElementById('patientID').value.trim();
+            if (id !== '') {
+                // In a real implementation, this would redirect to patient details
+                window.location.href = `patient.html?id=${id}`;
+            } else {
+                alert('من فضلك أدخل رقم المريض.');
+            }
+        }
+    </script>
 </body>
 </html>
