@@ -20,31 +20,71 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    let allPatients = {};
+
     window.addEventListener("DOMContentLoaded", () => {
       const emergencyRef = ref(db, "patients/emergency");
       const container = document.getElementById("patientsList");
+      const searchInput = document.getElementById("searchInput");
+      const dateFilter = document.getElementById("dateFilter");
 
       onValue(emergencyRef, (snapshot) => {
-        container.innerHTML = ""; // clear old
+        container.innerHTML = "";
         if (snapshot.exists()) {
-          const data = snapshot.val();
-          Object.entries(data).forEach(([id, patient]) => {
-            const card = document.createElement("div");
-            card.className = "bg-white shadow p-4 rounded mb-4 border border-gray-300";
-            card.innerHTML = `
-              <h2 class="text-xl font-bold text-blue-700 mb-2">${patient.name}</h2>
-              <p><strong>العمر:</strong> ${patient.age}</p>
-              <p><strong>الرقم القومي:</strong> ${patient.nid}</p>
-              <p><strong>القسم:</strong> ${patient.department}</p>
-              <p><strong>تاريخ التسجيل:</strong> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</p>
-              <button onclick="viewPatient('${id}')" class="mt-3 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">عرض الحالة</button>
-            `;
-            container.appendChild(card);
-          });
+          allPatients = snapshot.val();
+          renderPatients(allPatients);
         } else {
           container.innerHTML = "<p>لا يوجد مرضى حالياً في قسم الطوارئ.</p>";
         }
       });
+
+      searchInput.addEventListener("input", () => {
+        applyFilters();
+      });
+
+      dateFilter.addEventListener("change", () => {
+        applyFilters();
+      });
+
+      function applyFilters() {
+        const term = searchInput.value.toLowerCase();
+        const selectedDate = dateFilter.value;
+        const filtered = Object.fromEntries(
+          Object.entries(allPatients).filter(([id, patient]) => {
+            const matchSearch =
+              patient.name.toLowerCase().includes(term) ||
+              id.toLowerCase().includes(term);
+
+            const matchDate = selectedDate
+              ? new Date(patient.timestamp).toISOString().split("T")[0] === selectedDate
+              : true;
+
+            return matchSearch && matchDate;
+          })
+        );
+        renderPatients(filtered);
+      }
+
+      function renderPatients(data) {
+        container.innerHTML = "";
+        if (Object.keys(data).length === 0) {
+          container.innerHTML = "<p class='text-center text-gray-500 mt-4'>لا توجد نتائج مطابقة.</p>";
+          return;
+        }
+        Object.entries(data).forEach(([id, patient]) => {
+          const card = document.createElement("div");
+          card.className = "bg-white shadow p-4 rounded mb-4 border border-gray-300";
+          card.innerHTML = `
+            <h2 class="text-xl font-bold text-blue-700 mb-2">${patient.name}</h2>
+            <p><strong>العمر:</strong> ${patient.age}</p>
+            <p><strong>الرقم القومي:</strong> ${patient.nid}</p>
+            <p><strong>القسم:</strong> ${patient.department}</p>
+            <p><strong>تاريخ التسجيل:</strong> ${new Date(patient.timestamp).toLocaleDateString("ar-EG")}</p>
+            <button onclick="viewPatient('${id}')" class="mt-3 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">عرض الحالة</button>
+          `;
+          container.appendChild(card);
+        });
+      }
     });
 
     window.viewPatient = function(id) {
@@ -55,8 +95,16 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-6">
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-5xl mx-auto">
     <h1 class="text-3xl font-bold text-center text-red-600 mb-6">قسم الطوارئ</h1>
+
+    <!-- 🔍 شريط البحث والتصفية -->
+    <div class="flex flex-col md:flex-row gap-4 mb-6 justify-between items-center bg-white p-4 shadow rounded">
+      <input id="searchInput" type="text" placeholder="ابحث باسم المريض أو ID..." class="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded">
+      <input id="dateFilter" type="date" class="px-4 py-2 border border-gray-300 rounded">
+    </div>
+
+    <!-- 🧾 عرض المرضى -->
     <div id="patientsList"></div>
   </div>
 </body>
