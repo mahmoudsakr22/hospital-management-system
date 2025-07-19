@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>صفحة الاستقبال - مستشفى الحياة الذكية</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
+      measurementId: "G-0GV30LL28T"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    window.firebaseApp = app;
+    window.firebaseDB = database;
+    window.firebaseRef = ref;
+    window.firebasePush = push;
+  </script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-6">
+  <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8">
+    <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">تسجيل مريض جديد</h1>
+    <form id="patientForm" class="space-y-4">
+      <div>
+        <label class="block font-semibold mb-1">اسم المريض</label>
+        <input type="text" id="name" class="w-full border rounded p-2" required />
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">العمر</label>
+        <input type="number" id="age" class="w-full border rounded p-2" required />
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">الرقم القومي</label>
+        <input type="text" id="nid" class="w-full border rounded p-2" maxlength="14" required />
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">القسم المحول إليه</label>
+        <select id="department" class="w-full border rounded p-2" required>
+          <option value="">-- اختر القسم --</option>
+          <option value="emergency">الطوارئ</option>
+          <option value="icu">العناية المركزة</option>
+          <option value="surgery">العمليات</option>
+          <option value="care">الرعاية</option>
+          <option value="admin">الإدارة</option>
+        </select>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">تسجيل المريض</button>
+    </form>
+  </div>
+
+  <script type="module">
+    document.getElementById("patientForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const age = document.getElementById("age").value.trim();
+      const nid = document.getElementById("nid").value.trim();
+      const department = document.getElementById("department").value;
+
+      if (!name || !age || !nid || !department) {
+        alert("يرجى ملء جميع الحقول");
+        return;
+      }
+
+      const patient = {
+        name,
+        age,
+        nid,
+        department,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        const db = window.firebaseDB;
+        const dbRef = window.firebaseRef(db, "patients/" + department);
+        await window.firebasePush(dbRef, patient);
+
+        alert("✅ تم تسجيل المريض وتحويله إلى قسم " + department);
+        this.reset();
+      } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء التسجيل");
+      }
+    });
+  </script>
+</body>
+</html>
