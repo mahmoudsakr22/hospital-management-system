@@ -30,44 +30,12 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    const departments = ["emergency", "icu", "surgery", "care", "admin"];
-
     document.addEventListener("DOMContentLoaded", () => {
-      // إحصائيات
-      const today = new Date().toISOString().split("T")[0];
-      let totalPatients = 0;
-      let todayCount = 0;
-      const statsList = document.getElementById("statsList");
-      statsList.innerHTML = "";
+      const form = document.getElementById("patientForm");
+      const newBtn = document.getElementById("newPatientBtn");
+      const btnContainer = document.getElementById("newPatientBtnContainer");
 
-      departments.forEach(dept => {
-        const deptRef = ref(database, `patients/${dept}`);
-        onValue(deptRef, (snapshot) => {
-          let count = 0;
-          let countToday = 0;
-
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            count = Object.keys(data).length;
-            totalPatients += count;
-            Object.values(data).forEach(p => {
-              if (p.timestamp && p.timestamp.startsWith(today)) countToday++;
-            });
-            todayCount += countToday;
-          }
-
-          const item = document.createElement("div");
-          item.className = "bg-blue-100 rounded p-4 shadow text-sm";
-          item.innerHTML = `<strong>${dept}</strong><br>👥 ${count} مريض<br>🆕 اليوم: ${countToday}`;
-          statsList.appendChild(item);
-
-          document.getElementById("totalPatients").textContent = totalPatients;
-          document.getElementById("todayPatients").textContent = todayCount;
-        });
-      });
-
-      // نموذج التسجيل
-      document.getElementById("patientForm").addEventListener("submit", async function (e) {
+      form.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const name = document.getElementById("name").value.trim();
@@ -93,13 +61,19 @@
           await push(dbRef, patient);
           alert("✅ تم تسجيل المريض وتحويله إلى قسم " + department);
           this.reset();
+          form.classList.add("hidden");
+          btnContainer.classList.remove("hidden");
         } catch (error) {
           console.error(error);
           alert("❌ حدث خطأ أثناء التسجيل");
         }
       });
 
-      // عرض المرضى المسجلين في قسم الطوارئ
+      newBtn.addEventListener("click", () => {
+        form.classList.remove("hidden");
+        btnContainer.classList.add("hidden");
+      });
+
       const emergencyRef = ref(database, "patients/emergency");
       const container = document.getElementById("patientsList");
 
@@ -119,7 +93,6 @@
             `;
             container.appendChild(card);
 
-            // زر الحذف
             const deleteBtn = card.querySelector("button[data-id]");
             deleteBtn.addEventListener("click", async () => {
               const confirmDelete = confirm("هل أنت متأكد من حذف هذا المريض؟");
@@ -143,50 +116,47 @@
   </script>
 </head>
 <body class="bg-gray-100 text-gray-900 p-6">
-  <div class="max-w-2xl mx-auto">
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="bg-white p-4 rounded shadow">
-        <h2 class="font-bold text-blue-700">📊 إحصائيات اليوم</h2>
-        <p>🆕 المسجلين اليوم: <span id="todayPatients">0</span></p>
-        <p>👥 إجمالي المرضى: <span id="totalPatients">0</span></p>
+
+  <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8">
+    <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">تسجيل مريض جديد</h1>
+
+    <form id="patientForm" class="space-y-4">
+      <div>
+        <label class="block font-semibold mb-1">اسم المريض</label>
+        <input type="text" id="name" class="w-full border rounded p-2" required />
       </div>
-      <div id="statsList" class="grid grid-cols-2 gap-2"></div>
-    </div>
+      <div>
+        <label class="block font-semibold mb-1">العمر</label>
+        <input type="number" id="age" class="w-full border rounded p-2" required />
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">الرقم القومي</label>
+        <input type="text" id="nid" class="w-full border rounded p-2" maxlength="14" required />
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">القسم المحول إليه</label>
+        <select id="department" class="w-full border rounded p-2" required>
+          <option value="">-- اختر القسم --</option>
+          <option value="emergency">الطوارئ</option>
+          <option value="icu">العناية المركزة</option>
+          <option value="surgery">العمليات</option>
+          <option value="care">الرعاية</option>
+          <option value="admin">الإدارة</option>
+        </select>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">تسجيل المريض</button>
+    </form>
 
-    <div class="bg-white rounded-xl shadow-md p-8">
-      <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">تسجيل مريض جديد</h1>
-      <form id="patientForm" class="space-y-4">
-        <div>
-          <label class="block font-semibold mb-1">اسم المريض</label>
-          <input type="text" id="name" class="w-full border rounded p-2" required />
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">العمر</label>
-          <input type="number" id="age" class="w-full border rounded p-2" required />
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">الرقم القومي</label>
-          <input type="text" id="nid" class="w-full border rounded p-2" maxlength="14" required />
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">القسم المحول إليه</label>
-          <select id="department" class="w-full border rounded p-2" required>
-            <option value="">-- اختر القسم --</option>
-            <option value="emergency">الطوارئ</option>
-            <option value="icu">العناية المركزة</option>
-            <option value="surgery">العمليات</option>
-            <option value="care">الرعاية</option>
-            <option value="admin">الإدارة</option>
-          </select>
-        </div>
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">تسجيل المريض</button>
-      </form>
+    <div id="newPatientBtnContainer" class="text-center mt-6 hidden">
+      <button id="newPatientBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
+        ➕ تسجيل مريض جديد
+      </button>
     </div>
+  </div>
 
-    <div class="mt-10 bg-white rounded-xl shadow-md p-6">
-      <h2 class="text-xl font-bold text-blue-700 mb-4">المرضى المسجلين في قسم الطوارئ</h2>
-      <div id="patientsList" class="space-y-4"></div>
-    </div>
+  <div class="max-w-2xl mx-auto mt-10 bg-white rounded-xl shadow-md p-6">
+    <h2 class="text-xl font-bold text-blue-700 mb-4">المرضى المسجلين في قسم الطوارئ</h2>
+    <div id="patientsList" class="space-y-4"></div>
   </div>
 </body>
 </html>
