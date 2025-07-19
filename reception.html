@@ -4,19 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>صفحة الاستقبال - مستشفى الحياة الذكية</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  
-  <style>
-    .hidden { display: none; }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import {
       getDatabase,
       ref,
       push,
-      onValue
+      onValue,
+      remove
     } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -32,13 +30,9 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
+    // نموذج التسجيل
     document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("patientForm");
-      const registrationSection = document.getElementById("registrationSection");
-      const patientsSection = document.getElementById("patientsSection");
-      const btnNew = document.getElementById("btnNew");
-
-      form.addEventListener("submit", async function (e) {
+      document.getElementById("patientForm").addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const name = document.getElementById("name").value.trim();
@@ -64,20 +58,10 @@
           await push(dbRef, patient);
           alert("✅ تم تسجيل المريض وتحويله إلى قسم " + department);
           this.reset();
-          registrationSection.classList.add("hidden");
-          patientsSection.classList.remove("hidden");
-          btnNew.classList.remove("hidden");
         } catch (error) {
           console.error(error);
           alert("❌ حدث خطأ أثناء التسجيل");
         }
-      });
-
-      // زر تسجيل جديد
-      btnNew.addEventListener("click", () => {
-        registrationSection.classList.remove("hidden");
-        patientsSection.classList.add("hidden");
-        btnNew.classList.add("hidden");
       });
 
       // عرض المرضى المسجلين في قسم الطوارئ
@@ -88,7 +72,7 @@
         container.innerHTML = "";
         if (snapshot.exists()) {
           const data = snapshot.val();
-          Object.values(data).forEach((patient) => {
+          Object.entries(data).forEach(([key, patient]) => {
             const card = document.createElement("div");
             card.className = "bg-gray-100 p-4 rounded shadow";
             card.innerHTML = `
@@ -96,8 +80,25 @@
               <p>العمر: ${patient.age}</p>
               <p>القسم: ${patient.department}</p>
               <p>تاريخ التسجيل: ${new Date(patient.timestamp).toLocaleString("ar-EG")}</p>
+              <button class="mt-2 bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded" data-id="${key}">🗑️ حذف</button>
             `;
             container.appendChild(card);
+
+            // زر الحذف
+            const deleteBtn = card.querySelector("button[data-id]");
+            deleteBtn.addEventListener("click", async () => {
+              const confirmDelete = confirm("هل أنت متأكد من حذف هذا المريض؟");
+              if (confirmDelete) {
+                try {
+                  const delRef = ref(database, "patients/emergency/" + deleteBtn.dataset.id);
+                  await remove(delRef);
+                  alert("✅ تم حذف المريض بنجاح");
+                } catch (err) {
+                  alert("❌ حدث خطأ أثناء الحذف");
+                  console.error(err);
+                }
+              }
+            });
           });
         } else {
           container.innerHTML = "<p class='text-gray-500'>لا يوجد مرضى مسجلين حالياً.</p>";
@@ -107,10 +108,8 @@
   </script>
 </head>
 <body class="bg-gray-100 text-gray-900 p-6">
-
-  <!-- تسجيل جديد -->
-  <div id="registrationSection" class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8 mt-6">
-    <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">📝 تسجيل مريض جديد</h1>
+  <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8">
+    <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">تسجيل مريض جديد</h1>
     <form id="patientForm" class="space-y-4">
       <div>
         <label class="block font-semibold mb-1">اسم المريض</label>
@@ -139,16 +138,9 @@
     </form>
   </div>
 
-  <!-- زر تسجيل مريض جديد -->
-  <div class="text-center mt-4 hidden" id="btnNew">
-    <button class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">➕ تسجيل مريض جديد</button>
-  </div>
-
-  <!-- عرض المرضى -->
-  <div id="patientsSection" class="max-w-2xl mx-auto mt-10 bg-white rounded-xl shadow-md p-6 hidden">
-    <h2 class="text-xl font-bold text-blue-700 mb-4">👥 المرضى المسجلين في قسم الطوارئ</h2>
+  <div class="max-w-2xl mx-auto mt-10 bg-white rounded-xl shadow-md p-6">
+    <h2 class="text-xl font-bold text-blue-700 mb-4">المرضى المسجلين في قسم الطوارئ</h2>
     <div id="patientsList" class="space-y-4"></div>
   </div>
-
 </body>
 </html>
