@@ -22,22 +22,22 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       const emergencyRef = ref(db, "patients/emergency");
-
       const container = document.getElementById("patientsList");
 
       onValue(emergencyRef, (snapshot) => {
         container.innerHTML = ""; // clear old
         if (snapshot.exists()) {
           const data = snapshot.val();
-          Object.values(data).forEach((patient) => {
+          Object.entries(data).forEach(([id, patient]) => {
             const card = document.createElement("div");
-            card.className = "bg-white shadow p-4 rounded mb-4";
+            card.className = "bg-white shadow p-4 rounded mb-4 border border-gray-300";
             card.innerHTML = `
               <h2 class="text-xl font-bold text-blue-700 mb-2">${patient.name}</h2>
               <p><strong>العمر:</strong> ${patient.age}</p>
               <p><strong>الرقم القومي:</strong> ${patient.nid}</p>
               <p><strong>القسم:</strong> ${patient.department}</p>
               <p><strong>تاريخ التسجيل:</strong> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</p>
+              <button onclick="viewPatient('${id}')" class="mt-3 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">عرض الحالة</button>
             `;
             container.appendChild(card);
           });
@@ -46,6 +46,10 @@
         }
       });
     });
+
+    window.viewPatient = function(id) {
+      window.location.href = `patient.html?id=${id}`;
+    };
   </script>
 
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
