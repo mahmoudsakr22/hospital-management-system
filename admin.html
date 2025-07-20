@@ -26,10 +26,13 @@
     onValue(patientsRef, (snapshot) => {
       const data = snapshot.val();
       const tableBody = document.getElementById("patientsTableBody");
+      const counter = document.getElementById("patientsCount");
       tableBody.innerHTML = "";
 
+      let count = 0;
       if (data) {
         Object.entries(data).forEach(([id, patient]) => {
+          count++;
           const tr = document.createElement("tr");
           tr.className = "border-b hover:bg-gray-100";
           tr.innerHTML = `
@@ -46,13 +49,15 @@
       } else {
         tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">لا توجد بيانات</td></tr>';
       }
+      counter.textContent = count;
     });
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans">
   <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">لوحة إدارة المستشفى</h1>
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-4">لوحة إدارة المستشفى</h1>
+    <div class="text-center mb-6 text-gray-600">إجمالي عدد المرضى: <span id="patientsCount">0</span></div>
 
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
       <table class="min-w-full table-auto">
