@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -91,22 +92,6 @@
               <input type="text" id="name" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
             </div>
             <div>
-                <label class="block text-gray-700 font-medium mb-2">فصية الدم</label>
-              <input type="number" id="age" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
-            </div>
-            <div>
-                <label class="block text-gray-700 font-medium mb-2">الجنس</label>
-              <input type="number" id="age" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
-            </div>
-            <div>
-                <label class="block text-gray-700 font-medium mb-2">الأمراض المزمنة</label>
-              <input type="number" id="age" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
-            </div>
-            <div>
-                <label class="block text-gray-700 font-medium mb-2">العنوان</label>
-              <input type="number" id="age" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
-            </div>
-            <div>
               <label class="block text-gray-700 font-medium mb-2">العمر</label>
               <input type="number" id="age" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
             </div>
@@ -115,6 +100,38 @@
               <input type="text" id="nid" maxlength="14" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
             </div>
             <div>
+              <div>
+  <label class="block text-gray-700 font-medium mb-2">الجنس</label>
+  <div class="flex space-x-4 space-x-reverse">
+    <label><input type="radio" name="gender" value="ذكر" required class="mr-2"> ذكر</label>
+    <label><input type="radio" name="gender" value="أنثى" required class="mr-2"> أنثى</label>
+  </div>
+</div>
+
+<div>
+  <label class="block text-gray-700 font-medium mb-2">العنوان</label>
+  <input type="text" id="address" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
+</div>
+
+<div>
+  <label class="block text-gray-700 font-medium mb-2">الأمراض المزمنة</label>
+  <input type="text" id="chronic" placeholder="اكتب الأمراض المزمنة إن وجدت" class="w-full border border-gray-300 rounded-lg px-4 py-2">
+</div>
+
+<div>
+  <label class="block text-gray-700 font-medium mb-2">فصيلة الدم</label>
+  <select id="blood" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
+    <option value="">-- اختر فصيلة الدم --</option>
+    <option value="A+">A+</option>
+    <option value="A-">A-</option>
+    <option value="B+">B+</option>
+    <option value="B-">B-</option>
+    <option value="AB+">AB+</option>
+    <option value="AB-">AB-</option>
+    <option value="O+">O+</option>
+    <option value="O-">O-</option>
+  </select>
+</div>
               <label class="block text-gray-700 font-medium mb-2">القسم المحول إليه</label>
               <select id="department" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
                 <option value="">-- اختر القسم --</option>
@@ -251,14 +268,20 @@
             const card = document.createElement("div");
             card.className = "bg-gray-50 border border-gray-200 p-4 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between";
             card.innerHTML = `
-              <div class="mb-3 md:mb-0">
-                <h3 class="font-bold text-lg text-blue-800">${patient.name}</h3>
-                <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
-                  <span><i class="fas fa-birthday-cake ml-1"></i> العمر: ${patient.age}</span>
-                  <span><i class="fas fa-id-card ml-1"></i> الرقم القومي: ${patient.nid}</span>
-                  <span><i class="fas fa-calendar-alt ml-1"></i> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</span>
-                </div>
-              </div>
+              card.innerHTML = `
+  <div class="mb-3 md:mb-0">
+    <h3 class="font-bold text-lg text-blue-800">${patient.name}</h3>
+    <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
+      <span><i class="fas fa-birthday-cake ml-1"></i> العمر: ${patient.age}</span>
+      <span><i class="fas fa-id-card ml-1"></i> الرقم القومي: ${patient.nid}</span>
+      <span><i class="fas fa-venus-mars ml-1"></i> الجنس: ${patient.gender || '---'}</span>
+      <span><i class="fas fa-map-marker-alt ml-1"></i> العنوان: ${patient.address || '---'}</span>
+      <span><i class="fas fa-heartbeat ml-1"></i> أمراض مزمنة: ${patient.chronic || 'لا يوجد'}</span>
+      <span><i class="fas fa-tint ml-1"></i> فصيلة الدم: ${patient.blood || '---'}</span>
+      <span><i class="fas fa-calendar-alt ml-1"></i> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</span>
+    </div>
+  </div>
+`;
               <div class="flex space-x-2 space-x-reverse">
                 <button class="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded-lg transition duration-200" data-id="${key}">
                   <i class="fas fa-trash-alt ml-1"></i> حذف
