@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>نظام ملف المريض - مستشفى الحياة الذكية</title>
 
-  <!-- Fonts -->
+  <!-- Fonts + Tailwind -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -30,7 +28,7 @@
     };
   </script>
 
-  <!-- Libraries -->
+  <!-- Icons + QR -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -49,21 +47,6 @@
       border-radius: 9999px;
       font-weight: 500;
     }
-    .timeline-item {
-      position: relative;
-      padding-right: 2rem;
-      border-right: 2px solid #e5e7eb;
-    }
-    .timeline-item:before {
-      content: "";
-      position: absolute;
-      right: -0.5rem;
-      top: 0.5rem;
-      width: 1rem;
-      height: 1rem;
-      border-radius: 50%;
-      background: #1e40af;
-    }
   </style>
 </head>
 <body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
@@ -81,37 +64,23 @@
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <button onclick="printReport()" class="flex items-center gap-2 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition">
-          <i class="fas fa-print"></i>
-          طباعة الملف
-        </button>
-        <button onclick="goToEmergency()" class="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
-          <i class="fas fa-ambulance"></i>
-          قسم الطوارئ
-        </button>
-        <button onclick="goHome()" class="flex items-center gap-2 bg-accent hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
-          <i class="fas fa-home"></i>
-          الرئيسية
-        </button>
+        <button onclick="printReport()" class="bg-primary text-white px-4 py-2 rounded-lg">طباعة الملف</button>
+        <button onclick="goToEmergency()" class="bg-gray-600 text-white px-4 py-2 rounded-lg">قسم الطوارئ</button>
+        <button onclick="goHome()" class="bg-accent text-white px-4 py-2 rounded-lg">الرئيسية</button>
       </div>
     </div>
 
-    <!-- Patient Card -->
+    <!-- Patient Info -->
     <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-      <!-- Patient Header -->
-      <div class="bg-gradient-to-r from-primary to-blue-700 p-6 text-white">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 class="text-2xl font-bold">ملف المريض</h2>
-            <p class="opacity-90">تفاصيل المريض وسجلاته الطبية</p>
-          </div>
-          <div id="patientStatus" class="status-badge bg-white text-primary"></div>
+      <div class="bg-gradient-to-r from-primary to-blue-700 p-6 text-white flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold">ملف المريض</h2>
+          <p class="opacity-90">تفاصيل المريض وسجلاته الطبية</p>
         </div>
+        <div id="patientStatus" class="status-badge bg-white text-primary"></div>
       </div>
 
-      <!-- Patient Content -->
       <div class="p-6">
-        <!-- Basic Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div class="md:col-span-2">
             <h3 class="text-xl font-semibold mb-4 text-primary">المعلومات الأساسية</h3>
@@ -120,151 +89,47 @@
             </div>
           </div>
 
-          <div class="flex flex-col items-center">
+          <div class="text-center">
             <h3 class="text-xl font-semibold mb-2 text-primary">رمز الاستجابة السريع</h3>
-            <div class="bg-white p-4 rounded-lg shadow-inner border border-gray-200">
-              <canvas id="qrCode" class="w-40 h-40"></canvas>
-            </div>
-            <p class="text-sm text-gray-500 mt-2">مسح الكود لعرض بيانات المريض</p>
-            <button onclick="downloadQR()" class="mt-3 text-sm text-blue-600 hover:text-blue-800">
-              <i class="fas fa-download mr-1"></i> تحميل QR Code
-            </button>
+            <canvas id="qrCode" class="w-40 h-40 mx-auto"></canvas>
+            <button onclick="downloadQR()" class="mt-3 text-blue-600 hover:underline text-sm">تحميل QR Code</button>
           </div>
         </div>
 
-        <!-- سجل الزيارات -->
-        <div class="space-y-8">
-          <div>
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold text-primary">سجل الزيارات</h3>
-              <button onclick="toggleSection('visitsList')" class="text-sm text-gray-500 hover:text-primary">
-                <i class="fas fa-chevron-down"></i>
-              </button>
+        <!-- الحالة الحالية -->
+        <div class="mb-6">
+          <h3 class="text-xl font-semibold text-primary mb-2">الحالة الحالية</h3>
+          <div class="bg-gray-50 p-4 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-1 text-gray-700">حالة المريض</label>
+              <select id="currentStatus" class="border rounded p-2 w-full">
+                <option value="stable">مستقر</option>
+                <option value="critical">حرج</option>
+                <option value="improving">في تحسن</option>
+                <option value="deteriorating">في تدهور</option>
+              </select>
             </div>
-            <div id="visitsSection">
-              <ul id="visitsList" class="space-y-4 timeline-container"></ul>
-              <div class="mt-6 bg-gray-50 p-4 rounded-lg">
-                <h4 class="font-medium mb-3 text-gray-700">إضافة زيارة جديدة</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <select id="visitType" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary">
-                    <option>كشف طبي</option>
-                    <option>متابعة</option>
-                    <option>استشارة</option>
-                    <option>طوارئ</option>
-                  </select>
-                  <input type="text" id="visitNotes" placeholder="ملاحظات الزيارة" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                  <input type="text" id="visitDoctor" placeholder="اسم الطبيب" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                </div>
-                <button onclick="addVisit()" class="mt-3 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg w-full">
-                  <i class="fas fa-plus-circle mr-2"></i> تسجيل الزيارة
-                </button>
-              </div>
+            <div>
+              <label class="block mb-1 text-gray-700">القسم الحالي</label>
+              <select id="currentDept" class="border rounded p-2 w-full">
+                <option>الطوارئ</option>
+                <option>العناية المركزة</option>
+                <option>الأشعة</option>
+                <option>التحاليل</option>
+                <option>العمليات</option>
+                <option>الاستقبال</option>
+              </select>
             </div>
           </div>
-
-          <!-- سجل التحويلات -->
-          <div>
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold text-primary">سجل التحويلات</h3>
-              <button onclick="toggleSection('transfersSection')" class="text-sm text-gray-500 hover:text-primary">
-                <i class="fas fa-chevron-down"></i>
-              </button>
-            </div>
-            <div id="transfersSection">
-              <ul id="transfersList" class="space-y-4 timeline-container"></ul>
-              <div class="mt-6 bg-gray-50 p-4 rounded-lg">
-                <h4 class="font-medium mb-3 text-gray-700">إضافة تحويل جديد</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <select id="transferDept" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary">
-                    <option>الأشعة</option>
-                    <option>التحاليل</option>
-                    <option>العناية المركزة</option>
-                    <option>العمليات</option>
-                    <option>الطوارئ</option>
-                  </select>
-                  <input type="text" id="transferReason" placeholder="سبب التحويل" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                  <input type="text" id="transferDoctor" placeholder="الطبيب المحول" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                </div>
-                <div class="mt-3">
-                  <textarea id="transferNotes" placeholder="ملاحظات إضافية" rows="2" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary w-full"></textarea>
-                </div>
-                <button onclick="addTransfer()" class="mt-3 bg-secondary hover:bg-purple-700 text-white px-4 py-2 rounded-lg w-full">
-                  <i class="fas fa-exchange-alt mr-2"></i> تسجيل التحويل
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- العلاجات والأدوية -->
-          <div>
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold text-primary">العلاجات والأدوية</h3>
-              <button onclick="toggleSection('medicationsSection')" class="text-sm text-gray-500 hover:text-primary">
-                <i class="fas fa-chevron-down"></i>
-              </button>
-            </div>
-            <div id="medicationsSection">
-              <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <input type="text" id="medName" placeholder="اسم الدواء" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                  <input type="text" id="medDosage" placeholder="الجرعة" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                  <input type="text" id="medFrequency" placeholder="التكرار" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                  <input type="text" id="medDuration" placeholder="المدة" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
-                </div>
-                <div class="mt-3">
-                  <textarea id="medNotes" placeholder="تعليمات خاصة" rows="2" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary w-full"></textarea>
-                </div>
-                <button onclick="addMedication()" class="mt-3 bg-accent hover:bg-green-700 text-white px-4 py-2 rounded-lg w-full">
-                  <i class="fas fa-pills mr-2"></i> إضافة دواء
-                </button>
-              </div>
-              <ul id="medications" class="space-y-3"></ul>
-            </div>
-          </div>
-
-          <!-- الحالة الحالية -->
-          <div>
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold text-primary">الحالة الحالية</h3>
-              <button onclick="toggleSection('statusSection')" class="text-sm text-gray-500 hover:text-primary">
-                <i class="fas fa-chevron-down"></i>
-              </button>
-            </div>
-            <div id="statusSection">
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label class="block text-gray-700 mb-1">حالة المريض</label>
-                    <select id="currentStatus" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary w-full">
-                      <option value="stable">مستقر</option>
-                      <option value="critical">حرج</option>
-                      <option value="improving">في تحسن</option>
-                      <option value="deteriorating">في تدهور</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-gray-700 mb-1">القسم الحالي</label>
-                    <select id="currentDept" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary w-full">
-                      <option>الطوارئ</option>
-                      <option>العناية المركزة</option>
-                      <option>الأشعة</option>
-                      <option>التحاليل</option>
-                      <option>العمليات</option>
-                      <option>الاستقبال</option>
-                    </select>
-                  </div>
-                </div>
-                <button onclick="updateStatus()" class="bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg w-full">
-                  <i class="fas fa-save mr-2"></i> تحديث الحالة
-                </button>
-              </div>
-            </div>
-          </div>
+          <button onclick="updateStatus()" class="mt-4 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg w-full">
+            <i class="fas fa-save mr-2"></i> تحديث الحالة
+          </button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- سكريبت -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
@@ -281,9 +146,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientId = urlParams.get('id');
+    const patientId = new URLSearchParams(window.location.search).get('id');
 
     const infoTable = document.getElementById("infoTable");
     const patientStatus = document.getElementById("patientStatus");
@@ -305,95 +168,42 @@
           <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
           <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
           <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
-          <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${new Date(patient.timestamp).toLocaleString('ar-EG') || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${new Date(patient.timestamp).toLocaleString('ar-EG')}</td></tr>
           <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
           <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
         `;
-
         patientStatus.textContent = patient.status || "غير محدد";
-
-        // توليد QR Code
         QRCode.toCanvas(qrCanvas, patientId, function (error) {
           if (error) console.error(error);
         });
 
-        // تعيين قيمة الحالة في الاختيار
-        const statusSelect = document.getElementById('currentStatus');
-        if (statusSelect) {
-          statusSelect.value = patient.status || "stable";
-        }
-
-        // تعيين قيمة القسم الحالي
-        const deptSelect = document.getElementById('currentDept');
-        if (deptSelect) {
-          deptSelect.value = patient.department || "الطوارئ";
-        }
-
+        document.getElementById('currentStatus').value = patient.status || "stable";
+        document.getElementById('currentDept').value = patient.department || "الطوارئ";
       } else {
         infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
         patientStatus.textContent = "";
       }
     }
 
-    // تحديث الحالة عند التغيير
-    async function updatePatientStatus(newStatus) {
-      if (!patientId) return;
+    window.updateStatus = async () => {
+      const newStatus = document.getElementById('currentStatus').value;
+      const newDept = document.getElementById('currentDept').value;
       const patientRef = ref(db, `patients/emergency/${patientId}`);
 
       try {
-        await update(patientRef, { status: newStatus });
+        await update(patientRef, { status: newStatus, department: newDept });
         patientStatus.textContent = newStatus;
-        alert('تم تحديث حالة المريض بنجاح');
+        alert("تم تحديث الحالة بنجاح");
       } catch (err) {
-        console.error(err);
-        alert('حدث خطأ أثناء تحديث الحالة');
+        alert("حدث خطأ أثناء تحديث البيانات");
       }
-    }
-
-    // تحديث القسم عند التغيير (اختياري، لو تريد تخزين القسم الجديد)
-    async function updatePatientDept(newDept) {
-      if (!patientId) return;
-      const patientRef = ref(db, `patients/emergency/${patientId}`);
-
-      try {
-        await update(patientRef, { department: newDept });
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadPatientData();
-
-      const statusSelect = document.getElementById('currentStatus');
-      if (statusSelect) {
-        statusSelect.addEventListener('change', (e) => {
-          updatePatientStatus(e.target.value);
-        });
-      }
-
-      const deptSelect = document.getElementById('currentDept');
-      if (deptSelect) {
-        deptSelect.addEventListener('change', (e) => {
-          updatePatientDept(e.target.value);
-        });
-      }
-    });
-
-    // أزرار التنقل والطباعة وتنزيل QR Code
-
-    window.goHome = () => {
-      window.location.href = "index.html";
     };
 
-    window.goToEmergency = () => {
-      window.location.href = "emergency.html";
-    };
+    document.addEventListener('DOMContentLoaded', loadPatientData);
 
-    window.printReport = () => {
-      window.print();
-    };
-
+    window.goHome = () => window.location.href = "index.html";
+    window.goToEmergency = () => window.location.href = "emergency.html";
+    window.printReport = () => window.print();
     window.downloadQR = () => {
       const link = document.createElement('a');
       link.download = `qr_${patientId}.png`;
@@ -403,4 +213,3 @@
   </script>
 </body>
 </html>
-
