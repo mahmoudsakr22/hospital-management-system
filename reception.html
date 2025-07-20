@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة استقبال المرضى - مستشفى الحياة الذكية</title>
     <meta name="description" content="نظام إدارة المرضى لمستشفى الحياة الذكية">
-      <!-- ✅ مكتبة SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -200,31 +198,11 @@
                 try {
                     const dbRef = ref(db, `patients/${department}`);
                     await push(dbRef, patient);
-                    Swal.fire({
-  icon: 'success',
-  title: 'تم التسجيل بنجاح ✅',
-  text: 'تم تحويل المريض إلى قسم ' + department,
-  timer: 3000,
-  timerProgressBar: true,
-  showConfirmButton: false,
-  toast: true,
-  position: 'top-end'
-});
-
+                    alert("✅ تم تسجيل المريض وتحويله إلى قسم " + department);
                     this.reset();
                 } catch (error) {
                     console.error(error);
-                    Swal.fire({
-  icon: 'error',
-  title: 'فشل التسجيل ❌',
-  text: 'حدث خطأ أثناء حفظ البيانات',
-  timer: 3000,
-  timerProgressBar: true,
-  showConfirmButton: false,
-  toast: true,
-  position: 'top-end'
-});
-
+                    alert("❌ حدث خطأ أثناء التسجيل");
                 }
             });
 
@@ -257,42 +235,13 @@
                             container.appendChild(card);
 
                             card.querySelector("button[data-id]").addEventListener("click", async () => {
-                               Swal.fire({
-  title: 'هل أنت متأكد؟',
-  text: "سيتم حذف المريض نهائيًا!",
-  icon: 'warning',
-  showCancelButton: true,
-  confirmButtonColor: '#d33',
-  cancelButtonColor: '#3085d6',
-  confirmButtonText: 'نعم، احذفه',
-  cancelButtonText: 'إلغاء'
-}).then(async (result) => {
-  if (result.isConfirmed) {
-    try {
-      await remove(ref(db, `patients/emergency/${key}`));
-      Swal.fire({
-        icon: 'success',
-        title: 'تم الحذف',
-        text: '✅ تم حذف المريض بنجاح',
-        timer: 3000,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end'
-      });
-    } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'فشل الحذف',
-        text: '❌ حدث خطأ أثناء الحذف',
-        timer: 3000,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end'
-      });
-    }
-  }
-});
-
+                                if (confirm("هل أنت متأكد من حذف هذا المريض؟")) {
+                                    try {
+                                        await remove(ref(db, `patients/emergency/${key}`));
+                                        alert("✅ تم حذف المريض بنجاح");
+                                    } catch (err) {
+                                        alert("❌ حدث خطأ أثناء الحذف");
+                                    }
                                 }
                             });
                         });
