@@ -1,1 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة إدارة المستشفى</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+  <div class="container mx-auto">
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold text-center mb-2">لوحة إدارة المستشفى</h1>
+      <div class="text-center mb-4">
+        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">تسجيل الخروج</button>
+      </div>
+    </header>
 
+    <!-- الإحصائيات -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="stats">
+      <div class="bg-white shadow-md rounded p-4 text-center">
+        <p class="text-xl font-semibold">📋</p>
+        <p class="text-gray-500">عدد المرضى</p>
+        <p class="text-2xl font-bold" id="totalPatients">-</p>
+      </div>
+      <div class="bg-white shadow-md rounded p-4 text-center">
+        <p class="text-xl font-semibold">🏥</p>
+        <p class="text-gray-500">عدد الأقسام</p>
+        <p class="text-2xl font-bold" id="totalDepartments">-</p>
+      </div>
+      <div class="bg-white shadow-md rounded p-4 text-center">
+        <p class="text-xl font-semibold">🩺</p>
+        <p class="text-gray-500">عدد الكشوف</p>
+        <p class="text-2xl font-bold" id="totalVisits">-</p>
+      </div>
+      <div class="bg-white shadow-md rounded p-4 text-center">
+        <p class="text-xl font-semibold">🔄</p>
+        <p class="text-gray-500">عدد التحويلات</p>
+        <p class="text-2xl font-bold" id="totalTransfers">-</p>
+      </div>
+    </section>
+
+    <!-- جدول المرضى -->
+    <section class="bg-white p-4 rounded shadow-md mb-8">
+      <h2 class="text-xl font-bold mb-4">سجل المرضى</h2>
+      <input id="searchInput" oninput="filterPatients()" type="text" placeholder="ابحث برقم المريض أو الاسم..." class="mb-4 p-2 border rounded w-full">
+      <table class="table-auto w-full text-center">
+        <thead>
+          <tr>
+            <th class="border p-2">ID</th>
+            <th class="border p-2">الاسم</th>
+            <th class="border p-2">القسم</th>
+            <th class="border p-2">عرض</th>
+          </tr>
+        </thead>
+        <tbody id="patientsTable"></tbody>
+      </table>
+    </section>
+
+    <!-- تحليل بياني -->
+    <section class="bg-white p-4 rounded shadow-md">
+      <h2 class="text-xl font-bold mb-4">تحليل توزيع المرضى</h2>
+      <canvas id="deptChart" height="100"></canvas>
+    </section>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DB_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const patientsTable = document.getElementById("patientsTable");
+    const searchInput = document.getElementById("searchInput");
+
+    let allPatients = [];
+
+    function loadData() {
+      db.ref("patients/emergency").once("value", (snapshot) => {
+        const data = snapshot.val() || {};
+        allPatients = Object.entries(data);
+        document.getElementById("totalPatients").textContent = allPatients.length;
+        document.getElementById("totalDepartments").textContent = 4; // ثابت
+
+        let visits = 0;
+        let transfers = 0;
+        let deptCount = {};
+
+        patientsTable.innerHTML = "";
+
+        allPatients.forEach(([id, p]) => {
+          visits += p.visits ? Object.keys(p.visits).length : 0;
+          transfers += p.transfers ? Object.keys(p.transfers).length : 0;
+
+          deptCount[p.department] = (deptCount[p.department] || 0) + 1;
+
+          const row = `<tr>
+            <td class='border p-2'>${id}</td>
+            <td class='border p-2'>${p.name}</td>
+            <td class='border p-2'>${p.department}</td>
+            <td class='border p-2'><button onclick="goToPatient('${id}')" class='bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded'>عرض</button></td>
+          </tr>`;
+          patientsTable.innerHTML += row;
+        });
+
+        document.getElementById("totalVisits").textContent = visits;
+        document.getElementById("totalTransfers").textContent = transfers;
+
+        drawChart(deptCount);
+      });
+    }
+
+    function drawChart(deptCount) {
+      const ctx = document.getElementById('deptChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(deptCount),
+          datasets: [{
+            label: 'عدد المرضى',
+            data: Object.values(deptCount),
+            backgroundColor: '#3b82f6'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function filterPatients() {
+      const val = searchInput.value.toLowerCase();
+      patientsTable.innerHTML = "";
+      allPatients.forEach(([id, p]) => {
+        if (id.includes(val) || (p.name && p.name.toLowerCase().includes(val))) {
+          const row = `<tr>
+            <td class='border p-2'>${id}</td>
+            <td class='border p-2'>${p.name}</td>
+            <td class='border p-2'>${p.department}</td>
+            <td class='border p-2'><button onclick="goToPatient('${id}')" class='bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded'>عرض</button></td>
+          </tr>`;
+          patientsTable.innerHTML += row;
+        }
+      });
+    }
+
+    function goToPatient(id) {
+      localStorage.setItem("selectedPatientId", id);
+      window.open("patient.html", "_blank");
+    }
+
+    function logout() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تم تسجيل الخروج',
+        confirmButtonText: 'حسنًا'
+      }).then(() => window.location.href = "index.html");
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
