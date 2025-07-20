@@ -2,263 +2,186 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>قسم الاستقبال - مستشفى الحياة الذكية</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>صفحة الاستقبال - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 text-right">
+
+  <!-- رأس الصفحة -->
+  <div class="relative h-64 bg-cover bg-center" style="background-image: url('https://via.placeholder.com/1200x300');">
+    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white bg-opacity-20 backdrop-blur-md p-6 rounded-lg text-white text-center">
+        <h1 class="text-4xl font-bold mb-2">مستشفى الحياة الذكية</h1>
+        <p class="text-xl">نظام إدارة قسم الاستقبال</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- إحصائيات -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <h2 class="text-xl font-bold text-blue-700">إجمالي عدد المرضى</h2>
+      <p id="totalPatients" class="text-3xl font-bold mt-2">0</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+      <h2 class="text-xl font-bold text-green-700">عدد المرضى اليوم</h2>
+      <p id="todayPatients" class="text-3xl font-bold mt-2">0</p>
+    </div>
+  </div>
+
+  <!-- تسجيل مريض جديد -->
+  <div class="p-4">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-2xl font-bold mb-4 text-blue-800">تسجيل مريض جديد</h2>
+      <form id="patientForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" id="name" placeholder="اسم المريض" required class="p-2 border rounded">
+        <input type="text" id="nationalId" placeholder="الرقم القومي (14 رقم)" maxlength="14" required class="p-2 border rounded">
+        <input type="number" id="age" placeholder="العمر" required class="p-2 border rounded">
+        <select id="department" required class="p-2 border rounded">
+          <option value="">اختر القسم</option>
+          <option value="emergency">الطوارئ</option>
+          <option value="icu">العناية المركزة</option>
+          <option value="operations">العمليات</option>
+          <option value="admin">الإدارة</option>
+        </select>
+        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-800 col-span-2">تسجيل المريض</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- قائمة المرضى -->
+  <div class="p-4">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-2xl font-bold mb-4 text-red-800">المرضى الحاليين في قسم الطوارئ</h2>
+      <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      onValue,
+      remove
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDBWmoydkI2Z4W0NDnAy48bbN7l-U-F6mM",
-      authDomain: "hospital-1d15c.firebaseapp.com",
-      projectId: "hospital-1d15c",
-      storageBucket: "hospital-1d15c.appspot.com",
-      messagingSenderId: "1038078501376",
-      appId: "1:1038078501376:web:1fa32566a390042f8ed009",
-      databaseURL: "https://hospital-1d15c-default-rtdb.firebaseio.com/"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_DOMAIN",
+      databaseURL: "YOUR_DB_URL",
+      projectId: "YOUR_ID",
+      storageBucket: "YOUR_BUCKET",
+      messagingSenderId: "YOUR_MSG_ID",
+      appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("patientForm");
-      const stats = document.getElementById("stats");
-      const patientsList = document.getElementById("patientsList");
+    const form = document.getElementById("patientForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const nationalId = document.getElementById("nationalId").value;
+      const age = document.getElementById("age").value;
+      const department = document.getElementById("department").value;
+      const date = new Date().toISOString().split("T")[0];
+      const id = Math.floor(100000 + Math.random() * 900000); // رقم ID عشوائي
 
-      const departments = ["emergency", "icu", "surgery", "care", "admin"];
-
-      form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const name = this.name.value.trim();
-        const age = this.age.value.trim();
-        const nid = this.nid.value.trim();
-        const department = this.department.value;
-
-        if (!name || !age || !nid || !department) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'تنبيه!',
-            text: 'يرجى ملء جميع الحقول.',
-            confirmButtonText: 'حسنًا'
-          });
-          return;
-        }
-
-        const patient = {
-          name,
-          age,
-          nid,
-          department,
-          entryDate: new Date().toLocaleDateString("ar-EG"),
-          doctor: "لم يُحدد بعد",
-          status: "مستقر"
-        };
-
-        try {
-          const dbRef = ref(db, `patients/${department}`);
-          await push(dbRef, patient);
-
-          Swal.fire({
-            icon: 'success',
-            title: 'تم التسجيل بنجاح ✅',
-            text: `تم تحويل المريض إلى قسم ${getDeptName(department)}`,
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end'
-          });
-
-          this.reset();
-        } catch (error) {
-          Swal.fire({
-            icon: 'error',
-            title: '❌ فشل التسجيل',
-            text: error.message
-          });
-        }
+      const newRef = push(ref(db, `patients/${department}`));
+      await set(newRef, {
+        name,
+        nationalId,
+        age,
+        department,
+        date,
+        id,
+        status: "مستقر"
       });
 
-      function getDeptName(dept) {
-        switch (dept) {
-          case 'emergency': return 'الطوارئ';
-          case 'icu': return 'العناية المركزة';
-          case 'surgery': return 'العمليات';
-          case 'care': return 'الرعاية';
-          case 'admin': return 'الإدارة';
-          default: return dept;
+      Swal.fire({
+        icon: "success",
+        title: "تم تسجيل المريض بنجاح",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 2000
+      });
+
+      form.reset();
+    });
+
+    function loadPatients() {
+      const list = document.getElementById("patientsList");
+      const totalEl = document.getElementById("totalPatients");
+      const todayEl = document.getElementById("todayPatients");
+      onValue(ref(db, "patients/emergency"), (snapshot) => {
+        const data = snapshot.val();
+        list.innerHTML = "";
+        let total = 0;
+        let todayCount = 0;
+        const today = new Date().toISOString().split("T")[0];
+
+        for (const key in data) {
+          total++;
+          if (data[key].date === today) todayCount++;
+
+          const card = document.createElement("div");
+          card.className = "border rounded p-4 shadow bg-gray-50";
+
+          card.innerHTML = `
+            <h3 class="text-lg font-bold text-gray-800">${data[key].name}</h3>
+            <p>الرقم القومي: ${data[key].nationalId}</p>
+            <p>العمر: ${data[key].age}</p>
+            <p>التاريخ: ${data[key].date}</p>
+            <p>الحالة: ${data[key].status}</p>
+            <button class="mt-2 bg-red-600 text-white px-3 py-1 rounded deleteBtn" data-key="${key}">حذف</button>
+          `;
+          list.appendChild(card);
         }
-      }
 
-      function loadStatsAndPatients() {
-        stats.innerHTML = "";
-        patientsList.innerHTML = "";
+        totalEl.textContent = total;
+        todayEl.textContent = todayCount;
 
-        departments.forEach(dept => {
-          const deptRef = ref(db, `patients/${dept}`);
-          onValue(deptRef, snapshot => {
-            const data = snapshot.val();
-            const count = data ? Object.keys(data).length : 0;
+        document.querySelectorAll(".deleteBtn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const key = btn.getAttribute("data-key");
 
-            const stat = document.createElement("div");
-            stat.innerHTML = `<strong>${getDeptName(dept)}:</strong> ${count} مريض`;
-            stats.appendChild(stat);
-
-            if (dept === "emergency" && data) {
-              for (let key in data) {
-                const p = data[key];
-                const card = document.createElement("div");
-                card.className = "patient-card";
-                card.innerHTML = `
-                  <h4>${p.name}</h4>
-                  <p>العمر: ${p.age}</p>
-                  <p>الرقم القومي: ${p.nid}</p>
-                  <p>تاريخ الدخول: ${p.entryDate}</p>
-                  <p>الحالة: ${p.status}</p>
-                  <button class="delete" data-key="${key}">حذف</button>
-                `;
-                patientsList.appendChild(card);
-              }
-
-              patientsList.querySelectorAll(".delete").forEach(btn => {
-                btn.addEventListener("click", async function () {
-                  const key = this.getAttribute("data-key");
-
-                  Swal.fire({
-                    title: 'هل أنت متأكد؟',
-                    text: "لن تتمكن من التراجع!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'نعم، احذفه',
-                    cancelButtonText: 'إلغاء'
-                  }).then(async (result) => {
-                    if (result.isConfirmed) {
-                      try {
-                        await remove(ref(db, `patients/emergency/${key}`));
-                        Swal.fire({
-                          icon: 'success',
-                          title: 'تم الحذف بنجاح',
-                          toast: true,
-                          position: 'top-end',
-                          showConfirmButton: false,
-                          timer: 2000
-                        });
-                      } catch (err) {
-                        Swal.fire({
-                          icon: 'error',
-                          title: 'حدث خطأ',
-                          text: err.message
-                        });
-                      }
-                    }
-                  });
+            Swal.fire({
+              title: 'هل أنت متأكد؟',
+              text: "لن تتمكن من التراجع عن هذا!",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#d33',
+              cancelButtonColor: '#3085d6',
+              confirmButtonText: 'نعم، احذفه',
+              cancelButtonText: 'إلغاء'
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                await remove(ref(db, `patients/emergency/${key}`));
+                Swal.fire({
+                  icon: "success",
+                  title: "تم حذف المريض",
+                  toast: true,
+                  position: "top-end",
+                  showConfirmButton: false,
+                  timer: 2000
                 });
-              });
-            }
+              }
+            });
           });
         });
-      }
+      });
+    }
 
-      loadStatsAndPatients();
-    });
+    loadPatients();
   </script>
 
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-      direction: rtl;
-    }
-
-    h1 {
-      color: #2c3e50;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    form, .stats, .patients {
-      background: #fff;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #27ae60;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .patient-card {
-      background: #e0f7fa;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-    }
-
-    .delete {
-      background-color: #c0392b;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-
-<body>
-  <h1>قسم الاستقبال - مستشفى الحياة الذكية</h1>
-
-  <section class="stats" id="stats">
-    <h3>إحصائيات الأقسام</h3>
-  </section>
-
-  <section class="form">
-    <form id="patientForm">
-      <h3>تسجيل مريض جديد</h3>
-      <label>الاسم:</label>
-      <input type="text" name="name" required />
-      <label>العمر:</label>
-      <input type="number" name="age" required />
-      <label>الرقم القومي:</label>
-      <input type="text" name="nid" required maxlength="14" />
-      <label>القسم:</label>
-      <select name="department" required>
-        <option value="">اختر القسم</option>
-        <option value="emergency">الطوارئ</option>
-        <option value="icu">العناية المركزة</option>
-        <option value="surgery">العمليات</option>
-        <option value="care">الرعاية</option>
-        <option value="admin">الإدارة</option>
-      </select>
-      <button type="submit">تسجيل</button>
-    </form>
-  </section>
-
-  <section class="patients">
-    <h3>المرضى في قسم الطوارئ</h3>
-    <div id="patientsList"></div>
-  </section>
 </body>
 </html>
