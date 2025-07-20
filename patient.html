@@ -1,19 +1,81 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>ملف المريض - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      button, nav { display: none; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-6">
+
+  <!-- رأس الصفحة -->
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow mb-4">
+    <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" alt="مستشفى الحياة" class="rounded mb-4">
+    <h1 class="text-3xl font-bold text-center text-blue-700 mb-2">مستشفى الحياة الذكية</h1>
+    <p class="text-center text-lg text-gray-700 mb-4">نهتم بصحتك دائمًا ونوفر لك رعاية متكاملة ومتابعة دقيقة لكل مريض.</p>
+    <div class="flex justify-center gap-4">
+      <button onclick="goHome()" class="bg-blue-500 text-white px-4 py-2 rounded">الصفحة الرئيسية</button>
+      <button onclick="window.print()" class="bg-yellow-500 text-white px-4 py-2 rounded">طباعة الصفحة</button>
+    </div>
+  </div>
+
+  <!-- محتوى ملف المريض -->
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+    <h2 class="text-2xl font-semibold text-center mb-6">ملف المريض</h2>
+
+    <h3 class="text-xl font-semibold mb-2">المعلومات الأساسية</h3>
+    <table class="table-auto w-full border mb-6" id="infoTable"></table>
+
+    <h3 class="text-xl font-semibold mb-2">سجل الزيارات</h3>
+    <ul class="list-disc pl-6 mb-4" id="visitsList"></ul>
+    <div class="mb-4">
+      <select id="visitType" class="border p-2 rounded">
+        <option>كشف طبي</option>
+        <option>متابعة</option>
+        <option>استشارة</option>
+      </select>
+      <input type="text" id="visitNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
+      <button onclick="addVisit()" class="bg-blue-600 text-white px-4 py-2 rounded">تسجيل الزيارة</button>
+    </div>
+
+    <h3 class="text-xl font-semibold mb-2">التحويلات</h3>
+    <ul class="list-disc pl-6 mb-4" id="transfersList"></ul>
+    <div class="mb-4">
+      <select id="transferDept" class="border p-2 rounded">
+        <option>الأشعة</option>
+        <option>التحاليل</option>
+        <option>العناية المركزة</option>
+        <option>العمليات</option>
+      </select>
+      <input type="text" id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
+      <button onclick="addTransfer()" class="bg-purple-600 text-white px-4 py-2 rounded">تسجيل التحويل</button>
+    </div>
+
+    <h3 class="text-xl font-semibold mb-2">الأدوية والعلاج</h3>
+    <ul class="list-disc pl-6 mb-4" id="medications"></ul>
+
+    <h3 class="text-xl font-semibold mb-2">الحالة الحالية</h3>
+    <div id="status" class="p-2 border rounded bg-gray-50 mb-6"></div>
+
+    <h3 class="text-xl font-semibold mb-2">رمز الاستجابة السريع (QR)</h3>
+    <canvas id="qrCode" class="mb-4"></canvas>
+
+    <div class="flex gap-4 mt-6">
+      <button onclick="downloadPDF()" class="bg-green-700 text-white px-6 py-2 rounded">تحميل تقرير PDF</button>
+      <button onclick="goBack()" class="bg-gray-600 text-white px-6 py-2 rounded">رجوع إلى قسم الطوارئ</button>
+    </div>
+  </div>
+
+  <!-- سكريبت Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      onValue,
-      push,
-      update
-    } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-    import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js";
+    import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -29,214 +91,101 @@
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const patientId = urlParams.get("id");
+    const patientId = urlParams.get('id');
+    const baseRef = ref(db, 'patients/emergency/' + patientId);
 
-    const patientRef = ref(db, "patients/emergency/" + patientId);
-    const visitsRef = ref(db, "visits/" + patientId);
-    const transfersRef = ref(db, "transfers/" + patientId);
-    const treatmentRef = ref(db, "treatment/" + patientId);
+    document.addEventListener("DOMContentLoaded", async () => {
+      const infoTable = document.getElementById("infoTable");
+      const visitsList = document.getElementById("visitsList");
+      const transfersList = document.getElementById("transfersList");
+      const statusDiv = document.getElementById("status");
+      const medsList = document.getElementById("medications");
 
-    window.addEventListener("DOMContentLoaded", () => {
-      QRCode.toCanvas(document.getElementById("qrcode"), patientId, { width: 100 });
+      const snapshot = await get(baseRef);
+      if (snapshot.exists()) {
+        const patient = snapshot.val();
 
-      onValue(patientRef, (snap) => {
-        const data = snap.val();
-        if (!data) return;
+        infoTable.innerHTML = `
+          <tr><td class="border p-2">الاسم:</td><td class="border p-2">${patient.name}</td></tr>
+          <tr><td class="border p-2">العمر:</td><td class="border p-2">${patient.age}</td></tr>
+          <tr><td class="border p-2">الرقم القومي:</td><td class="border p-2">${patient.nid}</td></tr>
+          <tr><td class="border p-2">ID:</td><td class="border p-2">${patientId}</td></tr>
+          <tr><td class="border p-2">تاريخ الدخول:</td><td class="border p-2">${new Date(patient.timestamp).toLocaleString('ar-EG')}</td></tr>
+          <tr><td class="border p-2">القسم الحالي:</td><td class="border p-2">${patient.department}</td></tr>
+          <tr><td class="border p-2">الطبيب المعالج:</td><td class="border p-2">${patient.doctor || 'غير محدد'}</td></tr>
+        `;
 
-        document.getElementById("name").textContent = data.name;
-        document.getElementById("age").textContent = data.age;
-        document.getElementById("nid").textContent = data.nid;
-        document.getElementById("pid").textContent = patientId;
-        document.getElementById("department").textContent = data.department;
-        document.getElementById("doctor").textContent = data.doctor || "غير محدد";
-        document.getElementById("timestamp").textContent = new Date(data.timestamp).toLocaleString("ar-EG");
-        document.getElementById("status").textContent = data.status || "غير محدد";
-      });
+        statusDiv.textContent = patient.status || "غير متوفر";
 
-      onValue(visitsRef, (snap) => {
-        const container = document.getElementById("visitRecords");
-        container.innerHTML = "";
+        QRCode.toCanvas(document.getElementById('qrCode'), patientId);
+      } else {
+        infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على المريض.</td></tr>";
+      }
+
+      onValue(ref(db, `patients/emergency/${patientId}/visits`), (snap) => {
+        visitsList.innerHTML = "";
         snap.forEach((child) => {
           const visit = child.val();
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td class="border p-2">${visit.type}</td>
-            <td class="border p-2">${visit.notes}</td>
-            <td class="border p-2">${new Date(visit.timestamp).toLocaleString("ar-EG")}</td>
-          `;
-          container.appendChild(row);
+          visitsList.innerHTML += `<li><strong>${visit.type}</strong> - ${visit.notes} (${new Date(visit.timestamp).toLocaleString('ar-EG')})</li>`;
         });
       });
 
-      onValue(transfersRef, (snap) => {
-        const container = document.getElementById("transferRecords");
-        container.innerHTML = "";
+      onValue(ref(db, `patients/emergency/${patientId}/transfers`), (snap) => {
+        transfersList.innerHTML = "";
         snap.forEach((child) => {
-          const transfer = child.val();
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td class="border p-2">${transfer.to}</td>
-            <td class="border p-2">${transfer.reason}</td>
-            <td class="border p-2">${new Date(transfer.timestamp).toLocaleString("ar-EG")}</td>
-          `;
-          container.appendChild(row);
+          const t = child.val();
+          transfersList.innerHTML += `<li>${t.department} - ${t.notes} (${new Date(t.timestamp).toLocaleString('ar-EG')})</li>`;
         });
       });
 
-      onValue(treatmentRef, (snap) => {
-        const container = document.getElementById("treatmentRecords");
-        container.innerHTML = "";
+      onValue(ref(db, `patients/emergency/${patientId}/medications`), (snap) => {
+        medsList.innerHTML = "";
         snap.forEach((child) => {
-          const tr = child.val();
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td class="border p-2">${tr.name}</td>
-            <td class="border p-2">${tr.dose}</td>
-            <td class="border p-2">${new Date(tr.timestamp).toLocaleString("ar-EG")}</td>
-          `;
-          container.appendChild(row);
+          const med = child.val();
+          medsList.innerHTML += `<li>${med.name} - ${med.dose}</li>`;
         });
-      });
-
-      document.getElementById("visitForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const type = document.getElementById("visitType").value;
-        const notes = document.getElementById("visitNotes").value;
-
-        push(visitsRef, {
-          type,
-          notes,
-          timestamp: Date.now()
-        }).then(() => {
-          document.getElementById("visitForm").reset();
-        });
-      });
-
-      document.getElementById("transferForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const to = document.getElementById("transferTo").value;
-        const reason = document.getElementById("transferReason").value;
-
-        push(transfersRef, {
-          to,
-          reason,
-          timestamp: Date.now()
-        });
-
-        update(patientRef, { department: to });
       });
     });
+
+    window.addVisit = async () => {
+      const type = document.getElementById("visitType").value;
+      const notes = document.getElementById("visitNotes").value;
+      const visitsRef = ref(db, `patients/emergency/${patientId}/visits`);
+      await push(visitsRef, {
+        type,
+        notes,
+        timestamp: Date.now()
+      });
+      document.getElementById("visitNotes").value = "";
+    };
+
+    window.addTransfer = async () => {
+      const dept = document.getElementById("transferDept").value;
+      const notes = document.getElementById("transferNotes").value;
+      const transRef = ref(db, `patients/emergency/${patientId}/transfers`);
+      await push(transRef, {
+        department: dept,
+        notes,
+        timestamp: Date.now()
+      });
+      document.getElementById("transferNotes").value = "";
+    };
+
+    window.downloadPDF = () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("تقرير المريض - مستشفى الحياة الذكية", 10, 10);
+      doc.text("ID: " + patientId, 10, 20);
+      doc.save("تقرير_المريض.pdf");
+    };
+
+    window.goBack = () => {
+      window.location.href = "emergency.html";
+    };
+
+    window.goHome = () => {
+      window.location.href = "index.html";
+    };
   </script>
-
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-</head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
-
-    <!-- 🏥 معلومات عامة -->
-    <div class="text-center mb-6">
-      <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" alt="شعار المستشفى" class="mx-auto mb-2">
-      <h1 class="text-3xl font-bold text-blue-900">مستشفى الحياة الذكية</h1>
-      <p class="text-gray-700 mt-2">نظام إدارة المرضى الذكي - نتابع حالتك لحظة بلحظة ونسهل رعايتك الطبية</p>
-    </div>
-
-    <h1 class="text-2xl font-bold text-center mb-4">📁 ملف المريض</h1>
-
-    <!-- 🔹 معلومات أساسية -->
-    <table class="w-full mb-6 bg-gray-50 rounded border">
-      <tr><td class="p-2 font-semibold">الاسم:</td><td id="name"></td></tr>
-      <tr><td class="p-2 font-semibold">العمر:</td><td id="age"></td></tr>
-      <tr><td class="p-2 font-semibold">الرقم القومي:</td><td id="nid"></td></tr>
-      <tr><td class="p-2 font-semibold">رقم المريض:</td><td id="pid"></td></tr>
-      <tr><td class="p-2 font-semibold">القسم الحالي:</td><td id="department"></td></tr>
-      <tr><td class="p-2 font-semibold">الطبيب المعالج:</td><td id="doctor"></td></tr>
-      <tr><td class="p-2 font-semibold">الحالة:</td><td id="status"></td></tr>
-      <tr><td class="p-2 font-semibold">تاريخ الدخول:</td><td id="timestamp"></td></tr>
-    </table>
-
-    <!-- 📝 تسجيل زيارة -->
-    <form id="visitForm" class="mb-6 bg-gray-50 p-4 rounded">
-      <h2 class="font-bold mb-2">🩺 تسجيل زيارة</h2>
-      <select id="visitType" class="w-full p-2 mb-2 border rounded">
-        <option>كشف طبي</option>
-        <option>متابعة</option>
-        <option>استشارة</option>
-      </select>
-      <textarea id="visitNotes" class="w-full p-2 mb-2 border rounded" placeholder="ملاحظات الطبيب..."></textarea>
-      <button class="bg-green-600 text-white px-4 py-2 rounded">تسجيل الزيارة</button>
-    </form>
-
-    <!-- 🔄 تحويل لقسم آخر -->
-    <form id="transferForm" class="mb-6 bg-gray-50 p-4 rounded">
-      <h2 class="font-bold mb-2">🔄 تحويل لقسم</h2>
-      <select id="transferTo" class="w-full p-2 mb-2 border rounded">
-        <option value="radiology">الأشعة</option>
-        <option value="lab">المعمل</option>
-        <option value="icu">العناية المركزة</option>
-        <option value="surgery">العمليات</option>
-      </select>
-      <textarea id="transferReason" class="w-full p-2 mb-2 border rounded" placeholder="ملاحظات التحويل..."></textarea>
-      <button class="bg-blue-600 text-white px-4 py-2 rounded">تأكيد التحويل</button>
-    </form>
-
-    <!-- 🧾 السجلات -->
-    <div class="mb-6">
-      <h2 class="font-bold mb-2">📋 سجل الزيارات</h2>
-      <table class="w-full border">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="p-2">النوع</th>
-            <th class="p-2">الملاحظات</th>
-            <th class="p-2">التاريخ</th>
-          </tr>
-        </thead>
-        <tbody id="visitRecords"></tbody>
-      </table>
-    </div>
-
-    <div class="mb-6">
-      <h2 class="font-bold mb-2">🏥 سجل التحويلات</h2>
-      <table class="w-full border">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="p-2">إلى قسم</th>
-            <th class="p-2">السبب</th>
-            <th class="p-2">التاريخ</th>
-          </tr>
-        </thead>
-        <tbody id="transferRecords"></tbody>
-      </table>
-    </div>
-
-    <div class="mb-6">
-      <h2 class="font-bold mb-2">💊 سجل الأدوية والعلاج</h2>
-      <table class="w-full border">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="p-2">الدواء</th>
-            <th class="p-2">الجرعة</th>
-            <th class="p-2">التاريخ</th>
-          </tr>
-        </thead>
-        <tbody id="treatmentRecords"></tbody>
-      </table>
-    </div>
-
-    <!-- 📎 QR Code -->
-    <div class="flex justify-between items-center mt-8">
-      <canvas id="qrcode"></canvas>
-      <a href="emergency.html" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">⬅️ رجوع إلى قسم الطوارئ</a>
-    </div>
-    <div class="flex justify-between items-center mb-4">
-  <div>
-    <h1 class="text-3xl font-bold text-blue-900">🩺 مستشفى الحياة الذكية</h1>
-    <p class="text-gray-600">نرعاكم بخبرة وابتسامة ❤️</p>
-  </div>
-  <button onclick="window.location.href='index.html'" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded shadow">
-    الرجوع إلى الصفحة الرئيسية
-  </button>
-</div>
-
-  </div>
 </body>
 </html>
