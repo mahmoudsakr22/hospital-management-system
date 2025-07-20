@@ -103,13 +103,18 @@
             const id = btn.dataset.id;
             const dept = btn.dataset.dept;
             Swal.fire({
-              title: "هل أنت متأكد؟",
-              text: "لن تتمكن من التراجع!",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "نعم، احذفه!",
-              cancelButtonText: "إلغاء"
-            }).then((result) => {
+  title: "هل أنت متأكد؟",
+  text: "لا يمكن التراجع عن هذا الإجراء!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonText: "نعم، احذفه",
+  cancelButtonText: "إلغاء",
+  width: "300px", // حجم أصغر
+  customClass: {
+    popup: 'text-sm' // حجم خط أصغر
+  }
+});
+then((result) => {
               if (result.isConfirmed) {
                 const delRef = ref(db, `patients/${dept}/${id}`);
                 remove(delRef).then(() => {
