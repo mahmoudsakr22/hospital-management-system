@@ -219,5 +219,128 @@
       link.click();
     };
   </script>
+    <!-- Medical Records -->
+        <div class="space-y-8">
+          <!-- Visits Section -->
+          <div>
+            <h3 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">سجل الزيارات</h3>
+            <ul id="visitsList" class="space-y-3"></ul>
+            
+            <div class="mt-6 glass-card p-4">
+              <h4 class="font-medium mb-3">إضافة زيارة جديدة</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <select id="visitType" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary">
+                  <option>كشف طبي</option>
+                  <option>متابعة</option>
+                  <option>استشارة</option>
+                </select>
+                <input type="text" id="visitNotes" placeholder="ملاحظات الزيارة" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary md:col-span-2">
+              </div>
+              <button onclick="addVisit()" class="mt-3 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg w-full">
+                تسجيل الزيارة
+              </button>
+            </div>
+          </div>
+
+          <!-- Transfers Section -->
+          <div>
+            <h3 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">سجل التحويلات</h3>
+            <ul id="transfersList" class="space-y-3"></ul>
+            
+            <div class="mt-6 glass-card p-4">
+              <h4 class="font-medium mb-3">إضافة تحويل جديد</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <select id="transferDept" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary">
+                  <option>الأشعة</option>
+                  <option>التحاليل</option>
+                  <option>العناية المركزة</option>
+                  <option>العمليات</option>
+                </select>
+                <input type="text" id="transferNotes" placeholder="ملاحظات التحويل" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary md:col-span-2">
+              </div>
+              <button onclick="addTransfer()" class="mt-3 bg-secondary hover:bg-purple-700 text-white px-4 py-2 rounded-lg w-full">
+                تسجيل التحويل
+              </button>
+            </div>
+          </div>
+
+          <!-- Medications Section -->
+          <div>
+            <h3 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">العلاجات والأدوية</h3>
+            <ul id="medications" class="space-y-2"></ul>
+          </div>
+
+          <!-- Status Section -->
+          <div>
+            <h3 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">الحالة الحالية</h3>
+            <div id="status" class="p-4 bg-gray-50 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, get, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get('id');
+    const baseRef = ref(db, 'patients/emergency/' + patientId);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const infoTable = document.getElementById("infoTable");
+      const visitsList = document.getElementById("visitsList");
+      const transfersList = document.getElementById("transfersList");
+      const statusDiv = document.getElementById("status");
+      const medsList = document.getElementById("medications");
+      const patientStatus = document.getElementById("patientStatus");
+
+      const snapshot = await get(baseRef);
+      if (snapshot.exists()) {
+        const patient = snapshot.val();
+
+        infoTable.innerHTML = `
+          <tr class="border-b border-gray-200">
+            <td class="py-3 font-medium text-gray-700">الاسم:</td>
+            <td class="py-3">${patient.name}</td>
+          </tr>
+          <tr class="border-b border-gray-200">
+            <td class="py-3 font-medium text-gray-700">العمر:</td>
+            <td class="py-3">${patient.age}</td>
+          </tr>
+          <tr class="border-b border-gray-200">
+            <td class="py-3 font-medium text-gray-700">الرقم القومي:</td>
+            <td class="py-3">${patient.nid}</td>
+          </tr>
+          <tr class="border-b border-gray-200">
+            <td class="py-3 font-medium text-gray-700">رقم الملف:</td>
+            <td class="py-3 font-mono">${patientId}</td>
+          </tr>
+          <tr class="border-b border-gray-200">
+            <td class="py-3 font-medium text-gray-700">تاريخ الدخول:</td>
+            <td class="py-3">${new Date(patient.timestamp).toLocaleString('ar-EG')}</td>
+          </tr>
+          <tr class="border-b border-gray-200">
+            <td class="py-3 font-medium text-gray-700">القسم الحالي:</td>
+            <td class="py-3">${patient.department}</td>
+          </tr>
+          <tr>
+            <td class="py-3 font-medium text-gray-700">الطبيب المعالج:</td>
+            <td class="py-3">${patient.doctor || 'غير محدد'}</td>
+          </tr>
 </body>
 </html>
