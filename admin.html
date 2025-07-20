@@ -102,26 +102,35 @@
           btn.addEventListener("click", () => {
             const id = btn.dataset.id;
             const dept = btn.dataset.dept;
-            Swal.fire({
+          Swal.fire({
   title: "هل أنت متأكد؟",
-  text: "لا يمكن التراجع عن هذا الإجراء!",
+  text: "لن تتمكن من التراجع بعد الحذف!",
   icon: "warning",
   showCancelButton: true,
-  confirmButtonText: "نعم، احذفه",
+  confirmButtonText: "نعم، احذف",
   cancelButtonText: "إلغاء",
-  width: "300px", // حجم أصغر
+  width: "350px",
   customClass: {
-    popup: 'text-sm' // حجم خط أصغر
+    popup: 'text-sm'
+  }
+}).then((result) => {
+  if (result.isConfirmed) {
+    // الكود الخاص بالحذف هنا
+
+    Swal.fire({
+      title: "تم الحذف!",
+      text: "تم حذف المريض بنجاح.",
+      icon: "success",
+      width: "300px",
+      customClass: {
+        popup: 'text-sm'
+      },
+      timer: 2000,
+      showConfirmButton: false
+    });
   }
 });
-then((result) => {
-              if (result.isConfirmed) {
-                const delRef = ref(db, `patients/${dept}/${id}`);
-                remove(delRef).then(() => {
-                  Swal.fire("تم الحذف!", "تم حذف بيانات المريض.", "success");
-                });
-              }
-            });
+
           });
         });
 
