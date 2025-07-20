@@ -252,27 +252,38 @@
             container.appendChild(card);
 
             card.querySelector("button[data-id]").addEventListener("click", async () => {
-              if (confirm("هل أنت متأكد من حذف هذا المريض؟")) {
-                try {
-                  await remove(ref(db, `patients/emergency/${key}`));
-                  Swal.fire({
-                    icon: 'success',
-                    title: 'تم الحذف بنجاح',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 2000
-                  });
-                } catch (err) {
-                  Swal.fire({
-                    icon: 'error',
-                    title: 'حدث خطأ أثناء الحذف',
-                    text: err.message
-                  });
-                }
-              }
-            });
-          });
+             Swal.fire({
+  title: 'هل أنت متأكد؟',
+  text: "لن تتمكن من التراجع بعد الحذف!",
+  icon: 'warning',
+  showCancelButton: true,
+  confirmButtonColor: '#d33',
+  cancelButtonColor: '#3085d6',
+  confirmButtonText: 'نعم، احذفه',
+  cancelButtonText: 'إلغاء'
+}).then(async (result) => {
+  if (result.isConfirmed) {
+    try {
+      await remove(ref(db, `patients/emergency/${key}`));
+      Swal.fire({
+        icon: 'success',
+        title: 'تم الحذف',
+        text: 'تم حذف المريض بنجاح.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'خطأ أثناء الحذف',
+        text: err.message
+      });
+    }
+  }
+});
+ });
         } else {
           container.innerHTML = `
             <div class="text-center py-8">
