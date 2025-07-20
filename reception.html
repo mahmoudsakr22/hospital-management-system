@@ -250,16 +250,22 @@
               </div>
             `;
             container.appendChild(card);
-           card.querySelector("button[data-id]").addEventListener("click", async () => {
+card.querySelector("button[data-id]").addEventListener("click", async () => {
   Swal.fire({
     title: 'هل أنت متأكد؟',
     text: "لن تتمكن من التراجع بعد الحذف!",
     icon: 'warning',
+    width: '300px', // ✅ هنا بنحدد العرض
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#3085d6',
     confirmButtonText: 'نعم، احذفه!',
-    cancelButtonText: 'إلغاء'
+    cancelButtonText: 'إلغاء',
+    customClass: {
+      title: 'text-base',
+      htmlContainer: 'text-sm',
+      popup: 'rounded-lg'
+    }
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -282,6 +288,7 @@
     }
   });
 });
+
           });
         } else {
           container.innerHTML = `
