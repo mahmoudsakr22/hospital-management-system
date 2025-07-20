@@ -1,118 +1,311 @@
-<!-- ضمن ملف patient.html، فقط الجزء الخاص بالسكريبت -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>نظام ملف المريض - مستشفى الحياة الذكية</title>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-    authDomain: "hospital-project-e4b59.firebaseapp.com",
-    databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "hospital-project-e4b59",
-    storageBucket: "hospital-project-e4b59.appspot.com",
-    messagingSenderId: "974610606258",
-    appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-  };
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Tajawal', 'sans-serif'],
+          },
+          colors: {
+            primary: '#1e40af',
+            secondary: '#7c3aed',
+            accent: '#10b981',
+            danger: '#dc2626',
+          },
+        },
+      },
+    };
+  </script>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const patientId = urlParams.get('id');
-
-  const infoTable = document.getElementById("infoTable");
-  const patientStatus = document.getElementById("patientStatus");
-  const qrCanvas = document.getElementById("qrCode");
-
-  async function loadPatientData() {
-    if (!patientId) {
-      infoTable.innerHTML = "<tr><td colspan='2'>معرف المريض غير موجود في الرابط.</td></tr>";
-      return;
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+    .timeline-item {
+      position: relative;
+      padding-right: 2rem;
+      border-right: 2px solid #e5e7eb;
+    }
+    .timeline-item:before {
+      content: "";
+      position: absolute;
+      right: -0.5rem;
+      top: 0.5rem;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      background: #1e40af;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-primary p-3 rounded-lg shadow-md">
+          <i class="fas fa-hospital text-white text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+          <p class="text-gray-600">نظام إدارة ملفات المرضى</p>
+        </div>
+      </div>
 
-    const patientRef = ref(db, `patients/emergency/${patientId}`);
-    const snapshot = await get(patientRef);
+      <div class="flex flex-wrap gap-3">
+        <button onclick="printReport()" class="flex items-center gap-2 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition">
+          <i class="fas fa-print"></i>
+          طباعة الملف
+        </button>
+        <button onclick="goToEmergency()" class="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
+          <i class="fas fa-ambulance"></i>
+          قسم الطوارئ
+        </button>
+        <button onclick="goHome()" class="flex items-center gap-2 bg-accent hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+          <i class="fas fa-home"></i>
+          الرئيسية
+        </button>
+      </div>
+    </div>
 
-    if (snapshot.exists()) {
-      const patient = snapshot.val();
-      infoTable.innerHTML = `
-        <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
-        <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
-        <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
-        <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
-        <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${new Date(patient.timestamp).toLocaleString('ar-EG') || '-'}</td></tr>
-        <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
-        <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
-      `;
+    <!-- Patient Card -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <!-- Patient Header -->
+      <div class="bg-gradient-to-r from-primary to-blue-700 p-6 text-white">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-bold">ملف المريض</h2>
+            <p class="opacity-90">تفاصيل المريض وسجلاته الطبية</p>
+          </div>
+          <div id="patientStatus" class="status-badge bg-white text-primary"></div>
+        </div>
+      </div>
 
-      // تعيين حالة المريض في العنصر
-      patientStatus.textContent = patient.status || "غير محدد";
+      <!-- Patient Content -->
+      <div class="p-6">
+        <!-- Basic Info -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div class="md:col-span-2">
+            <h3 class="text-xl font-semibold mb-4 text-primary">المعلومات الأساسية</h3>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <table class="table-auto w-full" id="infoTable"></table>
+            </div>
+          </div>
 
-      // توليد QR Code
-      QRCode.toCanvas(qrCanvas, patientId, function (error) {
-        if (error) console.error(error);
-      });
+          <div class="flex flex-col items-center">
+            <h3 class="text-xl font-semibold mb-2 text-primary">رمز الاستجابة السريع</h3>
+            <div class="bg-white p-4 rounded-lg shadow-inner border border-gray-200">
+              <canvas id="qrCode" class="w-40 h-40"></canvas>
+            </div>
+            <p class="text-sm text-gray-500 mt-2">مسح الكود لعرض بيانات المريض</p>
+            <button onclick="downloadQR()" class="mt-3 text-sm text-blue-600 hover:text-blue-800">
+              <i class="fas fa-download mr-1"></i> تحميل QR Code
+            </button>
+          </div>
+        </div>
 
-      // تعيين قيمة الحالة في الاختيار
-      const statusSelect = document.getElementById('currentStatus');
-      if (statusSelect) {
-        statusSelect.value = patient.status || "stable";
+        <!-- Status Section -->
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-primary">الحالة الحالية</h3>
+          </div>
+          <div id="statusSection">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-gray-700 mb-1">حالة المريض</label>
+                  <select id="currentStatus" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary w-full">
+                    <option value="stable">مستقر</option>
+                    <option value="critical">حرج</option>
+                    <option value="improving">في تحسن</option>
+                    <option value="deteriorating">في تدهور</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-gray-700 mb-1">القسم الحالي</label>
+                  <select id="currentDept" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary w-full">
+                    <option>الطوارئ</option>
+                    <option>العناية المركزة</option>
+                    <option>الأشعة</option>
+                    <option>التحاليل</option>
+                    <option>العمليات</option>
+                    <option>الاستقبال</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- باقي الأقسام (زي الزيارات، التحويلات، الأدوية) ممكن تضيفهم بنفس الطريقة -->
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get('id');
+
+    const infoTable = document.getElementById("infoTable");
+    const patientStatus = document.getElementById("patientStatus");
+    const qrCanvas = document.getElementById("qrCode");
+
+    async function loadPatientData() {
+      if (!patientId) {
+        infoTable.innerHTML = "<tr><td colspan='2'>معرف المريض غير موجود في الرابط.</td></tr>";
+        return;
       }
 
-    } else {
-      infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
-      patientStatus.textContent = "";
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
+      const snapshot = await get(patientRef);
+
+      if (snapshot.exists()) {
+        const patient = snapshot.val();
+        infoTable.innerHTML = `
+          <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
+          <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${new Date(patient.timestamp).toLocaleString('ar-EG') || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
+        `;
+
+        patientStatus.textContent = patient.status || "غير محدد";
+
+        // توليد QR Code
+        QRCode.toCanvas(qrCanvas, patientId, function (error) {
+          if (error) console.error(error);
+        });
+
+        // تعيين قيمة الحالة في الاختيار
+        const statusSelect = document.getElementById('currentStatus');
+        if (statusSelect) {
+          statusSelect.value = patient.status || "stable";
+        }
+
+        // تعيين قيمة القسم الحالي
+        const deptSelect = document.getElementById('currentDept');
+        if (deptSelect) {
+          deptSelect.value = patient.department || "الطوارئ";
+        }
+
+      } else {
+        infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
+        patientStatus.textContent = "";
+      }
     }
-  }
 
-  // دالة لتحديث الحالة في قاعدة البيانات
-  async function updatePatientStatus(newStatus) {
-    if (!patientId) return;
-    const patientRef = ref(db, `patients/emergency/${patientId}`);
-    
-    try {
-      await update(patientRef, { status: newStatus });
-      patientStatus.textContent = newStatus;
-      alert('تم تحديث حالة المريض بنجاح');
-    } catch (err) {
-      console.error(err);
-      alert('حدث خطأ أثناء تحديث الحالة');
+    // تحديث الحالة عند التغيير
+    async function updatePatientStatus(newStatus) {
+      if (!patientId) return;
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
+
+      try {
+        await update(patientRef, { status: newStatus });
+        patientStatus.textContent = newStatus;
+        alert('تم تحديث حالة المريض بنجاح');
+      } catch (err) {
+        console.error(err);
+        alert('حدث خطأ أثناء تحديث الحالة');
+      }
     }
-  }
 
-  // استماع لتغيير حالة المريض في الاختيار
-  document.addEventListener('DOMContentLoaded', () => {
-    loadPatientData();
+    // تحديث القسم عند التغيير (اختياري، لو تريد تخزين القسم الجديد)
+    async function updatePatientDept(newDept) {
+      if (!patientId) return;
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
 
-    const statusSelect = document.getElementById('currentStatus');
-    if (statusSelect) {
-      statusSelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        // فقط تأكد أن القيمة محفوظة بصيغة متسقة مع صفحة الطوارئ
-        // يمكنك تعديل القيم لتتناسب مع قاعدة البيانات
-        updatePatientStatus(val);
-      });
+      try {
+        await update(patientRef, { department: newDept });
+      } catch (err) {
+        console.error(err);
+      }
     }
-  });
 
-  // أزرار التنقل والطباعة ونزّل QR Code كما هي في الكود الأساسي...
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPatientData();
 
-  window.goHome = () => {
-    window.location.href = "index.html";
-  };
+      const statusSelect = document.getElementById('currentStatus');
+      if (statusSelect) {
+        statusSelect.addEventListener('change', (e) => {
+          updatePatientStatus(e.target.value);
+        });
+      }
 
-  window.goToEmergency = () => {
-    window.location.href = "emergency.html";
-  };
+      const deptSelect = document.getElementById('currentDept');
+      if (deptSelect) {
+        deptSelect.addEventListener('change', (e) => {
+          updatePatientDept(e.target.value);
+        });
+      }
+    });
 
-  window.printReport = () => {
-    window.print();
-  };
+    // أزرار التنقل والطباعة وتنزيل QR Code
 
-  window.downloadQR = () => {
-    const link = document.createElement('a');
-    link.download = `qr_${patientId}.png`;
-    link.href = qrCanvas.toDataURL();
-    link.click();
-  };
-</script>
+    window.goHome = () => {
+      window.location.href = "index.html";
+    };
+
+    window.goToEmergency = () => {
+      window.location.href = "emergency.html";
+    };
+
+    window.printReport = () => {
+      window.print();
+    };
+
+    window.downloadQR = () => {
+      const link = document.createElement('a');
+      link.download = `qr_${patientId}.png`;
+      link.href = qrCanvas.toDataURL();
+      link.click();
+    };
+  </script>
+</body>
+</html>
