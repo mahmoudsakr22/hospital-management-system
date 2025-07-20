@@ -1,358 +1,178 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
   <meta charset="UTF-8" />
-  <title>لوحة إدارة المستشفى المتقدمة</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة إدارة المستشفى</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
-  <!-- Google Fonts - Arabic -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: 'Tajawal', sans-serif;
+      background: #f3f4f6;
+      font-family: 'Cairo', sans-serif;
     }
-    .patient-status-critical { background-color: #fee2e2; border-left: 4px solid #ef4444; }
-    .patient-status-stable { background-color: #dcfce7; border-left: 4px solid #22c55e; }
-    .patient-status-recovering { background-color: #fef9c3; border-left: 4px solid #facc15; }
-    .patient-status-discharged { background-color: #e0e7ff; border-left: 4px solid #6366f1; }
   </style>
 </head>
-<body class="bg-gray-50 p-6">
-  <div class="max-w-7xl mx-auto">
-
-    <!-- Header -->
-    <header class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-blue-800 mb-2">
-        <i class="fas fa-hospital-alt ml-2"></i> لوحة إدارة المستشفى المتقدمة
-      </h1>
-      <p class="text-gray-600">نظام متكامل لإدارة المرضى والسجلات الطبية</p>
-    </header>
-
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white shadow-md rounded-lg p-4 border-t-4 border-blue-500">
-        <div class="flex items-center">
-          <div class="bg-blue-100 p-3 rounded-full mr-3">
-            <i class="fas fa-procedures text-blue-600"></i>
-          </div>
-          <div>
-            <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
-            <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-white shadow-md rounded-lg p-4 border-t-4 border-green-500">
-        <div class="flex items-center">
-          <div class="bg-green-100 p-3 rounded-full mr-3">
-            <i class="fas fa-clipboard-list text-green-600"></i>
-          </div>
-          <div>
-            <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
-            <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-white shadow-md rounded-lg p-4 border-t-4 border-purple-500">
-        <div class="flex items-center">
-          <div class="bg-purple-100 p-3 rounded-full mr-3">
-            <i class="fas fa-user-md text-purple-600"></i>
-          </div>
-          <div>
-            <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
-            <p id="totalVisits" class="text-2xl font-bold text-purple-600">0</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-white shadow-md rounded-lg p-4 border-t-4 border-red-500">
-        <div class="flex items-center">
-          <div class="bg-red-100 p-3 rounded-full mr-3">
-            <i class="fas fa-bed text-red-600"></i>
-          </div>
-          <div>
-            <h3 class="text-sm text-gray-500">المرضى الحاليين</h3>
-            <p id="currentPatients" class="text-2xl font-bold text-red-600">0</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Status Distribution -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <div class="bg-white shadow-md rounded-lg p-4">
-        <h2 class="text-lg font-bold text-gray-700 mb-4">
-          <i class="fas fa-chart-pie ml-2"></i> توزيع حالات المرضى
-        </h2>
-        <canvas id="statusChart" height="200"></canvas>
-      </div>
-      
-      <div class="bg-white shadow-md rounded-lg p-4">
-        <h2 class="text-lg font-bold text-gray-700 mb-4">
-          <i class="fas fa-chart-bar ml-2"></i> توزيع المرضى على الأقسام
-        </h2>
-        <canvas id="departmentChart" height="200"></canvas>
-      </div>
-    </div>
-
-    <!-- Patients Table -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
-      <div class="p-4 border-b flex justify-between items-center">
-        <h2 class="text-lg font-bold text-gray-700">
-          <i class="fas fa-list-ol ml-2"></i> سجل المرضى
-        </h2>
-        <div class="flex space-x-2 space-x-reverse">
-          <button id="refreshBtn" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm hover:bg-blue-200">
-            <i class="fas fa-sync-alt ml-1"></i> تحديث
-          </button>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full">
-          <thead class="bg-gray-100 text-gray-700">
-            <tr>
-              <th class="p-3 text-right">الاسم</th>
-              <th class="p-3">العمر</th>
-              <th class="p-3">الحالة</th>
-              <th class="p-3">القسم</th>
-              <th class="p-3">تاريخ التسجيل</th>
-              <th class="p-3">آخر زيارة</th>
-              <th class="p-3">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="patientsTable" class="divide-y divide-gray-200">
-            <!-- Will be populated by JavaScript -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Edit Patient Modal -->
-    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-      <div class="bg-white rounded-lg p-6 w-full max-w-md">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-gray-800">تعديل بيانات المريض</h3>
-          <button id="closeModal" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <form id="editForm" class="space-y-4">
-          <input type="hidden" id="editPatientId">
-          <input type="hidden" id="editDepartment">
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">اسم المريض</label>
-            <input type="text" id="editName" class="w-full border border-gray-300 rounded-lg px-4 py-2">
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
-            <input type="number" id="editAge" class="w-full border border-gray-300 rounded-lg px-4 py-2">
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
-            <select id="editStatus" class="w-full border border-gray-300 rounded-lg px-4 py-2">
-              <option value="stable">مستقر</option>
-              <option value="critical">حرج</option>
-              <option value="recovering">في تحسن</option>
-              <option value="discharged">تم الخروج</option>
-            </select>
-          </div>
-          
-          <div class="pt-2">
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">
-              <i class="fas fa-save ml-2"></i> حفظ التعديلات
-            </button>
-          </div>
-        </form>
+<body class="p-4">
+  <div class="bg-white shadow rounded-lg p-6 mb-4">
+    <div class="flex items-center space-x-4">
+      <img src="hospital-logo.png" class="w-16 h-16 rounded-full" alt="شعار المستشفى">
+      <div>
+        <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
+        <p class="text-gray-500">لوحة تحكم الإدارة</p>
       </div>
     </div>
   </div>
 
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-blue-100 p-4 rounded shadow text-center">
+      <h2 class="text-lg font-semibold">🆕 عدد المسجلين اليوم</h2>
+      <p id="todayCount" class="text-3xl font-bold text-blue-600">0</p>
+    </div>
+    <div class="bg-green-100 p-4 rounded shadow text-center">
+      <h2 class="text-lg font-semibold">👥 إجمالي المرضى</h2>
+      <p id="totalCount" class="text-3xl font-bold text-green-600">0</p>
+    </div>
+    <div class="bg-purple-100 p-4 rounded shadow text-center">
+      <h2 class="text-lg font-semibold">📊 عدد المرضى في كل قسم</h2>
+      <ul id="departmentCounts" class="text-lg font-medium"></ul>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <canvas id="statusChart"></canvas>
+    <canvas id="departmentChart"></canvas>
+  </div>
+
+  <div class="mt-6 flex justify-center">
+    <button id="refreshBtn" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">🔄 تحديث البيانات</button>
+  </div>
+
+  <div class="mt-6 flex justify-center">
+    <a href="index.html" class="mt-4 bg-gray-700 text-white py-2 px-4 rounded shadow hover:bg-gray-800">🔙 العودة إلى الصفحة الرئيسية</a>
+  </div>
+
+  <!-- Firebase و Chart.js -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { 
-      getDatabase, 
-      ref, 
-      onValue, 
-      update,
-      remove
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-      authDomain: "hospital-project-e4b59.firebaseapp.com",
-      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hospital-project-e4b59",
-      storageBucket: "hospital-project-e4b59.appspot.com",
-      messagingSenderId: "974610606258",
-      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Status mapping
-    const statusMap = {
-      'critical': { text: 'حرج', color: 'text-red-600', icon: 'fas fa-heartbeat' },
-      'stable': { text: 'مستقر', color: 'text-green-600', icon: 'fas fa-heart' },
-      'recovering': { text: 'في تحسن', color: 'text-yellow-600', icon: 'fas fa-progress' },
-      'discharged': { text: 'تم الخروج', color: 'text-blue-600', icon: 'fas fa-home' }
-    };
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
 
-    // Initialize charts
+    const totalCountEl = document.getElementById("totalCount");
+    const todayCountEl = document.getElementById("todayCount");
+    const departmentCountsEl = document.getElementById("departmentCounts");
+
     let statusChart, departmentChart;
 
     function initCharts() {
-      const statusCtx = document.getElementById('statusChart').getContext('2d');
-      const deptCtx = document.getElementById('departmentChart').getContext('2d');
-      
-      statusChart = new Chart(statusCtx, {
+      const ctxStatus = document.getElementById("statusChart").getContext("2d");
+      const ctxDept = document.getElementById("departmentChart").getContext("2d");
+
+      statusChart = new Chart(ctxStatus, {
         type: 'pie',
         data: {
-          labels: ['مستقر', 'حرج', 'في تحسن', 'تم الخروج'],
+          labels: ['Stable', 'Critical', 'Recovering', 'Discharged'],
           datasets: [{
+            label: 'حالة المرضى',
             data: [0, 0, 0, 0],
-            backgroundColor: [
-              '#22c55e',
-              '#ef4444',
-              '#facc15',
-              '#6366f1'
-            ]
+            backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#6b7280']
           }]
         },
         options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              rtl: true
-            }
-          }
+          responsive: true
         }
       });
-      
-      departmentChart = new Chart(deptCtx, {
+
+      departmentChart = new Chart(ctxDept, {
         type: 'bar',
         data: {
           labels: [],
           datasets: [{
-            label: 'عدد المرضى',
+            label: 'عدد المرضى في الأقسام',
             data: [],
             backgroundColor: '#3b82f6'
           }]
         },
         options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            }
-          }
+          responsive: true
         }
       });
     }
 
-    // Load data from Firebase
     function loadData() {
       const patientsRef = ref(db, "patients");
+
       onValue(patientsRef, (snapshot) => {
         const data = snapshot.val();
-        let countPatients = 0;
-        let countVisits = 0;
-        let currentPatients = 0;
-        let departmentSet = new Set();
-        let statusCounts = {
-          critical: 0,
-          stable: 0,
-          recovering: 0,
-          discharged: 0
-        };
-        
-        const departmentCounts = {};
-        const tableBody = document.getElementById("patientsTable");
-        tableBody.innerHTML = "";
+        let total = 0;
+        let todayCount = 0;
+        let departmentCounts = {};
+        let statusCounts = { stable: 0, critical: 0, recovering: 0, discharged: 0 };
 
-        if (data) {
-          Object.entries(data).forEach(([department, patients]) => {
-            departmentSet.add(department);
-            departmentCounts[department] = 0;
+        for (const dept in data) {
+          const patients = data[dept];
+          let deptCount = 0;
 
-            Object.entries(patients).forEach(([id, patient]) => {
-              countPatients++;
-              departmentCounts[department]++;
-              
-              // Count visits
-              if (patient.visits) {
-                countVisits += Object.keys(patient.visits).length;
-              }
-              
-              // Determine patient status (default to stable if not set)
-              const status = patient.status || 'stable';
-              if (status !== 'discharged') {
-                currentPatients++;
-              }
-              statusCounts[status]++;
-              
-              // Get last visit date
-              let lastVisit = 'لا يوجد';
-              if (patient.visits) {
-                const visits = Object.values(patient.visits);
-                if (visits.length > 0) {
-                  lastVisit = new Date(visits[visits.length-1].timestamp).toLocaleString("ar-EG");
-                }
-              }
-              
-              // Create table row
-              const row = document.createElement("tr");
-              row.className = `hover:bg-gray-50 patient-status-${status}`;
-              
-              row.innerHTML = `
-                <td class="p-3 font-medium">${patient.name}</td>
-                <td class="p-3">${patient.age}</td>
-                <td class="p-3">
-                  <span class="${statusMap[status].color}">
-                    <i class="${statusMap[status].icon} ml-1"></i>
-                    ${statusMap[status].text}
-                  </span>
-                </td>
-                <td class="p-3">${department}</td>
-                <td class="p-3">${new Date(patient.timestamp).toLocaleString("ar-EG")}</td>
-                <td class="p-3">${lastVisit}</td>
-                <td class="p-3">
-                  <div class="flex space-x-2 space-x-reverse justify-center">
-                    <button class="edit-btn text-blue-600 hover:text-blue-800" data-id="${id}" data-dept="${department}">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="delete-btn text-red-600 hover:text-red-800" data-id="${id}" data-dept="${department}">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </div>
-                </td>
-              `;
-              
-              tableBody.appendChild(row);
-            });
-          });
+          for (const id in patients) {
+            const p = patients[id];
+            total++;
+            deptCount++;
+
+            if (p.date && p.date.startsWith(todayStr)) todayCount++;
+            if (p.status) statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+          }
+
+          departmentCounts[dept] = deptCount;
         }
 
-        // Update statistics
-        document.getElementById("totalPatients").textContent = countPatients;
-        document.getElementById("totalDepartments").textContent = departmentSet.size;
-        document.getElementById("totalVisits").textContent = countVisits;
-        document.getElementById("currentPatients").textContent = currentPatients;
-        
-        // Update charts
-        if (statusChart && departmentChart) {
+        totalCountEl.textContent = total;
+        todayCountEl.textContent = todayCount;
+
+        departmentCountsEl.innerHTML = "";
+        for (const dept in departmentCounts) {
+          const li = document.createElement("li");
+          li.textContent = `${dept}: ${departmentCounts[dept]}`;
+          departmentCountsEl.appendChild(li);
+        }
+
+        statusChart.data.datasets[0].data = [
+          statusCounts.stable,
+          statusCounts.critical,
+          statusCounts.recovering,
+          statusCounts.discharged
+        ];
+        statusChart.update();
+
+        departmentChart.data.labels = Object.keys(departmentCounts);
+        departmentChart.data.datasets[0].data = Object.values(departmentCounts);
+        departmentChart.update();
+      });
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", loadData);
+
+    window.addEventListener("load", () => {
+      initCharts();
+      loadData();
+    });
+  </script>
+</body>
+</html>
