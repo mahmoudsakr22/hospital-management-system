@@ -1,176 +1,320 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>ملف المريض</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-      authDomain: "hospital-project-e4b59.firebaseapp.com",
-      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hospital-project-e4b59",
-      storageBucket: "hospital-project-e4b59.appspot.com",
-      messagingSenderId: "974610606258",
-      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientId = urlParams.get('id');
-    const baseRef = ref(db, 'patients/emergency/' + patientId);
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      const infoTable = document.getElementById("infoTable");
-      const visitsList = document.getElementById("visitsList");
-      const transfersList = document.getElementById("transfersList");
-      const statusDiv = document.getElementById("status");
-      const medsList = document.getElementById("medications");
-
-      // Load patient info
-      const snapshot = await get(baseRef);
-      if (snapshot.exists()) {
-        const patient = snapshot.val();
-
-        // Display Info
-        infoTable.innerHTML = `
-          <tr><td>الاسم:</td><td>${patient.name}</td></tr>
-          <tr><td>العمر:</td><td>${patient.age}</td></tr>
-          <tr><td>الرقم القومي:</td><td>${patient.nid}</td></tr>
-          <tr><td>ID:</td><td>${patientId}</td></tr>
-          <tr><td>تاريخ الدخول:</td><td>${new Date(patient.timestamp).toLocaleString('ar-EG')}</td></tr>
-          <tr><td>القسم الحالي:</td><td>${patient.department}</td></tr>
-          <tr><td>الطبيب المعالج:</td><td>${patient.doctor || 'غير محدد'}</td></tr>
-        `;
-
-        // الحالة
-        statusDiv.textContent = patient.status || "غير متوفر";
-
-        // QR
-        QRCode.toCanvas(document.getElementById('qrCode'), patientId);
-
-      } else {
-        infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على المريض.</td></tr>";
-      }
-
-      // Visits
-      onValue(ref(db, `patients/emergency/${patientId}/visits`), (snap) => {
-        visitsList.innerHTML = "";
-        snap.forEach((child) => {
-          const visit = child.val();
-          visitsList.innerHTML += `<li><strong>${visit.type}</strong> - ${visit.notes} (${new Date(visit.timestamp).toLocaleString('ar-EG')})</li>`;
-        });
-      });
-
-      // Transfers
-      onValue(ref(db, `patients/emergency/${patientId}/transfers`), (snap) => {
-        transfersList.innerHTML = "";
-        snap.forEach((child) => {
-          const t = child.val();
-          transfersList.innerHTML += `<li>${t.department} - ${t.notes} (${new Date(t.timestamp).toLocaleString('ar-EG')})</li>`;
-        });
-      });
-
-      // Medications
-      onValue(ref(db, `patients/emergency/${patientId}/medications`), (snap) => {
-        medsList.innerHTML = "";
-        snap.forEach((child) => {
-          const med = child.val();
-          medsList.innerHTML += `<li>${med.name} - ${med.dose}</li>`;
-        });
-      });
-    });
-
-    window.addVisit = async () => {
-      const type = document.getElementById("visitType").value;
-      const notes = document.getElementById("visitNotes").value;
-      const visitsRef = ref(db, `patients/emergency/${patientId}/visits`);
-      await push(visitsRef, {
-        type,
-        notes,
-        timestamp: Date.now()
-      });
-      document.getElementById("visitNotes").value = "";
-    };
-
-    window.addTransfer = async () => {
-      const dept = document.getElementById("transferDept").value;
-      const notes = document.getElementById("transferNotes").value;
-      const transRef = ref(db, `patients/emergency/${patientId}/transfers`);
-      await push(transRef, {
-        department: dept,
-        notes,
-        timestamp: Date.now()
-      });
-      document.getElementById("transferNotes").value = "";
-    };
-
-    window.downloadPDF = () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.text("تقرير المريض - مستشفى الحياة الذكية", 10, 10);
-      doc.text("ID: " + patientId, 10, 20);
-      doc.save("تقرير_المريض.pdf");
-    };
-
-    window.goBack = () => {
-      window.location.href = "emergency.html";
-    };
-  </script>
-
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام ملف المريض - مستشفى الحياة الذكية</title>
+    <meta name="description" content="نظام إلكتروني متكامل لإدارة ملفات المرضى في قسم الطوارئ">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://picsum.photos/64?random=100" type="image/png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS & JS Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        .patient-card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        .section-title::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background-color: #3b82f6;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
-    <h1 class="text-2xl font-bold text-center mb-4">ملف المريض</h1>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-800">
+                    <i class="fas fa-hospital-alt mr-2"></i>مستشفى الحياة الذكية
+                </h1>
+                <p class="text-gray-600">نظام إدارة ملفات المرضى - قسم الطوارئ</p>
+            </div>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <button onclick="goBack()" class="flex items-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-arrow-left ml-2"></i> رجوع
+                </button>
+                <button onclick="downloadPDF()" class="flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-file-pdf ml-2"></i> تصدير PDF
+                </button>
+            </div>
+        </header>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">المعلومات الأساسية</h2>
-    <table class="table-auto w-full border" id="infoTable"></table>
+        <!-- Main Content -->
+        <main class="bg-white patient-card rounded-xl p-6">
+            <!-- Patient Info Section -->
+            <section class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="section-title text-2xl font-bold text-gray-800">البيانات الأساسية للمريض</h2>
+                    <div id="patientStatus" class="px-3 py-1 rounded-full text-sm font-medium"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Column -->
+                    <div>
+                        <table class="w-full">
+                            <tbody id="infoTable" class="divide-y divide-gray-200">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Right Column - QR Code -->
+                    <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold mb-3">رمز المريض</h3>
+                        <canvas id="qrCode" class="w-40 h-40"></canvas>
+                        <p class="text-sm text-gray-500 mt-2">مسح الكود لعرض بيانات المريض</p>
+                    </div>
+                </div>
+            </section>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">سجل الزيارات</h2>
-    <ul class="list-disc pl-6 mb-4" id="visitsList"></ul>
-    <div class="mb-4">
-      <select id="visitType" class="border p-2 rounded">
-        <option>كشف طبي</option>
-        <option>متابعة</option>
-        <option>استشارة</option>
-      </select>
-      <input type="text" id="visitNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
-      <button onclick="addVisit()" class="bg-blue-600 text-white px-4 py-2 rounded">تسجيل الزيارة</button>
+            <!-- Medical Sections -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Visits Section -->
+                <section class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="section-title text-xl font-bold text-gray-800 mb-4">سجل الزيارات الطبية</h2>
+                    <ul id="visitsList" class="space-y-3">
+                        <!-- Dynamically populated -->
+                    </ul>
+                    
+                    <div class="mt-6 bg-white p-4 rounded border border-gray-200">
+                        <h3 class="font-medium mb-2">إضافة زيارة جديدة</h3>
+                        <div class="flex flex-col space-y-3">
+                            <select id="visitType" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="كشف طبي">كشف طبي</option>
+                                <option value="متابعة">متابعة</option>
+                                <option value="استشارة">استشارة</option>
+                            </select>
+                            <textarea id="visitNotes" placeholder="تفاصيل الزيارة..." class="border border-gray-300 rounded p-2 h-20 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            <button onclick="addVisit()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center justify-center">
+                                <i class="fas fa-plus-circle ml-2"></i> تسجيل الزيارة
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Transfers Section -->
+                <section class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="section-title text-xl font-bold text-gray-800 mb-4">سجل التحويلات</h2>
+                    <ul id="transfersList" class="space-y-3">
+                        <!-- Dynamically populated -->
+                    </ul>
+                    
+                    <div class="mt-6 bg-white p-4 rounded border border-gray-200">
+                        <h3 class="font-medium mb-2">إضافة تحويل جديد</h3>
+                        <div class="flex flex-col space-y-3">
+                            <select id="transferDept" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="الأشعة">الأشعة</option>
+                                <option value="التحاليل">التحاليل</option>
+                                <option value="العناية المركزة">العناية المركزة</option>
+                                <option value="العمليات">العمليات</option>
+                            </select>
+                            <textarea id="transferNotes" placeholder="ملاحظات التحويل..." class="border border-gray-300 rounded p-2 h-20 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                            <button onclick="addTransfer()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded flex items-center justify-center">
+                                <i class="fas fa-exchange-alt ml-2"></i> تسجيل التحويل
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Medications Section -->
+                <section class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="section-title text-xl font-bold text-gray-800 mb-4">العلاجات والأدوية</h2>
+                    <ul id="medications" class="space-y-2">
+                        <!-- Dynamically populated -->
+                    </ul>
+                </section>
+
+                <!-- Status Section -->
+                <section class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="section-title text-xl font-bold text-gray-800 mb-4">الحالة الصحية</h2>
+                    <div id="status" class="bg-white p-4 rounded border border-gray-200 min-h-24">
+                        <!-- Dynamically populated -->
+                    </div>
+                </section>
+            </div>
+        </main>
     </div>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">التحويلات</h2>
-    <ul class="list-disc pl-6 mb-4" id="transfersList"></ul>
-    <div class="mb-4">
-      <select id="transferDept" class="border p-2 rounded">
-        <option>الأشعة</option>
-        <option>التحاليل</option>
-        <option>العناية المركزة</option>
-        <option>العمليات</option>
-      </select>
-      <input type="text" id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
-      <button onclick="addTransfer()" class="bg-purple-600 text-white px-4 py-2 rounded">تسجيل التحويل</button>
-    </div>
+    <!-- Firebase and App Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">الأدوية والعلاج</h2>
-    <ul class="list-disc pl-6 mb-4" id="medications"></ul>
+        const firebaseConfig = {
+            apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+            authDomain: "hospital-project-e4b59.firebaseapp.com",
+            databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "hospital-project-e4b59",
+            storageBucket: "hospital-project-e4b59.appspot.com",
+            messagingSenderId: "974610606258",
+            appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+        };
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">الحالة الحالية</h2>
-    <div id="status" class="p-2 border rounded bg-gray-50"></div>
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">رمز الاستجابة السريع</h2>
-    <canvas id="qrCode" class="mb-4"></canvas>
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientId = urlParams.get('id');
+        const baseRef = ref(db, 'patients/emergency/' + patientId);
 
-    <div class="flex gap-4 mt-6">
-      <button onclick="downloadPDF()" class="bg-green-700 text-white px-6 py-2 rounded">تحميل تقرير PDF</button>
-      <button onclick="goBack()" class="bg-gray-600 text-white px-6 py-2 rounded">رجوع إلى قسم الطوارئ</button>
-    </div>
-  </div>
-</body>
-</html>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const infoTable = document.getElementById("infoTable");
+            const visitsList = document.getElementById("visitsList");
+            const transfersList = document.getElementById("transfersList");
+            const statusDiv = document.getElementById("status");
+            const medsList = document.getElementById("medications");
+            const patientStatus = document.getElementById("patientStatus");
+
+            // Load patient info
+            const snapshot = await get(baseRef);
+            if (snapshot.exists()) {
+                const patient = snapshot.val();
+
+                // Display Info
+                infoTable.innerHTML = `
+                    <tr>
+                        <td class="py-2 font-medium text-gray-700">الاسم الكامل:</td>
+                        <td class="py-2">${patient.name || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-medium text-gray-700">العمر:</td>
+                        <td class="py-2">${patient.age || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-medium text-gray-700">الرقم القومي:</td>
+                        <td class="py-2">${patient.nid || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-medium text-gray-700">رقم الملف:</td>
+                        <td class="py-2 font-mono">${patientId}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-medium text-gray-700">تاريخ الدخول:</td>
+                        <td class="py-2">${new Date(patient.timestamp).toLocaleString('ar-EG')}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-medium text-gray-700">القسم الحالي:</td>
+                        <td class="py-2">${patient.department || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-medium text-gray-700">الطبيب المعالج:</td>
+                        <td class="py-2">${patient.doctor || 'غير محدد'}</td>
+                    </tr>
+                `;
+
+                // Status badge
+                const statusText = patient.status || "قيد المتابعة";
+                patientStatus.textContent = statusText;
+                patientStatus.className = `px-3 py-1 rounded-full text-sm font-medium ${
+                    statusText.includes("حالة حرجة") ? "bg-red-100 text-red-800" :
+                    statusText.includes("مستقر") ? "bg-green-100 text-green-800" :
+                    "bg-yellow-100 text-yellow-800"
+                }`;
+
+                // QR Code
+                QRCode.toCanvas(document.getElementById('qrCode'), patientId, {
+                    width: 160,
+                    margin: 1,
+                    color: {
+                        dark: "#1e3a8a",
+                        light: "#ffffff"
+                    }
+                });
+
+            } else {
+                infoTable.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="py-4 text-center text-red-600">
+                            <i class="fas fa-exclamation-circle mr-2"></i> لم يتم العثور على بيانات المريض
+                        </td>
+                    </tr>
+                `;
+            }
+
+            // Visits
+            onValue(ref(db, `patients/emergency/${patientId}/visits`), (snap) => {
+                visitsList.innerHTML = "";
+                if (snap.exists()) {
+                    snap.forEach((child) => {
+                        const visit = child.val();
+                        visitsList.innerHTML += `
+                            <li class="bg-white p-3 rounded border border-gray-200">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-medium ${getVisitColor(visit.type)}">${visit.type}</span>
+                                        <p class="text-gray-600 mt-1">${visit.notes || 'لا توجد ملاحظات'}</p>
+                                    </div>
+                                    <span class="text-sm text-gray-500">${new Date(visit.timestamp).toLocaleString('ar-EG')}</span>
+                                </div>
+                            </li>
+                        `;
+                    });
+                } else {
+                    visitsList.innerHTML = `
+                        <li class="text-center text-gray-500 py-4">
+                            <i class="fas fa-info-circle mr-2"></i> لا توجد زيارات مسجلة
+                        </li>
+                    `;
+                }
+            });
+
+            // Transfers
+            onValue(ref(db, `patients/emergency/${patientId}/transfers`), (snap) => {
+                transfersList.innerHTML = "";
+                if (snap.exists()) {
+                    snap.forEach((child) => {
+                        const t = child.val();
+                        transfersList.innerHTML += `
+                            <li class="bg-white p-3 rounded border border-gray-200">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-medium text-blue-600">${t.department}</span>
+                                        <p class="text-gray-600 mt-1">${t.notes || 'لا توجد ملاحظات'}</p>
+                                    </div>
+                                    <span class="text-sm text-gray-500">${new Date(t.timestamp).toLocaleString('ar-EG')}</span>
+                                </div>
+                            </li>
+                        `;
+                    });
+                } else {
+                    transfersList.innerHTML = `
+                        <li class="text-center text-gray-500 py-4">
+                            <i class="fas fa-info-circle mr-2"></i> لا توجد تحويلات مسجلة
+                        </li>
+                    `;
+                }
+            });
+
+            // Medications
+            onValue(ref(db, `patients/emergency/${patientId}/medications`), (snap) => {
+                medsList.innerHTML = "";
+                if (snap.exists()) {
+                    snap.forEach((child) => {
+                        const med = child.val();
+                        medsList.innerHTML += `
+                            <li class="bg-white p-3 rounded border border-gray-200 flex justify-between items-center">
+                                <div>
+                                    <
