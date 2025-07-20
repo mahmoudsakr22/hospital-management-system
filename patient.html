@@ -131,7 +131,8 @@
             </button>
           </div>
         </div>
-  <!-- سجل الزيارات -->
+
+        <!-- سجل الزيارات -->
         <div class="space-y-8">
           <div>
             <div class="flex justify-between items-center mb-4">
@@ -220,7 +221,8 @@
               <ul id="medications" class="space-y-3"></ul>
             </div>
           </div>
-       <!-- الحالة الحالية -->
+
+          <!-- الحالة الحالية -->
           <div>
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-xl font-semibold text-primary">الحالة الحالية</h3>
@@ -265,7 +267,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -310,14 +312,22 @@
 
         patientStatus.textContent = patient.status || "غير محدد";
 
-        // تعيين القيم في الحقول للتحكم
-        document.getElementById("currentStatus").value = patient.status || "stable";
-        document.getElementById("currentDept").value = patient.department || "الطوارئ";
-
         // توليد QR Code
         QRCode.toCanvas(qrCanvas, patientId, function (error) {
           if (error) console.error(error);
         });
+
+        // تعيين قيمة الحالة في الاختيار
+        const statusSelect = document.getElementById('currentStatus');
+        if (statusSelect) {
+          statusSelect.value = patient.status || "stable";
+        }
+
+        // تعيين قيمة القسم الحالي
+        const deptSelect = document.getElementById('currentDept');
+        if (deptSelect) {
+          deptSelect.value = patient.department || "الطوارئ";
+        }
 
       } else {
         infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
@@ -325,30 +335,20 @@
       }
     }
 
-    async function updateStatus() {
-      const newStatus = document.getElementById("currentStatus").value;
-      const newDept = document.getElementById("currentDept").value;
-
-      if (!patientId) {
-        alert("معرف المريض غير موجود.");
-        return;
-      }
+    // تحديث الحالة عند التغيير
+    async function updatePatientStatus(newStatus) {
+      if (!patientId) return;
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
 
       try {
-        const patientRef = ref(db, `patients/emergency/${patientId}`);
-
-        await update(patientRef, {
-          status: newStatus,
-          department: newDept
-        });
-
-        alert("تم تحديث حالة المريض والقسم بنجاح.");
+        await update(patientRef, { status: newStatus });
         patientStatus.textContent = newStatus;
-
-        // تحديث الصفحة أو تحديث العناصر
-        loadPatientData();
-
-      } catch (error
+        alert('تم تحديث حالة المريض بنجاح');
+      } catch (err) {
+        console.error(err);
+        alert('حدث خطأ أثناء تحديث الحالة');
+      }
+    }
 
     // تحديث القسم عند التغيير (اختياري، لو تريد تخزين القسم الجديد)
     async function updatePatientDept(newDept) {
@@ -403,3 +403,4 @@
   </script>
 </body>
 </html>
+
