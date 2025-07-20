@@ -1,4 +1,4 @@
-<!-- صفحة قسم الإدارة - admin.html -->
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -20,7 +20,7 @@
 
   <!-- المحتوى -->
   <main class="p-6 space-y-6">
-    <!-- إحصائيات سريعة -->
+    <!-- إحصائيات -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-white p-4 rounded shadow">
         <p class="text-gray-500">عدد المرضى المسجلين اليوم</p>
@@ -42,125 +42,127 @@
       <canvas id="patientsChart" width="400" height="200"></canvas>
     </section>
 
-    <!-- البحث والتحكم -->
+    <!-- البحث -->
     <section class="bg-white p-4 rounded shadow">
       <h3 class="text-xl font-semibold mb-2">🔍 بحث وتحكم بالمرضى</h3>
       <input id="searchBox" type="text" placeholder="ابحث بالاسم أو ID" class="border p-2 w-full mb-4 rounded" />
       <table class="w-full border">
         <thead>
           <tr class="bg-gray-200">
-            <th class="p-2">الاسم</th><th>العمر</th><th>القسم</th><th>الحالة</th><th>عرض</th>
+            <th class="p-2">الاسم</th>
+            <th>العمر</th>
+            <th>القسم</th>
+            <th>الحالة</th>
+            <th>عرض</th>
           </tr>
         </thead>
         <tbody id="patientsTable"></tbody>
       </table>
     </section>
 
-    <!-- الزر الخاص بالتقارير -->
+    <!-- زر تقرير -->
     <section class="text-center">
       <button onclick="downloadReport()" class="bg-blue-600 text-white px-6 py-2 mt-4 rounded">📄 تحميل تقرير PDF</button>
     </section>
   </main>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  <!-- ربط مع Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const firebaseConfig = {
-  databaseURL: "https://smart-hospital-life.firebaseio.com/",
-};
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+    const firebaseConfig = {
+      databaseURL: "https://smart-hospital-life.firebaseio.com/",
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-let total = 0;
-let today = 0;
-let deptCounts = {};
-let chart;
+    let chart;
+    let deptCounts = {};
 
-function loadStats() {
-  const patientsRef = ref(db, "patients");
-  onValue(patientsRef, snapshot => {
-    const data = snapshot.val();
-    total = 0;
-    today = 0;
-    deptCounts = {};
-    const tbody = document.getElementById("patientsTable");
-    tbody.innerHTML = "";
-    const now = new Date().toISOString().split('T')[0];
+    function loadStats() {
+      const patientsRef = ref(db, "patients");
+      onValue(patientsRef, (snapshot) => {
+        const data = snapshot.val();
+        let today = 0;
+        let total = 0;
+        deptCounts = {};
 
-    for (let id in data) {
-      const p = data[id];
-      total++;
-      if ((p.date || '').startsWith(now)) today++;
-      deptCounts[p.department] = (deptCounts[p.department] || 0) + 1;
+        const tbody = document.getElementById("patientsTable");
+        tbody.innerHTML = "";
 
-      // عرض في جدول البحث
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="p-2">${p.name}</td>
-        <td>${p.age}</td>
-        <td>${p.department}</td>
-        <td>${p.status || "-"}</td>
-        <td><a class="text-blue-600 underline" href="patient.html?id=${id}" target="_blank">عرض</a></td>
-      `;
-      tbody.appendChild(tr);
+        const nowDate = new Date().toISOString().split("T")[0];
+
+        for (let id in data) {
+          const p = data[id];
+          total++;
+          if ((p.date || "").startsWith(nowDate)) today++;
+          deptCounts[p.department] = (deptCounts[p.department] || 0) + 1;
+
+          // إنشاء صف
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="p-2">${p.name || ""}</td>
+            <td>${p.age || ""}</td>
+            <td>${p.department || ""}</td>
+            <td>${p.status || "-"}</td>
+            <td><a class="text-blue-600 underline" href="patient.html?id=${id}" target="_blank">عرض</a></td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        // تحديث الإحصائيات
+        document.getElementById("todayCount").innerText = today;
+        document.getElementById("totalPatients").innerText = total;
+
+        // الأقسام
+        const ul = document.getElementById("departmentStats");
+        ul.innerHTML = "";
+        for (let dept in deptCounts) {
+          const li = document.createElement("li");
+          li.textContent = `${dept}: ${deptCounts[dept]}`;
+          ul.appendChild(li);
+        }
+
+        updateChart();
+      });
     }
 
-    document.getElementById("todayCount").innerText = today;
-    document.getElementById("totalPatients").innerText = total;
-
-    // عرض الأقسام
-    const ul = document.getElementById("departmentStats");
-    ul.innerHTML = "";
-    for (let dept in deptCounts) {
-      const li = document.createElement("li");
-      li.textContent = `${dept}: ${deptCounts[dept]}`;
-      ul.appendChild(li);
+    function updateChart() {
+      const ctx = document.getElementById("patientsChart").getContext("2d");
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: Object.keys(deptCounts),
+          datasets: [
+            {
+              label: "عدد المرضى",
+              data: Object.values(deptCounts),
+              backgroundColor: ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6"],
+            },
+          ],
+        },
+      });
     }
 
-    // تحديث الرسم البياني
-    updateChart();
-  });
-}
+    document.getElementById("searchBox").addEventListener("input", () => {
+      const rows = document.querySelectorAll("#patientsTable tr");
+      const term = document.getElementById("searchBox").value.toLowerCase();
+      rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(term) ? "" : "none";
+      });
+    });
 
-function updateChart() {
-  const ctx = document.getElementById("patientsChart").getContext("2d");
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: Object.keys(deptCounts),
-      datasets: [{
-        label: 'عدد المرضى',
-        data: Object.values(deptCounts),
-        backgroundColor: [
-          '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6'
-        ]
-      }]
-    }
-  });
-}
+    window.downloadReport = () => {
+      Swal.fire("📄 سيتم توليد التقرير لاحقًا", "ميزة قيد التطوير", "info");
+    };
 
-// بحث مباشر
-const searchBox = document.getElementById("searchBox");
-searchBox.addEventListener("input", () => {
-  const rows = document.querySelectorAll("#patientsTable tr");
-  const term = searchBox.value.toLowerCase();
-  rows.forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(term) ? "" : "none";
-  });
-});
+    window.logout = () => {
+      window.location.href = "index.html";
+    };
 
-// زر تحميل PDF (Placeholder)
-window.downloadReport = () => {
-  Swal.fire("📄 سيتم توليد التقرير لاحقًا", "ميزة قيد التطوير", "info");
-};
-
-window.logout = () => {
-  window.location.href = "index.html";
-};
-
-loadStats();
-</script>
+    loadStats();
+  </script>
 </body>
 </html>
