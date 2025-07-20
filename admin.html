@@ -1,178 +1,225 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>لوحة إدارة المستشفى</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
   <style>
-    body {
-      background: #f3f4f6;
-      font-family: 'Cairo', sans-serif;
+    .glass-box {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
     }
   </style>
-</head>
-<body class="p-4">
-  <div class="bg-white shadow rounded-lg p-6 mb-4">
-    <div class="flex items-center space-x-4">
-      <img src="hospital-logo.png" class="w-16 h-16 rounded-full" alt="شعار المستشفى">
-      <div>
-        <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
-        <p class="text-gray-500">لوحة تحكم الإدارة</p>
-      </div>
-    </div>
-  </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-blue-100 p-4 rounded shadow text-center">
-      <h2 class="text-lg font-semibold">🆕 عدد المسجلين اليوم</h2>
-      <p id="todayCount" class="text-3xl font-bold text-blue-600">0</p>
-    </div>
-    <div class="bg-green-100 p-4 rounded shadow text-center">
-      <h2 class="text-lg font-semibold">👥 إجمالي المرضى</h2>
-      <p id="totalCount" class="text-3xl font-bold text-green-600">0</p>
-    </div>
-    <div class="bg-purple-100 p-4 rounded shadow text-center">
-      <h2 class="text-lg font-semibold">📊 عدد المرضى في كل قسم</h2>
-      <ul id="departmentCounts" class="text-lg font-medium"></ul>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <canvas id="statusChart"></canvas>
-    <canvas id="departmentChart"></canvas>
-  </div>
-
-  <div class="mt-6 flex justify-center">
-    <button id="refreshBtn" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">🔄 تحديث البيانات</button>
-  </div>
-
-  <div class="mt-6 flex justify-center">
-    <a href="index.html" class="mt-4 bg-gray-700 text-white py-2 px-4 rounded shadow hover:bg-gray-800">🔙 العودة إلى الصفحة الرئيسية</a>
-  </div>
-
-  <!-- Firebase و Chart.js -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      remove,
+      update
+    } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "YOUR_DATABASE_URL",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
+    window.addEventListener("DOMContentLoaded", () => {
+      const statsPatients = document.getElementById("totalPatients");
+      const statsDepartments = document.getElementById("totalDepartments");
+      const statsVisits = document.getElementById("totalVisits");
+      const tableBody = document.getElementById("patientsTable");
+      const searchInput = document.getElementById("search");
 
-    const totalCountEl = document.getElementById("totalCount");
-    const todayCountEl = document.getElementById("todayCount");
-    const departmentCountsEl = document.getElementById("departmentCounts");
+      function renderPatients(filter = "") {
+        const patientsRef = ref(db, "patients");
+        onValue(patientsRef, (snapshot) => {
+          const data = snapshot.val();
+          let countPatients = 0;
+          let countVisits = 0;
+          let departmentSet = new Set();
+          tableBody.innerHTML = "";
 
-    let statusChart, departmentChart;
+          if (data) {
+            Object.entries(data).forEach(([department, patients]) => {
+              departmentSet.add(department);
 
-    function initCharts() {
-      const ctxStatus = document.getElementById("statusChart").getContext("2d");
-      const ctxDept = document.getElementById("departmentChart").getContext("2d");
+              Object.entries(patients).forEach(([id, patient]) => {
+                if (
+                  filter &&
+                  !patient.name?.includes(filter) &&
+                  !patient.age?.toString().includes(filter)
+                ) return;
 
-      statusChart = new Chart(ctxStatus, {
-        type: 'pie',
-        data: {
-          labels: ['Stable', 'Critical', 'Recovering', 'Discharged'],
-          datasets: [{
-            label: 'حالة المرضى',
-            data: [0, 0, 0, 0],
-            backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#6b7280']
-          }]
-        },
-        options: {
-          responsive: true
-        }
-      });
+                countPatients++;
 
-      departmentChart = new Chart(ctxDept, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'عدد المرضى في الأقسام',
-            data: [],
-            backgroundColor: '#3b82f6'
-          }]
-        },
-        options: {
-          responsive: true
-        }
-      });
-    }
+                if (patient.visits) {
+                  countVisits += Object.keys(patient.visits).length;
+                }
 
-    function loadData() {
-      const patientsRef = ref(db, "patients");
+                const row = document.createElement("tr");
+                row.className = "hover:bg-gray-50 text-sm";
 
-      onValue(patientsRef, (snapshot) => {
-        const data = snapshot.val();
-        let total = 0;
-        let todayCount = 0;
-        let departmentCounts = {};
-        let statusCounts = { stable: 0, critical: 0, recovering: 0, discharged: 0 };
+                row.innerHTML = `
+                  <td class="border p-2">${patient.name}</td>
+                  <td class="border p-2">${patient.age}</td>
+                  <td class="border p-2">${department}</td>
+                  <td class="border p-2">${new Date(patient.timestamp).toLocaleDateString("ar-EG")}</td>
+                  <td class="border p-2 space-x-1 space-y-1">
+                    <button class="bg-blue-500 text-white px-2 py-1 rounded view-btn" data-id="${id}" data-dept="${department}">عرض</button>
+                    <button class="bg-yellow-500 text-white px-2 py-1 rounded edit-btn" data-id="${id}" data-dept="${department}">تعديل</button>
+                    <button class="bg-red-500 text-white px-2 py-1 rounded delete-btn" data-id="${id}" data-dept="${department}">حذف</button>
+                  </td>
+                `;
 
-        for (const dept in data) {
-          const patients = data[dept];
-          let deptCount = 0;
-
-          for (const id in patients) {
-            const p = patients[id];
-            total++;
-            deptCount++;
-
-            if (p.date && p.date.startsWith(todayStr)) todayCount++;
-            if (p.status) statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+                tableBody.appendChild(row);
+              });
+            });
           }
 
-          departmentCounts[dept] = deptCount;
-        }
+          statsPatients.textContent = countPatients;
+          statsDepartments.textContent = departmentSet.size;
+          statsVisits.textContent = countVisits;
 
-        totalCountEl.textContent = total;
-        todayCountEl.textContent = todayCount;
+          attachActionButtons();
+        });
+      }
 
-        departmentCountsEl.innerHTML = "";
-        for (const dept in departmentCounts) {
-          const li = document.createElement("li");
-          li.textContent = `${dept}: ${departmentCounts[dept]}`;
-          departmentCountsEl.appendChild(li);
-        }
+      function attachActionButtons() {
+        document.querySelectorAll(".delete-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            const dept = btn.dataset.dept;
+            Swal.fire({
+              title: "هل أنت متأكد؟",
+              text: "لن تتمكن من التراجع!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "نعم، احذفه!",
+              cancelButtonText: "إلغاء"
+            }).then((result) => {
+              if (result.isConfirmed) {
+                const delRef = ref(db, `patients/${dept}/${id}`);
+                remove(delRef).then(() => {
+                  Swal.fire("تم الحذف!", "تم حذف بيانات المريض.", "success");
+                });
+              }
+            });
+          });
+        });
 
-        statusChart.data.datasets[0].data = [
-          statusCounts.stable,
-          statusCounts.critical,
-          statusCounts.recovering,
-          statusCounts.discharged
-        ];
-        statusChart.update();
+        document.querySelectorAll(".edit-btn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.id;
+            const dept = btn.dataset.dept;
+            const patientRef = ref(db, `patients/${dept}/${id}`);
 
-        departmentChart.data.labels = Object.keys(departmentCounts);
-        departmentChart.data.datasets[0].data = Object.values(departmentCounts);
-        departmentChart.update();
+            onValue(patientRef, async (snap) => {
+              const data = snap.val();
+              const { value: formValues } = await Swal.fire({
+                title: "تعديل بيانات المريض",
+                html:
+                  `<input id="swal-name" class="swal2-input" placeholder="الاسم" value="${data.name}">` +
+                  `<input id="swal-age" type="number" class="swal2-input" placeholder="العمر" value="${data.age}">`,
+                focusConfirm: false,
+                preConfirm: () => {
+                  return {
+                    name: document.getElementById("swal-name").value,
+                    age: document.getElementById("swal-age").value
+                  };
+                }
+              });
+
+              if (formValues) {
+                await update(patientRef, formValues);
+                Swal.fire("تم التحديث!", "تم تعديل بيانات المريض بنجاح.", "success");
+              }
+            }, { onlyOnce: true });
+          });
+        });
+
+        document.querySelectorAll(".view-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            window.open(`patient.html?id=${id}`, "_blank");
+          });
+        });
+      }
+
+      // البحث المباشر
+      searchInput.addEventListener("input", (e) => {
+        renderPatients(e.target.value);
       });
-    }
 
-    document.getElementById("refreshBtn").addEventListener("click", loadData);
-
-    window.addEventListener("load", () => {
-      initCharts();
-      loadData();
+      renderPatients();
     });
   </script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- عنوان المستشفى داخل مربع زجاجي -->
+    <div class="glass-box p-6 mb-6 text-center rounded shadow-lg bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1588776814546-ec7e4b3b0fc5');">
+      <h1 class="text-4xl font-bold text-blue-900">🏥 مستشفى الحياة الذكية</h1>
+      <p class="text-lg text-gray-700 mt-2">لوحة الإدارة - نظام متكامل لإدارة المرضى والأقسام</p>
+    </div>
+
+    <!-- إحصائيات -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+      <div class="bg-white shadow p-4 rounded">
+        <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
+        <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
+      </div>
+      <div class="bg-white shadow p-4 rounded">
+        <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
+        <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
+      </div>
+      <div class="bg-white shadow p-4 rounded">
+        <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
+        <p id="totalVisits" class="text-2xl font-bold text-red-600">0</p>
+      </div>
+    </div>
+
+    <!-- مربع البحث -->
+    <div class="mb-4">
+      <input id="search" type="text" placeholder="ابحث باسم المريض أو العمر..." class="w-full p-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+    </div>
+
+    <!-- جدول المرضى -->
+    <div class="bg-white shadow-md rounded overflow-x-auto">
+      <table class="min-w-full table-auto border">
+        <thead class="bg-gray-100 text-gray-700 text-sm">
+          <tr>
+            <th class="border p-2">الاسم</th>
+            <th class="border p-2">العمر</th>
+            <th class="border p-2">القسم</th>
+            <th class="border p-2">تاريخ التسجيل</th>
+            <th class="border p-2">الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="patientsTable" class="text-center text-sm">
+          <!-- يتم ملؤها تلقائيًا -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- زر الرجوع -->
+    <div class="mt-6 text-center">
+      <a href="index.html" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">⬅ الرجوع للصفحة الرئيسية</a>
+    </div>
+
+  </div>
 </body>
 </html>
