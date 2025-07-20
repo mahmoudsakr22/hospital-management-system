@@ -19,6 +19,22 @@
     <div id="currentDate" class="text-sm"></div>
   </header>
 
+  <!-- إحصائيات المرضى -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 mb-1">إجمالي المرضى</h3>
+      <div id="totalPatients" class="text-2xl font-bold text-blue-700">--</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 mb-1">المسجلين اليوم</h3>
+      <div id="todayPatients" class="text-2xl font-bold text-green-600">--</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 mb-1">قسم الطوارئ</h3>
+      <div id="emergencyCount" class="text-2xl font-bold text-red-600">--</div>
+    </div>
+  </section>
+
   <!-- نموذج تسجيل مريض -->
   <section class="bg-white p-6 rounded-xl shadow mb-8">
     <h2 class="text-xl font-bold mb-4">تسجيل مريض جديد</h2>
@@ -74,11 +90,9 @@
 </div>
 
 <script type="module">
-// استيراد Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onValue, remove, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// إعدادات Firebase (ضع إعداداتك هنا)
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
   authDomain: "hospital-project-e4b59.firebaseapp.com",
@@ -89,7 +103,6 @@ const firebaseConfig = {
   appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
 };
 
-// تهيئة التطبيق وقاعدة البيانات
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -98,7 +111,6 @@ currentDateElem.textContent = new Date().toLocaleDateString("ar-EG", {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
 });
 
-// استمارة التسجيل
 const form = document.getElementById("patientForm");
 
 form.addEventListener("submit", async (e) => {
@@ -119,18 +131,11 @@ form.addEventListener("submit", async (e) => {
   }
 
   const patientData = {
-    name,
-    age,
-    nid,
-    gender,
-    address,
-    bloodType,
-    diseases,
+    name, age, nid, gender, address, bloodType, diseases,
     timestamp: new Date().toISOString()
   };
 
   try {
-    // رفع بيانات المريض إلى القسم المختار
     const patientsRef = ref(db, `patients/${department}`);
     await push(patientsRef, patientData);
 
@@ -149,7 +154,6 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-// تحميل مرضى الطوارئ وعرضهم
 const patientsList = document.getElementById("patientsList");
 const emergencyRef = ref(db, "patients/emergency");
 
@@ -182,7 +186,6 @@ function renderPatients(patients) {
       </button>
     `;
 
-    // حذف المريض مع تأكيد
     div.querySelector(".deleteBtn").addEventListener("click", () => {
       Swal.fire({
         title: 'هل أنت متأكد من حذف المريض؟',
@@ -209,6 +212,29 @@ function renderPatients(patients) {
 
 onValue(emergencyRef, (snapshot) => {
   renderPatients(snapshot.val());
+});
+
+// تحديث الإحصائيات
+const totalPatientsElem = document.getElementById("totalPatients");
+const todayPatientsElem = document.getElementById("todayPatients");
+const emergencyCountElem = document.getElementById("emergencyCount");
+
+onValue(ref(db, "patients"), (snapshot) => {
+  const data = snapshot.val() || {};
+  let total = 0, today = 0, emergencyCount = 0;
+  const todayDate = new Date().toDateString();
+
+  Object.values(data).forEach(dept => {
+    Object.values(dept).forEach(p => {
+      total++;
+      if (new Date(p.timestamp).toDateString() === todayDate) today++;
+    });
+  });
+
+  emergencyCount = data.emergency ? Object.keys(data.emergency).length : 0;
+  totalPatientsElem.textContent = total;
+  todayPatientsElem.textContent = today;
+  emergencyCountElem.textContent = emergencyCount;
 });
 </script>
 </body>
