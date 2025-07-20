@@ -250,16 +250,15 @@
               </div>
             `;
             container.appendChild(card);
-
-           deleteBtn.addEventListener("click", async () => {
+card.querySelector("button[data-id]").addEventListener("click", async () => {
   Swal.fire({
     title: 'هل أنت متأكد؟',
-    text: "لن تتمكن من التراجع بعد ذلك!",
+    text: "لن تتمكن من التراجع بعد الحذف!",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#3085d6',
-    confirmButtonText: 'نعم، احذفه',
+    confirmButtonText: 'نعم، احذفه!',
     cancelButtonText: 'إلغاء'
   }).then(async (result) => {
     if (result.isConfirmed) {
@@ -267,8 +266,7 @@
         await remove(ref(db, `patients/emergency/${key}`));
         Swal.fire({
           icon: 'success',
-          title: 'تم الحذف',
-          text: 'تم حذف المريض بنجاح.',
+          title: 'تم الحذف بنجاح',
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
@@ -277,14 +275,14 @@
       } catch (err) {
         Swal.fire({
           icon: 'error',
-          title: 'خطأ أثناء الحذف',
+          title: 'حدث خطأ أثناء الحذف',
           text: err.message
         });
       }
     }
   });
 });
-
+          });
         } else {
           container.innerHTML = `
             <div class="text-center py-8">
