@@ -217,28 +217,53 @@ onValue(emergencyRef, (snapshot) => {
   renderPatients(snapshot.val());
 });
 
-// تحديث الإحصائيات
-const totalPatientsElem = document.getElementById("totalPatients");
-const todayPatientsElem = document.getElementById("todayPatients");
-const emergencyCountElem = document.getElementById("emergencyCount");
+  <!-- سكريبت Firebase + الإحصائيات -->
+  <script>
+    // إعداد Firebase
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const { ref, onValue } = firebase.database;
 
-onValue(ref(db, "patients"), (snapshot) => {
-  const data = snapshot.val() || {};
-  let total = 0, today = 0, emergencyCount = 0;
-  const todayDate = new Date().toDateString();
+    function countTodayPatients(department, elementId) {
+      const depRef = ref(db, `patients/${department}`);
+      const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
 
-  Object.values(data).forEach(dept => {
-    Object.values(dept).forEach(p => {
-      total++;
-      if (new Date(p.timestamp).toDateString() === todayDate) today++;
-    });
-  });
+      onValue(depRef, (snapshot) => {
+        let count = 0;
+        snapshot.forEach(child => {
+          const data = child.val();
+          if (data.entryDate && data.entryDate.startsWith(today)) {
+            count++;
+          }
+        });
+        document.getElementById(elementId).textContent = count;
+        updateTodayTotal();
+      });
+    }
 
-  emergencyCount = data.emergency ? Object.keys(data.emergency).length : 0;
-  totalPatientsElem.textContent = total;
-  todayPatientsElem.textContent = today;
-  emergencyCountElem.textContent = emergencyCount;
-});
-</script>
+    function updateTodayTotal() {
+      const total =
+        parseInt(document.getElementById("todayEmergency").textContent) +
+        parseInt(document.getElementById("todayICU").textContent) +
+        parseInt(document.getElementById("todayOperations").textContent);
+      document.getElementById("todayTotal").textContent = total;
+    }
+
+    // استدعاء الأقسام
+    countTodayPatients("emergency", "todayEmergency");
+    countTodayPatients("icu", "todayICU");
+    countTodayPatients("operations", "todayOperations");
+  </script>
+
 </body>
 </html>
+
