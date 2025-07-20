@@ -2,80 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>ملف المريض - مستشفى الحياة الذكية</title>
+  <title>ملف المريض</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    @media print {
-      button, nav { display: none; }
-    }
-  </style>
-</head>
-<body class="bg-gray-100 p-6">
-
-  <!-- رأس الصفحة -->
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow mb-4">
-    <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" alt="مستشفى الحياة" class="rounded mb-4">
-    <h1 class="text-3xl font-bold text-center text-blue-700 mb-2">مستشفى الحياة الذكية</h1>
-    <p class="text-center text-lg text-gray-700 mb-4">نهتم بصحتك دائمًا ونوفر لك رعاية متكاملة ومتابعة دقيقة لكل مريض.</p>
-    <div class="flex justify-center gap-4">
-      <button onclick="goHome()" class="bg-blue-500 text-white px-4 py-2 rounded">الصفحة الرئيسية</button>
-      <button onclick="window.print()" class="bg-yellow-500 text-white px-4 py-2 rounded">طباعة الصفحة</button>
-    </div>
-  </div>
-
-  <!-- محتوى ملف المريض -->
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
-    <h2 class="text-2xl font-semibold text-center mb-6">ملف المريض</h2>
-
-    <h3 class="text-xl font-semibold mb-2">المعلومات الأساسية</h3>
-    <table class="table-auto w-full border mb-6" id="infoTable"></table>
-
-    <h3 class="text-xl font-semibold mb-2">سجل الزيارات</h3>
-    <ul class="list-disc pl-6 mb-4" id="visitsList"></ul>
-    <div class="mb-4">
-      <select id="visitType" class="border p-2 rounded">
-        <option>كشف طبي</option>
-        <option>متابعة</option>
-        <option>استشارة</option>
-      </select>
-      <input type="text" id="visitNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
-      <button onclick="addVisit()" class="bg-blue-600 text-white px-4 py-2 rounded">تسجيل الزيارة</button>
-    </div>
-
-    <h3 class="text-xl font-semibold mb-2">التحويلات</h3>
-    <ul class="list-disc pl-6 mb-4" id="transfersList"></ul>
-    <div class="mb-4">
-      <select id="transferDept" class="border p-2 rounded">
-        <option>الأشعة</option>
-        <option>التحاليل</option>
-        <option>العناية المركزة</option>
-        <option>العمليات</option>
-      </select>
-      <input type="text" id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
-      <button onclick="addTransfer()" class="bg-purple-600 text-white px-4 py-2 rounded">تسجيل التحويل</button>
-    </div>
-
-    <h3 class="text-xl font-semibold mb-2">الأدوية والعلاج</h3>
-    <ul class="list-disc pl-6 mb-4" id="medications"></ul>
-
-    <h3 class="text-xl font-semibold mb-2">الحالة الحالية</h3>
-    <div id="status" class="p-2 border rounded bg-gray-50 mb-6"></div>
-
-    <h3 class="text-xl font-semibold mb-2">رمز الاستجابة السريع (QR)</h3>
-    <canvas id="qrCode" class="mb-4"></canvas>
-
-    <div class="flex gap-4 mt-6">
-      <button onclick="downloadPDF()" class="bg-green-700 text-white px-6 py-2 rounded">تحميل تقرير PDF</button>
-      <button onclick="goBack()" class="bg-gray-600 text-white px-6 py-2 rounded">رجوع إلى قسم الطوارئ</button>
-    </div>
-  </div>
-
-  <!-- سكريبت Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    import { getDatabase, ref, get, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -106,18 +38,19 @@
         const patient = snapshot.val();
 
         infoTable.innerHTML = `
-          <tr><td class="border p-2">الاسم:</td><td class="border p-2">${patient.name}</td></tr>
-          <tr><td class="border p-2">العمر:</td><td class="border p-2">${patient.age}</td></tr>
-          <tr><td class="border p-2">الرقم القومي:</td><td class="border p-2">${patient.nid}</td></tr>
-          <tr><td class="border p-2">ID:</td><td class="border p-2">${patientId}</td></tr>
-          <tr><td class="border p-2">تاريخ الدخول:</td><td class="border p-2">${new Date(patient.timestamp).toLocaleString('ar-EG')}</td></tr>
-          <tr><td class="border p-2">القسم الحالي:</td><td class="border p-2">${patient.department}</td></tr>
-          <tr><td class="border p-2">الطبيب المعالج:</td><td class="border p-2">${patient.doctor || 'غير محدد'}</td></tr>
+          <tr><td>الاسم:</td><td>${patient.name}</td></tr>
+          <tr><td>العمر:</td><td>${patient.age}</td></tr>
+          <tr><td>الرقم القومي:</td><td>${patient.nid}</td></tr>
+          <tr><td>ID:</td><td>${patientId}</td></tr>
+          <tr><td>تاريخ الدخول:</td><td>${new Date(patient.timestamp).toLocaleString('ar-EG')}</td></tr>
+          <tr><td>القسم الحالي:</td><td>${patient.department}</td></tr>
+          <tr><td>الطبيب المعالج:</td><td>${patient.doctor || 'غير محدد'}</td></tr>
         `;
 
         statusDiv.textContent = patient.status || "غير متوفر";
 
         QRCode.toCanvas(document.getElementById('qrCode'), patientId);
+
       } else {
         infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على المريض.</td></tr>";
       }
@@ -171,21 +104,71 @@
       document.getElementById("transferNotes").value = "";
     };
 
-    window.downloadPDF = () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.text("تقرير المريض - مستشفى الحياة الذكية", 10, 10);
-      doc.text("ID: " + patientId, 10, 20);
-      doc.save("تقرير_المريض.pdf");
-    };
-
-    window.goBack = () => {
-      window.location.href = "emergency.html";
-    };
-
     window.goHome = () => {
       window.location.href = "index.html";
     };
   </script>
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-6">
+
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+  <!-- رأس الصفحة مع صورة وخلفية زجاجية -->
+<div class="relative h-60 mb-10 rounded-lg overflow-hidden shadow-lg">
+  <img src="https://i.imgur.com/FU7Jv0j.png" alt="صورة المستشفى" class="absolute inset-0 w-full h-full object-cover opacity-80">
+  
+  <div class="absolute inset-0 bg-white/30 backdrop-blur-md flex flex-col justify-center items-center text-center text-white p-4">
+    <h1 class="text-4xl font-bold text-blue-900 drop-shadow-lg">مستشفى الحياة الذكية</h1>
+    <p class="text-lg mt-2 text-gray-800 font-medium drop-shadow-sm">نعتني بحياتك بتقنية واهتمام</p>
+  </div>
+</div>
+
+
+    <h2 class="text-2xl font-bold text-center mb-4">ملف المريض</h2>
+
+    <h3 class="text-xl font-semibold mt-6 mb-2">المعلومات الأساسية</h3>
+    <table class="table-auto w-full border mb-4" id="infoTable"></table>
+
+    <h3 class="text-xl font-semibold mt-6 mb-2">سجل الزيارات</h3>
+    <ul class="list-disc pl-6 mb-4" id="visitsList"></ul>
+    <div class="mb-4">
+      <select id="visitType" class="border p-2 rounded">
+        <option>كشف طبي</option>
+        <option>متابعة</option>
+        <option>استشارة</option>
+      </select>
+      <input type="text" id="visitNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
+      <button onclick="addVisit()" class="bg-blue-600 text-white px-4 py-2 rounded">تسجيل الزيارة</button>
+    </div>
+
+    <h3 class="text-xl font-semibold mt-6 mb-2">التحويلات</h3>
+    <ul class="list-disc pl-6 mb-4" id="transfersList"></ul>
+    <div class="mb-4">
+      <select id="transferDept" class="border p-2 rounded">
+        <option>الأشعة</option>
+        <option>التحاليل</option>
+        <option>العناية المركزة</option>
+        <option>العمليات</option>
+      </select>
+      <input type="text" id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded w-1/2">
+      <button onclick="addTransfer()" class="bg-purple-600 text-white px-4 py-2 rounded">تسجيل التحويل</button>
+    </div>
+
+    <h3 class="text-xl font-semibold mt-6 mb-2">الأدوية والعلاج</h3>
+    <ul class="list-disc pl-6 mb-4" id="medications"></ul>
+
+    <h3 class="text-xl font-semibold mt-6 mb-2">الحالة الحالية</h3>
+    <div id="status" class="p-2 border rounded bg-gray-50"></div>
+
+    <h3 class="text-xl font-semibold mt-6 mb-2">رمز الاستجابة السريع</h3>
+    <canvas id="qrCode" class="mb-4"></canvas>
+
+    <!-- زر الصفحة الرئيسية في الأسفل -->
+    <div class="text-center mt-10">
+      <button onclick="goHome()" class="bg-gray-700 text-white px-6 py-3 rounded-lg text-lg">العودة إلى الصفحة الرئيسية</button>
+    </div>
+
+  </div>
 </body>
 </html>
