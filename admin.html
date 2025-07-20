@@ -2,111 +2,110 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>لوحة إدارة المستشفى</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+  <title>لوحة تحكم الإدارة - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-100 text-right">
+  <div class="bg-white shadow p-4 flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-blue-800">🧑‍⚕️ لوحة تحكم الإدارة - مستشفى الحياة الذكية</h1>
+    <button onclick="location.href='index.html'" class="bg-blue-600 text-white px-4 py-2 rounded">🔙 الصفحة الرئيسية</button>
+  </div>
 
+  <div class="p-4">
+    <input id="searchInput" type="text" placeholder="🔍 بحث عن مريض بالاسم أو الرقم القومي..." class="w-full p-2 mb-4 border rounded shadow">
+
+    <div id="patientsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- المرضى سيُعرضون هنا -->
+    </div>
+  </div>
+
+  <script>
+    // إعداد Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-      authDomain: "hospital-project-e4b59.firebaseapp.com",
-      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hospital-project-e4b59",
-      storageBucket: "hospital-project-e4b59.appspot.com",
-      messagingSenderId: "974610606258",
-      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const patientsContainer = document.getElementById("patientsContainer");
+    const searchInput = document.getElementById("searchInput");
+
+    // تحميل كل المرضى من جميع الأقسام
+    const loadPatients = async () => {
+      patientsContainer.innerHTML = `<div class="text-center w-full col-span-3">⏳ جاري تحميل المرضى...</div>`;
+      const snapshot = await db.ref("patients").once("value");
+      patientsContainer.innerHTML = "";
+
+      snapshot.forEach(sectionSnap => {
+        sectionSnap.forEach(patientSnap => {
+          const patient = patientSnap.val();
+          const id = patientSnap.key;
+          const section = sectionSnap.key;
+
+          const card = document.createElement("div");
+          card.className = "bg-white p-4 rounded shadow";
+
+          card.innerHTML = `
+            <h2 class="text-xl font-bold text-blue-700 mb-2">${patient.name || "بدون اسم"}</h2>
+            <p><strong>الرقم القومي:</strong> ${patient.nationalId || "غير مسجل"}</p>
+            <p><strong>القسم:</strong> ${section}</p>
+            <div class="mt-4 flex justify-between gap-2">
+              <button onclick="viewPatient('${id}', '${section}')" class="bg-green-600 text-white px-3 py-1 rounded">👁️ عرض التفاصيل</button>
+              <button onclick="deletePatient('${id}', '${section}')" class="bg-red-600 text-white px-3 py-1 rounded">🗑️ حذف</button>
+            </div>
+          `;
+          patientsContainer.appendChild(card);
+        });
+      });
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const statsPatients = document.getElementById("totalPatients");
-      const statsDepartments = document.getElementById("totalDepartments");
-      const statsVisits = document.getElementById("totalVisits");
-      const tableBody = document.getElementById("patientsTable");
-
-      const patientsRef = ref(db, "patients");
-      onValue(patientsRef, (snapshot) => {
-        const data = snapshot.val();
-        let countPatients = 0;
-        let countVisits = 0;
-        let departmentSet = new Set();
-        tableBody.innerHTML = "";
-
-        if (data) {
-          Object.entries(data).forEach(([department, patients]) => {
-            departmentSet.add(department);
-
-            Object.entries(patients).forEach(([id, patient]) => {
-              countPatients++;
-
-              if (patient.visits) {
-                countVisits += Object.keys(patient.visits).length;
-              }
-
-              const row = document.createElement("tr");
-              row.className = "hover:bg-gray-50";
-
-              row.innerHTML = `
-                <td class="border p-2">${patient.name}</td>
-                <td class="border p-2">${patient.age}</td>
-                <td class="border p-2">${department}</td>
-                <td class="border p-2">${new Date(patient.timestamp).toLocaleString("ar-EG")}</td>
-              `;
-
-              tableBody.appendChild(row);
-            });
+    // حذف مريض
+    function deletePatient(id, section) {
+      Swal.fire({
+        title: "هل أنت متأكد؟",
+        text: "سيتم حذف هذا المريض نهائيًا",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "نعم، احذف",
+        cancelButtonText: "إلغاء"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          db.ref(`patients/${section}/${id}`).remove().then(() => {
+            Swal.fire("تم الحذف", "تم حذف المريض بنجاح", "success");
+            loadPatients();
           });
         }
+      });
+    }
 
-        statsPatients.textContent = countPatients;
-        statsDepartments.textContent = departmentSet.size;
-        statsVisits.textContent = countVisits;
+    // عرض التفاصيل
+    function viewPatient(id, section) {
+      localStorage.setItem("patientId", id);
+      localStorage.setItem("patientSection", section);
+      window.location.href = "patient.html";
+    }
+
+    // فلترة البحث
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.toLowerCase();
+      const cards = patientsContainer.querySelectorAll("div");
+      cards.forEach(card => {
+        const name = card.querySelector("h2")?.textContent.toLowerCase() || "";
+        const nationalId = card.querySelector("p")?.textContent.toLowerCase() || "";
+        card.style.display = (name.includes(term) || nationalId.includes(term)) ? "block" : "none";
       });
     });
+
+    loadPatients();
   </script>
-
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-6xl mx-auto">
-
-    <h1 class="text-3xl font-bold text-center text-blue-800 mb-6">👨‍⚕️ لوحة إدارة المستشفى</h1>
-
-    <!-- الإحصائيات -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
-      <div class="bg-white shadow-md p-4 rounded">
-        <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
-        <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
-      </div>
-      <div class="bg-white shadow-md p-4 rounded">
-        <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
-        <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
-      </div>
-      <div class="bg-white shadow-md p-4 rounded">
-        <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
-        <p id="totalVisits" class="text-2xl font-bold text-red-600">0</p>
-      </div>
-    </div>
-
-    <!-- جدول المرضى -->
-    <div class="bg-white shadow-md rounded overflow-x-auto">
-      <table class="min-w-full table-auto border">
-        <thead class="bg-gray-100 text-gray-700">
-          <tr>
-            <th class="border p-2">الاسم</th>
-            <th class="border p-2">العمر</th>
-            <th class="border p-2">القسم</th>
-            <th class="border p-2">تاريخ التسجيل</th>
-          </tr>
-        </thead>
-        <tbody id="patientsTable" class="text-center text-sm">
-          <!-- يتم ملؤها تلقائياً -->
-        </tbody>
-      </table>
-    </div>
-
-  </div>
 </body>
 </html>
