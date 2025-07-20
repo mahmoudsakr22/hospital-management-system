@@ -261,32 +261,36 @@
           <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
           <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
         `;
-        patientStatus.textContent = patient.status || "غير محدد";
-        QRCode.toCanvas(qrCanvas, patientId, function (error) {
-          if (error) console.error(error);
-        });
+       window.updateStatus = async () => {
+  const newStatus = document.getElementById('currentStatus').value;
+  const newDept = document.getElementById('currentDept').value;
+  const patientRef = ref(db, `patients/emergency/${patientId}`);
 
-        document.getElementById('currentStatus').value = patient.status || "stable";
-        document.getElementById('currentDept').value = patient.department || "الطوارئ";
-      } else {
-        infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
-        patientStatus.textContent = "";
-      }
-    }
+  try {
+    await update(patientRef, { status: newStatus, department: newDept });
+    patientStatus.textContent = newStatus;
 
-    window.updateStatus = async () => {
-      const newStatus = document.getElementById('currentStatus').value;
-      const newDept = document.getElementById('currentDept').value;
-      const patientRef = ref(db, `patients/emergency/${patientId}`);
+    // ✅ تنبيه SweetAlert بدل alert
+    Swal.fire({
+      icon: 'success',
+      title: 'تم تحديث الحالة بنجاح ✅',
+      text: 'تم تغيير الحالة والقسم الحالي للمريض.',
+      confirmButtonText: 'حسنًا',
+      confirmButtonColor: '#3085d6'
+    });
 
-      try {
-        await update(patientRef, { status: newStatus, department: newDept });
-        patientStatus.textContent = newStatus;
-        alert("تم تحديث الحالة بنجاح");
-      } catch (err) {
-        alert("حدث خطأ أثناء تحديث البيانات");
-      }
-    };
+  } catch (err) {
+    // ❌ تنبيه الخطأ
+    Swal.fire({
+      icon: 'error',
+      title: 'حدث خطأ!',
+      text: 'تعذر تحديث بيانات المريض، حاول مرة أخرى.',
+      confirmButtonText: 'موافق',
+      confirmButtonColor: '#d33'
+    });
+  }
+};
+
 
     document.addEventListener('DOMContentLoaded', loadPatientData);
 
