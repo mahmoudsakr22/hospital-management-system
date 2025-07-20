@@ -3,25 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>لوحة إدارة المستشفى</title>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <style>
-    .glass-box {
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(10px);
-    }
-  </style>
-
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      onValue,
-      remove,
-      update
-    } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -41,188 +27,117 @@
       const statsDepartments = document.getElementById("totalDepartments");
       const statsVisits = document.getElementById("totalVisits");
       const tableBody = document.getElementById("patientsTable");
-      const searchInput = document.getElementById("search");
 
-      function renderPatients(filter = "") {
-        const patientsRef = ref(db, "patients");
-        onValue(patientsRef, (snapshot) => {
-          const data = snapshot.val();
-          let countPatients = 0;
-          let countVisits = 0;
-          let departmentSet = new Set();
-          tableBody.innerHTML = "";
+      const patientsRef = ref(db, "patients");
+      onValue(patientsRef, (snapshot) => {
+        const data = snapshot.val();
+        let countPatients = 0;
+        let countVisits = 0;
+        let departmentSet = new Set();
+        tableBody.innerHTML = "";
 
-          if (data) {
-            Object.entries(data).forEach(([department, patients]) => {
-              departmentSet.add(department);
+        if (data) {
+          Object.entries(data).forEach(([department, patients]) => {
+            departmentSet.add(department);
+            Object.entries(patients).forEach(([id, patient]) => {
+              countPatients++;
+              if (patient.visits) {
+                countVisits += Object.keys(patient.visits).length;
+              }
 
-              Object.entries(patients).forEach(([id, patient]) => {
-                if (
-                  filter &&
-                  !patient.name?.includes(filter) &&
-                  !patient.age?.toString().includes(filter)
-                ) return;
+              const row = document.createElement("tr");
+              row.className = "hover:bg-gray-50 text-sm";
 
-                countPatients++;
+              row.innerHTML = `
+                <td class="border p-2">${patient.name}</td>
+                <td class="border p-2">${patient.age}</td>
+                <td class="border p-2">${department}</td>
+                <td class="border p-2">${new Date(patient.timestamp).toLocaleString("ar-EG")}</td>
+                <td class="border p-2">
+                  <button 
+                    class="text-red-600 hover:underline deleteBtn" 
+                    data-id="${id}" 
+                    data-department="${department}">
+                    حذف
+                  </button>
+                </td>
+              `;
 
-                if (patient.visits) {
-                  countVisits += Object.keys(patient.visits).length;
-                }
-
-                const row = document.createElement("tr");
-                row.className = "hover:bg-gray-50 text-sm";
-
-                row.innerHTML = `
-                  <td class="border p-2">${patient.name}</td>
-                  <td class="border p-2">${patient.age}</td>
-                  <td class="border p-2">${department}</td>
-                  <td class="border p-2">${new Date(patient.timestamp).toLocaleDateString("ar-EG")}</td>
-                  <td class="border p-2 space-x-1 space-y-1">
-                    <button class="bg-blue-500 text-white px-2 py-1 rounded view-btn" data-id="${id}" data-dept="${department}">عرض</button>
-                    <button class="bg-yellow-500 text-white px-2 py-1 rounded edit-btn" data-id="${id}" data-dept="${department}">تعديل</button>
-                    <button class="bg-red-500 text-white px-2 py-1 rounded delete-btn" data-id="${id}" data-dept="${department}">حذف</button>
-                  </td>
-                `;
-
-                tableBody.appendChild(row);
-              });
+              tableBody.appendChild(row);
             });
-          }
+          });
 
           statsPatients.textContent = countPatients;
           statsDepartments.textContent = departmentSet.size;
           statsVisits.textContent = countVisits;
+        }
 
-          attachActionButtons();
-        });
-      }
+        // حذف المريض
+        document.querySelectorAll(".deleteBtn").forEach(button => {
+          button.addEventListener("click", () => {
+            const id = button.getAttribute("data-id");
+            const department = button.getAttribute("data-department");
+            const patientRef = ref(db, `patients/${department}/${id}`);
 
-      function attachActionButtons() {
-        document.querySelectorAll(".delete-btn").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const id = btn.dataset.id;
-            const dept = btn.dataset.dept;
-Swal.fire({
-  title: "هل أنت متأكد؟",
-  text: "لن تتمكن من التراجع بعد الحذف!",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonText: "نعم، احذف",
-  cancelButtonText: "إلغاء",
-  width: "350px",
-  customClass: {
-    popup: 'text-sm'
-  }
-}).then((result) => {
-  if (result.isConfirmed) {
-    // كود الحذف من قاعدة البيانات
-    import { getDatabase, ref, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-    const db = getDatabase();
-    const patientRef = ref(db, `patients/${department}/${patientId}`);
-    
-    remove(patientRef)
-      .then(() => {
-        Swal.fire({
-          title: "تم الحذف!",
-          text: "تم حذف المريض بنجاح.",
-          icon: "success",
-          width: "300px",
-          customClass: {
-            popup: 'text-sm'
-          },
-          timer: 2000,
-          showConfirmButton: false
-        });
-      })
-      .catch((error) => {
-        Swal.fire({
-          title: "خطأ",
-          text: "حدث خطأ أثناء الحذف.",
-          icon: "error"
-        });
-        console.error(error);
-      });
-  }
-});
-
-          });
-        });
-
-        document.querySelectorAll(".edit-btn").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const id = btn.dataset.id;
-            const dept = btn.dataset.dept;
-            const patientRef = ref(db, `patients/${dept}/${id}`);
-
-            onValue(patientRef, async (snap) => {
-              const data = snap.val();
-              const { value: formValues } = await Swal.fire({
-                title: "تعديل بيانات المريض",
-                html:
-                  `<input id="swal-name" class="swal2-input" placeholder="الاسم" value="${data.name}">` +
-                  `<input id="swal-age" type="number" class="swal2-input" placeholder="العمر" value="${data.age}">`,
-                focusConfirm: false,
-                preConfirm: () => {
-                  return {
-                    name: document.getElementById("swal-name").value,
-                    age: document.getElementById("swal-age").value
-                  };
-                }
-              });
-
-              if (formValues) {
-                await update(patientRef, formValues);
-                Swal.fire("تم التحديث!", "تم تعديل بيانات المريض بنجاح.", "success");
+            Swal.fire({
+              title: "هل أنت متأكد؟",
+              text: "لن تتمكن من التراجع!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "نعم، احذف",
+              cancelButtonText: "إلغاء",
+              width: "350px",
+              customClass: { popup: 'text-sm' }
+            }).then((result) => {
+              if (result.isConfirmed) {
+                remove(patientRef)
+                  .then(() => {
+                    Swal.fire({
+                      title: "تم الحذف",
+                      text: "تم حذف المريض بنجاح.",
+                      icon: "success",
+                      width: "300px",
+                      timer: 2000,
+                      showConfirmButton: false,
+                      customClass: { popup: 'text-sm' }
+                    });
+                  })
+                  .catch(err => {
+                    console.error(err);
+                    Swal.fire("خطأ", "حدث خطأ أثناء الحذف", "error");
+                  });
               }
-            }, { onlyOnce: true });
+            });
           });
         });
-
-        document.querySelectorAll(".view-btn").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const id = btn.dataset.id;
-            window.open(`patient.html?id=${id}`, "_blank");
-          });
-        });
-      }
-
-      // البحث المباشر
-      searchInput.addEventListener("input", (e) => {
-        renderPatients(e.target.value);
       });
-
-      renderPatients();
     });
   </script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-6">
-  <div class="max-w-7xl mx-auto">
+  <div class="max-w-6xl mx-auto">
 
-    <!-- عنوان المستشفى داخل مربع زجاجي -->
-    <div class="glass-box p-6 mb-6 text-center rounded shadow-lg bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1588776814546-ec7e4b3b0fc5');">
-      <h1 class="text-4xl font-bold text-blue-900">🏥 مستشفى الحياة الذكية</h1>
-      <p class="text-lg text-gray-700 mt-2">لوحة الإدارة - نظام متكامل لإدارة المرضى والأقسام</p>
-    </div>
+    <h1 class="text-3xl font-bold text-center text-blue-800 mb-6">👨‍⚕️ لوحة إدارة المستشفى</h1>
 
-    <!-- إحصائيات -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
-      <div class="bg-white shadow p-4 rounded">
+    <!-- الإحصائيات -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
+      <div class="bg-white shadow-md p-4 rounded">
         <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
         <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
       </div>
-      <div class="bg-white shadow p-4 rounded">
+      <div class="bg-white shadow-md p-4 rounded">
         <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
         <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
       </div>
-      <div class="bg-white shadow p-4 rounded">
+      <div class="bg-white shadow-md p-4 rounded">
         <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
         <p id="totalVisits" class="text-2xl font-bold text-red-600">0</p>
       </div>
-    </div>
-
-    <!-- مربع البحث -->
-    <div class="mb-4">
-      <input id="search" type="text" placeholder="ابحث باسم المريض أو العمر..." class="w-full p-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
     </div>
 
     <!-- جدول المرضى -->
@@ -234,18 +149,13 @@ Swal.fire({
             <th class="border p-2">العمر</th>
             <th class="border p-2">القسم</th>
             <th class="border p-2">تاريخ التسجيل</th>
-            <th class="border p-2">الإجراءات</th>
+            <th class="border p-2">إجراء</th>
           </tr>
         </thead>
-        <tbody id="patientsTable" class="text-center text-sm">
-          <!-- يتم ملؤها تلقائيًا -->
+        <tbody id="patientsTable" class="text-center">
+          <!-- بيانات المرضى تظهر هنا -->
         </tbody>
       </table>
-    </div>
-
-    <!-- زر الرجوع -->
-    <div class="mt-6 text-center">
-      <a href="index.html" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">⬅ الرجوع للصفحة الرئيسية</a>
     </div>
 
   </div>
