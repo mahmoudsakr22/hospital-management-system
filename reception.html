@@ -233,54 +233,98 @@
           const data = snapshot.val();
           Object.entries(data).forEach(([key, patient]) => {
             const card = document.createElement("div");
-           card.className = "bg-white border border-gray-300 p-3 rounded-md shadow-sm flex flex-col md:flex-row md:items-center md:justify-between text-sm";
+            card.className = "bg-gray-50 border border-gray-200 p-4 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between";
             card.innerHTML = `
               <div class="mb-3 md:mb-0">
-               <h3 class="font-semibold text-base text-blue-700">${patient.name}</h3>
-               <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
+                <h3 class="font-bold text-lg text-blue-800">${patient.name}</h3>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
                   <span><i class="fas fa-birthday-cake ml-1"></i> العمر: ${patient.age}</span>
                   <span><i class="fas fa-id-card ml-1"></i> الرقم القومي: ${patient.nid}</span>
                   <span><i class="fas fa-calendar-alt ml-1"></i> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</span>
                 </div>
               </div>
               <div class="flex space-x-2 space-x-reverse">
-               <button class="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-2 text-xs rounded-lg transition duration-200" data-id="${key}">
+                <button class="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded-lg transition duration-200" data-id="${key}">
                   <i class="fas fa-trash-alt ml-1"></i> حذف
                 </button>
               </div>
             `;
             container.appendChild(card);
-card.querySelector("button[data-id]").addEventListener("click", async () => {
-  Swal.fire({
-    title: 'هل أنت متأكد؟',
-    text: "لن تتمكن من التراجع بعد الحذف!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'نعم، احذفه!',
-    cancelButtonText: 'إلغاء'
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await remove(ref(db, `patients/emergency/${key}`));
+
+           onValue(emergencyRef, (snapshot) => {
+  container.innerHTML = "";
+
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    Object.entries(data).forEach(([key, patient]) => {
+      const card = document.createElement("div");
+      card.className = "bg-gray-50 border border-gray-200 p-4 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between";
+
+      card.innerHTML = 
+        <div class="mb-3 md:mb-0">
+          <h3 class="font-bold text-lg text-blue-800">${patient.name}</h3>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
+            <span><i class="fas fa-birthday-cake ml-1"></i> العمر: ${patient.age}</span>
+            <span><i class="fas fa-id-card ml-1"></i> الرقم القومي: ${patient.nid}</span>
+            <span><i class="fas fa-calendar-alt ml-1"></i> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</span>
+          </div>
+        </div>
+        <div class="flex space-x-2 space-x-reverse">
+          <button class="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded-lg transition duration-200" data-id="${key}">
+            <i class="fas fa-trash-alt ml-1"></i> حذف
+          </button>
+        </div>
+      ;
+
+      container.appendChild(card);
+
+      const deleteBtn = card.querySelector("button[data-id]");
+      deleteBtn.addEventListener("click", () => {
         Swal.fire({
-          icon: 'success',
-          title: 'تم الحذف بنجاح',
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 2000
+          title: 'تأكيد الحذف',
+          text: 'هل أنت متأكد من حذف هذا المريض؟',
+          icon: 'warning',
+          width: '320px',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'نعم',
+          cancelButtonText: 'إلغاء',
+          customClass: {
+            title: 'text-base',
+            popup: 'text-sm rounded-lg'
+          }
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              await remove(ref(db, patients/emergency/${key}));
+              Swal.fire({
+                icon: 'success',
+                title: 'تم الحذف بنجاح',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+              });
+            } catch (err) {
+              Swal.fire({
+                icon: 'error',
+                title: 'حدث خطأ أثناء الحذف',
+                text: err.message
+              });
+            }
+          }
         });
-      } catch (err) {
-        Swal.fire({
-          icon: 'error',
-          title: 'حدث خطأ أثناء الحذف',
-          text: err.message
-        });
-      }
-    }
-  });
+      });
+    });
+  } else {
+    container.innerHTML = 
+      <div class="text-center py-8">
+        <i class="fas fa-user-slash text-4xl text-gray-300 mb-3"></i>
+        <p class="text-gray-500">لا يوجد مرضى مسجلين حالياً</p>
+      </div>
+    ;
+  }
 });
           });
         } else {
