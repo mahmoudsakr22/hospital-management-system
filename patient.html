@@ -1,261 +1,88 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ملف المريض - أحمد عبد الله</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        fontFamily: {
-          sans: ['Cairo', 'sans-serif']
-        },
-        extend: {
-          colors: {
-            primary: "#0077b6",
-            secondary: "#e0e0e0",
-            accent: "#f0f4f8"
-          }
-        }
+  <meta charset="UTF-8" />
+  <title>ملف المريض - مستشفى الحياة الذكية</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    function getPatientIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("id");
+    }
+
+    function displayPatientData(patient) {
+      document.getElementById("patientName").textContent = patient.name;
+      document.getElementById("patientInfo").innerHTML = `
+        <tr><td class="font-semibold">العمر:</td><td>${patient.age}</td></tr>
+        <tr><td class="font-semibold">الرقم القومي:</td><td>${patient.nid}</td></tr>
+        <tr><td class="font-semibold">القسم:</td><td>${patient.department}</td></tr>
+        <tr><td class="font-semibold">تاريخ الدخول:</td><td>${new Date(patient.timestamp).toLocaleString("ar-EG")}</td></tr>
+        <tr><td class="font-semibold">ID:</td><td>${patient.id}</td></tr>
+      `;
+    }
+
+    function loadPatientData() {
+      const id = getPatientIdFromURL();
+      if (!id) {
+        alert("لم يتم تمرير رقم المريض في الرابط.");
+        return;
       }
+
+      const patientRef = ref(db, `patients/emergency/${id}`);
+      onValue(patientRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const patient = snapshot.val();
+          displayPatientData(patient);
+        } else {
+          document.getElementById("patientName").textContent = "المريض غير موجود";
+          document.getElementById("patientInfo").innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات للمريض.</td></tr>";
+        }
+      });
     }
+
+    window.addEventListener("DOMContentLoaded", loadPatientData);
+
+    window.goBack = function () {
+      window.location.href = "emergency.html";
+    };
+
+    window.downloadPDF = function () {
+      window.print(); // مؤقتًا نفس زر الطباعة
+    };
   </script>
-  <style>
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    .status-light {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      background-color: #28a745;
-      animation: blink 1s infinite;
-      display: inline-block;
-      margin-left: 5px;
-    }
-  </style>
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
-<body class="bg-gray-50 font-sans">
-  <header class="bg-primary text-white py-4 text-center">
-    <h1 class="text-2xl font-bold">ملف المريض - أحمد عبد الله</h1>
-  </header>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-3xl font-bold text-center text-blue-800 mb-6" id="patientName">تحميل البيانات...</h1>
 
-  <div class="container mx-auto px-4 py-6 max-w-5xl">
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-      <!-- Basic Information Section -->
-      <section class="mb-8">
-        <h2 class="text-xl font-bold text-primary mb-4">المعلومات الأساسية:</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="bg-secondary">
-                <th class="border border-gray-300 p-3 text-right">الاسم</th>
-                <th class="border border-gray-300 p-3 text-right">العمر</th>
-                <th class="border border-gray-300 p-3 text-right">الرقم القومي</th>
-                <th class="border border-gray-300 p-3 text-right">ID</th>
-                <th class="border border-gray-300 p-3 text-right">تاريخ الدخول</th>
-                <th class="border border-gray-300 p-3 text-right">القسم الحالي</th>
-                <th class="border border-gray-300 p-3 text-right">الطبيب المعالج</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="border border-gray-300 p-3">أحمد عبد الله</td>
-                <td class="border border-gray-300 p-3">45 سنة</td>
-                <td class="border border-gray-300 p-3">29801012345678</td>
-                <td class="border border-gray-300 p-3">setf454</td>
-                <td class="border border-gray-300 p-3">2025-07-07</td>
-                <td class="border border-gray-300 p-3">الطوارئ</td>
-                <td class="border border-gray-300 p-3">د. خالد عمر</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+    <table class="table-auto w-full text-right border border-gray-300 mb-6">
+      <tbody id="patientInfo" class="divide-y divide-gray-200">
+        <tr><td colspan="2" class="text-center py-4">جاري تحميل البيانات...</td></tr>
+      </tbody>
+    </table>
 
-      <!-- Visit Registration Section -->
-      <section class="mb-8">
-        <h2 class="text-xl font-bold text-primary mb-4">تسجيل زيارة / كشف:</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="block font-medium mb-1">نوع الزيارة:</label>
-            <select class="w-full border border-gray-300 rounded-md p-2">
-              <option>كشف طبي</option>
-              <option>متابعة</option>
-              <option>استشارة</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-medium mb-1">ملاحظات الطبيب:</label>
-            <textarea class="w-full border border-gray-300 rounded-md p-2" rows="3"></textarea>
-          </div>
-          <button class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-            تسجيل الزيارة
-          </button>
-        </div>
-      </section>
-
-      <!-- Visit History Section -->
-      <section class="mb-8">
-        <h2 class="text-xl font-bold text-primary mb-4">سجل الزيارات:</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="bg-secondary">
-                <th class="border border-gray-300 p-3 text-right">التاريخ</th>
-                <th class="border border-gray-300 p-3 text-right">النوع</th>
-                <th class="border border-gray-300 p-3 text-right">ملاحظات</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="border border-gray-300 p-3">2025-07-07</td>
-                <td class="border border-gray-300 p-3">كشف طبي</td>
-                <td class="border border-gray-300 p-3">ارتفاع ضغط الدم</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Transfer Request Section -->
-      <section class="mb-8">
-        <h2 class="text-xl font-bold text-primary mb-4">طلب تحويل لقسم آخر:</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="block font-medium mb-1">اختر القسم:</label>
-            <select id="transferDept" onchange="showExtraFields()" class="w-full border border-gray-300 rounded-md p-2">
-              <option value="">-- اختر --</option>
-              <option value="أشعة">قسم الأشعة</option>
-              <option value="تحاليل">قسم التحاليل</option>
-              <option value="صيدلية">الصيدلية</option>
-              <option value="رعاية مركزة">الرعاية المركزة</option>
-              <option value="جراحة">الجراحة</option>
-            </select>
-          </div>
-          <div id="extraFields"></div>
-          <button class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-            تسجيل التحويل
-          </button>
-        </div>
-      </section>
-
-      <!-- Transfer History Section -->
-      <section class="mb-8">
-        <h2 class="text-xl font-bold text-primary mb-4">سجل التحويلات:</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="bg-secondary">
-                <th class="border border-gray-300 p-3 text-right">القسم</th>
-                <th class="border border-gray-300 p-3 text-right">ملاحظات</th>
-                <th class="border border-gray-300 p-3 text-right">التاريخ</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="border border-gray-300 p-3">أشعة</td>
-                <td class="border border-gray-300 p-3">أشعة على الصدر</td>
-                <td class="border border-gray-300 p-3">2025-07-07</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Medications Section -->
-      <section class="mb-8">
-        <h2 class="text-xl font-bold text-primary mb-4">الأدوية والعلاج:</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="bg-secondary">
-                <th class="border border-gray-300 p-3 text-right">اسم الدواء</th>
-                <th class="border border-gray-300 p-3 text-right">الجرعة</th>
-                <th class="border border-gray-300 p-3 text-right">عدد المرات</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="border border-gray-300 p-3">باراسيتامول</td>
-                <td class="border border-gray-300 p-3">75 مل</td>
-                <td class="border border-gray-300 p-3">3 مرات يومياً</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Patient Status Section -->
-      <section class="mb-8">
-        <h2 class="text-xl font-bold text-primary mb-4">
-          حالة المريض الحالية: <span class="status-light"></span> مستقر
-        </h2>
-      </section>
-
-      <!-- Action Buttons -->
-      <section class="flex flex-wrap gap-4">
-        <button onclick="window.print()" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-          تحميل تقرير المريض PDF
-        </button>
-        <button onclick="window.location.href='emergency.html'" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition">
-          رجوع إلى قسم الطوارئ
-        </button>
-      </section>
+    <div class="flex flex-wrap gap-4 mt-6">
+      <button onclick="downloadPDF()" class="bg-green-700 text-white px-6 py-2 rounded">تحميل تقرير PDF</button>
+      <button onclick="window.print()" class="bg-yellow-600 text-white px-6 py-2 rounded">طباعة الصفحة</button>
+      <button onclick="goBack()" class="bg-gray-600 text-white px-6 py-2 rounded">رجوع إلى قسم الطوارئ</button>
     </div>
   </div>
-
-  <script>
-    function showExtraFields() {
-      const dept = document.getElementById('transferDept').value;
-      const container = document.getElementById('extraFields');
-      container.innerHTML = '';
-      
-      if (dept === 'أشعة') {
-        container.innerHTML = `
-          <div class="mt-2">
-            <label class="block font-medium mb-1">نوع الأشعة:</label>
-            <input type="text" class="w-full border border-gray-300 rounded-md p-2">
-          </div>
-          <div class="mt-2">
-            <label class="block font-medium mb-1">ملاحظات:</label>
-            <textarea class="w-full border border-gray-300 rounded-md p-2" rows="2"></textarea>
-          </div>
-        `;
-      } else if (dept === 'تحاليل') {
-        container.innerHTML = `
-          <div class="mt-2">
-            <label class="block font-medium mb-1">نوع التحليل:</label>
-            <input type="text" class="w-full border border-gray-300 rounded-md p-2">
-          </div>
-          <div class="mt-2">
-            <label class="block font-medium mb-1">ملاحظات:</label>
-            <textarea class="w-full border border-gray-300 rounded-md p-2" rows="2"></textarea>
-          </div>
-        `;
-      } else if (dept === 'صيدلية') {
-        container.innerHTML = `
-          <div class="mt-2">
-            <label class="block font-medium mb-1">اسم الدواء:</label>
-            <input type="text" class="w-full border border-gray-300 rounded-md p-2">
-          </div>
-          <div class="mt-2">
-            <label class="block font-medium mb-1">ملاحظات:</label>
-            <textarea class="w-full border border-gray-300 rounded-md p-2" rows="2"></textarea>
-          </div>
-        `;
-      } else if (dept) {
-        container.innerHTML = `
-          <div class="mt-2">
-            <label class="block font-medium mb-1">ملاحظات:</label>
-            <textarea class="w-full border border-gray-300 rounded-md p-2" rows="2"></textarea>
-          </div>
-        `;
-      }
-    }
-  </script>
 </body>
 </html>
