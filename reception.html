@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -87,51 +86,57 @@
       <div class="p-6">
         <form id="patientForm" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <div>
               <label class="block text-gray-700 font-medium mb-2">اسم المريض</label>
               <input type="text" id="name" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
             </div>
+
             <div>
               <label class="block text-gray-700 font-medium mb-2">العمر</label>
               <input type="number" id="age" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
             </div>
+
+            <div>
+              <label class="block text-gray-700 font-medium mb-2">الجنس</label>
+              <select id="gender" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
+                <option value="">-- اختر الجنس --</option>
+                <option value="ذكر">ذكر</option>
+                <option value="أنثى">أنثى</option>
+              </select>
+            </div>
+
             <div>
               <label class="block text-gray-700 font-medium mb-2">الرقم القومي</label>
               <input type="text" id="nid" maxlength="14" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
             </div>
+
             <div>
-              <div>
-  <label class="block text-gray-700 font-medium mb-2">الجنس</label>
-  <div class="flex space-x-4 space-x-reverse">
-    <label><input type="radio" name="gender" value="ذكر" required class="mr-2"> ذكر</label>
-    <label><input type="radio" name="gender" value="أنثى" required class="mr-2"> أنثى</label>
-  </div>
-</div>
+              <label class="block text-gray-700 font-medium mb-2">العنوان</label>
+              <input type="text" id="address" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
+            </div>
 
-<div>
-  <label class="block text-gray-700 font-medium mb-2">العنوان</label>
-  <input type="text" id="address" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
-</div>
+            <div>
+              <label class="block text-gray-700 font-medium mb-2">فصيلة الدم</label>
+              <select id="bloodType" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
+                <option value="">-- اختر فصيلة الدم --</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
 
-<div>
-  <label class="block text-gray-700 font-medium mb-2">الأمراض المزمنة</label>
-  <input type="text" id="chronic" placeholder="اكتب الأمراض المزمنة إن وجدت" class="w-full border border-gray-300 rounded-lg px-4 py-2">
-</div>
+            <div class="md:col-span-2">
+              <label class="block text-gray-700 font-medium mb-2">الأمراض المزمنة</label>
+              <textarea id="chronicDiseases" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="اكتب هنا الأمراض المزمنة إذا وجدت"></textarea>
+            </div>
 
-<div>
-  <label class="block text-gray-700 font-medium mb-2">فصيلة الدم</label>
-  <select id="blood" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
-    <option value="">-- اختر فصيلة الدم --</option>
-    <option value="A+">A+</option>
-    <option value="A-">A-</option>
-    <option value="B+">B+</option>
-    <option value="B-">B-</option>
-    <option value="AB+">AB+</option>
-    <option value="AB-">AB-</option>
-    <option value="O+">O+</option>
-    <option value="O-">O-</option>
-  </select>
-</div>
+            <div>
               <label class="block text-gray-700 font-medium mb-2">القسم المحول إليه</label>
               <select id="department" class="w-full border border-gray-300 rounded-lg px-4 py-2" required>
                 <option value="">-- اختر القسم --</option>
@@ -142,7 +147,9 @@
                 <option value="admin">الإدارة</option>
               </select>
             </div>
+
           </div>
+
           <div class="pt-2">
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg">
               <i class="fas fa-save ml-2"></i> تسجيل المريض
@@ -210,14 +217,18 @@
 
         const name = document.getElementById("name").value.trim();
         const age = document.getElementById("age").value.trim();
+        const gender = document.getElementById("gender").value;
         const nid = document.getElementById("nid").value.trim();
+        const address = document.getElementById("address").value.trim();
+        const bloodType = document.getElementById("bloodType").value;
+        const chronicDiseases = document.getElementById("chronicDiseases").value.trim();
         const department = document.getElementById("department").value;
 
-        if (!name || !age || !nid || !department) {
+        if (!name || !age || !gender || !nid || !address || !bloodType || !department) {
           Swal.fire({
             icon: 'warning',
             title: 'تنبيه!',
-            text: 'يرجى ملء جميع الحقول.',
+            text: 'يرجى ملء جميع الحقول المطلوبة.',
             confirmButtonText: 'حسنًا'
           });
           return;
@@ -226,7 +237,11 @@
         const patient = {
           name,
           age,
+          gender,
           nid,
+          address,
+          bloodType,
+          chronicDiseases,
           department,
           timestamp: new Date().toISOString()
         };
@@ -268,21 +283,18 @@
             const card = document.createElement("div");
             card.className = "bg-gray-50 border border-gray-200 p-4 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between";
             card.innerHTML = `
-              card.innerHTML = `
- card.innerHTML = `
-  <div class="mb-3 md:mb-0 w-full">
-    <h3 class="font-bold text-lg text-blue-800 mb-2">${patient.name}</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-gray-700">
-      <div><i class="fas fa-birthday-cake ml-1 text-blue-500"></i> <strong>العمر:</strong> ${patient.age}</div>
-      <div><i class="fas fa-id-card ml-1 text-blue-500"></i> <strong>الرقم القومي:</strong> ${patient.nid}</div>
-      <div><i class="fas fa-venus-mars ml-1 text-blue-500"></i> <strong>الجنس:</strong> ${patient.gender || '---'}</div>
-      <div><i class="fas fa-map-marker-alt ml-1 text-blue-500"></i> <strong>العنوان:</strong> ${patient.address || '---'}</div>
-      <div><i class="fas fa-heartbeat ml-1 text-blue-500"></i> <strong>الأمراض المزمنة:</strong> ${patient.chronic || 'لا يوجد'}</div>
-      <div><i class="fas fa-tint ml-1 text-blue-500"></i> <strong>فصيلة الدم:</strong> ${patient.blood || '---'}</div>
-      <div><i class="fas fa-calendar-alt ml-1 text-blue-500"></i> <strong>التاريخ:</strong> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</div>
-    </div>
-  </div>
-`;
+              <div class="mb-3 md:mb-0">
+                <h3 class="font-bold text-lg text-blue-800">${patient.name}</h3>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
+                  <span><i class="fas fa-birthday-cake ml-1"></i> العمر: ${patient.age}</span>
+                  <span><i class="fas fa-venus-mars ml-1"></i> الجنس: ${patient.gender}</span>
+                  <span><i class="fas fa-id-card ml-1"></i> الرقم القومي: ${patient.nid}</span>
+                  <span><i class="fas fa-map-marker-alt ml-1"></i> العنوان: ${patient.address}</span>
+                  <span><i class="fas fa-tint ml-1"></i> فصيلة الدم: ${patient.bloodType}</span>
+                  <span><i class="fas fa-notes-medical ml-1"></i> الأمراض المزمنة: ${patient.chronicDiseases || '-'}</span>
+                  <span><i class="fas fa-calendar-alt ml-1"></i> ${new Date(patient.timestamp).toLocaleString("ar-EG")}</span>
+                </div>
+              </div>
               <div class="flex space-x-2 space-x-reverse">
                 <button class="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded-lg transition duration-200" data-id="${key}">
                   <i class="fas fa-trash-alt ml-1"></i> حذف
@@ -290,44 +302,45 @@
               </div>
             `;
             container.appendChild(card);
-card.querySelector("button[data-id]").addEventListener("click", async () => {
-  Swal.fire({
-    title: 'هل أنت متأكد؟',
-    text: "لن تتمكن من التراجع بعد الحذف!",
-    icon: 'warning',
-    width: '240px', // ✅ هنا بنحدد العرض
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'نعم، احذفه!',
-    cancelButtonText: 'إلغاء',
-    customClass: {
-      title: 'text-base',
-      htmlContainer: 'text-sm',
-      popup: 'rounded-lg'
-    }
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await remove(ref(db, `patients/emergency/${key}`));
-        Swal.fire({
-          icon: 'success',
-          title: 'تم الحذف بنجاح',
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 2000
-        });
-      } catch (err) {
-        Swal.fire({
-          icon: 'error',
-          title: 'حدث خطأ أثناء الحذف',
-          text: err.message
-        });
-      }
-    }
-  });
-});
+
+            card.querySelector("button[data-id]").addEventListener("click", async () => {
+              Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "لن تتمكن من التراجع بعد الحذف!",
+                icon: 'warning',
+                width: '240px',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'نعم، احذفه!',
+                cancelButtonText: 'إلغاء',
+                customClass: {
+                  title: 'text-base',
+                  htmlContainer: 'text-sm',
+                  popup: 'rounded-lg'
+                }
+              }).then(async (result) => {
+                if (result.isConfirmed) {
+                  try {
+                    await remove(ref(db, `patients/emergency/${key}`));
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'تم الحذف بنجاح',
+                      toast: true,
+                      position: 'top-end',
+                      showConfirmButton: false,
+                      timer: 2000
+                    });
+                  } catch (err) {
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'حدث خطأ أثناء الحذف',
+                      text: err.message
+                    });
+                  }
+                }
+              });
+            });
 
           });
         } else {
@@ -375,28 +388,4 @@ card.querySelector("button[data-id]").addEventListener("click", async () => {
               label: "عدد المرضى",
               data: sections.map(s => sectionCounts[s]),
               backgroundColor: [
-                "#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"
-              ]
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              y: { beginAtZero: true }
-            }
-          }
-        });
-      }
-
-      loadStats();
-
-      document.getElementById("newPatientBtn").addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    });
-  </script>
-</body>
-</html>
+                "#3b82f6", "#10b981", "#8b5cf6", "#f59
