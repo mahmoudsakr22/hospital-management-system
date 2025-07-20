@@ -102,7 +102,7 @@
           btn.addEventListener("click", () => {
             const id = btn.dataset.id;
             const dept = btn.dataset.dept;
-          Swal.fire({
+Swal.fire({
   title: "هل أنت متأكد؟",
   text: "لن تتمكن من التراجع بعد الحذف!",
   icon: "warning",
@@ -115,19 +115,33 @@
   }
 }).then((result) => {
   if (result.isConfirmed) {
-    // الكود الخاص بالحذف هنا
-
-    Swal.fire({
-      title: "تم الحذف!",
-      text: "تم حذف المريض بنجاح.",
-      icon: "success",
-      width: "300px",
-      customClass: {
-        popup: 'text-sm'
-      },
-      timer: 2000,
-      showConfirmButton: false
-    });
+    // كود الحذف من قاعدة البيانات
+    import { getDatabase, ref, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    const db = getDatabase();
+    const patientRef = ref(db, `patients/${department}/${patientId}`);
+    
+    remove(patientRef)
+      .then(() => {
+        Swal.fire({
+          title: "تم الحذف!",
+          text: "تم حذف المريض بنجاح.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: 'text-sm'
+          },
+          timer: 2000,
+          showConfirmButton: false
+        });
+      })
+      .catch((error) => {
+        Swal.fire({
+          title: "خطأ",
+          text: "حدث خطأ أثناء الحذف.",
+          icon: "error"
+        });
+        console.error(error);
+      });
   }
 });
 
