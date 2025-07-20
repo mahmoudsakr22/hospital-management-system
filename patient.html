@@ -2,9 +2,19 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>ملف المريض</title>
+  <title>ملف المريض - مستشفى الحياة الذكية</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <style>
+    .header-image {
+      max-height: 120px;
+      object-fit: cover;
+      border-radius: 1rem;
+    }
+  </style>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
@@ -33,12 +43,9 @@
       const statusDiv = document.getElementById("status");
       const medsList = document.getElementById("medications");
 
-      // Load patient info
       const snapshot = await get(baseRef);
       if (snapshot.exists()) {
         const patient = snapshot.val();
-
-        // Display Info
         infoTable.innerHTML = `
           <tr><td>الاسم:</td><td>${patient.name}</td></tr>
           <tr><td>العمر:</td><td>${patient.age}</td></tr>
@@ -48,18 +55,12 @@
           <tr><td>القسم الحالي:</td><td>${patient.department}</td></tr>
           <tr><td>الطبيب المعالج:</td><td>${patient.doctor || 'غير محدد'}</td></tr>
         `;
-
-        // الحالة
         statusDiv.textContent = patient.status || "غير متوفر";
-
-        // QR
         QRCode.toCanvas(document.getElementById('qrCode'), patientId);
-
       } else {
         infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على المريض.</td></tr>";
       }
 
-      // Visits
       onValue(ref(db, `patients/emergency/${patientId}/visits`), (snap) => {
         visitsList.innerHTML = "";
         snap.forEach((child) => {
@@ -68,7 +69,6 @@
         });
       });
 
-      // Transfers
       onValue(ref(db, `patients/emergency/${patientId}/transfers`), (snap) => {
         transfersList.innerHTML = "";
         snap.forEach((child) => {
@@ -77,7 +77,6 @@
         });
       });
 
-      // Medications
       onValue(ref(db, `patients/emergency/${patientId}/medications`), (snap) => {
         medsList.innerHTML = "";
         snap.forEach((child) => {
@@ -90,8 +89,7 @@
     window.addVisit = async () => {
       const type = document.getElementById("visitType").value;
       const notes = document.getElementById("visitNotes").value;
-      const visitsRef = ref(db, `patients/emergency/${patientId}/visits`);
-      await push(visitsRef, {
+      await push(ref(db, `patients/emergency/${patientId}/visits`), {
         type,
         notes,
         timestamp: Date.now()
@@ -102,8 +100,7 @@
     window.addTransfer = async () => {
       const dept = document.getElementById("transferDept").value;
       const notes = document.getElementById("transferNotes").value;
-      const transRef = ref(db, `patients/emergency/${patientId}/transfers`);
-      await push(transRef, {
+      await push(ref(db, `patients/emergency/${patientId}/transfers`), {
         department: dept,
         notes,
         timestamp: Date.now()
@@ -123,17 +120,26 @@
       window.location.href = "emergency.html";
     };
   </script>
-
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-gray-100 p-6">
+  <!-- رأس الصفحة -->
+  <div class="max-w-5xl mx-auto bg-white p-4 rounded shadow mb-6">
+    <div class="flex flex-col items-center text-center">
+      <img src="https://img.freepik.com/free-vector/hospital-building-concept-illustration_114360-8946.jpg?w=740&t=st=1710663063~exp=1710663663~hmac=b9121ec3989f3c4589c16be557c5dfb5fd8e51bdbbc3d585ef29e6d3a38e00df" alt="صورة المستشفى" class="header-image mb-4">
+      <h1 class="text-3xl font-bold text-blue-700">مستشفى الحياة الذكية</h1>
+      <p class="text-gray-600 mt-2">نظام متكامل لإدارة ملفات المرضى وحالتهم الطبية لحظة بلحظة</p>
+    </div>
+  </div>
+
+  <!-- محتوى الملف -->
   <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
-    <h1 class="text-2xl font-bold text-center mb-4">ملف المريض</h1>
+    <h2 class="text-2xl font-bold text-center mb-4">ملف المريض</h2>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">المعلومات الأساسية</h2>
-    <table class="table-auto w-full border" id="infoTable"></table>
+    <h3 class="text-xl font-semibold mt-6 mb-2">المعلومات الأساسية</h3>
+    <table class="table-auto w-full border mb-4" id="infoTable"></table>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">سجل الزيارات</h2>
+    <h3 class="text-xl font-semibold mt-6 mb-2">سجل الزيارات</h3>
     <ul class="list-disc pl-6 mb-4" id="visitsList"></ul>
     <div class="mb-4">
       <select id="visitType" class="border p-2 rounded">
@@ -145,7 +151,7 @@
       <button onclick="addVisit()" class="bg-blue-600 text-white px-4 py-2 rounded">تسجيل الزيارة</button>
     </div>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">التحويلات</h2>
+    <h3 class="text-xl font-semibold mt-6 mb-2">التحويلات</h3>
     <ul class="list-disc pl-6 mb-4" id="transfersList"></ul>
     <div class="mb-4">
       <select id="transferDept" class="border p-2 rounded">
@@ -158,13 +164,13 @@
       <button onclick="addTransfer()" class="bg-purple-600 text-white px-4 py-2 rounded">تسجيل التحويل</button>
     </div>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">الأدوية والعلاج</h2>
+    <h3 class="text-xl font-semibold mt-6 mb-2">الأدوية والعلاج</h3>
     <ul class="list-disc pl-6 mb-4" id="medications"></ul>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">الحالة الحالية</h2>
+    <h3 class="text-xl font-semibold mt-6 mb-2">الحالة الحالية</h3>
     <div id="status" class="p-2 border rounded bg-gray-50"></div>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">رمز الاستجابة السريع</h2>
+    <h3 class="text-xl font-semibold mt-6 mb-2">رمز الاستجابة السريع</h3>
     <canvas id="qrCode" class="mb-4"></canvas>
 
     <div class="flex gap-4 mt-6">
