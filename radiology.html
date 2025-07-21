@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>قسم الأشعة - مستشفى الحياة الذكية</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <style>
 body { font-family: 'Tajawal', sans-serif; }
 .card {
@@ -47,8 +50,25 @@ font-weight: 500;
   </div>
 </div>
 
-<!-- إحصائيات -->
-<div id="stats" class="mb-6"></div>
+<!-- لوحة الإحصائيات -->
+<div class="flex flex-col md:flex-row gap-4 mb-6">
+  <div class="bg-white rounded shadow p-4 flex-1 text-center">
+    <div class="text-2xl font-bold" id="count-today">0</div>
+    <div>طلبات اليوم</div>
+  </div>
+  <div class="bg-white rounded shadow p-4 flex-1 text-center">
+    <div class="text-2xl font-bold" id="count-month">0</div>
+    <div>طلبات هذا الشهر</div>
+  </div>
+  <div class="bg-white rounded shadow p-4 flex-1 text-center">
+    <div class="text-2xl font-bold" id="count-all">0</div>
+    <div>إجمالي الطلبات</div>
+  </div>
+  <div class="bg-white rounded shadow p-4 flex-1 text-center">
+    <canvas id="statusChart" width="100" height="100"></canvas>
+    <div class="text-xs mt-2">توزيع الحالات</div>
+  </div>
+</div>
 
 <!-- تصفية وبحث -->
 <div class="flex flex-col md:flex-row gap-4 mb-4">
@@ -62,8 +82,13 @@ font-weight: 500;
     </select>
   </div>
   <div>
-    <label>بحث باسم المريض أو نوع الأشعة أو رقم الهوية:</label>
-    <input id="searchInput" class="border rounded p-2" placeholder="بحث..." oninput="loadAllRadiologyTransfers()">
+    <label>بحث:</label>
+    <input id="searchInput" class="border rounded p-2" placeholder="اسم/نوع أشعة/رقم هوية/رقم طلب..." oninput="loadAllRadiologyTransfers()">
+  </div>
+  <div>
+    <label>تصفية بالتاريخ:</label>
+    <input type="date" id="dateFrom" class="border rounded p-2" onchange="loadAllRadiologyTransfers()">
+    <input type="date" id="dateTo" class="border rounded p-2" onchange="loadAllRadiologyTransfers()">
   </div>
 </div>
 
@@ -101,11 +126,17 @@ async function loadAllRadiologyTransfers() {
   const list = document.getElementById("transferList");
   const filterStatus = document.getElementById("filterStatus").value;
   const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
+  const dateFrom = document.getElementById("dateFrom").value;
+  const dateTo = document.getElementById("dateTo").value;
   list.innerHTML = "<div class='text-gray-500 p-4'>جاري التحميل...</div>";
   const patientsRef = ref(db, `patients/emergency`);
   onValue(patientsRef, async (snapshot) => {
     list.innerHTML = "";
-    let found = false, total=0, done=0, waiting=0, rejected=0;
+    let found = false, total=0, done=0, waiting=0, rejected=0, today=0, month=0;
+    let statusCounts = { "تم التنفيذ": 0, "قيد الانتظار": 0, "مرفوض": 0 };
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('ar-EG');
+    const monthStr = now.getMonth() + 1;
     const promises = [];
     snapshot.forEach((patientSnap) => {
       const patientId = patientSnap.key;
@@ -118,17 +149,30 @@ async function loadAllRadiologyTransfers() {
           if (t.department === "radiology") {
             // فلترة حسب الحالة
             if (filterStatus && t.status !== filterStatus) return;
-            // بحث باسم المريض أو نوع الأشعة أو رقم الهوية
+            // بحث باسم المريض أو نوع الأشعة أو رقم الهوية أو رقم الطلب
             if (searchValue) {
               const name = (patient.name || "").toLowerCase();
               const type = (t.type || "").toLowerCase();
               const nid = (patient.nid || "").toLowerCase();
-              if (!name.includes(searchValue) && !type.includes(searchValue) && !nid.includes(searchValue)) return;
+              if (!name.includes(searchValue) && !type.includes(searchValue) && !nid.includes(searchValue) && !key.includes(searchValue)) return;
+            }
+            // فلترة بالتاريخ
+            if (dateFrom || dateTo) {
+              let reqDate = t.date ? new Date(t.date) : null;
+              if (reqDate) {
+                if (dateFrom && reqDate < new Date(dateFrom)) return;
+                if (dateTo && reqDate > new Date(dateTo)) return;
+              }
             }
             found = true; total++;
             if (t.status === "تم التنفيذ") done++;
             else if (t.status === "مرفوض") rejected++;
             else waiting++;
+            statusCounts[t.status] = (statusCounts[t.status] || 0) + 1;
+            // عدادات اليوم والشهر
+            if (t.date && t.date.includes(todayStr)) today++;
+            if (t.date && (new Date(t.date).getMonth() + 1) === monthStr) month++;
+            // بطاقة الطلب
             const card = document.createElement("div");
             card.className = "card p-4 mb-4";
             card.innerHTML = `
@@ -141,20 +185,33 @@ async function loadAllRadiologyTransfers() {
                 </div>
                 <div>
                   <span class="status-badge ${statusColor(t.status)}">${t.status || "قيد الانتظار"}</span>
-                  ${t.status === "تم التنفيذ" ? `<button onclick="window.print()" class="bg-green-700 text-white px-2 py-1 rounded ml-2"><i class="fas fa-print"></i> طباعة</button>` : ""}
+                  ${t.status === "تم التنفيذ" ? `<button onclick="window.print()" class="bg-green-700 text-white px-2 py-1 rounded ml-2"><i class="fas fa-print"></i> طباعة</button>
+                  <button onclick="rateService('${patientId}','${key}')" class="bg-yellow-600 text-white px-2 py-1 rounded ml-2"><i class="fas fa-star"></i> تقييم الخدمة</button>
+                  <button onclick="sendResultToDoctor('${patientId}','${key}')" class="bg-blue-700 text-white px-2 py-1 rounded ml-2"><i class="fas fa-paper-plane"></i> إرسال للطبيب</button>
+                  ` : ""}
                 </div>
               </div>
               <div class="flex flex-wrap gap-2 mt-2">
                 <button onclick='window.location.href="radiology-action.html?patient=${encodeURIComponent(patientId)}&transfer=${encodeURIComponent(key)}"' class="bg-blue-600 text-white px-2 py-1 rounded ml-2">تنفيذ الطلب</button>
                 <button onclick='toggleDetails(this)' class="bg-gray-400 text-white px-2 py-1 rounded ml-2">تفاصيل</button>
+                <button onclick='copyToClipboard("${key}")' class="bg-gray-200 text-gray-800 px-2 py-1 rounded ml-2"><i class="fas fa-copy"></i> نسخ رقم الطلب</button>
+                <button onclick='showTimeline(${JSON.stringify(t)})' class="bg-purple-600 text-white px-2 py-1 rounded ml-2"><i class="fas fa-stream"></i> تتبع الطلب</button>
+                <button onclick='uploadMultipleFiles("${patientId}","${key}")' class="bg-indigo-600 text-white px-2 py-1 rounded ml-2"><i class="fas fa-upload"></i> رفع ملفات متعددة</button>
               </div>
               <div class="hidden mt-3 details">
                 <b>تاريخ الطلب:</b> ${t.date || "-"}<br>
                 <b>آخر تعديل:</b> ${t.lastEditedBy ? `${t.lastEditedBy} (${t.lastEditDate || ""})` : "-"}<br>
                 <b>رابط الملف:</b> ${t.fileUrl ? `<a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>` : "-"}
+                <div class="mt-2"><b>QR:</b> <canvas id="qr_${key}" class="w-20 h-20"></canvas></div>
               </div>
             `;
             list.appendChild(card);
+            // توليد QR
+            setTimeout(() => {
+              if (document.getElementById(`qr_${key}`)) {
+                QRCode.toCanvas(document.getElementById(`qr_${key}`), key, function (error) {});
+              }
+            }, 100);
           }
         });
       }));
@@ -164,11 +221,23 @@ async function loadAllRadiologyTransfers() {
       list.innerHTML = "<div class='text-gray-500 p-4'>لا يوجد طلبات تحويل للأشعة في المستشفى.</div>";
     }
     // إحصائيات
-    document.getElementById("stats").innerHTML =
-      `<span class="mr-4">الكل: ${total}</span>
-      <span class="mr-4 text-green-700">تم التنفيذ: ${done}</span>
-      <span class="mr-4 text-yellow-700">قيد الانتظار: ${waiting}</span>
-      <span class="mr-4 text-red-700">مرفوض: ${rejected}</span>`;
+    document.getElementById("count-today").textContent = today;
+    document.getElementById("count-month").textContent = month;
+    document.getElementById("count-all").textContent = total;
+    // رسم بياني دائري
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    if (window.statusChartObj) window.statusChartObj.destroy();
+    window.statusChartObj = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['تم التنفيذ', 'قيد الانتظار', 'مرفوض'],
+        datasets: [{
+          data: [statusCounts["تم التنفيذ"] || 0, statusCounts["قيد الانتظار"] || 0, statusCounts["مرفوض"] || 0],
+          backgroundColor: ['#22c55e', '#facc15', '#ef4444']
+        }]
+      },
+      options: { plugins: { legend: { display: false } }, cutout: '70%' }
+    });
   });
 }
 
@@ -183,7 +252,16 @@ window.toggleDetails = function(btn) {
   }
 };
 
-loadAllRadiologyTransfers();
-</script>
-</body>
-</html>
+window.copyToClipboard = function(text) {
+  navigator.clipboard.writeText(text);
+  Swal.fire({ icon: "success", title: "تم نسخ رقم الطلب!", timer: 900, showConfirmButton: false });
+};
+
+window.showTimeline = function(t) {
+  let html = `
+    <ul class="text-right">
+      <li>إنشاء الطلب: ${t.date || "-"}</li>
+      ${t.lastEditedBy ? `<li>آخر تعديل: ${t.lastEditedBy} (${t.lastEditDate || "-"})</li>` : ""}
+      ${t.executionDate ? `<li>تم التنفيذ: ${t.executionDate}</li>` : ""}
+      ${t.status ? `<li>الحالة الحالية: ${t.status}</li>` : ""}
+    </u
