@@ -1,139 +1,484 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ملف المريض - مستشفى الحياة الذكية</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>نظام ملف المريض - مستشفى الحياة الذكية</title>
+
+  <!-- Fonts + Tailwind -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Tajawal', 'sans-serif'],
+          },
+          colors: {
+            primary: '#1e40af',
+            secondary: '#7c3aed',
+            accent: '#10b981',
+            danger: '#dc2626',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Icons + QR -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+  </style>
 </head>
-
-<body class="bg-gray-100 p-4">
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-md">
-    <h1 class="text-2xl font-bold mb-6 text-center text-blue-900">ملف المريض - مستشفى الحياة الذكية</h1>
-
-    <div id="basic-info" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">المعلومات الأساسية</h2>
-      <table class="min-w-full bg-white border border-gray-300 rounded">
-        <tbody>
-          <tr class="border-b">
-            <td class="p-2 font-medium">الاسم</td>
-            <td class="p-2" id="name"></td>
-            <td class="p-2 font-medium">العمر</td>
-            <td class="p-2" id="age"></td>
-          </tr>
-          <tr class="border-b">
-            <td class="p-2 font-medium">الرقم القومي</td>
-            <td class="p-2" id="nid"></td>
-            <td class="p-2 font-medium">ID</td>
-            <td class="p-2" id="patientId"></td>
-          </tr>
-          <tr>
-            <td class="p-2 font-medium">تاريخ الدخول</td>
-            <td class="p-2" id="entryDate"></td>
-            <td class="p-2 font-medium">القسم الحالي</td>
-            <td class="p-2" id="currentDept"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div id="visits" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">سجل الزيارات</h2>
-      <table class="min-w-full bg-white border border-gray-300 rounded" id="visitsTable">
-        <thead>
-          <tr class="bg-gray-100 border-b">
-            <th class="p-2">التاريخ</th>
-            <th class="p-2">النوع</th>
-            <th class="p-2">ملاحظات الطبيب</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div id="new-visit" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">إضافة زيارة جديدة</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block">نوع الزيارة</label>
-          <select id="visitType" class="w-full border border-gray-300 rounded p-2">
-            <option value="كشف طبي">كشف طبي</option>
-            <option value="متابعة">متابعة</option>
-            <option value="استشارة">استشارة</option>
-          </select>
+<body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
+   <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-primary p-3 rounded-lg shadow-md">
+          <i class="fas fa-hospital text-white text-2xl"></i>
         </div>
         <div>
-          <label class="block">ملاحظات الطبيب</label>
-          <input type="text" id="visitNotes" class="w-full border border-gray-300 rounded p-2" />
+          <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+          <p class="text-gray-600">نظام إدارة ملفات المرضى</p>
         </div>
       </div>
-      <button onclick="addVisit()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded">تسجيل الزيارة</button>
+
+      <div class="flex flex-wrap gap-3">
+        <button onclick="printReport()" class="bg-primary text-white px-4 py-2 rounded-lg">طباعة الملف</button>
+        <button onclick="goToEmergency()" class="bg-gray-600 text-white px-4 py-2 rounded-lg">قسم الطوارئ</button>
+        <button onclick="goHome()" class="bg-accent text-white px-4 py-2 rounded-lg">الرئيسية</button>
+      </div>
     </div>
 
-    <div id="transfers" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">تحويل لقسم آخر</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Patient Info -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div class="bg-gradient-to-r from-primary to-blue-700 p-6 text-white flex justify-between items-center">
         <div>
-          <label class="block">القسم المطلوب التحويل إليه</label>
-          <select id="transferDept" class="w-full border border-gray-300 rounded p-2" onchange="showExtraFields()">
-            <option value="">-- اختر القسم --</option>
-            <option value="الأشعة">الأشعة</option>
-            <option value="المعمل">المعمل</option>
-            <option value="العناية المركزة">العناية المركزة</option>
-            <option value="العمليات">العمليات</option>
-          </select>
+          <h2 class="text-2xl font-bold">ملف المريض</h2>
+          <p class="opacity-90">تفاصيل المريض وسجلاته الطبية</p>
         </div>
-        <div id="extraFields"></div>
+        <div id="patientStatus" class="status-badge bg-white text-primary"></div>
       </div>
-      <button onclick="addTransfer()" class="mt-4 px-4 py-2 bg-green-600 text-white rounded">تسجيل التحويل</button>
-    </div>
 
-    <div id="transferHistory" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">سجل التحويلات</h2>
-      <table class="min-w-full bg-white border border-gray-300 rounded" id="transferTable">
-        <thead>
-          <tr class="bg-gray-100 border-b">
-            <th class="p-2">القسم</th>
-            <th class="p-2">التاريخ</th>
-            <th class="p-2">ملاحظات</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div class="md:col-span-2">
+            <h3 class="text-xl font-semibold mb-4 text-primary">المعلومات الأساسية</h3>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <table class="table-auto w-full" id="infoTable"></table>
+            </div>
+          </div>
 
-    <div id="medications" class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">الأدوية والعلاج</h2>
-      <table class="min-w-full bg-white border border-gray-300 rounded" id="medicationsTable">
-        <thead>
-          <tr class="bg-gray-100 border-b">
-            <th class="p-2">الدواء</th>
-            <th class="p-2">الجرعة</th>
-            <th class="p-2">المدة</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+          <div class="text-center">
+            <h3 class="text-xl font-semibold mb-2 text-primary">رمز الاستجابة السريع</h3>
+            <canvas id="qrCode" class="w-40 h-40 mx-auto"></canvas>
+            <button onclick="downloadQR()" class="mt-3 text-blue-600 hover:underline text-sm">تحميل QR Code</button>
+          </div>
+        </div>
+<!-- سجل الزيارات -->
+        <div class="space-y-8">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-semibold text-primary">سجل الزيارات</h3>
+              <button onclick="toggleSection('visitsList')" class="text-sm text-gray-500 hover:text-primary">
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+            <div id="visitsSection">
+              <ul id="visitsList" class="space-y-4 timeline-container"></ul>
+              <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-medium mb-3 text-gray-700">إضافة زيارة جديدة</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <select id="visitType" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary">
+                    <option>كشف طبي</option>
+                    <option>متابعة</option>
+                    <option>استشارة</option>
+                    <option>طوارئ</option>
+                  </select>
+                  <input type="text" id="visitNotes" placeholder="ملاحظات الزيارة" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
+                  <input type="text" id="visitDoctor" placeholder="اسم الطبيب" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
+                </div>
+                <button onclick="addVisit()" class="mt-3 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg w-full">
+                  <i class="fas fa-plus-circle mr-2"></i> تسجيل الزيارة
+                </button>
+              </div>
+            </div>
+          </div>
 
-    <div class="flex justify-between items-center mt-8">
-      <div>
-        <div id="qrcode"></div>
-        <p class="mt-2 text-sm">رقم المريض: <span id="qr-id"></span></p>
-      </div>
-      <div>
-        <button onclick="downloadPDF()" class="px-4 py-2 bg-yellow-600 text-white rounded">تحميل تقرير المريض PDF</button>
-        <button onclick="window.location.href='emergency.html'" class="ml-2 px-4 py-2 bg-gray-500 text-white rounded">رجوع إلى قسم الطوارئ</button>
-      </div>
+         <!-- نموذج تسجيل تحويل -->
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <select id="transferDepartment" class="border p-2 rounded">
+        <option value="">اختر القسم</option>
+        <option value="الاشعة">الأشعة</option>
+        <option value="التحاليل">التحاليل</option>
+        <option value="العناية المركزة">العناية المركزة</option>
+        <option value="العمليات">العمليات</option>
+      </select>
+      <input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-2 rounded" />
+      <textarea id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded col-span-2"></textarea>
+      <button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
     </div>
   </div>
 
-  <script src="patient-script.js"></script>
-</body>
+  <!-- مكان لعرض التحويلات -->
+  <div class="bg-white p-4 rounded shadow" id="transfersContainer">
+    <h2 class="text-lg font-semibold mb-2">سجل التحويلات</h2>
+    <ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
+  </div>
+</div>
 
+<script>
+  // إعداد Firebase
+  const firebaseConfig = {
+    databaseURL: "https://smart-hospital-life-default-rtdb.firebaseio.com/",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get("id");
+
+  // تفعيل زر تسجيل التحويل
+  function addTransfer() {
+    const department = document.getElementById("transferDepartment").value;
+    const type = document.getElementById("transferType").value.trim();
+    const notes = document.getElementById("transferNotes").value.trim();
+    if (!department || !type) {
+      Swal.fire("تنبيه", "يرجى ملء جميع الحقول", "warning");
+      return;
+    }
+
+    const newTransfer = {
+      department,
+      type,
+      notes,
+      date: new Date().toLocaleString()
+    };
+
+    db.ref(`patients/emergency/${patientId}/transfers`).push(newTransfer)
+    .then(() => {
+  Swal.fire({
+    title: "تم",
+    text: "تم تسجيل التحويل بنجاح، سيتم توجيهك الآن.",
+    icon: "success",
+    timer: 2000,
+    showConfirmButton: false
+  });
+
+  // إعادة التهيئة
+  document.getElementById("transferDepartment").value = "";
+  document.getElementById("transferType").value = "";
+  document.getElementById("transferNotes").value = "";
+
+  loadTransfers();
+
+  // التوجيه لصفحة القسم بناءً على القسم المختار
+  setTimeout(() => {
+    if (department === "الاشعة") {
+      window.location.href = "radiology.html?id=" + patientId;
+    } else if (department === "التحاليل") {
+      window.location.href = "labs.html?id=" + patientId;
+    } else if (department === "العناية المركزة") {
+      window.location.href = "icu.html?id=" + patientId;
+    } else if (department === "العمليات") {
+      window.location.href = "surgery.html?id=" + patientId;
+    }
+  }, 2200);
+})
+
+      .catch((error) => {
+        Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
+        console.error(error);
+      });
+  }
+
+  // عرض التحويلات المحفوظة
+  function loadTransfers() {
+    const list = document.getElementById("transferList");
+    list.innerHTML = "";
+    db.ref(`patients/emergency/${patientId}/transfers`).once("value", (snapshot) => {
+      snapshot.forEach((child) => {
+        const t = child.val();
+        const item = document.createElement("li");
+        item.textContent = `📌 ${t.department} - ${t.type} - ${t.date} - ${t.notes || "بدون ملاحظات"}`;
+        list.appendChild(item);
+      });
+    });
+  }
+
+  // تحميل التحويلات عند فتح الصفحة
+  if (patientId) loadTransfers();
+</script>
+          <!-- العلاجات والأدوية -->
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-semibold text-primary">العلاجات والأدوية</h3>
+              <button onclick="toggleSection('medicationsSection')" class="text-sm text-gray-500 hover:text-primary">
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+            <div id="medicationsSection">
+              <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <input type="text" id="medName" placeholder="اسم الدواء" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
+                  <input type="text" id="medDosage" placeholder="الجرعة" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
+                  <input type="text" id="medFrequency" placeholder="التكرار" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
+                  <input type="text" id="medDuration" placeholder="المدة" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary" />
+                </div>
+                <div class="mt-3">
+                  <textarea id="medNotes" placeholder="تعليمات خاصة" rows="2" class="border border-gray-300 rounded p-2 focus:ring-2 focus:ring-primary w-full"></textarea>
+                </div>
+                <button onclick="addMedication()" class="mt-3 bg-accent hover:bg-green-700 text-white px-4 py-2 rounded-lg w-full">
+                  <i class="fas fa-pills mr-2"></i> إضافة دواء
+                </button>
+              </div>
+              <ul id="medications" class="space-y-3"></ul>
+            </div>
+          </div>
+
+        <!-- الحالة الحالية -->
+        <div class="mb-6">
+          <h3 class="text-xl font-semibold text-primary mb-2">الحالة الحالية</h3>
+          <div class="bg-gray-50 p-4 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-1 text-gray-700">حالة المريض</label>
+              <select id="currentStatus" class="border rounded p-2 w-full">
+                <option value="stable">مستقر</option>
+                <option value="critical">حرج</option>
+                <option value="improving">في تحسن</option>
+                <option value="deteriorating">في تدهور</option>
+              </select>
+            </div>
+            <div>
+              <label class="block mb-1 text-gray-700">القسم الحالي</label>
+              <select id="currentDept" class="border rounded p-2 w-full">
+                <option>الطوارئ</option>
+                <option>العناية المركزة</option>
+                <option>الأشعة</option>
+                <option>التحاليل</option>
+                <option>العمليات</option>
+                <option>الاستقبال</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="updateStatus()" class="mt-4 bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg w-full">
+            <i class="fas fa-save mr-2"></i> تحديث الحالة
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const patientId = new URLSearchParams(window.location.search).get('id');
+
+    const infoTable = document.getElementById("infoTable");
+    const patientStatus = document.getElementById("patientStatus");
+    const qrCanvas = document.getElementById("qrCode");
+
+    async function loadPatientData() {
+      if (!patientId) {
+        infoTable.innerHTML = "<tr><td colspan='2'>معرف المريض غير موجود في الرابط.</td></tr>";
+        return;
+      }
+
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
+      const snapshot = await get(patientRef);
+
+      if (snapshot.exists()) {
+        const patient = snapshot.val();
+        infoTable.innerHTML = `
+          <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
+          <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${new Date(patient.timestamp).toLocaleString('ar-EG')}</td></tr>
+          <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
+        `;
+        patientStatus.textContent = patient.status || "غير محدد";
+        QRCode.toCanvas(qrCanvas, patientId, function (error) {
+          if (error) console.error(error);
+        });
+
+        document.getElementById('currentStatus').value = patient.status || "stable";
+        document.getElementById('currentDept').value = patient.department || "الطوارئ";
+      } else {
+        infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
+        patientStatus.textContent = "";
+      }
+    }
+
+    window.updateStatus = async () => {
+      const newStatus = document.getElementById('currentStatus').value;
+      const newDept = document.getElementById('currentDept').value;
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
+
+      try {
+        await update(patientRef, { status: newStatus, department: newDept });
+        patientStatus.textContent = newStatus;
+        Swal.fire({
+          icon: 'success',
+          title: 'تم التحديث بنجاح',
+          text: 'تم تحديث حالة المريض والقسم الحالي.',
+          confirmButtonText: 'حسنًا'
+        });
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'حدث خطأ',
+          text: 'لم يتم تحديث البيانات. حاول مرة أخرى.',
+          confirmButtonText: 'حسنًا'
+        });
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', loadPatientData);
+
+    window.goHome = () => window.location.href = "index.html";
+    window.goToEmergency = () => window.location.href = "emergency.html";
+    window.printReport = () => window.print();
+    window.downloadQR = () => {
+      const link = document.createElement('a');
+      link.download = `qr_${patientId}.png`;
+      link.href = qrCanvas.toDataURL();
+      link.click();
+    };
+  </script>
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+// إذا كنت تستخدم SweetAlert2 كـ CDN عادي، لا داعي لاستيراده هنا، فقط استخدم Swal مباشرة
+// إذا واجهت مشكلة في Swal، أضف هذا السطر في <head>:
+// <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+  authDomain: "hospital-project-e4b59.firebaseapp.com",
+  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hospital-project-e4b59",
+  storageBucket: "hospital-project-e4b59.appspot.com",
+  messagingSenderId: "974610606258",
+  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// استخراج patientId من الرابط
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get("id");
+
+// دالة تسجيل التحويل وتوجيه المستخدم
+window.addTransfer = async function() {
+  const department = document.getElementById("transferDepartment").value;
+  const type = document.getElementById("transferType").value.trim();
+  const notes = document.getElementById("transferNotes").value.trim();
+
+  if (!department || !type) {
+    Swal.fire("تنبيه", "يرجى ملء جميع الحقول", "warning");
+    return;
+  }
+
+  const newTransfer = {
+    department,
+    type,
+    notes,
+    date: new Date().toLocaleString('ar-EG')
+  };
+
+  try {
+    await push(ref(db, `patients/emergency/${patientId}/transfers`), newTransfer);
+    Swal.fire({
+      title: "تم",
+      text: "تم تسجيل التحويل بنجاح، سيتم توجيهك الآن.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+    // إعادة تعيين الحقول
+    document.getElementById("transferDepartment").value = "";
+    document.getElementById("transferType").value = "";
+    document.getElementById("transferNotes").value = "";
+
+    loadTransfers();
+
+    // التوجيه حسب القسم
+    setTimeout(() => {
+      if (department === "الاشعة") {
+        window.location.href = `radiology.html?id=${patientId}`;
+      } else if (department === "التحاليل") {
+        window.location.href = `labs.html?id=${patientId}`;
+      } else if (department === "العناية المركزة") {
+        window.location.href = `icu.html?id=${patientId}`;
+      } else if (department === "العمليات") {
+        window.location.href = `surgery.html?id=${patientId}`;
+      }
+    }, 2200);
+
+  } catch (error) {
+    Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
+    console.error(error);
+  }
+};
+
+// دالة تحميل وعرض سجل التحويلات
+window.loadTransfers = function() {
+  const list = document.getElementById("transferList");
+  list.innerHTML = "";
+  const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
+  onValue(transfersRef, (snapshot) => {
+    list.innerHTML = "";
+    snapshot.forEach((child) => {
+      const t = child.val();
+      const item = document.createElement("li");
+      item.textContent = `📌 ${t.department} - ${t.type} - ${t.date} - ${t.notes || "بدون ملاحظات"}`;
+      list.appendChild(item);
+    });
+  });
+};
+
+// تحميل التحويلات تلقائياً عند فتح الصفحة إذا كان هناك patientId
+if (patientId) loadTransfers();
+</script>
+</body>
 </html>
