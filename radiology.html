@@ -1,268 +1,360 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>قسم الأشعة - مستشفى الحياة الذكية</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>قسم الأشعة - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body { font-family: 'Tajawal', sans-serif; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px #0001;
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
-<div class="container mx-auto px-4 py-8">
-
-<!-- Header -->
-<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-  <div class="flex items-center gap-3">
-    <div class="bg-blue-800 p-3 rounded-lg shadow-md">
-      <i class="fas fa-x-ray text-white text-2xl"></i>
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-800 p-3 rounded-lg shadow-md">
+          <i class="fas fa-x-ray text-white text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">قسم الأشعة</h1>
+          <p class="text-gray-600">طلبات التحويل للأشعة</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <button onclick="window.exportRadiology()" class="bg-blue-600 text-white px-4 py-2 rounded mb-2">تصدير الطلبات</button>
+        <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
+        <button onclick="window.history.back()" class="bg-gray-600 text-white px-4 py-2 rounded-lg">رجوع</button>
+      </div>
     </div>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">قسم الأشعة</h1>
-      <p class="text-gray-600">طلبات التحويل للأشعة</p>
+
+    <!-- إحصائيات -->
+    <div id="stats" class="mb-6"></div>
+
+    <!-- تصفية الطلبات -->
+    <div class="mb-4">
+      <label>تصفية حسب الحالة:</label>
+      <select id="filterStatus" class="border rounded p-2" onchange="window.loadRadiologyTransfers()">
+        <option value="">الكل</option>
+        <option value="قيد الانتظار">قيد الانتظار</option>
+        <option value="جاري العمل">جاري العمل</option>
+        <option value="قيد التنفيذ">قيد التنفيذ</option>
+        <option value="تم التنفيذ">تم التنفيذ</option>
+        <option value="مرفوض">مرفوض</option>
+      </select>
+    </div>
+
+    <!-- بيانات المريض -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold">بيانات المريض</h2>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <table class="table-auto w-full" id="infoTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- طلبات التحويل للأشعة -->
+    <div class="bg-white p-4 rounded shadow" id="transfersContainer">
+      <h2 class="text-lg font-semibold mb-4">طلبات التحويل للأشعة</h2>
+      <div id="transferList"></div>
     </div>
   </div>
-  <div class="flex flex-wrap gap-3">
-    <button onclick="window.exportRadiology()" class="bg-blue-600 text-white px-4 py-2 rounded mb-2">تصدير الطلبات</button>
-    <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
-    <button onclick="window.history.back()" class="bg-gray-600 text-white px-4 py-2 rounded-lg">رجوع</button>
-  </div>
-</div>
 
-<!-- بيانات المريض -->
-<div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-  <div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
-    <div>
-      <h2 class="text-2xl font-bold">بيانات المريض</h2>
-    </div>
-  </div>
-  <div class="p-6">
-    <div class="bg-gray-50 p-4 rounded-lg">
-      <table class="table-auto w-full" id="infoTable"></table>
-    </div>
-  </div>
-</div>
+  <!-- Firebase & الكود البرمجي -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue, get, update, push } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-<!-- طلبات التحويل للأشعة -->
-<div class="bg-white p-4 rounded shadow" id="transfersContainer">
-  <h2 class="text-lg font-semibold mb-4">طلبات التحويل للأشعة</h2>
-  <div id="transferList"></div>
-</div>
-</div>
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+    };
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getDatabase, ref, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
 
-const firebaseConfig = {
-  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-  authDomain: "hospital-project-e4b59.firebaseapp.com",
-  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "hospital-project-e4b59",
-  storageBucket: "hospital-project-e4b59.appspot.com",
-  messagingSenderId: "974610606258",
-  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-};
+    // استخراج patientId من الرابط
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get("id");
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// استخراج patientId من الرابط
-const urlParams = new URLSearchParams(window.location.search);
-const patientId = urlParams.get("id");
-
-// تحميل بيانات المريض
-async function loadPatientData() {
-  const infoTable = document.getElementById("infoTable");
-  if (!patientId) {
-    infoTable.innerHTML = "<tr><td colspan='2'>معرف المريض غير موجود في الرابط.</td></tr>";
-    return;
-  }
-  const patientRef = ref(db, `patients/emergency/${patientId}`);
-  const snapshot = await get(patientRef);
-  if (snapshot.exists()) {
-    const patient = snapshot.val();
-    infoTable.innerHTML = `
-      <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
-      <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
-      <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
-      <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
-      <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${patient.timestamp ? new Date(patient.timestamp).toLocaleString('ar-EG') : '-'}</td></tr>
-      <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
-      <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
-    `;
-  } else {
-    infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
-  }
-}
-
-// تحميل طلبات التحويل للأشعة
-window.loadRadiologyTransfers = function() {
-  const list = document.getElementById("transferList");
-  list.innerHTML = "";
-  if (!patientId) return;
-  const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
-  onValue(transfersRef, (snapshot) => {
-    list.innerHTML = "";
-    let found = false;
-    snapshot.forEach((child) => {
-      const t = child.val();
-      const key = child.key;
-      if (t.department === "radiology") {
-        found = true;
-        const status = t.status || "قيد الانتظار";
-        let buttons = `
-          <button onclick='showRadiologyReport(${JSON.stringify(t)})' class="bg-green-600 text-white px-3 py-1 rounded">عرض النتيجة</button>
-          <button onclick='deleteTransfer("${key}")' class="bg-red-600 text-white px-3 py-1 rounded">حذف</button>
-        `;
-        if (status === "قيد الانتظار") {
-          buttons = `
-            <button onclick='editRadiology("${key}", ${JSON.stringify(t)})' class="bg-blue-600 text-white px-3 py-1 rounded">تعديل</button>
-            ${buttons}
-          `;
-        }
-        const card = document.createElement("div");
-        card.className = "card p-4 mb-4";
-        card.innerHTML = `
-          <div class="mb-2">
-            <b>نوع الأشعة:</b> ${t.type || "-"} | 
-            <b>الجهاز:</b> ${t.device || "-"} | 
-            <b>ملاحظات:</b> ${t.notes || "-"} | 
-            <b>الحالة:</b> ${status}
-          </div>
-          <div class="flex flex-wrap gap-2">
-            ${buttons}
-          </div>
-        `;
-        list.appendChild(card);
+    // تحميل بيانات المريض
+    async function loadPatientData() {
+      const infoTable = document.getElementById("infoTable");
+      if (!patientId) {
+        infoTable.innerHTML = "<tr><td colspan='2'>معرف المريض غير موجود في الرابط.</td></tr>";
+        return;
       }
-    });
-    if (!found) {
-      list.innerHTML = "<div class='text-gray-500 p-4'>لا يوجد طلبات تحويل للأشعة لهذا المريض.</div>";
-    }
-  });
-};
-
-// تعديل سجل الأشعة
-window.editRadiology = function(key, transfer) {
-  Swal.fire({
-    title: "تعديل سجل الأشعة",
-    html: `
-      <input id="technician" class="swal2-input" placeholder="اسم الفني" value="${transfer.technician || ''}">
-      <input id="executionDate" class="swal2-input" placeholder="تاريخ التنفيذ" value="${transfer.executionDate || new Date().toLocaleString('ar-EG')}">
-      <textarea id="report" class="swal2-textarea" placeholder="تقرير الفني">${transfer.report || ''}</textarea>
-      <input id="fileUrl" class="swal2-input" placeholder="رابط ملف النتيجة (صورة أو PDF)" value="${transfer.fileUrl || ''}">
-    `,
-    confirmButtonText: "حفظ",
-    showCancelButton: true,
-    preConfirm: () => {
-      return {
-        technician: document.getElementById('technician').value,
-        executionDate: document.getElementById('executionDate').value,
-        report: document.getElementById('report').value,
-        fileUrl: document.getElementById('fileUrl').value
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
+      const snapshot = await get(patientRef);
+      if (snapshot.exists()) {
+        const patient = snapshot.val();
+        infoTable.innerHTML = `
+          <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
+          <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${patient.timestamp ? new Date(patient.timestamp).toLocaleString('ar-EG') : '-'}</td></tr>
+          <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
+          <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
+        `;
+      } else {
+        infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
       }
     }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const data = result.value;
-      update(ref(db, `patients/emergency/${patientId}/transfers/${key}`), {
-        technician: data.technician,
-        executionDate: data.executionDate,
-        report: data.report,
-        fileUrl: data.fileUrl,
-        status: "تم التنفيذ",
-        lastEditedBy: "موظف الأشعة"
-      }).then(() => {
-        Swal.fire("تم الحفظ", "تم حفظ نتيجة الأشعة بنجاح", "success");
-      });
-    }
-  });
-}
 
-// عرض نتيجة الأشعة
-window.showRadiologyReport = function(transfer) {
-  let fileHtml = '';
-  if (transfer.fileUrl) {
-    const ext = transfer.fileUrl.split('.').pop().toLowerCase();
-    if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext)) {
-      fileHtml = `<img src="${transfer.fileUrl}" alt="صورة الأشعة" style="max-width:100%;max-height:40vh;display:block;margin:10px auto;">`;
-    } else if (ext === "pdf") {
-      fileHtml = `<iframe src="${transfer.fileUrl}" style="width:100%;height:40vh;" frameborder="0"></iframe>`;
-    } else {
-      fileHtml = `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">تحميل الملف</a>`;
-    }
-  } else {
-    fileHtml = `<span class="text-gray-500">لا يوجد ملف مرفق</span>`;
-  }
+    // تحميل طلبات التحويل للأشعة مع كل الحالات
+    window.loadRadiologyTransfers = function() {
+      const list = document.getElementById("transferList");
+      const filterStatus = document.getElementById("filterStatus")?.value || "";
+      list.innerHTML = "";
+      if (!patientId) return;
+      const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
+      onValue(transfersRef, (snapshot) => {
+        list.innerHTML = "";
+        let found = false, total=0, done=0, pending=0, waiting=0, rejected=0;
+        snapshot.forEach((child) => {
+          const t = child.val();
+          // اعرض كل الطلبات الخاصة بالأشعة وأي حالة (أو حسب الفلتر)
+          if (t.department === "radiology" && (!filterStatus || t.status === filterStatus)) {
+            found = true; total++;
+            if (t.status === "تم التنفيذ") done++;
+            else if (t.status === "مرفوض") rejected++;
+            else if (t.status === "قيد الانتظار") waiting++;
+            else pending++;
 
-  let html = `
-    <div style="text-align:right">
-      <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
-      <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
-      <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
-      <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
-      <p><b>آخر تعديل بواسطة:</b> ${transfer.lastEditedBy || "-"}</p>
-      <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
-      <p><b>ملف الأشعة:</b></p>
-      ${fileHtml}
-    </div>
-  `;
-  Swal.fire({
-    title: "نتيجة الأشعة",
-    html: html,
-    width: "60vw",
-    showCloseButton: true,
-    confirmButtonText: "إغلاق"
-  });
-};
+            const key = child.key;
+            const status = t.status || "قيد الانتظار";
+            let statusColor = "bg-yellow-100 text-yellow-800";
+            if (status === "تم التنفيذ") statusColor = "bg-green-100 text-green-800";
+            if (status === "مرفوض") statusColor = "bg-red-100 text-red-800";
+            if (status === "قيد الانتظار") statusColor = "bg-gray-200 text-gray-800";
 
-// حذف سجل التحويل
-window.deleteTransfer = function(key) {
-  Swal.fire({
-    title: 'تأكيد الحذف',
-    text: "هل أنت متأكد أنك تريد حذف هذا السجل؟",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'نعم، احذف',
-    cancelButtonText: 'إلغاء'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      remove(ref(db, `patients/emergency/${patientId}/transfers/${key}`))
-        .then(() => {
-          Swal.fire('تم الحذف!', 'تم حذف السجل بنجاح.', 'success');
-        })
-        .catch((error) => {
-          Swal.fire('خطأ', 'حدث خطأ أثناء الحذف', 'error');
+            // تعليقات
+            const comments = t.comments || [];
+            let commentsHtml = comments.map(c => `<li>🗨️ ${c.text} <span class="text-xs text-gray-400">(${c.date})</span></li>`).join("");
+
+            // ملف النتيجة
+            let fileHtml = "";
+            if (t.fileUrl) {
+              fileHtml = `<a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض النتيجة</a>
+                <div id="qr_${key}" class="mt-2"></div>`;
+            }
+
+            // تعليمات الطبيب
+            let instructionsHtml = t.instructions ? `<div><span class="font-bold">تعليمات الطبيب:</span> ${t.instructions}</div>` : "";
+
+            // أولوية الطلب
+            let priorityHtml = `<span class="font-bold">الأولوية:</span> ${t.priority || "عادي"}`;
+
+            // موعد التنفيذ المجدول
+            let scheduledHtml = `<label>موعد التنفيذ:</label>
+              <input type="datetime-local" id="execDate_${key}" value="${t.scheduledDate || ""}" class="border rounded p-2 w-full mb-2" />`;
+
+            // تاريخ التنفيذ الفعلي
+            let execDateHtml = t.executionDate ? `<div class="text-xs text-green-700">تم التنفيذ فعليًا: ${t.executionDate}</div>` : "";
+
+            // آخر تعديل
+            let lastEditHtml = t.lastEditedBy ? `<div class="text-xs text-gray-400">آخر تعديل بواسطة: ${t.lastEditedBy} (${t.lastEditDate || ""})</div>` : "";
+
+            const card = document.createElement("div");
+            card.className = "card p-4 mb-4";
+            card.innerHTML = `
+              <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-2">
+                <div>
+                  <span class="font-bold">نوع الإجراء:</span> ${t.type} <br>
+                  <span class="font-bold">التاريخ:</span> ${t.date} <br>
+                  ${priorityHtml}<br>
+                  ${instructionsHtml}
+                  <span class="font-bold">ملاحظات:</span> ${t.notes || "بدون ملاحظات"}
+                </div>
+                <div>
+                  <span class="status-badge ${statusColor}">${status}</span>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                <div>
+                  <label class="block mb-1 text-gray-700">تغيير الحالة:</label>
+                  <select id="status_${key}" class="border rounded p-2 w-full">
+                    <option value="قيد الانتظار" ${status === "قيد الانتظار" ? "selected" : ""}>قيد الانتظار</option>
+                    <option value="جاري العمل" ${status === "جاري العمل" ? "selected" : ""}>جاري العمل</option>
+                    <option value="قيد التنفيذ" ${status === "قيد التنفيذ" ? "selected" : ""}>قيد التنفيذ</option>
+                    <option value="تم التنفيذ" ${status === "تم التنفيذ" ? "selected" : ""}>تم التنفيذ</option>
+                    <option value="مرفوض" ${status === "مرفوض" ? "selected" : ""}>مرفوض</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block mb-1 text-gray-700">اسم منفذ الأشعة:</label>
+                  <input type="text" id="tech_${key}" class="border rounded p-2 w-full" value="${t.technician || ""}" placeholder="اسم الفني أو الطبيب" />
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="block mb-1 text-gray-700">تقرير/نتيجة الأشعة:</label>
+                <textarea id="report_${key}" class="border rounded p-2 w-full" rows="2" placeholder="اكتب تقرير أو نتيجة الأشعة">${t.report || ""}</textarea>
+              </div>
+              <div class="mb-2">
+                <label class="block mb-1 text-gray-700">رفع نتيجة الأشعة (صورة أو PDF):</label>
+                <input type="file" id="file_${key}" accept="image/*,application/pdf" class="mb-2" />
+                <button onclick="window.uploadRadiologyFile('${key}')" class="bg-gray-700 text-white px-2 py-1 rounded">رفع الملف</button>
+                <div id="fileLink_${key}" class="mt-1">${fileHtml}</div>
+              </div>
+              <div class="mb-2">
+                ${scheduledHtml}
+                ${execDateHtml}
+              </div>
+              <div class="mb-2">
+                <label>تعليقات:</label>
+                <ul id="comments_${key}" class="mb-2">${commentsHtml}</ul>
+                <input type="text" id="commentInput_${key}" class="border rounded p-2 w-2/3" placeholder="اكتب تعليق..." />
+                <button onclick="window.addComment('${key}')" class="bg-gray-700 text-white px-2 py-1 rounded">إضافة</button>
+              </div>
+              <button class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded" onclick="window.saveRadiology('${key}')">
+                <i class="fas fa-save mr-2"></i> حفظ التعديلات
+              </button>
+              ${lastEditHtml}
+            `;
+            list.appendChild(card);
+
+            // توليد QR للملف
+            if (t.fileUrl) {
+              setTimeout(() => {
+                QRCode.toCanvas(document.getElementById(`qr_${key}`), t.fileUrl, function (error) {});
+              }, 100);
+            }
+          }
         });
-    }
-  });
-};
+        if (!found) {
+          list.innerHTML = "<div class='text-gray-500 p-4'>لا يوجد طلبات تحويل للأشعة لهذا المريض.</div>";
+        }
+        // إحصائيات
+        document.getElementById("stats").innerHTML =
+          `<span class="mr-4">الكل: ${total}</span>
+           <span class="mr-4 text-green-700">تم التنفيذ: ${done}</span>
+           <span class="mr-4 text-yellow-700">قيد الانتظار: ${waiting}</span>
+           <span class="mr-4 text-yellow-700">جاري العمل/قيد التنفيذ: ${pending}</span>
+           <span class="mr-4 text-red-700">مرفوض: ${rejected}</span>`;
+      });
+    };
 
-// تصدير الطلبات كـ CSV (اختياري)
-window.exportRadiology = async function() {
-  const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
-  const snapshot = await get(transfersRef);
-  let rows = [["نوع الإجراء", "التاريخ", "الحالة", "اسم الفني", "رابط الملف"]];
-  snapshot.forEach(child => {
-    const t = child.val();
-    if (t.department === "radiology") {
-      rows.push([t.type, t.date, t.status || "", t.technician || "", t.fileUrl || ""]);
-    }
-  });
-  let csv = rows.map(r => r.join(",")).join("\n");
-  let blob = new Blob([csv], {type: "text/csv"});
-  let link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "radiology_requests.csv";
-  link.click();
-};
+    // رفع ملف النتيجة
+    window.uploadRadiologyFile = async function(key) {
+      const fileInput = document.getElementById(`file_${key}`);
+      if (!fileInput.files.length) return Swal.fire("تنبيه", "اختر ملف أولاً", "warning");
+      const file = fileInput.files[0];
+      const storageRef = sRef(storage, `radiology/${patientId}/${key}/${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      await update(ref(db, `patients/emergency/${patientId}/transfers/${key}`), { fileUrl: url });
+      document.getElementById(`fileLink_${key}`).innerHTML = `<a href="${url}" target="_blank" class="text-blue-700 underline">عرض الملف</a>`;
+      Swal.fire("تم", "تم رفع الملف بنجاح", "success");
+      window.loadRadiologyTransfers();
+    };
 
-// تحميل البيانات عند فتح الصفحة
-if (patientId) {
-  loadPatientData();
-  window.loadRadiologyTransfers();
-}
-</script>
+    // إضافة تعليق
+    window.addComment = async function(key) {
+      const input = document.getElementById(`commentInput_${key}`);
+      const comment = input.value.trim();
+      if (!comment) return;
+      const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${key}`);
+      const snapshot = await get(transferRef);
+      let comments = (snapshot.val().comments || []);
+      comments.push({ text: comment, date: new Date().toLocaleString('ar-EG') });
+      await update(transferRef, { comments });
+      input.value = "";
+      window.loadRadiologyTransfers();
+    };
+
+    // حفظ التعديلات على الطلب
+    window.saveRadiology = async function(key) {
+      const status = document.getElementById(`status_${key}`).value;
+      const report = document.getElementById(`report_${key}`).value.trim();
+      const technician = document.getElementById(`tech_${key}`).value.trim();
+      const scheduledDate = document.getElementById(`execDate_${key}`).value;
+      const lastEditedBy = "موظف الأشعة";
+      let updates = { status, report, technician, scheduledDate, lastEditedBy, lastEditDate: new Date().toLocaleString('ar-EG') };
+
+      // جلب بيانات الطلب
+      const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${key}`);
+      const snapshot = await get(transferRef);
+      const t = snapshot.val();
+
+      // عند التنفيذ لأول مرة
+      if (status === "تم التنفيذ" && !t.executionDate) {
+        updates.executionDate = new Date().toLocaleString('ar-EG');
+        // إشعار للطبيب (تسجيل إشعار في قاعدة البيانات)
+        const patientRef = ref(db, `patients/emergency/${patientId}`);
+        const patientSnap = await get(patientRef);
+        const patient = patientSnap.val() || {};
+        const notifRef = ref(db, `notifications/${patientId}`);
+        await push(notifRef, {
+          message: `تم تنفيذ طلب الأشعة (${t.type}) للمريض ${patient.name || patientId}`,
+          date: new Date().toLocaleString('ar-EG'),
+          seen: false
+        });
+      }
+      await update(transferRef, updates);
+      Swal.fire({
+        icon: "success",
+        title: "تم الحفظ",
+        text: "تم تحديث بيانات الطلب بنجاح.",
+        timer: 1500,
+        showConfirmButton: false
+      });
+    };
+
+    // تصدير الطلبات كـ CSV
+    window.exportRadiology = async function() {
+      const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
+      const snapshot = await get(transfersRef);
+      let rows = [["نوع الإجراء", "التاريخ", "الحالة", "اسم الفني", "رابط الملف"]];
+      snapshot.forEach(child => {
+        const t = child.val();
+        if (t.department === "الاشعة") {
+          rows.push([t.type, t.date, t.status || "", t.technician || "", t.fileUrl || ""]);
+        }
+      });
+      let csv = rows.map(r => r.join(",")).join("\n");
+      let blob = new Blob([csv], {type: "text/csv"});
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "radiology_requests.csv";
+      link.click();
+    };
+
+    // تحميل البيانات عند فتح الصفحة
+    if (patientId) {
+      loadPatientData();
+      window.loadRadiologyTransfers();
+    }
+  </script>
 </body>
 </html>
