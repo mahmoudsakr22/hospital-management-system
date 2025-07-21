@@ -54,6 +54,8 @@
       <label>تصفية حسب الحالة:</label>
       <select id="filterStatus" class="border rounded p-2" onchange="window.loadRadiologyTransfers()">
         <option value="">الكل</option>
+        <option value="قيد الانتظار">قيد الانتظار</option>
+        <option value="جاري العمل">جاري العمل</option>
         <option value="قيد التنفيذ">قيد التنفيذ</option>
         <option value="تم التنفيذ">تم التنفيذ</option>
         <option value="مرفوض">مرفوض</option>
@@ -130,7 +132,7 @@
       }
     }
 
-    // تحميل طلبات التحويل للأشعة فقط مع كل الميزات
+    // تحميل طلبات التحويل للأشعة مع كل الحالات
     window.loadRadiologyTransfers = function() {
       const list = document.getElementById("transferList");
       const filterStatus = document.getElementById("filterStatus")?.value || "";
@@ -139,20 +141,23 @@
       const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
       onValue(transfersRef, (snapshot) => {
         list.innerHTML = "";
-        let found = false, total=0, done=0, pending=0, rejected=0;
+        let found = false, total=0, done=0, pending=0, waiting=0, rejected=0;
         snapshot.forEach((child) => {
           const t = child.val();
+          // اعرض كل الطلبات الخاصة بالأشعة وأي حالة (أو حسب الفلتر)
           if (t.department === "الاشعة" && (!filterStatus || t.status === filterStatus)) {
             found = true; total++;
             if (t.status === "تم التنفيذ") done++;
             else if (t.status === "مرفوض") rejected++;
+            else if (t.status === "قيد الانتظار") waiting++;
             else pending++;
 
             const key = child.key;
-            const status = t.status || "قيد التنفيذ";
+            const status = t.status || "قيد الانتظار";
             let statusColor = "bg-yellow-100 text-yellow-800";
             if (status === "تم التنفيذ") statusColor = "bg-green-100 text-green-800";
             if (status === "مرفوض") statusColor = "bg-red-100 text-red-800";
+            if (status === "قيد الانتظار") statusColor = "bg-gray-200 text-gray-800";
 
             // تعليقات
             const comments = t.comments || [];
@@ -200,6 +205,8 @@
                 <div>
                   <label class="block mb-1 text-gray-700">تغيير الحالة:</label>
                   <select id="status_${key}" class="border rounded p-2 w-full">
+                    <option value="قيد الانتظار" ${status === "قيد الانتظار" ? "selected" : ""}>قيد الانتظار</option>
+                    <option value="جاري العمل" ${status === "جاري العمل" ? "selected" : ""}>جاري العمل</option>
                     <option value="قيد التنفيذ" ${status === "قيد التنفيذ" ? "selected" : ""}>قيد التنفيذ</option>
                     <option value="تم التنفيذ" ${status === "تم التنفيذ" ? "selected" : ""}>تم التنفيذ</option>
                     <option value="مرفوض" ${status === "مرفوض" ? "selected" : ""}>مرفوض</option>
@@ -252,7 +259,8 @@
         document.getElementById("stats").innerHTML =
           `<span class="mr-4">الكل: ${total}</span>
            <span class="mr-4 text-green-700">تم التنفيذ: ${done}</span>
-           <span class="mr-4 text-yellow-700">قيد التنفيذ: ${pending}</span>
+           <span class="mr-4 text-yellow-700">قيد الانتظار: ${waiting}</span>
+           <span class="mr-4 text-yellow-700">جاري العمل/قيد التنفيذ: ${pending}</span>
            <span class="mr-4 text-red-700">مرفوض: ${rejected}</span>`;
       });
     };
@@ -291,7 +299,6 @@
       const report = document.getElementById(`report_${key}`).value.trim();
       const technician = document.getElementById(`tech_${key}`).value.trim();
       const scheduledDate = document.getElementById(`execDate_${key}`).value;
-      // اسم الموظف الحالي (يمكنك ربطه بنظام دخول لاحقًا)
       const lastEditedBy = "موظف الأشعة";
       let updates = { status, report, technician, scheduledDate, lastEditedBy, lastEditDate: new Date().toLocaleString('ar-EG') };
 
