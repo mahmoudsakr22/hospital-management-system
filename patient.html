@@ -70,16 +70,24 @@ font-weight: 500;
 <div class="bg-white p-4 rounded shadow mb-6">
 <h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<select id="transferDepartment" class="border p-2 rounded">
-<option value="">اختر القسم</option>
-<option value="radiology">الأشعة</option>
-<option value="التحاليل">التحاليل</option>
-<option value="العناية المركزة">العناية المركزة</option>
-<option value="العمليات">العمليات</option>
-</select>
-<input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-2 rounded" />
-<textarea id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded col-span-2"></textarea>
-<button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
+  <select id="transferDepartment" class="border p-2 rounded">
+    <option value="">اختر القسم</option>
+    <option value="radiology">الأشعة</option>
+    <option value="التحاليل">التحاليل</option>
+    <option value="العناية المركزة">العناية المركزة</option>
+    <option value="العمليات">العمليات</option>
+  </select>
+  <!-- اختيار الجهاز يظهر فقط عند اختيار الأشعة -->
+  <select id="radiologyDevice" class="border p-2 rounded hidden">
+    <option value="">اختر جهاز الأشعة</option>
+    <option value="أشعة عادية">أشعة عادية</option>
+    <option value="أشعة مقطعية">أشعة مقطعية</option>
+    <option value="رنين مغناطيسي">رنين مغناطيسي</option>
+    <option value="موجات صوتية">موجات صوتية</option>
+  </select>
+  <input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-2 rounded" />
+  <textarea id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded col-span-2"></textarea>
+  <button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
 </div>
 </div>
 
@@ -148,14 +156,30 @@ patientStatus.textContent = "";
 }
 }
 
-// تسجيل التحويل بالحالة "قيد الانتظار" فقط مع التحويل التلقائي لصفحة الأشعة
+// إظهار اختيار الجهاز عند اختيار الأشعة
+document.getElementById("transferDepartment").addEventListener("change", function() {
+  const deviceSelect = document.getElementById("radiologyDevice");
+  if (this.value === "radiology") {
+    deviceSelect.classList.remove("hidden");
+  } else {
+    deviceSelect.classList.add("hidden");
+    deviceSelect.value = "";
+  }
+});
+
+// تسجيل التحويل بالحالة "قيد الانتظار" مع حفظ الجهاز لو القسم أشعة
 window.addTransfer = async function() {
 const department = document.getElementById("transferDepartment").value;
 const type = document.getElementById("transferType").value.trim();
 const notes = document.getElementById("transferNotes").value.trim();
+const device = document.getElementById("radiologyDevice").value;
 
 if (!department || !type) {
 Swal.fire("تنبيه", "يرجى ملء جميع الحقول", "warning");
+return;
+}
+if (department === "radiology" && !device) {
+Swal.fire("تنبيه", "يرجى اختيار جهاز الأشعة", "warning");
 return;
 }
 
@@ -163,6 +187,7 @@ const newTransfer = {
 department,
 type,
 notes,
+device: department === "radiology" ? device : "",
 date: new Date().toLocaleString('ar-EG'),
 status: "قيد الانتظار"
 };
@@ -176,9 +201,8 @@ icon: "success",
 timer: 1200,
 showConfirmButton: false
 });
-// تحويل تلقائي لصفحة الأشعة بعد نجاح التسجيل
 setTimeout(() => {
-  window.location.href = `radiology.html?id=${patientId}`;
+window.location.href = `radiology.html?id=${patientId}`;
 }, 1200);
 } catch (error) {
 Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
@@ -186,7 +210,7 @@ console.error(error);
 }
 };
 
-// عرض سجل التحويلات مع كل بيانات الأشعة
+// عرض سجل التحويلات مع زر تقرير الطبيب للأشعة
 window.loadTransfers = function() {
 const list = document.getElementById("transferList");
 list.innerHTML = "";
@@ -198,25 +222,53 @@ snapshot.forEach((child) => {
 const t = child.val();
 let resultText = "";
 if (t.report) {
-  resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
+resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
 }
 if (t.fileUrl) {
-  resultText += ` | <a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>`;
+resultText += ` | <a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>`;
 }
 if (t.technician) {
-  resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${t.technician}</span>`;
+resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${t.technician}</span>`;
 }
 if (t.lastEditedBy) {
-  resultText += ` | <span class="text-gray-700">آخر تعديل بواسطة: ${t.lastEditedBy}</span>`;
+resultText += ` | <span class="text-gray-700">آخر تعديل بواسطة: ${t.lastEditedBy}</span>`;
 }
 if (t.executionDate) {
-  resultText += ` | <span class="text-gray-500">تاريخ التنفيذ: ${t.executionDate}</span>`;
+resultText += ` | <span class="text-gray-500">تاريخ التنفيذ: ${t.executionDate}</span>`;
+}
+if (t.device) {
+resultText += ` | <span class="text-purple-700">الجهاز: ${t.device}</span>`;
+}
+// زر تقرير الطبيب إذا كان القسم أشعة
+let doctorBtn = "";
+if (t.department === "radiology") {
+  doctorBtn = `<button onclick='showDoctorReport(${JSON.stringify(t)})' class="bg-green-600 text-white px-2 py-1 rounded ml-2">تقرير الطبيب</button>`;
 }
 const item = document.createElement("li");
-item.innerHTML = `📌 ${t.department} - ${t.type} - ${t.date} - ${t.notes || "بدون ملاحظات"} - الحالة: <span class="font-bold">${t.status || "قيد الانتظار"}</span>${resultText}`;
+item.innerHTML = `📌 ${t.department} - ${t.type} - ${t.date} - ${t.notes || "بدون ملاحظات"} - الحالة: <span class="font-bold">${t.status || "قيد الانتظار"}</span>${resultText} ${doctorBtn}`;
 list.appendChild(item);
 });
 });
+};
+
+// نافذة تقرير الطبيب
+window.showDoctorReport = function(transfer) {
+  let html = `
+    <div>
+      <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
+      <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
+      <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
+      <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
+      <p><b>ملف الأشعة:</b> ${transfer.fileUrl ? `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>` : "لا يوجد"}</p>
+      <p><b>آخر تعديل بواسطة:</b> ${transfer.lastEditedBy || "-"}</p>
+      <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
+    </div>
+  `;
+  Swal.fire({
+    title: "تقرير الطبيب",
+    html: html,
+    confirmButtonText: "إغلاق"
+  });
 };
 
 // تحميل بيانات المريض وسجل التحويلات تلقائياً عند فتح الصفحة إذا كان هناك patientId
