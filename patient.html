@@ -186,7 +186,7 @@ console.error(error);
 }
 };
 
-// عرض سجل التحويلات مع الحالة والنتيجة إن وجدت
+// عرض سجل التحويلات مع كل بيانات الأشعة
 window.loadTransfers = function() {
 const list = document.getElementById("transferList");
 list.innerHTML = "";
@@ -198,10 +198,19 @@ snapshot.forEach((child) => {
 const t = child.val();
 let resultText = "";
 if (t.report) {
-resultText += ` | النتيجة: ${t.report}`;
+  resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
 }
 if (t.fileUrl) {
-resultText += ` | <a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>`;
+  resultText += ` | <a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>`;
+}
+if (t.technician) {
+  resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${t.technician}</span>`;
+}
+if (t.lastEditedBy) {
+  resultText += ` | <span class="text-gray-700">آخر تعديل بواسطة: ${t.lastEditedBy}</span>`;
+}
+if (t.executionDate) {
+  resultText += ` | <span class="text-gray-500">تاريخ التنفيذ: ${t.executionDate}</span>`;
 }
 const item = document.createElement("li");
 item.innerHTML = `📌 ${t.department} - ${t.type} - ${t.date} - ${t.notes || "بدون ملاحظات"} - الحالة: <span class="font-bold">${t.status || "قيد الانتظار"}</span>${resultText}`;
