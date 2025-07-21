@@ -1,189 +1,169 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>قسم الأشعة - مستشفى الحياة الذكية</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<style>
-body { font-family: 'Tajawal', sans-serif; }
-.card {
-border: 1px solid #e5e7eb;
-border-radius: 10px;
-background: #fff;
-margin-bottom: 1rem;
-box-shadow: 0 2px 8px #0001;
-}
-.status-badge {
-display: inline-flex;
-align-items: center;
-padding: 0.25rem 0.75rem;
-border-radius: 9999px;
-font-weight: 500;
-}
-.bg-green-100 { background: #d1fae5; color: #065f46; }
-.bg-yellow-100 { background: #fef9c3; color: #92400e; }
-.bg-red-100 { background: #fee2e2; color: #991b1b; }
-.bg-gray-200 { background: #e5e7eb; color: #374151; }
-</style>
-</head>
-<body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
-<div class="container mx-auto px-4 py-8">
-
-<!-- Header -->
-<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-  <div class="flex items-center gap-3">
-    <div class="bg-blue-800 p-3 rounded-lg shadow-md">
-      <i class="fas fa-x-ray text-white text-2xl"></i>
-    </div>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">قسم الأشعة</h1>
-      <p class="text-gray-600">كل طلبات التحويل للأشعة</p>
-    </div>
-  </div>
-  <div class="flex flex-wrap gap-3">
-    <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
-  </div>
-</div>
-
-<!-- إحصائيات -->
-<div id="stats" class="mb-6"></div>
-
-<!-- تصفية وبحث -->
-<div class="flex flex-col md:flex-row gap-4 mb-4">
-  <div>
-    <label>تصفية حسب الحالة:</label>
-    <select id="filterStatus" class="border rounded p-2" onchange="loadAllRadiologyTransfers()">
-      <option value="">الكل</option>
-      <option value="قيد الانتظار">قيد الانتظار</option>
-      <option value="تم التنفيذ">تم التنفيذ</option>
-      <option value="مرفوض">مرفوض</option>
-    </select>
-  </div>
-  <div>
-    <label>بحث باسم المريض أو نوع الأشعة أو رقم الهوية:</label>
-    <input id="searchInput" class="border rounded p-2" placeholder="بحث..." oninput="loadAllRadiologyTransfers()">
-  </div>
-</div>
-
-<div class="bg-white p-4 rounded shadow" id="transfersContainer">
-<h2 class="text-lg font-semibold mb-4">طلبات التحويل للأشعة</h2>
-<div id="transferList"></div>
-</div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-  authDomain: "hospital-project-e4b59.firebaseapp.com",
-  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "hospital-project-e4b59",
-  storageBucket: "hospital-project-e4b59.appspot.com",
-  messagingSenderId: "974610606258",
-  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-function statusColor(status) {
-  if (status === "تم التنفيذ") return "bg-green-100";
-  if (status === "مرفوض") return "bg-red-100";
-  if (status === "قيد الانتظار") return "bg-yellow-100";
-  return "bg-gray-200";
-}
-
-async function loadAllRadiologyTransfers() {
-  const list = document.getElementById("transferList");
-  const filterStatus = document.getElementById("filterStatus").value;
-  const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
-  list.innerHTML = "<div class='text-gray-500 p-4'>جاري التحميل...</div>";
-  const patientsRef = ref(db, `patients/emergency`);
-  onValue(patientsRef, async (snapshot) => {
-    list.innerHTML = "";
-    let found = false, total=0, done=0, waiting=0, rejected=0;
-    const promises = [];
-    snapshot.forEach((patientSnap) => {
-      const patientId = patientSnap.key;
-      const patient = patientSnap.val();
-      const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
-      promises.push(get(transfersRef).then(transfersSnap => {
-        transfersSnap.forEach(child => {
-          const t = child.val();
-          const key = child.key;
-          if (t.department === "radiology") {
-            // فلترة حسب الحالة
-            if (filterStatus && t.status !== filterStatus) return;
-            // بحث باسم المريض أو نوع الأشعة أو رقم الهوية
-            if (searchValue) {
-              const name = (patient.name || "").toLowerCase();
-              const type = (t.type || "").toLowerCase();
-              const nid = (patient.nid || "").toLowerCase();
-              if (!name.includes(searchValue) && !type.includes(searchValue) && !nid.includes(searchValue)) return;
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>لوحة تحكم قسم الأشعة - مستشفى الحياة الذكية</title>
+    <meta name="description" content="نظام إدارة طلبات الأشعة في مستشفى الحياة الذكية">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif']
+                    }
+                }
             }
-            found = true; total++;
-            if (t.status === "تم التنفيذ") done++;
-            else if (t.status === "مرفوض") rejected++;
-            else waiting++;
-            const card = document.createElement("div");
-            card.className = "card p-4 mb-4";
-            card.innerHTML = `
-              <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-2">
+        }
+    </script>
+    <style>
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .print-only { display: none; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="bg-primary-800 p-3 rounded-lg shadow-md">
+                        <i class="fas fa-x-ray text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">قسم الأشعة</h1>
+                        <p class="text-gray-600">نظام إدارة طلبات التحويل للأشعة</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="window.location.href='index.html'" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                        <i class="fas fa-home"></i>
+                        <span>الرئيسية</span>
+                    </button>
+                    <button onclick="window.print()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 no-print">
+                        <i class="fas fa-print"></i>
+                        <span>طباعة</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-primary-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">إجمالي الطلبات</p>
+                        <h3 class="text-2xl font-bold" id="totalRequests">0</h3>
+                    </div>
+                    <div class="bg-primary-100 p-3 rounded-full">
+                        <i class="fas fa-list text-primary-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">تم التنفيذ</p>
+                        <h3 class="text-2xl font-bold" id="completedRequests">0</h3>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">قيد الانتظار</p>
+                        <h3 class="text-2xl font-bold" id="pendingRequests">0</h3>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500">مرفوض</p>
+                        <h3 class="text-2xl font-bold" id="rejectedRequests">0</h3>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4 text-gray-800">تصفية وبحث</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <b>اسم المريض:</b> ${patient.name || "-"}<br>
-                  <b>نوع الأشعة:</b> ${t.type || "-"}<br>
-                  <b>الجهاز:</b> ${t.device || "-"}<br>
-                  <b>ملاحظات:</b> ${t.notes || "-"}
+                    <label class="block text-sm font-medium text-gray-700 mb-1">حالة الطلب</label>
+                    <select id="filterStatus" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" onchange="loadAllRadiologyTransfers()">
+                        <option value="">الكل</option>
+                        <option value="قيد الانتظار">قيد الانتظار</option>
+                        <option value="تم التنفيذ">تم التنفيذ</option>
+                        <option value="مرفوض">مرفوض</option>
+                    </select>
                 </div>
                 <div>
-                  <span class="status-badge ${statusColor(t.status)}">${t.status || "قيد الانتظار"}</span>
-                  ${t.status === "تم التنفيذ" ? `<button onclick="window.print()" class="bg-green-700 text-white px-2 py-1 rounded ml-2"><i class="fas fa-print"></i> طباعة</button>` : ""}
+                    <label class="block text-sm font-medium text-gray-700 mb-1">نوع الأشعة</label>
+                    <select id="filterType" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" onchange="loadAllRadiologyTransfers()">
+                        <option value="">الكل</option>
+                        <option value="أشعة سينية">أشعة سينية</option>
+                        <option value="أشعة مقطعية">أشعة مقطعية</option>
+                        <option value="رنين مغناطيسي">رنين مغناطيسي</option>
+                        <option value="أشعة فوق صوتية">أشعة فوق صوتية</option>
+                    </select>
                 </div>
-              </div>
-              <div class="flex flex-wrap gap-2 mt-2">
-                <button onclick='window.location.href="radiology-action.html?patient=${encodeURIComponent(patientId)}&transfer=${encodeURIComponent(key)}"' class="bg-blue-600 text-white px-2 py-1 rounded ml-2">تنفيذ الطلب</button>
-                <button onclick='toggleDetails(this)' class="bg-gray-400 text-white px-2 py-1 rounded ml-2">تفاصيل</button>
-              </div>
-              <div class="hidden mt-3 details">
-                <b>تاريخ الطلب:</b> ${t.date || "-"}<br>
-                <b>آخر تعديل:</b> ${t.lastEditedBy ? `${t.lastEditedBy} (${t.lastEditDate || ""})` : "-"}<br>
-                <b>رابط الملف:</b> ${t.fileUrl ? `<a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>` : "-"}
-              </div>
-            `;
-            list.appendChild(card);
-          }
-        });
-      }));
-    });
-    await Promise.all(promises);
-    if (!found) {
-      list.innerHTML = "<div class='text-gray-500 p-4'>لا يوجد طلبات تحويل للأشعة في المستشفى.</div>";
-    }
-    // إحصائيات
-    document.getElementById("stats").innerHTML =
-      `<span class="mr-4">الكل: ${total}</span>
-      <span class="mr-4 text-green-700">تم التنفيذ: ${done}</span>
-      <span class="mr-4 text-yellow-700">قيد الانتظار: ${waiting}</span>
-      <span class="mr-4 text-red-700">مرفوض: ${rejected}</span>`;
-  });
-}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">بحث</label>
+                    <div class="relative">
+                        <input id="searchInput" type="text" class="w-full border border-gray-300 rounded-md px-3 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="بحث باسم المريض أو رقم الهوية..." oninput="loadAllRadiologyTransfers()">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-window.toggleDetails = function(btn) {
-  const details = btn.parentElement.parentElement.querySelector('.details');
-  if (details.classList.contains('hidden')) {
-    details.classList.remove('hidden');
-    btn.textContent = "إخفاء التفاصيل";
-  } else {
-    details.classList.add('hidden');
-    btn.textContent = "تفاصيل";
-  }
-};
-
-loadAllRadiologyTransfers();
-</script>
-</body>
-</html>
+        <!-- Transfer Requests -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">طلبات التحويل للأشعة</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <
