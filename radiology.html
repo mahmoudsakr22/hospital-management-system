@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>قسم الأشعة - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      update
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const tableBody = document.getElementById("table-body");
+    const stats = { all: 0, pending: 0, done: 0 };
+
+    function renderRow(id, data) {
+      const row = document.createElement("tr");
+      row.className = "border-b text-center";
+      row.innerHTML = `
+        <td class="p-2">${data.name || "بدون اسم"}</td>
+        <td class="p-2">${data.nationalId || ""}</td>
+        <td class="p-2">${data.radiology?.type || "غير محدد"}</td>
+        <td class="p-2">${data.radiology?.status || "بانتظار"}</td>
+        <td class="p-2">
+          <textarea id="note-${id}" placeholder="ملاحظات..." class="p-1 border rounded w-full">${data.radiology?.note || ""}</textarea>
+        </td>
+        <td class="p-2">
+          <button onclick="updateStatus('${id}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">رفع التقرير</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+
+      // تحديث الإحصائيات
+      stats.all++;
+      if (data.radiology?.status === "تم") stats.done++;
+      else stats.pending++;
+      updateStats();
+    }
+
+    function updateStats() {
+      document.getElementById("all-count").textContent = stats.all;
+      document.getElementById("pending-count").textContent = stats.pending;
+      document.getElementById("done-count").textContent = stats.done;
+    }
+
+    onValue(ref(db, 'patients'), (snapshot) => {
+      tableBody.innerHTML = "";
+      stats.all = stats.pending = stats.done = 0;
+      snapshot.forEach(child => {
+        const id = child.key;
+        const data = child.val();
+        if (data.radiology) {
+          renderRow(id, data);
+        }
+      });
+    });
+
+    window.updateStatus = function(id) {
+      const note = document.getElementById("note-" + id).value;
+      update(ref(db, 'patients/' + id + '/radiology'), {
+        status: "تم",
+        note: note
+      }).then(() => {
+        Swal.fire("تم التحديث", "تم رفع تقرير الأشعة بنجاح", "success");
+      });
+    };
+  </script>
+</head>
+<body class="bg-gray-100 p-6">
+  <h1 class="text-3xl font-bold text-center text-blue-800 mb-6">قسم الأشعة - مستشفى الحياة الذكية</h1>
+
+  <!-- إحصائيات -->
+  <div class="grid grid-cols-3 gap-4 mb-6 text-center">
+    <div class="bg-white p-4 shadow rounded">📋 الكل: <span id="all-count" class="font-bold text-lg">0</span></div>
+    <div class="bg-yellow-100 p-4 shadow rounded">⏳ بانتظار: <span id="pending-count" class="font-bold text-lg">0</span></div>
+    <div class="bg-green-100 p-4 shadow rounded">✅ تم: <span id="done-count" class="font-bold text-lg">0</span></div>
+  </div>
+
+  <!-- جدول المرضى -->
+  <div class="overflow-auto bg-white rounded shadow">
+    <table class="w-full table-auto border">
+      <thead class="bg-blue-800 text-white">
+        <tr>
+          <th class="p-2">اسم المريض</th>
+          <th class="p-2">الرقم القومي</th>
+          <th class="p-2">نوع الأشعة</th>
+          <th class="p-2">الحالة</th>
+          <th class="p-2">ملاحظات</th>
+          <th class="p-2">إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="table-body" class="text-sm">
+        <!-- يتم تعبئته من قاعدة البيانات -->
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
