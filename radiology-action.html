@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تنفيذ طلب الأشعة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-50 p-6">
+  <h1 class="text-2xl font-bold mb-4">تنفيذ طلب الأشعة</h1>
+  <div id="transferDetails" class="bg-white p-4 rounded shadow mb-4"></div>
+  <textarea id="notes" class="w-full p-2 border rounded mb-4" placeholder="اكتب تقرير الأشعة هنا..."></textarea>
+  <button onclick="submitReport()" class="bg-green-600 text-white px-4 py-2 rounded">حفظ التقرير</button>
+
+  <script>
+    const firebaseConfig = {
+      databaseURL: "https://smart-hospital-98e99-default-rtdb.firebaseio.com/",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get("patient");
+    const transferId = urlParams.get("transfer");
+
+    function loadTransfer() {
+      db.ref("transfers/" + transferId).once("value", snapshot => {
+        const data = snapshot.val();
+        document.getElementById("transferDetails").innerHTML = `
+          <p><strong>اسم المريض:</strong> ${data.name}</p>
+          <p><strong>نوع التحويل:</strong> ${data.type}</p>
+        `;
+      });
+    }
+
+    function submitReport() {
+      const report = document.getElementById("notes").value.trim();
+      if (!report) return alert("يرجى كتابة التقرير");
+
+      db.ref("transfers/" + transferId).update({
+        completed: true,
+        report: report,
+        completedAt: new Date().toLocaleString()
+      }).then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'تم حفظ تقرير الأشعة',
+          showConfirmButton: false,
+          timer: 1500
+        });
+        setTimeout(() => {
+          window.location.href = "radiology.html";
+        }, 1500);
+      });
+    }
+
+    window.onload = loadTransfer;
+  </script>
+</body>
+</html>
