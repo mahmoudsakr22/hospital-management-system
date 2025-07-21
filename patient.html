@@ -95,9 +95,8 @@
   <!-- Firebase & الكود البرمجي -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, get, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    import { getDatabase, ref, push, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-    // بيانات Firebase الخاصة بك
     const firebaseConfig = {
       apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
       authDomain: "hospital-project-e4b59.firebaseapp.com",
@@ -111,7 +110,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // استخراج patientId من الرابط
     const urlParams = new URLSearchParams(window.location.search);
     const patientId = urlParams.get("id");
 
@@ -150,7 +148,7 @@
       }
     }
 
-    // دالة تسجيل التحويل وتوجيه المستخدم
+    // تسجيل التحويل بدون توجيه، مع الحالة الافتراضية "قيد الانتظار"
     window.addTransfer = async function() {
       const department = document.getElementById("transferDepartment").value;
       const type = document.getElementById("transferType").value.trim();
@@ -165,14 +163,15 @@
         department,
         type,
         notes,
-        date: new Date().toLocaleString('ar-EG')
+        date: new Date().toLocaleString('ar-EG'),
+        status: "قيد الانتظار" // الحالة الافتراضية
       };
 
       try {
         await push(ref(db, `patients/emergency/${patientId}/transfers`), newTransfer);
         Swal.fire({
           title: "تم",
-          text: "تم تسجيل التحويل بنجاح، سيتم توجيهك الآن.",
+          text: "تم تسجيل التحويل بنجاح.",
           icon: "success",
           timer: 2000,
           showConfirmButton: false
@@ -184,27 +183,13 @@
         document.getElementById("transferNotes").value = "";
 
         loadTransfers();
-
-        // التوجيه حسب القسم
-        setTimeout(() => {
-          if (department === "الاشعة") {
-            window.location.href = `radiology.html?id=${patientId}`;
-          } else if (department === "التحاليل") {
-            window.location.href = `labs.html?id=${patientId}`;
-          } else if (department === "العناية المركزة") {
-            window.location.href = `icu.html?id=${patientId}`;
-          } else if (department === "العمليات") {
-            window.location.href = `surgery.html?id=${patientId}`;
-          }
-        }, 2200);
-
       } catch (error) {
         Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
         console.error(error);
       }
     };
 
-    // دالة تحميل وعرض سجل التحويلات
+    // عرض سجل التحويلات مع الحالة والنتيجة إن وجدت
     window.loadTransfers = function() {
       const list = document.getElementById("transferList");
       list.innerHTML = "";
@@ -214,8 +199,15 @@
         list.innerHTML = "";
         snapshot.forEach((child) => {
           const t = child.val();
+          let resultText = "";
+          if (t.report) {
+            resultText += ` | النتيجة: ${t.report}`;
+          }
+          if (t.fileUrl) {
+            resultText += ` | <a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>`;
+          }
           const item = document.createElement("li");
-          item.textContent = `📌 ${t.department} - ${t.type} - ${t.date} - ${t.notes || "بدون ملاحظات"}`;
+          item.innerHTML = `📌 ${t.department} - ${t.type} - ${t.date} - ${t.notes || "بدون ملاحظات"} - الحالة: <span class="font-bold">${t.status || "قيد الانتظار"}</span>${resultText}`;
           list.appendChild(item);
         });
       });
