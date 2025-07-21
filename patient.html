@@ -178,13 +178,36 @@
     };
 
     db.ref(`patients/emergency/${patientId}/transfers`).push(newTransfer)
-      .then(() => {
-        Swal.fire("تم", "تم تسجيل التحويل بنجاح", "success");
-        document.getElementById("transferDepartment").value = "";
-        document.getElementById("transferType").value = "";
-        document.getElementById("transferNotes").value = "";
-        loadTransfers(); // تحديث العرض
-      })
+    .then(() => {
+  Swal.fire({
+    title: "تم",
+    text: "تم تسجيل التحويل بنجاح، سيتم توجيهك الآن.",
+    icon: "success",
+    timer: 2000,
+    showConfirmButton: false
+  });
+
+  // إعادة التهيئة
+  document.getElementById("transferDepartment").value = "";
+  document.getElementById("transferType").value = "";
+  document.getElementById("transferNotes").value = "";
+
+  loadTransfers();
+
+  // التوجيه لصفحة القسم بناءً على القسم المختار
+  setTimeout(() => {
+    if (department === "الاشعة") {
+      window.location.href = "radiology.html?id=" + patientId;
+    } else if (department === "التحاليل") {
+      window.location.href = "labs.html?id=" + patientId;
+    } else if (department === "العناية المركزة") {
+      window.location.href = "icu.html?id=" + patientId;
+    } else if (department === "العمليات") {
+      window.location.href = "surgery.html?id=" + patientId;
+    }
+  }, 2200);
+})
+
       .catch((error) => {
         Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
         console.error(error);
