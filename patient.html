@@ -225,7 +225,7 @@ if (t.report) {
 resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
 }
 if (t.fileUrl) {
-resultText += ` | <a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>`;
+resultText += ` | <a href="#" onclick="showFileModal('${t.fileUrl}')" class="text-blue-700 underline">عرض الملف</a>`;
 }
 if (t.technician) {
 resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${t.technician}</span>`;
@@ -259,7 +259,7 @@ window.showDoctorReport = function(transfer) {
       <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
       <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
       <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
-      <p><b>ملف الأشعة:</b> ${transfer.fileUrl ? `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>` : "لا يوجد"}</p>
+      <p><b>ملف الأشعة:</b> ${transfer.fileUrl ? `<a href="#" onclick="showFileModal('${transfer.fileUrl}')" class="text-blue-700 underline">عرض الملف</a>` : "لا يوجد"}</p>
       <p><b>آخر تعديل بواسطة:</b> ${transfer.lastEditedBy || "-"}</p>
       <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
     </div>
@@ -267,6 +267,26 @@ window.showDoctorReport = function(transfer) {
   Swal.fire({
     title: "تقرير الطبيب",
     html: html,
+    confirmButtonText: "إغلاق"
+  });
+};
+
+// نافذة عرض الملف (صورة أو PDF أو تحميل)
+window.showFileModal = function(fileUrl) {
+  const ext = fileUrl.split('.').pop().toLowerCase();
+  let html = '';
+  if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext)) {
+    html = `<img src="${fileUrl}" alt="نتيجة الأشعة" style="max-width:100%;max-height:70vh;">`;
+  } else if (ext === "pdf") {
+    html = `<iframe src="${fileUrl}" style="width:100%;height:70vh;" frameborder="0"></iframe>`;
+  } else {
+    html = `<a href="${fileUrl}" target="_blank" class="text-blue-700 underline">تحميل الملف</a>`;
+  }
+  Swal.fire({
+    title: "عرض الملف",
+    html: html,
+    width: "60vw",
+    showCloseButton: true,
     confirmButtonText: "إغلاق"
   });
 };
