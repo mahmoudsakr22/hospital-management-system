@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -7,15 +6,13 @@
   <title>قسم الأشعة - مستشفى الحياة الذكية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      onValue,
-      update
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    // إعداد Firebase - غير البيانات دي بمعلومات مشروعك الحقيقي
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -26,11 +23,16 @@
       appId: "APP_ID",
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const tableBody = document.getElementById("table-body");
     const stats = { all: 0, pending: 0, done: 0 };
+
+    function updateStats() {
+      document.getElementById("all-count").textContent = stats.all;
+      document.getElementById("pending-count").textContent = stats.pending;
+      document.getElementById("done-count").textContent = stats.done;
+    }
 
     function renderRow(id, data) {
       const row = document.createElement("tr");
@@ -47,42 +49,41 @@
           <button onclick="updateStatus('${id}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">رفع التقرير</button>
         </td>
       `;
-      tableBody.appendChild(row);
+      document.getElementById("table-body").appendChild(row);
 
-      // تحديث الإحصائيات
       stats.all++;
       if (data.radiology?.status === "تم") stats.done++;
       else stats.pending++;
       updateStats();
     }
 
-    function updateStats() {
-      document.getElementById("all-count").textContent = stats.all;
-      document.getElementById("pending-count").textContent = stats.pending;
-      document.getElementById("done-count").textContent = stats.done;
+    function loadRadiologyData() {
+      firebase.database().ref("patients").on("value", snapshot => {
+        const tableBody = document.getElementById("table-body");
+        tableBody.innerHTML = "";
+        stats.all = stats.pending = stats.done = 0;
+
+        snapshot.forEach(child => {
+          const id = child.key;
+          const data = child.val();
+          if (data.radiology) {
+            renderRow(id, data);
+          }
+        });
+      });
     }
 
-    onValue(ref(db, 'patients'), (snapshot) => {
-      tableBody.innerHTML = "";
-      stats.all = stats.pending = stats.done = 0;
-      snapshot.forEach(child => {
-        const id = child.key;
-        const data = child.val();
-        if (data.radiology) {
-          renderRow(id, data);
-        }
-      });
-    });
-
-    window.updateStatus = function(id) {
+    function updateStatus(id) {
       const note = document.getElementById("note-" + id).value;
-      update(ref(db, 'patients/' + id + '/radiology'), {
+      firebase.database().ref('patients/' + id + '/radiology').update({
         status: "تم",
         note: note
       }).then(() => {
         Swal.fire("تم التحديث", "تم رفع تقرير الأشعة بنجاح", "success");
       });
-    };
+    }
+
+    window.onload = loadRadiologyData;
   </script>
 </head>
 <body class="bg-gray-100 p-6">
