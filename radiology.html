@@ -5,17 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>قسم الأشعة - مستشفى الحياة الذكية</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <style>
 body { font-family: 'Tajawal', sans-serif; }
-.status-badge {
-display: inline-flex;
-align-items: center;
-padding: 0.25rem 0.75rem;
-border-radius: 9999px;
-font-weight: 500;
-}
 .card {
 border: 1px solid #e5e7eb;
 border-radius: 10px;
@@ -50,7 +42,7 @@ box-shadow: 0 2px 8px #0001;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getDatabase, ref, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -65,7 +57,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// تحميل كل طلبات الأشعة في المستشفى
 async function loadAllRadiologyTransfers() {
   const list = document.getElementById("transferList");
   list.innerHTML = "<div class='text-gray-500 p-4'>جاري التحميل...</div>";
@@ -84,21 +75,6 @@ async function loadAllRadiologyTransfers() {
           const key = child.key;
           if (t.department === "radiology") {
             found = true;
-            let resultText = "";
-            if (t.report) resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
-            if (t.technician) resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${t.technician}</span>`;
-            if (t.lastEditedBy) resultText += ` | <span class="text-gray-700">آخر تعديل بواسطة: ${t.lastEditedBy}</span>`;
-            if (t.executionDate) resultText += ` | <span class="text-gray-500">تاريخ التنفيذ: ${t.executionDate}</span>`;
-            if (t.device) resultText += ` | <span class="text-purple-700">الجهاز: ${t.device}</span>`;
-            // أزرار العمليات
-            let actionBtns = "";
-            if (t.status === "قيد الانتظار") {
-              actionBtns += `<button onclick='editRadiology("${patientId}","${key}", ${JSON.stringify(t)})' class="bg-blue-600 text-white px-2 py-1 rounded ml-2">تعديل</button>`;
-            }
-            actionBtns += `
-              <button onclick='showRadiologyReport(${JSON.stringify(t)})' class="bg-green-600 text-white px-2 py-1 rounded ml-2">عرض تقرير الأشعة</button>
-              <button onclick='deleteTransfer("${patientId}","${key}")' class="bg-red-600 text-white px-2 py-1 rounded ml-2">حذف</button>
-            `;
             const card = document.createElement("div");
             card.className = "card p-4 mb-4";
             card.innerHTML = `
@@ -108,11 +84,8 @@ async function loadAllRadiologyTransfers() {
               <div class="mb-2">
                 <b>نوع الأشعة:</b> ${t.type || "-"} | <b>الجهاز:</b> ${t.device || "-"} | <b>ملاحظات:</b> ${t.notes || "-"} | <b>الحالة:</b> <span class="font-bold">${t.status || "قيد الانتظار"}</span>
               </div>
-              <div>
-                ${resultText}
-              </div>
               <div class="flex flex-wrap gap-2 mt-2">
-                ${actionBtns}
+                <button onclick='window.location.href="radiology-action.html?patient=${patientId}&transfer=${key}"' class="bg-blue-600 text-white px-2 py-1 rounded ml-2">تنفيذ الطلب</button>
               </div>
             `;
             list.appendChild(card);
@@ -126,100 +99,6 @@ async function loadAllRadiologyTransfers() {
     }
   });
 }
-
-// تعديل نوع الأشعة (وأي بيانات أخرى) إذا كان الطلب قيد الانتظار
-window.editRadiology = function(patientId, key, transfer) {
-  Swal.fire({
-    title: "تعديل بيانات التحويل",
-    html: `
-      <label>نوع الأشعة المطلوبة:</label>
-      <input id="editType" class="swal2-input" placeholder="نوع الأشعة" value="${transfer.type || ''}">
-      <label>الجهاز:</label>
-      <input id="editDevice" class="swal2-input" placeholder="الجهاز" value="${transfer.device || ''}">
-      <label>ملاحظات:</label>
-      <textarea id="editNotes" class="swal2-textarea" placeholder="ملاحظات">${transfer.notes || ''}</textarea>
-    `,
-    confirmButtonText: "حفظ",
-    showCancelButton: true,
-    preConfirm: () => {
-      return {
-        type: document.getElementById('editType').value,
-        device: document.getElementById('editDevice').value,
-        notes: document.getElementById('editNotes').value
-      }
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const data = result.value;
-      update(ref(db, `patients/emergency/${patientId}/transfers/${key}`), {
-        type: data.type,
-        device: data.device,
-        notes: data.notes
-      }).then(() => {
-        Swal.fire("تم الحفظ", "تم تعديل بيانات التحويل بنجاح", "success");
-      });
-    }
-  });
-}
-
-// حذف سجل تحويل
-window.deleteTransfer = function(patientId, transferKey) {
-  Swal.fire({
-    title: 'تأكيد الحذف',
-    text: "هل أنت متأكد أنك تريد حذف هذا السجل؟",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'نعم، احذف',
-    cancelButtonText: 'إلغاء'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      remove(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`))
-        .then(() => {
-          Swal.fire('تم الحذف!', 'تم حذف السجل بنجاح.', 'success');
-        })
-        .catch((error) => {
-          Swal.fire('خطأ', 'حدث خطأ أثناء الحذف', 'error');
-        });
-    }
-  });
-};
-
-// نافذة عرض تقرير الأشعة
-window.showRadiologyReport = function(transfer) {
-  let fileHtml = '';
-  if (transfer.fileUrl) {
-    const ext = transfer.fileUrl.split('.').pop().toLowerCase();
-    if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext)) {
-      fileHtml = `<img src="${transfer.fileUrl}" alt="صورة الأشعة" style="max-width:100%;max-height:40vh;display:block;margin:10px auto;">`;
-    } else if (ext === "pdf") {
-      fileHtml = `<iframe src="${transfer.fileUrl}" style="width:100%;height:40vh;" frameborder="0"></iframe>`;
-    } else {
-      fileHtml = `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">تحميل الملف</a>`;
-    }
-  } else {
-    fileHtml = `<span class="text-gray-500">لا يوجد ملف مرفق</span>`;
-  }
-
-  let html = `
-    <div style="text-align:right">
-      <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
-      <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
-      <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
-      <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
-      <p><b>آخر تعديل بواسطة:</b> ${transfer.lastEditedBy || "-"}</p>
-      <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
-      <p><b>ملف الأشعة:</b></p>
-      ${fileHtml}
-    </div>
-  `;
-  Swal.fire({
-    title: "تقرير الأشعة",
-    html: html,
-    width: "60vw",
-    showCloseButton: true,
-    confirmButtonText: "إغلاق"
-  });
-};
 
 loadAllRadiologyTransfers();
 </script>
