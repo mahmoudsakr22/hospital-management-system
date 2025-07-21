@@ -9,6 +9,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   <style>
     body { font-family: 'Tajawal', sans-serif; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px #0001;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
@@ -46,15 +60,15 @@
 
     <!-- طلبات التحويل للأشعة -->
     <div class="bg-white p-4 rounded shadow" id="transfersContainer">
-      <h2 class="text-lg font-semibold mb-2">طلبات التحويل للأشعة</h2>
-      <ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
+      <h2 class="text-lg font-semibold mb-4">طلبات التحويل للأشعة</h2>
+      <div id="transferList"></div>
     </div>
   </div>
 
   <!-- Firebase & الكود البرمجي -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     // بيانات Firebase الخاصة بك
     const firebaseConfig = {
@@ -99,7 +113,7 @@
       }
     }
 
-    // تحميل طلبات التحويل للأشعة فقط
+    // تحميل طلبات التحويل للأشعة فقط مع التحكم في الحالة والتقرير
     function loadRadiologyTransfers() {
       const list = document.getElementById("transferList");
       list.innerHTML = "";
@@ -112,16 +126,81 @@
           const t = child.val();
           if (t.department === "الاشعة") {
             found = true;
-            const item = document.createElement("li");
-            item.textContent = `🩻 نوع الإجراء: ${t.type} | التاريخ: ${t.date} | ملاحظات: ${t.notes || "بدون ملاحظات"}`;
-            list.appendChild(item);
+            const key = child.key;
+            // عناصر الطلب
+            const card = document.createElement("div");
+            card.className = "card p-4 mb-4";
+
+            // حالة الطلب
+            const status = t.status || "قيد التنفيذ";
+            let statusColor = "bg-yellow-100 text-yellow-800";
+            if (status === "تم التنفيذ") statusColor = "bg-green-100 text-green-800";
+            if (status === "مرفوض") statusColor = "bg-red-100 text-red-800";
+
+            card.innerHTML = `
+              <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-2">
+                <div>
+                  <span class="font-bold">نوع الإجراء:</span> ${t.type} <br>
+                  <span class="font-bold">التاريخ:</span> ${t.date} <br>
+                  <span class="font-bold">ملاحظات:</span> ${t.notes || "بدون ملاحظات"}
+                </div>
+                <div>
+                  <span class="status-badge ${statusColor}">${status}</span>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                <div>
+                  <label class="block mb-1 text-gray-700">تغيير الحالة:</label>
+                  <select id="status_${key}" class="border rounded p-2 w-full">
+                    <option value="قيد التنفيذ" ${status === "قيد التنفيذ" ? "selected" : ""}>قيد التنفيذ</option>
+                    <option value="تم التنفيذ" ${status === "تم التنفيذ" ? "selected" : ""}>تم التنفيذ</option>
+                    <option value="مرفوض" ${status === "مرفوض" ? "selected" : ""}>مرفوض</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block mb-1 text-gray-700">اسم منفذ الأشعة:</label>
+                  <input type="text" id="tech_${key}" class="border rounded p-2 w-full" value="${t.technician || ""}" placeholder="اسم الفني أو الطبيب" />
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="block mb-1 text-gray-700">تقرير/نتيجة الأشعة:</label>
+                <textarea id="report_${key}" class="border rounded p-2 w-full" rows="2" placeholder="اكتب تقرير أو نتيجة الأشعة">${t.report || ""}</textarea>
+              </div>
+              <button class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded" onclick="window.saveRadiology('${key}')">
+                <i class="fas fa-save mr-2"></i> حفظ التعديلات
+              </button>
+            `;
+            list.appendChild(card);
           }
         });
         if (!found) {
-          list.innerHTML = "<li>لا يوجد طلبات تحويل للأشعة لهذا المريض.</li>";
+          list.innerHTML = "<div class='text-gray-500 p-4'>لا يوجد طلبات تحويل للأشعة لهذا المريض.</div>";
         }
       });
     }
+
+    // حفظ التعديلات على الطلب
+    window.saveRadiology = async function(key) {
+      const status = document.getElementById(`status_${key}`).value;
+      const report = document.getElementById(`report_${key}`).value.trim();
+      const technician = document.getElementById(`tech_${key}`).value.trim();
+      try {
+        await update(ref(db, `patients/emergency/${patientId}/transfers/${key}`), {
+          status,
+          report,
+          technician
+        });
+        Swal.fire({
+          icon: "success",
+          title: "تم الحفظ",
+          text: "تم تحديث بيانات الطلب بنجاح.",
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } catch (err) {
+        Swal.fire("خطأ", "حدث خطأ أثناء الحفظ", "error");
+      }
+    };
 
     // تحميل البيانات عند فتح الصفحة
     if (patientId) {
