@@ -4,11 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>نظام ملف المريض - مستشفى الحياة الذكية</title>
-<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- FontAwesome Icons -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <style>
@@ -228,38 +225,36 @@ window.deleteTransfer = function(transferKey) {
   });
 };
 
-// تعديل سجل الأشعة (يظهر فقط إذا كان الطلب قيد الانتظار)
+// تعديل نوع الأشعة (وأي بيانات أخرى) إذا كان الطلب قيد الانتظار
 window.editRadiology = function(key, transfer) {
   Swal.fire({
-    title: "تعديل سجل الأشعة",
+    title: "تعديل بيانات التحويل",
     html: `
-      <input id="technician" class="swal2-input" placeholder="اسم الفني" value="${transfer.technician || ''}">
-      <input id="executionDate" class="swal2-input" placeholder="تاريخ التنفيذ" value="${transfer.executionDate || new Date().toLocaleString('ar-EG')}">
-      <textarea id="report" class="swal2-textarea" placeholder="تقرير الفني">${transfer.report || ''}</textarea>
-      <input id="fileUrl" class="swal2-input" placeholder="رابط ملف النتيجة (صورة أو PDF)" value="${transfer.fileUrl || ''}">
+      <label>نوع الأشعة المطلوبة:</label>
+      <input id="editType" class="swal2-input" placeholder="نوع الأشعة" value="${transfer.type || ''}">
+      <label>الجهاز:</label>
+      <input id="editDevice" class="swal2-input" placeholder="الجهاز" value="${transfer.device || ''}">
+      <label>ملاحظات:</label>
+      <textarea id="editNotes" class="swal2-textarea" placeholder="ملاحظات">${transfer.notes || ''}</textarea>
     `,
     confirmButtonText: "حفظ",
     showCancelButton: true,
     preConfirm: () => {
       return {
-        technician: document.getElementById('technician').value,
-        executionDate: document.getElementById('executionDate').value,
-        report: document.getElementById('report').value,
-        fileUrl: document.getElementById('fileUrl').value
+        type: document.getElementById('editType').value,
+        device: document.getElementById('editDevice').value,
+        notes: document.getElementById('editNotes').value
       }
     }
   }).then((result) => {
     if (result.isConfirmed) {
       const data = result.value;
       update(ref(db, `patients/emergency/${patientId}/transfers/${key}`), {
-        technician: data.technician,
-        executionDate: data.executionDate,
-        report: data.report,
-        fileUrl: data.fileUrl,
-        status: "تم التنفيذ",
-        lastEditedBy: "موظف الأشعة"
+        type: data.type,
+        device: data.device,
+        notes: data.notes
       }).then(() => {
-        Swal.fire("تم الحفظ", "تم حفظ نتيجة الأشعة بنجاح", "success");
+        Swal.fire("تم الحفظ", "تم تعديل بيانات التحويل بنجاح", "success");
       });
     }
   });
