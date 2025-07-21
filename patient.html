@@ -2,256 +2,143 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ملف المريض - مستشفى الحياة الذكية</title>
+  <!-- Fonts and Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Tajawal', 'sans-serif'],
+          },
+          colors: {
+            primary: '#1e40af',
+            secondary: '#7c3aed',
+            accent: '#10b981',
+            danger: '#dc2626',
+          },
+        },
+      },
+    };
+  </script>
 </head>
-<body class="bg-gray-100 p-4">
-  <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg">
-    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">ملف المريض</h1>
-
+<body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
     <!-- معلومات المريض -->
-    <div id="basicInfo" class="mb-8">
-      <h2 class="text-xl font-bold mb-4 text-gray-800">المعلومات الأساسية</h2>
-      <table class="w-full table-auto border border-gray-300 text-center">
-        <thead class="bg-gray-100">
-          <tr>
-            <th>الاسم</th>
-            <th>العمر</th>
-            <th>الرقم القومي</th>
-            <th>ID</th>
-            <th>تاريخ الدخول</th>
-            <th>القسم الحالي</th>
-            <th>الطبيب</th>
-          </tr>
-        </thead>
-        <tbody id="basicData" class="bg-white text-gray-700"></tbody>
-      </table>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div class="bg-gradient-to-r from-primary to-blue-700 p-6 text-white">
+        <h2 class="text-2xl font-bold">ملف المريض</h2>
+      </div>
+      <div class="p-6">
+        <table id="infoTable" class="table-auto w-full text-right"></table>
+      </div>
     </div>
 
-    <!-- سجل الزيارات -->
-    <div class="mb-8">
-      <h2 class="text-xl font-bold mb-4 text-gray-800">سجل الزيارات</h2>
-      <form id="visitForm" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select id="visitType" class="border p-2 rounded" required>
-          <option disabled selected>نوع الزيارة</option>
-          <option>كشف طبي</option>
-          <option>متابعة</option>
-          <option>استشارة</option>
-        </select>
-        <input type="text" id="visitNotes" placeholder="ملاحظات الطبيب" class="border p-2 rounded" required>
-        <button type="submit" class="bg-blue-600 text-white rounded p-2">تسجيل الزيارة</button>
-      </form>
-      <table class="w-full table-auto border border-gray-300 text-center">
-        <thead class="bg-gray-100">
-          <tr>
-            <th>النوع</th>
-            <th>الملاحظات</th>
-            <th>التاريخ</th>
-          </tr>
-        </thead>
-        <tbody id="visitsTable" class="bg-white text-gray-700"></tbody>
-      </table>
-    </div>
+    <!-- قسم الأشعة -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div class="bg-gradient-to-r from-secondary to-purple-700 p-6 text-white">
+        <h2 class="text-2xl font-bold">الأشعة</h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block mb-1">نوع الأشعة:</label>
+          <select id="radiologyType" class="w-full border rounded p-2">
+            <option>أشعة سينية (X-Ray)</option>
+            <option>أشعة مقطعية (CT)</option>
+            <option>رنين مغناطيسي (MRI)</option>
+            <option>موجات فوق صوتية (Ultrasound)</option>
+            <option>تصوير الثدي (Mammography)</option>
+            <option>أشعة أخرى</option>
+          </select>
+        </div>
+        <div>
+          <label class="block mb-1">ملاحظات الطبيب:</label>
+          <textarea id="radiologyNotes" class="w-full border rounded p-2" rows="3"></textarea>
+        </div>
+        <button onclick="addRadiologyRequest()" class="bg-secondary hover:bg-purple-700 text-white px-4 py-2 rounded-lg w-full">
+          <i class="fas fa-radiation mr-2"></i> تحويل لقسم الأشعة
+        </button>
 
-    <!-- التحويل إلى قسم -->
-    <div class="mb-8">
-      <h2 class="text-xl font-bold mb-4 text-gray-800">تحويل لقسم آخر</h2>
-      <form id="transferForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select id="targetDept" class="border p-2 rounded" required>
-          <option disabled selected>اختر القسم</option>
-          <option>الأشعة</option>
-          <option>التحاليل</option>
-          <option>العناية المركزة</option>
-        </select>
-        <input type="text" id="transferNotes" placeholder="ملاحظات التحويل" class="border p-2 rounded" required>
-        <button type="submit" class="bg-green-600 text-white rounded p-2">تحويل</button>
-      </form>
-      <table class="w-full mt-4 table-auto border border-gray-300 text-center">
-        <thead class="bg-gray-100">
-          <tr>
-            <th>القسم</th>
-            <th>ملاحظات</th>
-            <th>تاريخ التحويل</th>
-          </tr>
-        </thead>
-        <tbody id="transfersTable" class="bg-white text-gray-700"></tbody>
-      </table>
-    </div>
-
-    <!-- تقارير الأشعة -->
-    <div class="mb-8">
-      <h2 class="text-xl font-bold mb-4 text-gray-800">تقارير الأشعة</h2>
-      <form id="radiologyForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" enctype="multipart/form-data">
-        <select id="radiologyType" class="border p-2 rounded" required>
-          <option disabled selected>نوع الأشعة</option>
-          <option>أشعة سينية</option>
-          <option>رنين مغناطيسي</option>
-          <option>أشعة مقطعية</option>
-          <option>ألتراساوند</option>
-        </select>
-        <input type="text" id="radiologyNotes" placeholder="ملاحظات الطبيب" class="border p-2 rounded" required>
-        <input type="file" id="radiologyFile" class="border p-2 rounded" accept=".jpg,.png,.jpeg,.pdf" required>
-        <button type="submit" class="bg-purple-700 text-white rounded p-2">رفع التقرير</button>
-      </form>
-      <table class="w-full table-auto border border-gray-300 text-center">
-        <thead class="bg-gray-100">
-          <tr>
-            <th>النوع</th>
-            <th>الملاحظات</th>
-            <th>تاريخ</th>
-            <th>عرض</th>
-          </tr>
-        </thead>
-        <tbody id="radiologyTable" class="bg-white text-gray-700"></tbody>
-      </table>
-    </div>
-
-    <!-- QR Code -->
-    <div class="text-center mt-10">
-      <h2 class="text-xl font-bold mb-2 text-gray-800">QR Code لملف المريض</h2>
-      <div id="qrcode" class="mx-auto"></div>
+        <div class="pt-6">
+          <h3 class="text-xl font-semibold mb-2 text-primary">الطلبات السابقة</h3>
+          <ul id="radiologyList" class="space-y-3"></ul>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- firebase config + js -->
-  <script>
-    // إعدادات Firebase
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "YOUR_DATABASE_URL",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const patientId = new URLSearchParams(window.location.search).get("id");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientId = urlParams.get("id");
-    if (!patientId) {
-      Swal.fire("خطأ", "رقم المريض غير موجود في الرابط", "error");
+    const infoTable = document.getElementById("infoTable");
+    const radiologyList = document.getElementById("radiologyList");
+
+    async function loadPatientInfo() {
+      const refInfo = ref(db, `patients/emergency/${patientId}`);
+      const snap = await get(refInfo);
+      if (!snap.exists()) {
+        infoTable.innerHTML = '<tr><td>لم يتم العثور على بيانات</td></tr>';
+        return;
+      }
+      const p = snap.val();
+      infoTable.innerHTML = `
+        <tr><td class="py-1">الاسم:</td><td class="py-1">${p.name}</td></tr>
+        <tr><td class="py-1">العمر:</td><td class="py-1">${p.age}</td></tr>
+        <tr><td class="py-1">القسم الحالي:</td><td class="py-1">${p.department}</td></tr>
+        <tr><td class="py-1">الطبيب:</td><td class="py-1">${p.doctor}</td></tr>
+      `;
     }
 
-    // تحميل البيانات
-    window.onload = function () {
-      if (patientId) {
-        loadPatientData();
-        loadVisits();
-        loadTransfers();
-        loadRadiology();
-        QRCode.toCanvas(document.getElementById("qrcode"), window.location.href);
-      }
+    async function loadRadiologyRequests() {
+      const refRad = ref(db, `radiology_requests/${patientId}`);
+      const snap = await get(refRad);
+      if (!snap.exists()) return;
+      const data = snap.val();
+      radiologyList.innerHTML = Object.values(data).map(item => `
+        <li class="bg-gray-100 rounded p-3">
+          <div><strong>النوع:</strong> ${item.type}</div>
+          <div><strong>ملاحظات:</strong> ${item.notes}</div>
+          <div class="text-sm text-gray-500">${new Date(item.timestamp).toLocaleString('ar-EG')}</div>
+        </li>
+      `).join('');
+    }
+
+    window.addRadiologyRequest = async () => {
+      const type = document.getElementById("radiologyType").value;
+      const notes = document.getElementById("radiologyNotes").value;
+      const refRad = ref(db, `radiology_requests/${patientId}`);
+      await push(refRad, {
+        type,
+        notes,
+        timestamp: Date.now(),
+        status: "بانتظار التنفيذ"
+      });
+      alert("تم تحويل المريض للأشعة بنجاح.");
+      loadRadiologyRequests();
     };
 
-    function loadPatientData() {
-      db.ref("patients/" + patientId).once("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          document.getElementById("basicData").innerHTML = `
-            <tr>
-              <td>${data.name}</td>
-              <td>${data.age}</td>
-              <td>${data.nationalId}</td>
-              <td>${patientId}</td>
-              <td>${data.entryDate}</td>
-              <td>${data.department}</td>
-              <td>${data.doctor}</td>
-            </tr>
-          `;
-        }
-      });
-    }
-
-    // زيارات
-    document.getElementById("visitForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const type = visitType.value;
-      const notes = visitNotes.value;
-      const date = new Date().toLocaleString();
-      db.ref("visits/" + patientId).push({ type, notes, date });
-      visitForm.reset();
-      Swal.fire("تم", "تم تسجيل الزيارة", "success");
-      loadVisits();
+    document.addEventListener("DOMContentLoaded", () => {
+      loadPatientInfo();
+      loadRadiologyRequests();
     });
-
-    function loadVisits() {
-      db.ref("visits/" + patientId).once("value", (snapshot) => {
-        visitsTable.innerHTML = "";
-        snapshot.forEach(child => {
-          const v = child.val();
-          visitsTable.innerHTML += `<tr><td>${v.type}</td><td>${v.notes}</td><td>${v.date}</td></tr>`;
-        });
-      });
-    }
-
-    // التحويلات
-    document.getElementById("transferForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const department = targetDept.value;
-      const notes = transferNotes.value;
-      const date = new Date().toLocaleString();
-      db.ref("transfers/" + patientId).push({ department, notes, date });
-      db.ref("patients/" + patientId).update({ department });
-      transferForm.reset();
-      Swal.fire("تم", "تم التحويل بنجاح", "success");
-      loadTransfers();
-      loadPatientData();
-    });
-
-    function loadTransfers() {
-      db.ref("transfers/" + patientId).once("value", (snapshot) => {
-        transfersTable.innerHTML = "";
-        snapshot.forEach(child => {
-          const t = child.val();
-          transfersTable.innerHTML += `<tr><td>${t.department}</td><td>${t.notes}</td><td>${t.date}</td></tr>`;
-        });
-      });
-    }
-
-    // تقارير الأشعة
-    document.getElementById("radiologyForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const type = radiologyType.value;
-      const notes = radiologyNotes.value;
-      const date = new Date().toLocaleString();
-      const fileInput = radiologyFile.files[0];
-      const reader = new FileReader();
-
-      reader.onload = function() {
-        const fileData = reader.result;
-        db.ref("radiology/" + patientId).push({ type, notes, date, fileData });
-        radiologyForm.reset();
-        Swal.fire("تم", "تم رفع تقرير الأشعة", "success");
-        loadRadiology();
-      };
-      if (fileInput) {
-        reader.readAsDataURL(fileInput);
-      }
-    });
-
-    function loadRadiology() {
-      db.ref("radiology/" + patientId).once("value", (snapshot) => {
-        radiologyTable.innerHTML = "";
-        snapshot.forEach(child => {
-          const r = child.val();
-          radiologyTable.innerHTML += `
-            <tr>
-              <td>${r.type}</td>
-              <td>${r.notes}</td>
-              <td>${r.date}</td>
-              <td><a href="${r.fileData}" target="_blank" class="text-blue-600 underline">عرض</a></td>
-            </tr>`;
-        });
-      });
-    }
   </script>
 </body>
 </html>
