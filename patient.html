@@ -1,168 +1,139 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ملف المريض - مستشفى الحياة الذكية</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
+
 <body class="bg-gray-100 p-4">
-  <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
-    <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">ملف المريض</h1>
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-6 text-center text-blue-900">ملف المريض - مستشفى الحياة الذكية</h1>
 
-    <!-- جدول البيانات الأساسية -->
-    <table class="w-full mb-6 border">
-      <tbody id="basic-info" class="text-right"></tbody>
-    </table>
-
-    <!-- تسجيل زيارة -->
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold mb-2">تسجيل زيارة</h2>
-      <select id="visitType" class="border p-2 rounded w-full mb-2">
-        <option value="كشف طبي">كشف طبي</option>
-        <option value="متابعة">متابعة</option>
-        <option value="استشارة">استشارة</option>
-      </select>
-      <textarea id="visitNotes" class="border p-2 rounded w-full mb-2" placeholder="ملاحظات الطبيب"></textarea>
-      <button onclick="registerVisit()" class="bg-green-600 text-white px-4 py-2 rounded">تسجيل الزيارة</button>
-      <table class="w-full mt-4 border text-sm">
-        <thead><tr><th>النوع</th><th>ملاحظات</th><th>الوقت</th></tr></thead>
-        <tbody id="visitHistory"></tbody>
+    <div id="basic-info" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">المعلومات الأساسية</h2>
+      <table class="min-w-full bg-white border border-gray-300 rounded">
+        <tbody>
+          <tr class="border-b">
+            <td class="p-2 font-medium">الاسم</td>
+            <td class="p-2" id="name"></td>
+            <td class="p-2 font-medium">العمر</td>
+            <td class="p-2" id="age"></td>
+          </tr>
+          <tr class="border-b">
+            <td class="p-2 font-medium">الرقم القومي</td>
+            <td class="p-2" id="nid"></td>
+            <td class="p-2 font-medium">ID</td>
+            <td class="p-2" id="patientId"></td>
+          </tr>
+          <tr>
+            <td class="p-2 font-medium">تاريخ الدخول</td>
+            <td class="p-2" id="entryDate"></td>
+            <td class="p-2 font-medium">القسم الحالي</td>
+            <td class="p-2" id="currentDept"></td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
-    <!-- تسجيل تحويل -->
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold mb-2">تسجيل تحويل</h2>
-      <select id="transferDept" class="border p-2 rounded w-full mb-2" onchange="toggleExtraFields()">
-        <option disabled selected>اختر القسم</option>
-        <option value="الأشعة">الأشعة</option>
-        <option value="التحاليل">التحاليل</option>
-      </select>
+    <div id="visits" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">سجل الزيارات</h2>
+      <table class="min-w-full bg-white border border-gray-300 rounded" id="visitsTable">
+        <thead>
+          <tr class="bg-gray-100 border-b">
+            <th class="p-2">التاريخ</th>
+            <th class="p-2">النوع</th>
+            <th class="p-2">ملاحظات الطبيب</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-      <div id="extraFields" class="hidden">
-        <input id="transferDetail" class="border p-2 rounded w-full mb-2" placeholder="نوع الخدمة المطلوبة" />
-        <textarea id="transferNotes" class="border p-2 rounded w-full mb-2" placeholder="ملاحظات إضافية"></textarea>
+    <div id="new-visit" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">إضافة زيارة جديدة</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block">نوع الزيارة</label>
+          <select id="visitType" class="w-full border border-gray-300 rounded p-2">
+            <option value="كشف طبي">كشف طبي</option>
+            <option value="متابعة">متابعة</option>
+            <option value="استشارة">استشارة</option>
+          </select>
+        </div>
+        <div>
+          <label class="block">ملاحظات الطبيب</label>
+          <input type="text" id="visitNotes" class="w-full border border-gray-300 rounded p-2" />
+        </div>
       </div>
+      <button onclick="addVisit()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded">تسجيل الزيارة</button>
+    </div>
 
-      <button onclick="registerTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded">تسجيل التحويل</button>
+    <div id="transfers" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">تحويل لقسم آخر</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block">القسم المطلوب التحويل إليه</label>
+          <select id="transferDept" class="w-full border border-gray-300 rounded p-2" onchange="showExtraFields()">
+            <option value="">-- اختر القسم --</option>
+            <option value="الأشعة">الأشعة</option>
+            <option value="المعمل">المعمل</option>
+            <option value="العناية المركزة">العناية المركزة</option>
+            <option value="العمليات">العمليات</option>
+          </select>
+        </div>
+        <div id="extraFields"></div>
+      </div>
+      <button onclick="addTransfer()" class="mt-4 px-4 py-2 bg-green-600 text-white rounded">تسجيل التحويل</button>
+    </div>
 
-      <table class="w-full mt-4 border text-sm">
-        <thead><tr><th>القسم</th><th>تفاصيل</th><th>ملاحظات</th><th>الوقت</th></tr></thead>
-        <tbody id="transferHistory"></tbody>
+    <div id="transferHistory" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">سجل التحويلات</h2>
+      <table class="min-w-full bg-white border border-gray-300 rounded" id="transferTable">
+        <thead>
+          <tr class="bg-gray-100 border-b">
+            <th class="p-2">القسم</th>
+            <th class="p-2">التاريخ</th>
+            <th class="p-2">ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
       </table>
     </div>
 
-    <button onclick="goBack()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">رجوع إلى قسم الطوارئ</button>
+    <div id="medications" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">الأدوية والعلاج</h2>
+      <table class="min-w-full bg-white border border-gray-300 rounded" id="medicationsTable">
+        <thead>
+          <tr class="bg-gray-100 border-b">
+            <th class="p-2">الدواء</th>
+            <th class="p-2">الجرعة</th>
+            <th class="p-2">المدة</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="flex justify-between items-center mt-8">
+      <div>
+        <div id="qrcode"></div>
+        <p class="mt-2 text-sm">رقم المريض: <span id="qr-id"></span></p>
+      </div>
+      <div>
+        <button onclick="downloadPDF()" class="px-4 py-2 bg-yellow-600 text-white rounded">تحميل تقرير المريض PDF</button>
+        <button onclick="window.location.href='emergency.html'" class="ml-2 px-4 py-2 bg-gray-500 text-white rounded">رجوع إلى قسم الطوارئ</button>
+      </div>
+    </div>
   </div>
 
-  <script>
-    // إعداد Firebase
-    const firebaseConfig = {
-      databaseURL: "https://smart-hospital-life.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientId = urlParams.get("id");
-
-    const basicInfoBody = document.getElementById("basic-info");
-    const visitHistory = document.getElementById("visitHistory");
-    const transferHistory = document.getElementById("transferHistory");
-
-    function loadPatientData() {
-      if (!patientId) return;
-
-      const patientRef = db.ref("patients/" + patientId);
-      patientRef.once("value", (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        basicInfoBody.innerHTML = `
-          <tr><td class="border p-2">الاسم</td><td class="border p-2">${data.name}</td></tr>
-          <tr><td class="border p-2">العمر</td><td class="border p-2">${data.age}</td></tr>
-          <tr><td class="border p-2">الرقم القومي</td><td class="border p-2">${data.nationalId}</td></tr>
-          <tr><td class="border p-2">ID</td><td class="border p-2">${patientId}</td></tr>
-          <tr><td class="border p-2">تاريخ الدخول</td><td class="border p-2">${data.entryDate}</td></tr>
-          <tr><td class="border p-2">القسم الحالي</td><td class="border p-2">${data.department}</td></tr>
-          <tr><td class="border p-2">الطبيب المعالج</td><td class="border p-2">${data.doctor}</td></tr>
-        `;
-      });
-
-      db.ref("visits/" + patientId).on("value", (snap) => {
-        visitHistory.innerHTML = "";
-        snap.forEach((child) => {
-          const v = child.val();
-          visitHistory.innerHTML += `
-            <tr><td class="border p-2">${v.type}</td><td class="border p-2">${v.notes}</td><td class="border p-2">${v.time}</td></tr>
-          `;
-        });
-      });
-
-      db.ref("transfers/" + patientId).on("value", (snap) => {
-        transferHistory.innerHTML = "";
-        snap.forEach((child) => {
-          const t = child.val();
-          transferHistory.innerHTML += `
-            <tr><td class="border p-2">${t.department}</td><td class="border p-2">${t.detail}</td><td class="border p-2">${t.notes}</td><td class="border p-2">${t.time}</td></tr>
-          `;
-        });
-      });
-    }
-
-    function registerVisit() {
-      const type = document.getElementById("visitType").value;
-      const notes = document.getElementById("visitNotes").value;
-      const now = new Date().toLocaleString();
-
-      db.ref("visits/" + patientId).push({
-        type, notes, time: now
-      }).then(() => {
-        Swal.fire("تم تسجيل الزيارة", "", "success");
-        document.getElementById("visitNotes").value = "";
-      });
-    }
-
-    function toggleExtraFields() {
-      const dept = document.getElementById("transferDept").value;
-      const extra = document.getElementById("extraFields");
-      extra.classList.remove("hidden");
-    }
-
-    function registerTransfer() {
-      const department = document.getElementById("transferDept").value;
-      const detail = document.getElementById("transferDetail").value;
-      const notes = document.getElementById("transferNotes").value;
-      const now = new Date().toLocaleString();
-
-      db.ref("transfers/" + patientId).push({
-        department, detail, notes, time: now
-      }).then(() => {
-        Swal.fire("تم تسجيل التحويل بنجاح", "", "success");
-
-        // تحديث القسم الحالي
-        db.ref("patients/" + patientId).update({ department });
-
-        // توجيه إلى صفحة القسم الجديد
-        setTimeout(() => {
-          if (department === "الأشعة") {
-            window.location.href = "radiology.html?id=" + patientId;
-          } else if (department === "التحاليل") {
-            window.location.href = "labs.html?id=" + patientId;
-          }
-        }, 1000);
-      });
-    }
-
-    function goBack() {
-      window.location.href = "emergency.html";
-    }
-
-    loadPatientData();
-  </script>
+  <script src="patient-script.js"></script>
 </body>
+
 </html>
