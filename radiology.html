@@ -6,113 +6,111 @@
   <title>قسم الأشعة - مستشفى الحياة الذكية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 text-center">قسم الأشعة - مستشفى الحياة الذكية</h1>
+    
+    <div id="patientsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </div>
 
   <script>
-    // إعداد Firebase - غير البيانات دي بمعلومات مشروعك الحقيقي
+    // إعداد Firebase
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
       messagingSenderId: "SENDER_ID",
-      appId: "APP_ID",
+      appId: "APP_ID"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const stats = { all: 0, pending: 0, done: 0 };
+    // جلب المرضى المحولين لقسم الأشعة
+    db.ref("patients").on("value", (snapshot) => {
+      const container = document.getElementById("patientsContainer");
+      container.innerHTML = "";
+      snapshot.forEach((child) => {
+        const data = child.val();
+        const id = child.key;
+        if (data.currentSection === "الأشعة") {
+          const div = document.createElement("div");
+          div.className = "bg-white p-4 rounded shadow";
+          div.innerHTML = `
+            <h2 class="text-xl font-semibold mb-2">${data.name}</h2>
+            <p><strong>العمر:</strong> ${data.age}</p>
+            <p><strong>الرقم القومي:</strong> ${data.nationalId}</p>
+            <p><strong>تاريخ الدخول:</strong> ${data.entryDate}</p>
+            <div class="mt-2">
+              <button onclick="showReportForm('${id}')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">إضافة تقرير أشعة</button>
+              <button onclick="viewReports('${id}')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded ml-2">عرض التقارير</button>
+            </div>
+            <div id="reportForm-${id}" class="mt-4 hidden">
+              <h3 class="font-bold mb-1">تقرير جديد:</h3>
+              <input id="type-${id}" class="border p-1 w-full mb-2" placeholder="نوع الأشعة" />
+              <textarea id="notes-${id}" class="border p-1 w-full mb-2" placeholder="ملاحظات"></textarea>
+              <button onclick="saveReport('${id}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">حفظ التقرير</button>
+            </div>
+            <div id="reports-${id}" class="mt-4 text-sm"></div>
+          `;
+          container.appendChild(div);
+        }
+      });
+    });
 
-    function updateStats() {
-      document.getElementById("all-count").textContent = stats.all;
-      document.getElementById("pending-count").textContent = stats.pending;
-      document.getElementById("done-count").textContent = stats.done;
+    function showReportForm(id) {
+      document.getElementById(`reportForm-${id}`).classList.toggle("hidden");
     }
 
-    function renderRow(id, data) {
-      const row = document.createElement("tr");
-      row.className = "border-b text-center";
-      row.innerHTML = `
-        <td class="p-2">${data.name || "بدون اسم"}</td>
-        <td class="p-2">${data.nationalId || ""}</td>
-        <td class="p-2">${data.radiology?.type || "غير محدد"}</td>
-        <td class="p-2">${data.radiology?.status || "بانتظار"}</td>
-        <td class="p-2">
-          <textarea id="note-${id}" placeholder="ملاحظات..." class="p-1 border rounded w-full">${data.radiology?.note || ""}</textarea>
-        </td>
-        <td class="p-2">
-          <button onclick="updateStatus('${id}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">رفع التقرير</button>
-        </td>
-      `;
-      document.getElementById("table-body").appendChild(row);
+    function saveReport(id) {
+      const type = document.getElementById(`type-${id}`).value;
+      const notes = document.getElementById(`notes-${id}`).value;
+      const date = new Date().toLocaleDateString("ar-EG");
 
-      stats.all++;
-      if (data.radiology?.status === "تم") stats.done++;
-      else stats.pending++;
-      updateStats();
+      if (!type || !notes) {
+        Swal.fire("يرجى تعبئة جميع الحقول", "", "warning");
+        return;
+      }
+
+      const reportData = {
+        type,
+        notes,
+        date
+      };
+
+      db.ref(`patients/${id}/radiologyReports`).push(reportData).then(() => {
+        Swal.fire("تم حفظ التقرير بنجاح", "", "success");
+        document.getElementById(`type-${id}`).value = "";
+        document.getElementById(`notes-${id}`).value = "";
+      });
     }
 
-    function loadRadiologyData() {
-      firebase.database().ref("patients").on("value", snapshot => {
-        const tableBody = document.getElementById("table-body");
-        tableBody.innerHTML = "";
-        stats.all = stats.pending = stats.done = 0;
-
-        snapshot.forEach(child => {
-          const id = child.key;
-          const data = child.val();
-          if (data.radiology) {
-            renderRow(id, data);
-          }
+    function viewReports(id) {
+      const container = document.getElementById(`reports-${id}`);
+      container.innerHTML = "<p class='text-gray-500'>جاري التحميل...</p>";
+      db.ref(`patients/${id}/radiologyReports`).once("value", (snapshot) => {
+        if (!snapshot.exists()) {
+          container.innerHTML = "<p class='text-gray-500'>لا توجد تقارير بعد</p>";
+          return;
+        }
+        let html = `<h4 class="font-semibold mb-1">سجل تقارير الأشعة:</h4>`;
+        snapshot.forEach((reportSnap) => {
+          const r = reportSnap.val();
+          html += `
+            <div class="bg-gray-100 p-2 mb-1 rounded">
+              <p><strong>التاريخ:</strong> ${r.date}</p>
+              <p><strong>النوع:</strong> ${r.type}</p>
+              <p><strong>ملاحظات:</strong> ${r.notes}</p>
+            </div>
+          `;
         });
+        container.innerHTML = html;
       });
     }
-
-    function updateStatus(id) {
-      const note = document.getElementById("note-" + id).value;
-      firebase.database().ref('patients/' + id + '/radiology').update({
-        status: "تم",
-        note: note
-      }).then(() => {
-        Swal.fire("تم التحديث", "تم رفع تقرير الأشعة بنجاح", "success");
-      });
-    }
-
-    window.onload = loadRadiologyData;
   </script>
-</head>
-<body class="bg-gray-100 p-6">
-  <h1 class="text-3xl font-bold text-center text-blue-800 mb-6">قسم الأشعة - مستشفى الحياة الذكية</h1>
-
-  <!-- إحصائيات -->
-  <div class="grid grid-cols-3 gap-4 mb-6 text-center">
-    <div class="bg-white p-4 shadow rounded">📋 الكل: <span id="all-count" class="font-bold text-lg">0</span></div>
-    <div class="bg-yellow-100 p-4 shadow rounded">⏳ بانتظار: <span id="pending-count" class="font-bold text-lg">0</span></div>
-    <div class="bg-green-100 p-4 shadow rounded">✅ تم: <span id="done-count" class="font-bold text-lg">0</span></div>
-  </div>
-
-  <!-- جدول المرضى -->
-  <div class="overflow-auto bg-white rounded shadow">
-    <table class="w-full table-auto border">
-      <thead class="bg-blue-800 text-white">
-        <tr>
-          <th class="p-2">اسم المريض</th>
-          <th class="p-2">الرقم القومي</th>
-          <th class="p-2">نوع الأشعة</th>
-          <th class="p-2">الحالة</th>
-          <th class="p-2">ملاحظات</th>
-          <th class="p-2">إجراء</th>
-        </tr>
-      </thead>
-      <tbody id="table-body" class="text-sm">
-        <!-- يتم تعبئته من قاعدة البيانات -->
-      </tbody>
-    </table>
-  </div>
 </body>
 </html>
