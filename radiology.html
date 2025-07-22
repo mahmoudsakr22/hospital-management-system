@@ -118,7 +118,7 @@ async function loadAllRadiologyTransfers() {
           if (t.department === "radiology") {
             // فلترة حسب الحالة
             if (filterStatus && t.status !== filterStatus) return;
-            // بحث باسم المريض أو رقم الهوية
+            // بحث باسم المريض أو نوع الأشعة أو رقم الهوية
             if (searchValue) {
               const name = (patient.name || "").toLowerCase();
               const type = (t.type || "").toLowerCase();
@@ -163,53 +163,14 @@ async function loadAllRadiologyTransfers() {
     if (!found) {
       list.innerHTML = "<div class='text-gray-500 p-4'>لا يوجد طلبات تحويل للأشعة في المستشفى.</div>";
     }
-    <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-primary-500">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-gray-500">إجمالي الطلبات</p>
-                        <h3 class="text-2xl font-bold" id="totalRequests">0</h3>
-                    </div>
-                    <div class="bg-primary-100 p-3 rounded-full">
-                        <i class="fas fa-list text-primary-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-gray-500">تم التنفيذ</p>
-                        <h3 class="text-2xl font-bold" id="completedRequests">0</h3>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-gray-500">قيد الانتظار</p>
-                        <h3 class="text-2xl font-bold" id="pendingRequests">0</h3>
-                    </div>
-                    <div class="bg-yellow-100 p-3 rounded-full">
-                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-gray-500">مرفوض</p>
-                        <h3 class="text-2xl font-bold" id="rejectedRequests">0</h3>
-                    </div>
-                    <div class="bg-red-100 p-3 rounded-full">
-                        <i class="fas fa-times-circle text-red-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    // إحصائيات
+    document.getElementById("stats").innerHTML =
+      `<span class="mr-4">الكل: ${total}</span>
+      <span class="mr-4 text-green-700">تم التنفيذ: ${done}</span>
+      <span class="mr-4 text-yellow-700">قيد الانتظار: ${waiting}</span>
+      <span class="mr-4 text-red-700">مرفوض: ${rejected}</span>`;
+  });
+}
 
 window.toggleDetails = function(btn) {
   const details = btn.parentElement.parentElement.querySelector('.details');
