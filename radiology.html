@@ -1,95 +1,51 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>لوحة تحكم قسم الأشعة - مستشفى الحياة الذكية</title>
-    <meta name="description" content="نظام إدارة طلبات الأشعة في مستشفى الحياة الذكية">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Tajawal', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .print-only { display: none; }
-        @media print {
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            body { background: white !important; }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>قسم الأشعة - مستشفى الحياة الذكية</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<style>
+body { font-family: 'Tajawal', sans-serif; }
+.card {
+border: 1px solid #e5e7eb;
+border-radius: 10px;
+background: #fff;
+margin-bottom: 1rem;
+box-shadow: 0 2px 8px #0001;
+}
+.status-badge {
+display: inline-flex;
+align-items: center;
+padding: 0.25rem 0.75rem;
+border-radius: 9999px;
+font-weight: 500;
+}
+.bg-green-100 { background: #d1fae5; color: #065f46; }
+.bg-yellow-100 { background: #fef9c3; color: #92400e; }
+.bg-red-100 { background: #fee2e2; color: #991b1b; }
+.bg-gray-200 { background: #e5e7eb; color: #374151; }
+</style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-10">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="bg-primary-800 p-3 rounded-lg shadow-md">
-                        <i class="fas fa-x-ray text-white text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-800">قسم الأشعة</h1>
-                        <p class="text-gray-600">نظام إدارة طلبات التحويل للأشعة</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-3">
-                    <button onclick="window.location.href='index.html'" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                        <i class="fas fa-home"></i>
-                        <span>الرئيسية</span>
-                    </button>
-                    <button onclick="window.print()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 no-print">
-                        <i class="fas fa-print"></i>
-                        <span>طباعة</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+<body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
+<div class="container mx-auto px-4 py-8">
 
-    <main class="container mx-auto px-4 py-8">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-primary-500">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-gray-500">إجمالي الطلبات</p>
-                        <h3 class="text-2xl font-bold" id="totalRequests">0</h3>
-                    </div>
-                    <div class="bg-primary-100 p-3 rounded-full">
-                        <i class="fas fa-list text-primary-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
+<!-- Header -->
+<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+  <div class="flex items-center gap-3">
+    <div class="bg-blue-800 p-3 rounded-lg shadow-md">
+      <i class="fas fa-x-ray text-white text-2xl"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">قسم الأشعة</h1>
+      <p class="text-gray-600">كل طلبات التحويل للأشعة</p>
+    </div>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
+  </div>
+</div>
             <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
                 <div class="flex justify-between items-center">
                     <div>
