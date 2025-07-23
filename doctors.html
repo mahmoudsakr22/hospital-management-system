@@ -25,7 +25,7 @@
   </div>
 
   <script>
-    // Config بتاعك اللي انت جبته من Firebase
+    // Config بتاعك من Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
       authDomain: "hospital-project-e4b59.firebaseapp.com",
@@ -36,24 +36,42 @@
       appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
       measurementId: "G-0GV30LL28T"
     };
+
+    // تهيئة Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    console.log("Firebase initialized");
+
+    // تأكيد الاتصال بـ Firebase
+    db.ref(".info/connected").on("value", function(snapshot) {
+      if (snapshot.val() === true) {
+        console.log("Connected to Firebase");
+      } else {
+        console.error("Not connected to Firebase!");
+      }
+    });
 
     // إضافة دكاترة افتراضيين لو الجدول فاضي
     function addDefaultDoctors() {
       db.ref('doctors').once('value').then(snapshot => {
         if (!snapshot.exists()) {
+          console.log("No doctors found, adding default ones...");
           const doctors = [
             { name: "د. أحمد علي", department: "طوارئ", shift: "صباحي", status: "متاح" },
             { name: "د. سارة محمد", department: "رعاية مركزة", shift: "مسائي", status: "متاح" },
             { name: "د. خالد مصطفى", department: "عمليات", shift: "ليلي", status: "مشغول" }
           ];
           doctors.forEach(doc => db.ref('doctors').push(doc));
+        } else {
+          console.log("Doctors already exist.");
         }
+      }).catch(err => {
+        console.error("Error checking doctors:", err);
       });
     }
 
-    // تحميل وعرض الدكاترة
+    // عرض الدكاترة في الجدول
     function loadDoctors() {
       const table = document.getElementById('doctorsTable');
       db.ref('doctors').on('value', snapshot => {
@@ -68,6 +86,8 @@
               <td class="border p-2">${doc.status}</td>
             </tr>`;
         });
+      }, error => {
+        console.error("Error loading doctors:", error);
       });
     }
 
