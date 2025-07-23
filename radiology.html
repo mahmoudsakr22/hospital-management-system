@@ -1,77 +1,100 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>قسم الأشعة - مستشفى الحياة الذكية</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<style>
-body { font-family: 'Tajawal', sans-serif; }
-.card {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #fff;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 8px #0001;
-}
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-weight: 500;
-}
-.bg-green-100 { background: #d1fae5; color: #065f46; }
-.bg-yellow-100 { background: #fef9c3; color: #92400e; }
-.bg-red-100 { background: #fee2e2; color: #991b1b; }
-.bg-gray-200 { background: #e5e7eb; color: #374151; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>قسم الأشعة - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <style>
+    body { font-family: 'Tajawal', sans-serif; }
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px #0001;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+    .bg-green-100 { background: #d1fae5; color: #065f46; }
+    .bg-yellow-100 { background: #fef9c3; color: #92400e; }
+    .bg-red-100 { background: #fee2e2; color: #991b1b; }
+    .bg-gray-200 { background: #e5e7eb; color: #374151; }
+  </style>
 </head>
 <body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
 <div class="container mx-auto px-4 py-8">
 
-<!-- Header -->
-<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-  <div class="flex items-center gap-3">
-    <!-- شعار المستشفى الاحترافي -->
-    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
-         class="w-20 h-20 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-      <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
-      <p class="text-gray-600 mt-1"> قسم الأشعة </p>
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+    <div class="flex items-center gap-3">
+      <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
+           class="w-20 h-20 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+        <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
+        <p class="text-gray-600 mt-1">قسم الأشعة - كل طلبات التحويل للأشعة</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
     </div>
   </div>
-  <div class="flex flex-wrap gap-3">
-    <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
-  </div>
-</div>
 
-<!-- إحصائيات -->
-<div id="stats" class="mb-6"></div>
-
-<!-- تصفية وبحث -->
-<div class="flex flex-col md:flex-row gap-4 mb-4">
-  <div>
-    <label>تصفية حسب الحالة:</label>
-    <select id="filterStatus" class="border rounded p-2" onchange="loadAllRadiologyTransfers()">
-      <option value="">الكل</option>
-      <option value="قيد الانتظار">قيد الانتظار</option>
-      <option value="تم التنفيذ">تم التنفيذ</option>
-      <option value="مرفوض">مرفوض</option>
-    </select>
+  <!-- إحصائيات -->
+  <div id="stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="flex flex-col items-center bg-white border border-gray-200 rounded-lg py-4">
+      <i class="fas fa-list text-blue-600 text-2xl mb-2"></i>
+      <span class="text-gray-700 font-bold text-lg" id="stat-total">0</span>
+      <span class="text-gray-500 text-sm mt-1">الكل</span>
+    </div>
+    <div class="flex flex-col items-center bg-white border border-gray-200 rounded-lg py-4">
+      <i class="fas fa-check-circle text-green-600 text-2xl mb-2"></i>
+      <span class="text-green-700 font-bold text-lg" id="stat-done">0</span>
+      <span class="text-gray-500 text-sm mt-1">تم التنفيذ</span>
+    </div>
+    <div class="flex flex-col items-center bg-white border border-gray-200 rounded-lg py-4">
+      <i class="fas fa-clock text-yellow-500 text-2xl mb-2"></i>
+      <span class="text-yellow-600 font-bold text-lg" id="stat-waiting">0</span>
+      <span class="text-gray-500 text-sm mt-1">قيد الانتظار</span>
+    </div>
+    <div class="flex flex-col items-center bg-white border border-gray-200 rounded-lg py-4">
+      <i class="fas fa-times-circle text-red-600 text-2xl mb-2"></i>
+      <span class="text-red-700 font-bold text-lg" id="stat-rejected">0</span>
+      <span class="text-gray-500 text-sm mt-1">مرفوض</span>
+    </div>
   </div>
-  <div>
-    <label>بحث باسم المريض أو نوع الأشعة أو رقم الهوية:</label>
-    <input id="searchInput" class="border rounded p-2" placeholder="بحث..." oninput="loadAllRadiologyTransfers()">
-  </div>
-</div>
 
-<div class="bg-white p-4 rounded shadow" id="transfersContainer">
-  <h2 class="text-lg font-semibold mb-4">طلبات التحويل للأشعة</h2>
+  <!-- تصفية وبحث -->
+  <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-col md:flex-row items-center gap-4">
+    <div class="flex items-center gap-2">
+      <label class="font-semibold text-gray-700">تصفية حسب الحالة:</label>
+      <select id="filterStatus" class="border rounded p-2" onchange="loadAllRadiologyTransfers()">
+        <option value="">الكل</option>
+        <option value="قيد الانتظار">قيد الانتظار</option>
+        <option value="تم التنفيذ">تم التنفيذ</option>
+        <option value="مرفوض">مرفوض</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-2 flex-1">
+      <label class="font-semibold text-gray-700">بحث:</label>
+      <input id="searchInput" class="border rounded p-2 flex-1" placeholder="اسم المريض أو نوع الأشعة أو رقم الهوية..." oninput="loadAllRadiologyTransfers()">
+    </div>
+  </div>
+
+  <!-- عنوان طلبات التحويل -->
+  <div class="flex items-center gap-2 mb-4">
+    <i class="fas fa-exchange-alt text-blue-600 text-xl"></i>
+    <h2 class="text-lg font-bold text-blue-800">طلبات التحويل للأشعة</h2>
+  </div>
   <div id="transferList"></div>
-</div>
+
 </div>
 
 <script type="module">
@@ -164,19 +187,17 @@ async function loadAllRadiologyTransfers() {
     if (!found) {
       list.innerHTML = "<div class='text-gray-500 p-4'>لا يوجد طلبات تحويل للأشعة في المستشفى.</div>";
     }
-    // إحصائيات
-    document.getElementById("stats").innerHTML =
-      `<span class="mr-4">الكل: ${total}</span>
-      <span class="mr-4 text-green-700">تم التنفيذ: ${done}</span>
-      <span class="mr-4 text-yellow-700">قيد الانتظار: ${waiting}</span>
-      <span class="mr-4 text-red-700">مرفوض: ${rejected}</span>`;
+    // تحديث الإحصائيات
+    document.getElementById("stat-total").textContent = total;
+    document.getElementById("stat-done").textContent = done;
+    document.getElementById("stat-waiting").textContent = waiting;
+    document.getElementById("stat-rejected").textContent = rejected;
   });
 }
 
 window.toggleDetails = function(btn) {
   const details = btn.parentElement.parentElement.querySelector('.details');
   if (details.classList.contains('hidden')) {
-    details.classList.remove('hidden');
     btn.textContent = "إخفاء التفاصيل";
   } else {
     details.classList.add('hidden');
