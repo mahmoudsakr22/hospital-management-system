@@ -29,18 +29,24 @@
       align-items: center;
       z-index: 1000;
     }
-    /* تحسينات جديدة لزر الحذف */
-    .delete-btn {
+    /* تحسينات جديدة لزر التعديل والحذف */
+    .action-btn {
       transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
     }
-    .delete-btn:hover {
-      background-color: #f87171 !important;
-      color: white !important;
+    .action-btn:hover {
       transform: scale(1.05);
     }
-    .delete-btn::after {
+    .edit-btn:hover {
+      background-color: #3b82f6 !important;
+      color: white !important;
+    }
+    .delete-btn:hover {
+      background-color: #ef4444 !important;
+      color: white !important;
+    }
+    .action-btn::after {
       content: '';
       position: absolute;
       top: 50%;
@@ -53,7 +59,7 @@
       transform: scale(1, 1) translate(-50%);
       transform-origin: 50% 50%;
     }
-    .delete-btn:hover::after {
+    .action-btn:hover::after {
       animation: ripple 1s ease-out;
     }
     @keyframes ripple {
@@ -245,7 +251,7 @@
     
     // Initialize Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -348,10 +354,10 @@
           </div>
           
           <div class="mt-3 md:mt-0 flex space-x-2">
-            <button class="edit-btn bg-blue-100 text-blue-600 p-2 rounded hover:bg-blue-200" data-id="${id}" data-dept="${department}">
+            <button class="edit-btn action-btn bg-blue-100 text-blue-600 p-2 rounded hover:bg-blue-200" data-id="${id}" data-dept="${department}">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="delete-btn bg-red-100 text-red-600 p-2 rounded hover:bg-red-200" data-id="${id}" data-dept="${department}">
+            <button class="delete-btn action-btn bg-red-100 text-red-600 p-2 rounded hover:bg-red-200" data-id="${id}" data-dept="${department}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -364,7 +370,7 @@
       });
       
       card.querySelector('.edit-btn').addEventListener('click', () => {
-        editPatient(id, department);
+        editPatient(id, department, patient);
       });
       
       return card;
@@ -472,12 +478,118 @@
       });
     }
     
-    // Edit patient (placeholder for now)
-    function editPatient(id, department) {
+    // Edit patient (NOW FULLY FUNCTIONAL!)
+    function editPatient(id, department, patient) {
+      // Create a modal form for editing
+      const editForm = document.createElement('form');
+      editForm.className = 'space-y-4';
+      
+      // Fill form with patient data
+      editForm.innerHTML = `
+        <h3 class="text-lg font-bold mb-2">تعديل بيانات المريض: ${patient.name}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">الاسم</label>
+            <input type="text" id="edit-name" value="${patient.name}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
+            <input type="number" id="edit-age" value="${patient.age}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">الرقم القومي</label>
+            <input type="text" id="edit-nid" value="${patient.nid}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
+            <select id="edit-gender" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+              <option value="male" ${patient.gender === 'male' ? 'selected' : ''}>ذكر</option>
+              <option value="female" ${patient.gender === 'female' ? 'selected' : ''}>أنثى</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
+            <input type="text" id="edit-address" value="${patient.address}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">فصيلة الدم</label>
+            <select id="edit-bloodType" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+              <option value="A+" ${patient.bloodType === 'A+' ? 'selected' : ''}>A+</option>
+              <option value="A-" ${patient.bloodType === 'A-' ? 'selected' : ''}>A-</option>
+              <option value="B+" ${patient.bloodType === 'B+' ? 'selected' : ''}>B+</option>
+              <option value="B-" ${patient.bloodType === 'B-' ? 'selected' : ''}>B-</option>
+              <option value="AB+" ${patient.bloodType === 'AB+' ? 'selected' : ''}>AB+</option>
+              <option value="AB-" ${patient.bloodType === 'AB-' ? 'selected' : ''}>AB-</option>
+              <option value="O+" ${patient.bloodType === 'O+' ? 'selected' : ''}>O+</option>
+              <option value="O-" ${patient.bloodType === 'O-' ? 'selected' : ''}>O-</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
+          <textarea id="edit-diseases" rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">${patient.diseases || ''}</textarea>
+        </div>
+      `;
+      
+      // Show modal with form
       Swal.fire({
-        title: 'تحت التطوير',
-        text: 'هذه الميزة قيد التطوير',
-        icon: 'info'
+        title: 'تعديل بيانات المريض',
+        html: editForm,
+        showCancelButton: true,
+        confirmButtonText: 'حفظ التعديلات',
+        cancelButtonText: 'إلغاء',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+          // Validate form
+          const name = document.getElementById('edit-name').value.trim();
+          const age = document.getElementById('edit-age').value.trim();
+          const nid = document.getElementById('edit-nid').value.trim();
+          const gender = document.getElementById('edit-gender').value;
+          const address = document.getElementById('edit-address').value.trim();
+          const bloodType = document.getElementById('edit-bloodType').value;
+          
+          if (!name || !age || !nid || !gender || !address || !bloodType) {
+            Swal.showValidationMessage('يرجى ملء جميع الحقول الإلزامية');
+            return false;
+          }
+          
+          return {
+            name, age, nid, gender, address, bloodType,
+            diseases: document.getElementById('edit-diseases').value.trim()
+          };
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const updatedData = result.value;
+          
+          try {
+            showLoading();
+            // Update patient data in Firebase
+            const patientRef = ref(db, `patients/${department}/${id}`);
+            await update(patientRef, {
+              ...updatedData,
+              timestamp: new Date().toISOString() // Update timestamp
+            });
+            
+            hideLoading();
+            Swal.fire({
+              icon: 'success',
+              title: 'تم تحديث البيانات',
+              text: `تم تحديث بيانات المريض ${updatedData.name} بنجاح`,
+              timer: 2000,
+              showConfirmButton: false,
+              position: 'top-end',
+              toast: true
+            });
+          } catch (error) {
+            hideLoading();
+            Swal.fire({
+              icon: 'error',
+              title: 'خطأ',
+              text: 'حدث خطأ أثناء تحديث البيانات'
+            });
+          }
+        }
       });
     }
     
