@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
     body { font-family: 'Tajawal', sans-serif; }
@@ -82,6 +83,11 @@
       top: 50%;
       transform: translateY(-50%);
     }
+    .chart-container {
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
     .notification-badge {
       position: absolute;
       top: -5px;
@@ -155,16 +161,38 @@
 
     <!-- Charts Section -->
     <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
-      <div class="flex items-center mb-4">
-        <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
-        <h2 class="text-xl font-bold">إحصائيات الأقسام</h2>
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div class="flex items-center mb-4 md:mb-0">
+          <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+          <h2 class="text-xl font-bold">إحصائيات وتحليلات</h2>
+        </div>
+        <div class="flex space-x-4">
+          <button id="printReportBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center">
+            <i class="fas fa-print mr-2"></i> طباعة التقرير
+          </button>
+          <button id="exportPdfBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center">
+            <i class="fas fa-file-pdf mr-2"></i> تصدير PDF
+          </button>
+        </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <canvas id="departmentChart" height="200"></canvas>
+          <h3 class="text-lg font-semibold mb-3 text-gray-700">توزيع المرضى حسب الأقسام</h3>
+          <div class="chart-container">
+            <canvas id="departmentChart"></canvas>
+          </div>
         </div>
         <div>
-          <canvas id="dailyChart" height="200"></canvas>
+          <h3 class="text-lg font-semibold mb-3 text-gray-700">عدد المرضى المسجلين يومياً</h3>
+          <div class="chart-container">
+            <canvas id="dailyChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-3 text-gray-700">فصائل الدم الأكثر شيوعاً</h3>
+        <div class="chart-container">
+          <canvas id="bloodTypeChart"></canvas>
         </div>
       </div>
     </section>
@@ -308,6 +336,8 @@
     const todayPatientsElement = document.getElementById('todayPatients');
     const emergencyPatientsElement = document.getElementById('emergencyPatients');
     const surgeryPatientsElement = document.getElementById('surgeryPatients');
+    const printReportBtn = document.getElementById('printReportBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
     
     // Display current date
     const today = new Date();
@@ -634,6 +664,49 @@
       });
     }
     
+    // Print report function
+    printReportBtn.addEventListener('click', () => {
+      window.print();
+    });
+    
+    // Export PDF function
+    exportPdfBtn.addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFont('Tajawal', 'normal');
+      doc.setFontSize(18);
+      doc.text('تقرير المرضى - مستشفى الحياة الذكية', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`التاريخ: ${new Date().toLocaleDateString("ar-EG")}`, 105, 25, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.text('قائمة المرضى', 20, 40);
+      
+      doc.setFontSize(10);
+      let y = 50;
+      
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        let patientCount = 0;
+        
+        Object.entries(data).forEach(([dept, patients]) => {
+          Object.entries(patients).forEach(([id, patient]) => {
+            if (patientCount > 0) y += 10;
+            doc.text(`${patientCount + 1}. ${patient.name} - ${dept}`, 20, y);
+            doc.text(`   العمر: ${patient.age} | الجنس: ${patient.gender === 'male' ? 'ذكر' : 'أنثى'} | الرقم القومي: ${patient.nid}`, 20, y + 5);
+            patientCount++;
+          });
+        });
+        
+        doc.save('تقرير-المرضى.pdf');
+        hideLoading();
+      });
+      
+      showLoading();
+    });
+    
     // Update statistics
     function updateStats() {
       showLoading();
@@ -659,6 +732,205 @@
         
         hideLoading();
       });
+    }
+    
+    // Initialize charts
+    function initializeCharts() {
+      // Department distribution chart
+      const deptCtx = document.getElementById('departmentChart').getContext('2d');
+      const deptChart = new Chart(deptCtx, {
+        type: 'bar',
+        data: {
+          labels: ['الطوارئ', 'العناية المركزة', 'العمليات', 'الرعاية', 'الإدارة', 'الأشعة'],
+          datasets: [{
+            label: 'عدد المرضى',
+            data: [0, 0, 0, 0, 0, 0],
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.7)',
+              'rgba(139, 92, 246, 0.7)',
+              'rgba(59, 130, 246, 0.7)',
+              'rgba(16, 185, 129, 0.7)',
+              'rgba(107, 114, 128, 0.7)',
+              'rgba(14, 165, 233, 0.7)'
+            ],
+            borderColor: [
+              'rgb(239, 68, 68)',
+              'rgb(139, 92, 246)',
+              'rgb(59, 130, 246)',
+              'rgb(16, 185, 129)',
+              'rgb(107, 114, 128)',
+              'rgb(14, 165, 233)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'توزيع المرضى حسب الأقسام'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+      
+      // Daily patients chart
+      const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+      const dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+          labels: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+          datasets: [{
+            label: 'عدد المرضى المسجلين',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            fill: true,
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            borderColor: 'rgb(59, 130, 246)',
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'المرضى المسجلين يومياً'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+      
+      // Blood type distribution chart
+      const bloodCtx = document.getElementById('bloodTypeChart').getContext('2d');
+      const bloodChart = new Chart(bloodCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+          datasets: [{
+            label: 'فصيلة الدم',
+            data: [0, 0, 0, 0, 0, 0, 0, 0],
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.7)',
+              'rgba(239, 68, 68, 0.5)',
+              'rgba(59, 130, 246, 0.7)',
+              'rgba(59, 130, 246, 0.5)',
+              'rgba(139, 92, 246, 0.7)',
+              'rgba(139, 92, 246, 0.5)',
+              'rgba(16, 185, 129, 0.7)',
+              'rgba(16, 185, 129, 0.5)'
+            ],
+            borderColor: [
+              'rgb(239, 68, 68)',
+              'rgb(239, 68, 68)',
+              'rgb(59, 130, 246)',
+              'rgb(59, 130, 246)',
+              'rgb(139, 92, 246)',
+              'rgb(139, 92, 246)',
+              'rgb(16, 185, 129)',
+              'rgb(16, 185, 129)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'right'
+            },
+            title: {
+              display: true,
+              text: 'فصائل الدم الأكثر شيوعاً'
+            }
+          }
+        }
+      });
+      
+      // Update charts with real data
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        const deptCounts = [0, 0, 0, 0, 0, 0]; // emergency, icu, surgery, care, admin, radiology
+        const bloodCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // A+, A-, B+, B-, AB+, AB-, O+, O-
+        
+        Object.values(data).forEach(dept => {
+          Object.values(dept).forEach(patient => {
+            // Update department counts
+            const deptIndex = getDepartmentIndex(patient.department);
+            if (deptIndex !== -1) deptCounts[deptIndex]++;
+            
+            // Update blood type counts
+            const bloodIndex = getBloodTypeIndex(patient.bloodType);
+            if (bloodIndex !== -1) bloodCounts[bloodIndex]++;
+          });
+        });
+        
+        // Update charts
+        deptChart.data.datasets[0].data = deptCounts;
+        deptChart.update();
+        
+        dailyChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0]; // Will be updated below
+        dailyChart.update();
+        
+        bloodChart.data.datasets[0].data = bloodCounts;
+        bloodChart.update();
+        
+        // Update daily chart with actual data
+        const today = new Date();
+        const todayIndex = today.getDay(); // 0 = Sunday, 6 = Saturday
+        
+        onValue(ref(db, "patients"), (snapshot) => {
+          const data = snapshot.val() || {};
+          const dailyCounts = [0, 0, 0, 0, 0, 0, 0]; // Sunday to Saturday
+          
+          Object.values(data).forEach(dept => {
+            Object.values(dept).forEach(patient => {
+              const patientDate = new Date(patient.timestamp);
+              const patientDay = patientDate.getDay();
+              if (patientDay >= 0 && patientDay <= 6) {
+                dailyCounts[patientDay]++;
+              }
+            });
+          });
+          
+          dailyChart.data.datasets[0].data = dailyCounts;
+          dailyChart.update();
+        });
+      });
+    }
+    
+    // Helper function to get department index
+    function getDepartmentIndex(department) {
+      const departments = ['emergency', 'icu', 'surgery', 'care', 'admin', 'radiology'];
+      return departments.indexOf(department);
+    }
+    
+    // Helper function to get blood type index
+    function getBloodTypeIndex(bloodType) {
+      const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+      return bloodTypes.indexOf(bloodType);
     }
     
     // Form submission
@@ -780,134 +1052,6 @@
         renderPatients(allPatients, filter, searchTerm);
       });
     });
-    
-    // Initialize charts
-    function initializeCharts() {
-      // Department distribution chart
-      const deptCtx = document.getElementById('departmentChart').getContext('2d');
-      const deptChart = new Chart(deptCtx, {
-        type: 'bar',
-        data: {
-          labels: ['الطوارئ', 'العناية المركزة', 'العمليات', 'الرعاية', 'الإدارة', 'الأشعة'],
-          datasets: [{
-            label: 'عدد المرضى',
-            data: [0, 0, 0, 0, 0, 0],
-            backgroundColor: [
-              'rgba(239, 68, 68, 0.7)',
-              'rgba(139, 92, 246, 0.7)',
-              'rgba(59, 130, 246, 0.7)',
-              'rgba(16, 185, 129, 0.7)',
-              'rgba(107, 114, 128, 0.7)',
-              'rgba(14, 165, 233, 0.7)'
-            ],
-            borderColor: [
-              'rgb(239, 68, 68)',
-              'rgb(139, 92, 246)',
-              'rgb(59, 130, 246)',
-              'rgb(16, 185, 129)',
-              'rgb(107, 114, 128)',
-              'rgb(14, 165, 233)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false
-            },
-            title: {
-              display: true,
-              text: 'توزيع المرضى حسب الأقسام'
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          }
-        }
-      });
-      
-      // Daily patients chart
-      const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-      const dailyChart = new Chart(dailyCtx, {
-        type: 'line',
-        data: {
-          labels: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
-          datasets: [{
-            label: 'عدد المرضى المسجلين',
-            data: [0, 0, 0, 0, 0, 0, 0],
-            fill: true,
-            backgroundColor: 'rgba(59, 130, 246, 0.2)',
-            borderColor: 'rgb(59, 130, 246)',
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false
-            },
-            title: {
-              display: true,
-              text: 'المرضى المسجلين يومياً'
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          }
-        }
-      });
-      
-      // Update charts with real data
-      onValue(ref(db, "patients"), (snapshot) => {
-        const data = snapshot.val() || {};
-        const deptCounts = [0, 0, 0, 0, 0, 0]; // emergency, icu, surgery, care, admin, radiology
-        const dailyCounts = [0, 0, 0, 0, 0, 0, 0]; // Sunday to Saturday
-        
-        const today = new Date();
-        const currentDay = today.getDay(); // 0 = Sunday, 6 = Saturday
-        
-        Object.values(data).forEach(dept => {
-          Object.values(dept).forEach(patient => {
-            // Update department counts
-            const deptIndex = getDepartmentIndex(patient.department);
-            if (deptIndex !== -1) deptCounts[deptIndex]++;
-            
-            // Update daily counts
-            const patientDate = new Date(patient.timestamp);
-            const patientDay = patientDate.getDay();
-            if (patientDay >= 0 && patientDay <= 6) {
-              dailyCounts[patientDay]++;
-            }
-          });
-        });
-        
-        // Update charts
-        deptChart.data.datasets[0].data = deptCounts;
-        deptChart.update();
-        
-        dailyChart.data.datasets[0].data = dailyCounts;
-        dailyChart.update();
-      });
-    }
-    
-    // Helper function to get department index
-    function getDepartmentIndex(department) {
-      const departments = ['emergency', 'icu', 'surgery', 'care', 'admin', 'radiology'];
-      return departments.indexOf(department);
-    }
     
     // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
