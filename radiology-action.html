@@ -2,139 +2,79 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>تنفيذ طلب الأشعة - مستشفى الحياة الذكية</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>طلب الأشعة - مستشفى الحياة الذكية</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-body { font-family: 'Tajawal', sans-serif; }
-
-/* تبويبات */
-.tab-active {
-  border-bottom: 3px solid #2563eb;
-  color: #2563eb;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-.tab-btn:hover {
-  color: #1e40af;
-  transform: scale(1.05);
-}
-
-/* البادجات */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-weight: 500;
-}
-
-/* اللودر */
+body { font-family: 'Tajawal', sans-serif; transition: background 0.3s, color 0.3s; }
+.dark { background-color: #1a202c; color: #f7fafc; }
+.dark .card { background-color: #2d3748; color: #e2e8f0; }
 .loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #2563eb;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin: 80px auto;
+  border: 4px solid #f3f3f3; border-top: 4px solid #2563eb;
+  border-radius: 50%; width: 40px; height: 40px;
+  animation: spin 1s linear infinite; margin: 60px auto;
 }
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* نجوم التقييم */
-.star {
-  font-size: 2rem;
-  cursor: pointer;
-  color: #d1d5db;
-  transition: color 0.2s, transform 0.2s;
-}
-.star:hover {
-  color: gold;
-  transform: scale(1.2);
-}
-.star.selected {
-  color: gold;
-}
-
-/* معاينة الملفات */
-.thumbnail {
-  width: 90px;
-  height: 90px;
-  object-fit: cover;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-.thumbnail:hover {
-  transform: scale(1.05);
-}
+@keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
+.star { font-size: 1.5rem; cursor: pointer; color: gray; }
+.star.active { color: gold; }
 </style>
 </head>
 <body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
-<div class="container mx-auto px-4 py-8">
 
-<!-- Header -->
-<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-gradient-to-r from-blue-900 to-blue-600 p-4 rounded-lg shadow">
-  <div class="flex items-center gap-3">
-    <div class="bg-white p-3 rounded-lg shadow-md">
-      <i class="fas fa-x-ray text-blue-800 text-3xl"></i>
-    </div>
-    <h1 class="text-3xl font-bold text-white">تنفيذ طلب الأشعة</h1>
+<!-- رأس الصفحة -->
+<header class="flex justify-between items-center p-4 bg-white shadow dark:bg-gray-800">
+  <div class="flex items-center gap-2">
+    <i class="fas fa-x-ray text-2xl text-blue-700"></i>
+    <h1 class="text-xl font-bold">تنفيذ طلب الأشعة</h1>
   </div>
-  <button onclick="window.location.href='radiology.html'" class="bg-gray-100 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-200 transition">
-    رجوع لقسم الأشعة
-  </button>
-</div>
-
-<!-- Loader -->
-<div id="loader" class="text-center">
-  <div class="loader"></div>
-  <p class="text-gray-600 mt-2">جارِ التحميل...</p>
-</div>
-
-<!-- Tabs -->
-<div id="tabsContainer" class="hidden">
-  <div class="flex justify-around mb-6 border-b">
-    <button class="tab-btn py-2" data-tab="detailsTab">تفاصيل</button>
-    <button class="tab-btn py-2" data-tab="reportTab">التقرير والملفات</button>
-    <button class="tab-btn py-2" data-tab="commentsTab">التعليقات</button>
-    <button class="tab-btn py-2" data-tab="ratingTab">التقييم</button>
+  <div class="flex gap-3">
+    <button onclick="window.location.href='radiology.html'" class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700">عودة</button>
+    <button id="themeBtn" class="bg-gray-200 p-2 rounded-full hover:bg-gray-300 dark:bg-gray-700">
+      <i id="themeIcon" class="fas fa-moon text-gray-700"></i>
+    </button>
   </div>
+</header>
 
-  <!-- تفاصيل -->
-  <div id="detailsTab" class="tab-content">
-    <div id="patientDetails"></div>
-    <div id="transferDetails"></div>
-    <div id="timelineSection"></div>
-  </div>
+<!-- لودر -->
+<div id="loader" class="loader"></div>
+
+<!-- المحتوى -->
+<main id="content" class="hidden max-w-5xl mx-auto p-4">
+
+  <!-- بيانات المريض والتحويل -->
+  <section class="grid md:grid-cols-2 gap-4 mb-6">
+    <div id="patientCard" class="card bg-white p-4 rounded shadow"></div>
+    <div id="transferCard" class="card bg-white p-4 rounded shadow"></div>
+  </section>
+
+  <!-- تبويبات -->
+  <nav class="flex border-b mb-4">
+    <button class="tab-btn px-4 py-2" data-tab="reportTab">التقرير والملفات</button>
+    <button class="tab-btn px-4 py-2" data-tab="commentsTab">التعليقات</button>
+    <button class="tab-btn px-4 py-2" data-tab="ratingTab">التقييم</button>
+  </nav>
 
   <!-- تقرير -->
-  <div id="reportTab" class="tab-content hidden">
-    <div id="reportSection"></div>
+  <div id="reportTab" class="tab-content">
+    <div id="reportSection" class="card bg-white p-4 rounded shadow"></div>
   </div>
 
   <!-- تعليقات -->
   <div id="commentsTab" class="tab-content hidden">
-    <div id="commentsSection"></div>
+    <div id="commentsSection" class="card bg-white p-4 rounded shadow"></div>
   </div>
 
   <!-- تقييم -->
   <div id="ratingTab" class="tab-content hidden">
-    <div id="ratingSection"></div>
+    <div id="ratingSection" class="card bg-white p-4 rounded shadow"></div>
   </div>
-</div>
 
-</div>
+</main>
 
-<!-- JavaScript -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
@@ -154,92 +94,162 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const storage = getStorage(app);
 
-const urlParams = new URLSearchParams(window.location.search);
-const patientId = urlParams.get("patient");
-const transferId = urlParams.get("transfer");
+const patientId = new URLSearchParams(window.location.search).get("patient");
+const transferId = new URLSearchParams(window.location.search).get("transfer");
 
-function statusColor(status) {
-  if (status === "تم التنفيذ") return "bg-green-100 text-green-800";
-  if (status === "مرفوض") return "bg-red-100 text-red-800";
-  if (status === "قيد الانتظار") return "bg-yellow-100 text-yellow-800";
-  return "bg-gray-200 text-gray-800";
+// تحميل البيانات
+onValue(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), async (snap) => {
+  if (!snap.exists()) {
+    Swal.fire("خطأ", "الطلب غير موجود", "error");
+    return;
+  }
+  const transfer = snap.val();
+  const patientSnap = await get(ref(db, `patients/emergency/${patientId}`));
+  const patient = patientSnap.exists() ? patientSnap.val() : {};
+
+  // إخفاء اللودر
+  document.getElementById("loader").classList.add("hidden");
+  document.getElementById("content").classList.remove("hidden");
+
+  // بطاقة المريض
+  document.getElementById("patientCard").innerHTML = `
+    <h2 class="font-bold text-lg mb-2 text-blue-700">بيانات المريض</h2>
+    <p><b>الاسم:</b> ${patient.name || "-"}</p>
+    <p><b>العمر:</b> ${patient.age || "-"}</p>
+    <p><b>القسم:</b> ${patient.department || "-"}</p>
+    <p><b>الرقم القومي:</b> ${patient.nid || "-"}</p>
+    <canvas id="qrCanvas" class="mt-3"></canvas>
+  `;
+  QRCode.toCanvas(document.getElementById("qrCanvas"), patientId);
+
+  // بطاقة التحويل
+  document.getElementById("transferCard").innerHTML = `
+    <h2 class="font-bold text-lg mb-2 text-blue-700">تفاصيل التحويل</h2>
+    <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
+    <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
+    <p><b>الحالة:</b> ${transfer.status || "قيد الانتظار"}</p>
+    <p><b>تاريخ الطلب:</b> ${transfer.date || "-"}</p>
+  `;
+
+  renderReportTab(transfer);
+  renderCommentsTab(transfer);
+  renderRatingTab(transfer);
+});
+
+// تبويبات
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
+    document.getElementById(btn.dataset.tab).classList.remove("hidden");
+  });
+});
+
+// التقرير
+function renderReportTab(t) {
+  const filesHtml = (t.files || []).map(f => `<a href="${f}" target="_blank"><img src="${f}" class="w-20 h-20 rounded border"></a>`).join("");
+  document.getElementById("reportSection").innerHTML = `
+    <label>التقرير:</label>
+    <textarea id="reportText" class="border rounded p-2 w-full mb-2">${t.report || ""}</textarea>
+    <input type="file" id="fileInput" multiple class="mb-2">
+    <button onclick="uploadFiles()" class="bg-gray-700 text-white px-3 py-1 rounded">رفع</button>
+    <div class="flex gap-2 mt-2">${filesHtml}</div>
+    <button onclick="saveReport()" class="bg-blue-700 text-white px-3 py-1 mt-3 rounded">حفظ</button>
+    <button onclick="downloadPDF()" class="bg-green-700 text-white px-3 py-1 mt-3 rounded">تحميل PDF</button>
+  `;
 }
 
-// ** تحميل البيانات Real-time **
-async function initRealtime() {
-  const loader = document.getElementById("loader");
-  const tabs = document.getElementById("tabsContainer");
+// التعليقات
+function renderCommentsTab(t) {
+  const comments = t.comments || [];
+  document.getElementById("commentsSection").innerHTML = `
+    <ul class="mb-2">
+      ${comments.map(c => `<li>🗨️ ${c.text} <span class="text-xs text-gray-400">(${c.date})</span></li>`).join("")}
+    </ul>
+    <input type="text" id="commentInput" class="border rounded p-2 w-2/3" placeholder="اكتب تعليق...">
+    <button onclick="addComment()" class="bg-gray-700 text-white px-2 py-1 rounded">إضافة</button>
+  `;
+}
 
-  loader.classList.remove("hidden");
-  tabs.classList.add("hidden");
-
-  onValue(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), async (snapshot) => {
-    if (!snapshot.exists()) {
-      Swal.fire("خطأ", "لم يتم العثور على طلب الأشعة", "error");
-      return;
-    }
-    const t = snapshot.val();
-    const patientSnap = await get(ref(db, `patients/emergency/${patientId}`));
-    const patient = patientSnap.exists() ? patientSnap.val() : {};
-
-    loader.classList.add("hidden");
-    tabs.classList.remove("hidden");
-
-    // بيانات المريض
-    document.getElementById("patientDetails").innerHTML = `
-      <div class="bg-white p-4 rounded shadow mb-4">
-        <h3 class="text-lg font-bold text-blue-800 mb-2">بيانات المريض</h3>
-        <div><b>الاسم:</b> ${patient.name || "-"} | <b>العمر:</b> ${patient.age || "-"} | <b>القسم:</b> ${patient.department || "-"}</div>
-        <div><b>الرقم القومي:</b> ${patient.nid || "-"}</div>
-        <canvas id="qrCode" class="w-32 h-32 mt-4"></canvas>
-      </div>
-    `;
-
-    // تفاصيل التحويل
-    document.getElementById("transferDetails").innerHTML = `
-      <div class="bg-white p-4 rounded shadow">
-        <h3 class="text-lg font-bold text-blue-800 mb-2">بيانات التحويل</h3>
-        <div><b>نوع الأشعة:</b> ${t.type || "-"} | <b>الجهاز:</b> ${t.device || "-"}</div>
-        <div><b>ملاحظات:</b> ${t.notes || "-"}</div>
-        <div><b>الحالة:</b> <span class="status-badge ${statusColor(t.status)}">${t.status || "قيد الانتظار"}</span></div>
-        <div><b>تاريخ الطلب:</b> ${t.date || "-"}</div>
-      </div>
-    `;
-
-    // Timeline
-    document.getElementById("timelineSection").innerHTML = `
-      <div class="bg-white p-4 rounded shadow mt-4">
-        <h3 class="text-lg font-bold text-blue-800 mb-2">الخط الزمني</h3>
-        <ul class="text-sm text-gray-600">
-          <li>📅 طلب: ${t.date || "-"}</li>
-          <li>✅ تنفيذ: ${t.executionDate || "-"}</li>
-          <li>🖋 آخر تعديل: ${t.lastEditDate || "-"}</li>
-        </ul>
-      </div>
-    `;
-
-    QRCode.toCanvas(document.getElementById("qrCode"), patientId);
-
-    renderReportTab(t);
-    renderCommentsTab(t);
-    renderRatingTab(t);
+// التقييم
+function renderRatingTab(t) {
+  const stars = Array.from({length:5},(_,i)=>`<i class="fas fa-star star ${t.qualityRating>i?'active':''}" data-val="${i+1}"></i>`).join("");
+  document.getElementById("ratingSection").innerHTML = `
+    <h3 class="font-bold mb-2">تقييم الجودة</h3>
+    <div id="stars" class="flex gap-1 mb-2">${stars}</div>
+    <textarea id="notes" class="border rounded p-2 w-full" placeholder="ملاحظات">${t.qualityNotes||''}</textarea>
+    <button onclick="saveRating()" class="bg-blue-700 text-white px-3 py-1 mt-2 rounded">حفظ التقييم</button>
+  `;
+  document.querySelectorAll(".star").forEach(star=>{
+    star.addEventListener("click",()=>{
+      const val = parseInt(star.dataset.val);
+      document.querySelectorAll(".star").forEach(s=>s.classList.remove("active"));
+      for(let i=0;i<val;i++) document.querySelectorAll(".star")[i].classList.add("active");
+      document.getElementById("stars").dataset.value=val;
+    });
   });
 }
 
-// Tabs Switcher
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("tab-btn")) {
-    document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
-    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("tab-active"));
-    document.getElementById(e.target.dataset.tab).classList.remove("hidden");
-    e.target.classList.add("tab-active");
+// رفع الملفات
+window.uploadFiles = async function() {
+  const files = document.getElementById("fileInput").files;
+  const urls = [];
+  for (const file of files) {
+    const storageRef = sRef(storage, `radiology/${patientId}/${transferId}/${file.name}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    urls.push(url);
   }
+  await update(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), { files: urls });
+  Swal.fire("تم", "تم رفع الملفات", "success");
+}
+
+// حفظ التقرير
+window.saveReport = async function() {
+  const report = document.getElementById("reportText").value;
+  await update(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), { report });
+  Swal.fire("تم", "تم حفظ التقرير", "success");
+}
+
+// إضافة تعليق
+window.addComment = async function() {
+  const input = document.getElementById("commentInput");
+  const comment = input.value.trim();
+  if(!comment) return;
+  const snap = await get(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`));
+  const comments = snap.val().comments || [];
+  comments.push({text:comment,date:new Date().toLocaleString('ar-EG')});
+  await update(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), { comments });
+  input.value="";
+}
+
+// حفظ التقييم
+window.saveRating = async function() {
+  const rating = parseInt(document.getElementById("stars").dataset.value||0);
+  const notes = document.getElementById("notes").value;
+  await update(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), {
+    qualityRating:rating,
+    qualityNotes:notes
+  });
+  Swal.fire("تم", "تم حفظ التقييم", "success");
+}
+
+// PDF
+window.downloadPDF = function() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("تقرير الأشعة",10,20);
+  doc.text(`ID: ${patientId}`,10,30);
+  doc.save(`Radiology_${patientId}.pdf`);
+}
+
+// تبديل الوضع الداكن
+const themeBtn=document.getElementById("themeBtn");
+const themeIcon=document.getElementById("themeIcon");
+themeBtn.addEventListener("click",()=>{
+  document.body.classList.toggle("dark");
+  themeIcon.classList.toggle("fa-moon");
+  themeIcon.classList.toggle("fa-sun");
 });
-
-// ** باقي الدوال زي رفع ملفات، حفظ التقييم، PDF **
-// نفس اللي في نسختك السابقة بدون تغيير
-
-initRealtime();
 </script>
 </body>
 </html>
