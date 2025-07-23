@@ -1,94 +1,97 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>نظام ملف المريض - مستشفى الحياة الذكية</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-<style>
-body { font-family: 'Tajawal', sans-serif; }
-.status-badge {
-display: inline-flex;
-align-items: center;
-padding: 0.25rem 0.75rem;
-border-radius: 9999px;
-font-weight: 500;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>نظام ملف المريض - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body { font-family: 'Tajawal', sans-serif; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
 <div class="container mx-auto px-4 py-8">
-<!-- Header -->
-<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-<div class="flex items-center gap-3">
-<!-- استبدال الشعار بالصورة الجديدة -->
-<img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
-<div>
-<h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-<p class="text-gray-600">نظام إدارة ملفات المرضى</p>
-</div>
-</div>
-<div class="flex flex-wrap gap-3">
-<button onclick="window.print()" class="bg-blue-800 text-white px-4 py-2 rounded-lg">طباعة الملف</button>
-<button onclick="window.location.href='emergency.html'" class="bg-gray-600 text-white px-4 py-2 rounded-lg">قسم الطوارئ</button>
-<button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
-</div>
-</div>
-<!-- بيانات المريض -->
-<div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-<div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
-<div>
-<h2 class="text-2xl font-bold">ملف المريض</h2>
-<p class="opacity-90">تفاصيل المريض وسجلاته الطبية</p>
-</div>
-<div id="patientStatus" class="status-badge bg-white text-blue-800"></div>
-</div>
-<div class="p-6">
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-<div class="md:col-span-2">
-<h3 class="text-xl font-semibold mb-4 text-blue-800">المعلومات الأساسية</h3>
-<div class="bg-gray-50 p-4 rounded-lg">
-<table class="table-auto w-full" id="infoTable"></table>
-</div>
-</div>
-<div class="text-center">
-<h3 class="text-xl font-semibold mb-2 text-blue-800">رمز الاستجابة السريع</h3>
-<canvas id="qrCode" class="w-40 h-40 mx-auto"></canvas>
-</div>
-</div>
-</div>
-</div>
-<!-- نموذج تسجيل تحويل -->
-<div class="bg-white p-4 rounded shadow mb-6">
-<h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<select id="transferDepartment" class="border p-2 rounded">
-<option value="">اختر القسم</option>
-<option value="radiology">الأشعة</option>
-<option value="التحاليل">التحاليل</option>
-<option value="العناية المركزة">العناية المركزة</option>
-<option value="العمليات">العمليات</option>
-</select>
-<select id="radiologyDevice" class="border p-2 rounded hidden">
-<option value="">اختر جهاز الأشعة</option>
-<option value="أشعة عادية">أشعة عادية</option>
-<option value="أشعة مقطعية">أشعة مقطعية</option>
-<option value="رنين مغناطيسي">رنين مغناطيسي</option>
-<option value="موجات صوتية">موجات صوتية</option>
-</select>
-<input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-2 rounded" />
-<textarea id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded col-span-2"></textarea>
-<button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
-</div>
-</div>
-<!-- سجل التحويلات -->
-<div class="bg-white p-4 rounded shadow" id="transfersContainer">
-<h2 class="text-lg font-semibold mb-2">سجل التحويلات</h2>
-<ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
-</div>
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+    <div class="flex items-center gap-3">
+      <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+        <p class="text-gray-600">نظام إدارة ملفات المرضى</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <button onclick="window.print()" class="bg-blue-800 text-white px-4 py-2 rounded-lg">طباعة الملف</button>
+      <button onclick="window.location.href='emergency.html'" class="bg-gray-600 text-white px-4 py-2 rounded-lg">قسم الطوارئ</button>
+      <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
+    </div>
+  </div>
+  <!-- بيانات المريض -->
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
+      <div>
+        <h2 class="text-2xl font-bold">ملف المريض</h2>
+        <p class="opacity-90">تفاصيل المريض وسجلاته الطبية</p>
+      </div>
+      <div id="patientStatus" class="status-badge bg-white text-blue-800"></div>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div class="md:col-span-2">
+          <h3 class="text-xl font-semibold mb-4 text-blue-800">المعلومات الأساسية</h3>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <table class="table-auto w-full" id="infoTable"></table>
+          </div>
+          <!-- زر كشف الطبيب -->
+          <div class="flex flex-wrap gap-3 mt-4">
+            <button onclick="doctorCheckup()" class="bg-purple-700 text-white px-4 py-2 rounded-lg">كشف الطبيب</button>
+          </div>
+        </div>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold mb-2 text-blue-800">رمز الاستجابة السريع</h3>
+          <canvas id="qrCode" class="w-40 h-40 mx-auto"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- نموذج تسجيل تحويل -->
+  <div class="bg-white p-4 rounded shadow mb-6">
+    <h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <select id="transferDepartment" class="border p-2 rounded">
+        <option value="">اختر القسم</option>
+        <option value="radiology">الأشعة</option>
+        <option value="التحاليل">التحاليل</option>
+        <option value="العناية المركزة">العناية المركزة</option>
+        <option value="العمليات">العمليات</option>
+      </select>
+      <select id="radiologyDevice" class="border p-2 rounded hidden">
+        <option value="">اختر جهاز الأشعة</option>
+        <option value="أشعة عادية">أشعة عادية</option>
+        <option value="أشعة مقطعية">أشعة مقطعية</option>
+        <option value="رنين مغناطيسي">رنين مغناطيسي</option>
+        <option value="موجات صوتية">موجات صوتية</option>
+      </select>
+      <input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-2 rounded" />
+      <textarea id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded col-span-2"></textarea>
+      <button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
+    </div>
+  </div>
+  <!-- سجل التحويلات -->
+  <div class="bg-white p-4 rounded shadow" id="transfersContainer">
+    <h2 class="text-lg font-semibold mb-2">سجل التحويلات</h2>
+    <ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
+  </div>
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
@@ -106,7 +109,8 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
-// تحميل بيانات المريض
+
+// تحميل بيانات المريض مع عرض نوع الخدمة
 async function loadPatientData() {
   const infoTable = document.getElementById("infoTable");
   const patientStatus = document.getElementById("patientStatus");
@@ -127,6 +131,7 @@ async function loadPatientData() {
       <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${patient.timestamp ? new Date(patient.timestamp).toLocaleString('ar-EG') : '-'}</td></tr>
       <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
       <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
+      <tr><td class="font-semibold py-1">نوع الخدمة:</td><td class="py-1" id="serviceType">${patient.serviceType || 'غير محدد'}</td></tr>
     `;
     patientStatus.textContent = patient.status || "غير محدد";
     QRCode.toCanvas(qrCanvas, patientId, function (error) {
@@ -137,6 +142,36 @@ async function loadPatientData() {
     patientStatus.textContent = "";
   }
 }
+
+// دالة كشف الطبيب وتحديد نوع الخدمة
+window.doctorCheckup = function() {
+  Swal.fire({
+    title: 'تحديد نوع الخدمة',
+    input: 'radio',
+    inputOptions: {
+      'استشارة': 'استشارة',
+      'كشف': 'كشف',
+      'متابعة': 'متابعة'
+    },
+    inputValidator: (value) => {
+      if (!value) {
+        return 'يرجى اختيار نوع الخدمة';
+      }
+    },
+    confirmButtonText: 'حفظ',
+    showCancelButton: true,
+    cancelButtonText: 'إلغاء'
+  }).then(async (result) => {
+    if (result.isConfirmed && result.value) {
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
+      await update(patientRef, { serviceType: result.value });
+      Swal.fire('تم الحفظ', 'تم تحديد نوع الخدمة بنجاح', 'success');
+      // تحديث العرض مباشرة
+      document.getElementById("serviceType").textContent = result.value;
+    }
+  });
+};
+
 // إظهار اختيار الجهاز عند اختيار الأشعة
 document.getElementById("transferDepartment").addEventListener("change", function() {
   const deviceSelect = document.getElementById("radiologyDevice");
@@ -147,6 +182,7 @@ document.getElementById("transferDepartment").addEventListener("change", functio
     deviceSelect.value = "";
   }
 });
+
 // تسجيل التحويل
 window.addTransfer = async function() {
   const department = document.getElementById("transferDepartment").value;
@@ -183,6 +219,7 @@ window.addTransfer = async function() {
     console.error(error);
   }
 };
+
 // حذف سجل تحويل
 window.deleteTransfer = function(transferKey) {
   Swal.fire({
@@ -195,15 +232,16 @@ window.deleteTransfer = function(transferKey) {
   }).then((result) => {
     if (result.isConfirmed) {
       remove(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`))
-        .then(() => {
-          Swal.fire('تم الحذف!', 'تم حذف السجل بنجاح.', 'success');
-        })
-        .catch((error) => {
-          Swal.fire('خطأ', 'حدث خطأ أثناء الحذف', 'error');
-        });
+      .then(() => {
+        Swal.fire('تم الحذف!', 'تم حذف السجل بنجاح.', 'success');
+      })
+      .catch((error) => {
+        Swal.fire('خطأ', 'حدث خطأ أثناء الحذف', 'error');
+      });
     }
   });
 };
+
 // عرض سجل التحويلات
 window.loadTransfers = function() {
   const list = document.getElementById("transferList");
@@ -242,6 +280,7 @@ window.loadTransfers = function() {
     });
   });
 };
+
 // عرض النتيجة (مودال)
 window.showRadiologyReport = function(transfer) {
   let fileHtml = '';
@@ -272,6 +311,7 @@ window.showRadiologyReport = function(transfer) {
     confirmButtonText: "إغلاق"
   });
 };
+
 if (patientId) {
   loadPatientData();
   loadTransfers();
