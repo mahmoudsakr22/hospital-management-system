@@ -464,32 +464,29 @@ window.loadTransfers = function(patientId) {
           `;
         }
         
-        // إضافة أزرار التعديل والحذف للتحويلات قيد الانتظار
+        // إضافة الأزرار المناسبة حسب الحالة
         let actionButtons = "";
+        
+        // زر تعديل للتحويلات قيد الانتظار
         if (transfer.status === "قيد الانتظار") {
-          actionButtons = `
-            <button onclick="updateTransferStatus('${transferId}', 'in-progress')" class="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700 mr-1" title="بدء العمل">
-              <i class="fas fa-play"></i>
-            </button>
-            <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700" title="حذف التحويل">
-              <i class="fas fa-trash"></i>
-            </button>
-          `;
-        } else if (transfer.status === "جاري العمل") {
-          actionButtons = `
-            <button onclick="updateTransferStatus('${transferId}', 'completed')" class="bg-green-600 text-white p-1.5 rounded hover:bg-green-700 mr-1" title="إكمال التحويل">
-              <i class="fas fa-check"></i>
-            </button>
-            <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700" title="حذف التحويل">
-              <i class="fas fa-trash"></i>
+          actionButtons += `
+            <button onclick="updateTransferStatus('${transferId}', 'in-progress')" class="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700 mr-1" title="تعديل الحالة">
+              <i class="fas fa-edit"></i>
             </button>
           `;
         }
         
-        // إضافة زر عرض التقرير للتحويلات المكتملة للأشعة
-        if (transfer.status === "مكتمل" && transfer.department === "radiology") {
+        // زر حذف لجميع الحالات
+        actionButtons += `
+          <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700" title="حذف التحويل">
+            <i class="fas fa-trash"></i>
+          </button>
+        `;
+        
+        // زر عرض التقرير للتحويلات المكتملة
+        if (transfer.status === "مكتمل") {
           actionButtons += `
-            <button onclick="viewRadiologyReport('${transferId}')" class="bg-purple-600 text-white p-1.5 rounded hover:bg-purple-700 ml-1" title="عرض التقرير">
+            <button onclick="viewTransferReport('${transferId}')" class="bg-purple-600 text-white p-1.5 rounded hover:bg-purple-700 ml-1" title="عرض التقرير">
               <i class="fas fa-file-medical-alt"></i>
             </button>
           `;
@@ -545,8 +542,8 @@ window.loadTransfers = function(patientId) {
   
   renderTransfers();
 }
-// عرض التقرير الأشعاعي
-window.viewRadiologyReport = function(transferId) {
+// عرض التقرير الكامل
+window.viewTransferReport = function(transferId) {
   const patientId = new URLSearchParams(window.location.search).get("id");
   const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
   
@@ -596,7 +593,7 @@ window.viewRadiologyReport = function(transferId) {
       
       // إنشاء النافذة المنبثقة
       Swal.fire({
-        title: 'تقرير الأشعة',
+        title: 'تفاصيل التحويل',
         html: `
           <div class="rtl">
             <div class="mb-4">
@@ -645,30 +642,70 @@ window.viewRadiologyReport = function(transferId) {
               </div>
             </div>
             
-            <div class="mb-4">
-              <h4 class="font-semibold mb-2">بيانات الأشعة:</h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <div class="flex items-center">
-                  <span class="font-medium mr-2">نوع الجهاز:</span>
-                  <span>${getDeviceName(transfer.device)}</span>
-                </div>
-                <div class="flex items-center">
-                  <span class="font-medium mr-2">موظف الأشعة:</span>
-                  <span>${transfer.radiologyTechnician || '-'}</span>
-                </div>
-                <div class="flex items-center">
-                  <span class="font-medium mr-2">تاريخ الأشعة:</span>
-                  <span>${transfer.radiologyDate || '-'}</span>
-                </div>
-              </div>
-            </div>
-            
             ${fileHtml}
           </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'إغلاق',
         width: '60vw'
+      });
+    }
+  });
+}
+// تعديل حالة التحويل
+window.updateTransferStatus = function(transferId, newStatus) {
+  Swal.fire({
+    title: 'تعديل الحالة',
+    text: `هل تريد تغيير حالة التحويل إلى "${getStatusLabel(newStatus)}"؟`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'نعم',
+    cancelButtonText: 'لا'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const patientId = new URLSearchParams(window.location.search).get("id");
+      const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
+      
+      await update(transferRef, {
+        status: getStatusText(newStatus)
+      });
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'تم',
+        text: 'تم تعديل الحالة بنجاح',
+        timer: 1500,
+        showConfirmButton: false,
+        position: 'top-end',
+        toast: true
+      });
+    }
+  });
+}
+// حذف تحويل
+window.deleteTransfer = function(transferId) {
+  Swal.fire({
+    title: 'تأكيد الحذف',
+    text: 'هل أنت متأكد من حذف هذا التحويل؟',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'نعم، احذف',
+    cancelButtonText: 'إلغاء'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const patientId = new URLSearchParams(window.location.search).get("id");
+      const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
+      
+      await remove(transferRef);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'تم الحذف',
+        text: 'تم حذف التحويل بنجاح',
+        timer: 1500,
+        showConfirmButton: false,
+        position: 'top-end',
+        toast: true
       });
     }
   });
@@ -683,15 +720,23 @@ function getDepartmentName(dept) {
   };
   return departments[dept] || dept;
 }
-// الحصول على اسم الجهاز بالعربي
-function getDeviceName(device) {
-  const devices = {
-    xray: "أشعة عادية",
-    ct: "أشعة مقطعية",
-    mri: "رنين مغناطيسي",
-    ultrasound: "موجات صوتية"
+// الحصول على نص الحالة بالعربي
+function getStatusText(status) {
+  const statuses = {
+    "pending": "قيد الانتظار",
+    "in-progress": "جاري العمل",
+    "completed": "مكتمل"
   };
-  return devices[device] || device;
+  return statuses[status] || status;
+}
+// الحصول على لقب الحالة
+function getStatusLabel(status) {
+  const labels = {
+    "pending": "قيد الانتظار",
+    "in-progress": "جاري العمل",
+    "completed": "مكتمل"
+  };
+  return labels[status] || status;
 }
 // عرض التاريخ الحالي
 document.getElementById("currentDate").textContent = new Date().toLocaleDateString("ar-EG", {
