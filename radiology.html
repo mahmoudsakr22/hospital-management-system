@@ -9,18 +9,18 @@
 <style>
 body { font-family: 'Tajawal', sans-serif; }
 .card {
-border: 1px solid #e5e7eb;
-border-radius: 10px;
-background: #fff;
-margin-bottom: 1rem;
-box-shadow: 0 2px 8px #0001;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px #0001;
 }
 .status-badge {
-display: inline-flex;
-align-items: center;
-padding: 0.25rem 0.75rem;
-border-radius: 9999px;
-font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
 }
 .bg-green-100 { background: #d1fae5; color: #065f46; }
 .bg-yellow-100 { background: #fef9c3; color: #92400e; }
@@ -34,12 +34,13 @@ font-weight: 500;
 <!-- Header -->
 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
   <div class="flex items-center gap-3">
-    <div class="bg-blue-800 p-3 rounded-lg shadow-md">
-      <i class="fas fa-x-ray text-white text-2xl"></i>
-    </div>
+    <!-- شعار المستشفى الاحترافي -->
+    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
+         class="w-20 h-20 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">قسم الأشعة</h1>
-      <p class="text-gray-600">كل طلبات التحويل للأشعة</p>
+      <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+      <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
+      <p class="text-gray-600 mt-1"> قسم الأشعة </p>
     </div>
   </div>
   <div class="flex flex-wrap gap-3">
@@ -68,8 +69,8 @@ font-weight: 500;
 </div>
 
 <div class="bg-white p-4 rounded shadow" id="transfersContainer">
-<h2 class="text-lg font-semibold mb-4">طلبات التحويل للأشعة</h2>
-<div id="transferList"></div>
+  <h2 class="text-lg font-semibold mb-4">طلبات التحويل للأشعة</h2>
+  <div id="transferList"></div>
 </div>
 </div>
 
@@ -132,28 +133,28 @@ async function loadAllRadiologyTransfers() {
             const card = document.createElement("div");
             card.className = "card p-4 mb-4";
             card.innerHTML = `
-              <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-2">
-                <div>
-                  <b>اسم المريض:</b> ${patient.name || "-"}<br>
-                  <b>نوع الأشعة:</b> ${t.type || "-"}<br>
-                  <b>الجهاز:</b> ${t.device || "-"}<br>
-                  <b>ملاحظات:</b> ${t.notes || "-"}
-                </div>
-                <div>
-                  <span class="status-badge ${statusColor(t.status)}">${t.status || "قيد الانتظار"}</span>
-                  ${t.status === "تم التنفيذ" ? `<button onclick="window.print()" class="bg-green-700 text-white px-2 py-1 rounded ml-2"><i class="fas fa-print"></i> طباعة</button>` : ""}
-                </div>
-              </div>
-              <div class="flex flex-wrap gap-2 mt-2">
-                <button onclick='window.location.href="radiology-action.html?patient=${encodeURIComponent(patientId)}&transfer=${encodeURIComponent(key)}"' class="bg-blue-600 text-white px-2 py-1 rounded ml-2">تنفيذ الطلب</button>
-                <button onclick='toggleDetails(this)' class="bg-gray-400 text-white px-2 py-1 rounded ml-2">تفاصيل</button>
-              </div>
-              <div class="hidden mt-3 details">
-                <b>تاريخ الطلب:</b> ${t.date || "-"}<br>
-                <b>آخر تعديل:</b> ${t.lastEditedBy ? `${t.lastEditedBy} (${t.lastEditDate || ""})` : "-"}<br>
-                <b>رابط الملف:</b> ${t.fileUrl ? `<a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>` : "-"}
-              </div>
-            `;
+<div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-2">
+  <div>
+    <b>اسم المريض:</b> ${patient.name || "-"}<br>
+    <b>نوع الأشعة:</b> ${t.type || "-"}<br>
+    <b>الجهاز:</b> ${t.device || "-"}<br>
+    <b>ملاحظات:</b> ${t.notes || "-"}
+  </div>
+  <div>
+    <span class="status-badge ${statusColor(t.status)}">${t.status || "قيد الانتظار"}</span>
+    ${t.status === "تم التنفيذ" ? `<button onclick="window.print()" class="bg-green-700 text-white px-2 py-1 rounded ml-2"><i class="fas fa-print"></i> طباعة</button>` : ""}
+  </div>
+</div>
+<div class="flex flex-wrap gap-2 mt-2">
+  <button onclick='window.location.href="radiology-action.html?patient=${encodeURIComponent(patientId)}&transfer=${encodeURIComponent(key)}"' class="bg-blue-600 text-white px-2 py-1 rounded ml-2">تنفيذ الطلب</button>
+  <button onclick='toggleDetails(this)' class="bg-gray-400 text-white px-2 py-1 rounded ml-2">تفاصيل</button>
+</div>
+<div class="hidden mt-3 details">
+  <b>تاريخ الطلب:</b> ${t.date || "-"}<br>
+  <b>آخر تعديل:</b> ${t.lastEditedBy ? `${t.lastEditedBy} (${t.lastEditDate || ""})` : "-"}<br>
+  <b>رابط الملف:</b> ${t.fileUrl ? `<a href="${t.fileUrl}" target="_blank" class="text-blue-700 underline">عرض الملف</a>` : "-"}
+</div>
+`;
             list.appendChild(card);
           }
         });
