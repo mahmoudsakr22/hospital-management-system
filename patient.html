@@ -1,42 +1,58 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>نظام تحويلات المرضى - مستشفى الحياة الذكية</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-<style>
-body { font-family: 'Tajawal', sans-serif; }
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-weight: 500;
-}
-.patient-card {
-  transition: all 0.3s ease;
-}
-.patient-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-.loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام تحويلات المرضى - مستشفى الحياة الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: 'Tajawal', sans-serif; transition: background 0.3s, color 0.3s; }
+    .status-badge { display:inline-flex; align-items:center; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:500; }
+    .patient-card {
+      transition: all 0.3s ease;
+    }
+    .patient-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .tab-active { border-bottom:3px solid #2563eb; color:#2563eb; font-weight:bold; }
+    .star { font-size: 1.5rem; cursor:pointer; color:gray; }
+    .star.selected { color:gold; }
+    .thumbnail { width:80px; height:80px; object-fit:cover; border:1px solid #ccc; border-radius:6px; cursor:pointer; }
+    /* Timeline Custom */
+    .timeline-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; }
+    .timeline-step { flex: 1; text-align: center; position: relative; }
+    .timeline-circle {
+      width: 28px; height: 28px; background: #2563eb; color: #fff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px auto; font-weight: bold; font-size: 1.1rem;
+      border: 3px solid #e5e7eb;
+    }
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute; top: 14px; right: -50%; left: 50%;
+      height: 4px; background: #2563eb;
+      z-index: 0;
+    }
+    .timeline-label { font-size: 0.95rem; color: #2563eb; font-weight: 500; }
+    .timeline-date { font-size: 0.85rem; color: #6b7280; margin-top: 2px; }
+  </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 <!-- Loading Overlay -->
@@ -274,10 +290,10 @@ window.addTransfer = async function() {
     let fileUrls = [];
     if (files.length > 0) {
       const uploadPromises = Array.from(files).map(async (file) => {
-        const fileRef = storageRef(storage, `transfers/${patientId}/${Date.now()}_${file.name}`);
-        await uploadBytes(fileRef, file);
-        const downloadURL = await getDownloadURL(fileRef);
-        return { name: file.name, url: downloadURL };
+        const storageRef = storageRef(storage, `transfers/${patientId}/${Date.now()}_${file.name}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        return { name: file.name, url };
       });
       fileUrls = await Promise.all(uploadPromises);
     }
@@ -426,7 +442,8 @@ window.loadTransfers = function(patientId) {
         }
         // إضافة الأزرار المناسبة حسب الحالة
         let actionButtons = "";
-        // زر تعديل للتحويلات قيد الانتظار
+        
+        // زر تعديل الحالة للتحويلات قيد الانتظار
         if (transfer.status === "قيد الانتظار") {
           actionButtons += `
             <button onclick="updateTransferStatus('${transferId}', 'in-progress')" class="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700 mr-1" title="تعديل الحالة">
@@ -434,30 +451,23 @@ window.loadTransfers = function(patientId) {
             </button>
           `;
         }
+        
+        // زر عرض نتيجة الأشعة - يظهر فقط إذا كانت النتيجة متاحة
+        if (transfer.status === "مكتمل" || (transfer.files && transfer.files.length > 0) || transfer.report) {
+          actionButtons += `
+            <button onclick="viewRadiologyResult('${transferId}')" class="bg-teal-600 text-white p-1.5 rounded hover:bg-teal-700" title="عرض نتيجة الأشعة">
+              <i class="fas fa-eye"></i> عرض النتيجة
+            </button>
+          `;
+        }
+        
         // زر حذف لجميع الحالات
         actionButtons += `
           <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700" title="حذف التحويل">
             <i class="fas fa-trash"></i>
           </button>
         `;
-        // زر عرض التقرير للتحويلات المكتملة
-        if (transfer.status === "مكتمل") {
-          // إذا كان التحويل لقسم الأشعة، نعرض زر خاص بنتيجة الأشعة
-          if (transfer.department === "radiology") {
-            actionButtons += `
-              <button onclick="viewRadiologyResult('${transferId}')" class="bg-teal-600 text-white p-1.5 rounded hover:bg-teal-700 ml-1" title="عرض نتيجة الأشعة">
-                <i class="fas fa-eye"></i>
-              </button>
-            `;
-          } else {
-            // للأقسام الأخرى نبقي الزر القديم
-            actionButtons += `
-              <button onclick="viewTransferReport('${transferId}')" class="bg-purple-600 text-white p-1.5 rounded hover:bg-purple-700 ml-1" title="عرض التقرير">
-                <i class="fas fa-file-medical-alt"></i>
-              </button>
-            `;
-          }
-        }
+        
         card.innerHTML = `
           <div class="flex justify-between">
             <div>
@@ -614,6 +624,18 @@ window.viewRadiologyResult = function(transferId) {
   get(transferRef).then((snapshot) => {
     if (snapshot.exists()) {
       const transfer = snapshot.val();
+      
+      // التحقق من وجود نتيجة الأشعة
+      if (!transfer.report && (!transfer.files || transfer.files.length === 0)) {
+        Swal.fire({
+          icon: 'info',
+          title: 'لا توجد نتيجة بعد',
+          text: 'هذه الطلبية لم يتم تسجيل نتيجة الأشعة لها بعد',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      }
+
       let filesHtml = "";
       if (transfer.files && transfer.files.length > 0) {
         filesHtml = `
@@ -622,18 +644,28 @@ window.viewRadiologyResult = function(transferId) {
             <div class="flex flex-wrap gap-2">
               ${transfer.files.map(file => `
                 <a href="${file.url}" target="_blank">
-                  <img src="${file.url}" class="thumbnail" style="width:100px; height:100px; object-fit:cover; border:1px solid #ccc; border-radius:4px;" />
+                  <img src="${file.url}" class="thumbnail" style="width:100px; height:100px; object-fit:cover; border:1px solid #ccc; border-radius:6px; cursor:pointer;" />
                 </a>
               `).join('')}
             </div>
           </div>
         `;
       }
+      
+      // إضافة أيقونة واضحة لعرض النتيجة
+      let resultIcon = "";
+      if (transfer.hasResult) {
+        resultIcon = `<div class="flex items-center text-green-600 mb-2">
+          <i class="fas fa-check-circle mr-1"></i>
+          <span class="font-semibold">تم تسجيل النتيجة بتاريخ: ${transfer.resultDate || '-'}</span>
+        </div>`;
+      }
 
       Swal.fire({
         title: 'نتيجة الأشعة',
         html: `
           <div class="text-right">
+            ${resultIcon}
             <div class="mb-3">
               <strong>الطبيب الفني:</strong> ${transfer.technician || '-'}
             </div>
@@ -645,7 +677,20 @@ window.viewRadiologyResult = function(transferId) {
           </div>
         `,
         width: '70%',
-        confirmButtonText: 'إغلاق'
+        confirmButtonText: 'إغلاق',
+        showCancelButton: true,
+        cancelButtonText: 'تحميل التقرير',
+        cancelButtonColor: '#3085d6',
+        preConfirm: () => {
+          // إذا كان هناك تقرير، قم بتحميله
+          if (transfer.report) {
+            const doc = new jsPDF();
+            doc.text("تقرير الأشعة - مستشفى الحياة الذكية", 10, 10);
+            doc.text(`المريض: ${patientId}`, 10, 20);
+            doc.text(`التقرير: ${transfer.report}`, 10, 30);
+            doc.save(`Radiology_Report_${patientId}.pdf`);
+          }
+        }
       });
     }
   });
