@@ -9,71 +9,49 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
-body { font-family: 'Tajawal', sans-serif; }
-
-/* شارة الحالة */
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: #f7f9fc;
+  color: #333;
+}
 .status-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-weight: 500;
+  font-size: 0.9rem;
 }
-
-/* تبويبة نشطة */
 .tab-active {
-  border-bottom: 3px solid #2563eb;
-  color: #2563eb;
-  font-weight: bold;
+  border-bottom: 2px solid #1e3a8a;
+  color: #1e3a8a;
+  font-weight: 600;
 }
-
-/* Loader دوران فقط */
 .loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #2563eb;
+  border: 3px solid #ddd;
+  border-top: 3px solid #1e3a8a;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   animation: spin 1s linear infinite;
-  margin: 50px auto;
+  margin: 60px auto;
 }
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-/* Fade بسيط للتبويبات */
-.fade-in { animation: fadeIn 0.3s ease-in-out; }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Hover ناعم */
-button, .card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-button:hover, .card:hover {
-  transform: scale(1.01);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-/* نجوم التقييم */
 .star {
   font-size: 1.5rem;
   cursor: pointer;
-  color: gray;
+  color: #ccc;
 }
 .star.selected {
-  color: gold;
+  color: #f1c40f;
 }
-
-/* صور مرفقة */
 .thumbnail {
-  width: 80px;
-  height: 80px;
+  width: 75px;
+  height: 75px;
   object-fit: cover;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -81,29 +59,25 @@ button:hover, .card:hover {
 }
 </style>
 </head>
-<body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
+<body class="min-h-screen">
 <div class="container mx-auto px-4 py-8">
 
 <!-- Header -->
 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
   <div class="flex items-center gap-3">
-    <div class="bg-blue-800 p-3 rounded-lg shadow-md">
+    <div class="bg-blue-900 p-3 rounded-lg shadow">
       <i class="fas fa-x-ray text-white text-2xl"></i>
     </div>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">تنفيذ طلب الأشعة</h1>
-    </div>
+    <h1 class="text-2xl font-bold">تنفيذ طلب الأشعة</h1>
   </div>
-  <div>
-    <button onclick="window.location.href='radiology.html'" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">رجوع لقسم الأشعة</button>
-  </div>
+  <button onclick="window.location.href='radiology.html'" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">رجوع لقسم الأشعة</button>
 </div>
 
 <!-- Loader -->
 <div id="loader" class="loader"></div>
 
 <!-- Tabs -->
-<div id="tabsContainer" class="hidden fade-in">
+<div id="tabsContainer" class="hidden">
   <div class="flex justify-around mb-4 border-b">
     <button class="tab-btn py-2" data-tab="detailsTab">تفاصيل</button>
     <button class="tab-btn py-2" data-tab="reportTab">التقرير والملفات</button>
@@ -159,7 +133,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("patient");
 const transferId = urlParams.get("transfer");
 
-// ألوان الحالة
 function statusColor(status) {
   if (status === "تم التنفيذ") return "bg-green-100 text-green-800";
   if (status === "مرفوض") return "bg-red-100 text-red-800";
@@ -167,7 +140,7 @@ function statusColor(status) {
   return "bg-gray-200 text-gray-800";
 }
 
-// تحميل البيانات مع تحديث Real-Time
+// ** تحميل البيانات بتحديث Real-Time **
 async function initRealtime() {
   const loader = document.getElementById("loader");
   const tabs = document.getElementById("tabsContainer");
@@ -195,7 +168,7 @@ async function initRealtime() {
         <h3 class="text-lg font-bold text-blue-800 mb-2">بيانات المريض</h3>
         <div><b>الاسم:</b> ${patient.name || "-"} | <b>العمر:</b> ${patient.age || "-"} | <b>القسم:</b> ${patient.department || "-"}</div>
         <div><b>الرقم القومي:</b> ${patient.nid || "-"}</div>
-        <canvas id="qrCode" class="w-32 h-32 mt-4"></canvas>
+        <canvas id="qrCode" class="w-28 h-28 mt-3"></canvas>
       </div>
     `;
 
@@ -230,10 +203,10 @@ async function initRealtime() {
   });
 }
 
-// تقرير وملفات
+// ** تبويبات التقرير/التعليقات/التقييم **
 function renderReportTab(t) {
   const filesHtml = (t.files || []).map(file =>
-    `<a href="${file}" target="_blank"><img src="${file.endsWith('.pdf') ? 'https://img.icons8.com/color/80/pdf' : file}" class="thumbnail" title="اضغط للعرض"/></a>`
+    `<a href="${file}" target="_blank"><img src="${file.endsWith('.pdf') ? 'https://img.icons8.com/color/80/pdf' : file}" class="thumbnail" /></a>`
   ).join("");
 
   document.getElementById("reportSection").innerHTML = `
@@ -253,12 +226,11 @@ function renderReportTab(t) {
         <option value="مرفوض" ${t.status === "مرفوض" ? "selected" : ""}>مرفوض</option>
       </select>
       <button onclick="saveResult()" class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded">حفظ</button>
-      <button onclick="downloadPDF()" class="bg-green-700 hover:bg-green-900 text-white px-4 py-2 rounded ml-2">تحميل تقرير PDF</button>
+      <button onclick="downloadPDF()" class="bg-green-700 hover:bg-green-900 text-white px-4 py-2 rounded ml-2">تحميل PDF</button>
     </div>
   `;
 }
 
-// التعليقات
 function renderCommentsTab(t) {
   const comments = t.comments || [];
   document.getElementById("commentsSection").innerHTML = `
@@ -272,7 +244,6 @@ function renderCommentsTab(t) {
   `;
 }
 
-// التقييم
 function renderRatingTab(t) {
   const starsHtml = Array.from({ length: 5 }, (_, i) => `
     <i class="fas fa-star star ${t.qualityRating > i ? 'selected' : ''}" data-star="${i+1}"></i>
@@ -299,7 +270,7 @@ function renderRatingTab(t) {
   });
 }
 
-// رفع ملفات
+// ** رفع الملفات **
 window.uploadFiles = async function() {
   const fileInput = document.getElementById("fileInput");
   if (!fileInput.files.length) {
@@ -317,7 +288,7 @@ window.uploadFiles = async function() {
   Swal.fire("تم", "تم رفع الملفات بنجاح", "success");
 }
 
-// حفظ التعديلات
+// ** حفظ التعديلات **
 window.saveResult = async function() {
   const technician = document.getElementById("technician").value;
   const report = document.getElementById("report").value;
@@ -333,7 +304,7 @@ window.saveResult = async function() {
   Swal.fire({ icon: "success", title: "تم الحفظ", text: "تم تحديث بيانات الطلب بنجاح.", timer: 1500, showConfirmButton: false });
 }
 
-// إضافة تعليق
+// ** إضافة تعليق **
 window.addComment = async function() {
   const input = document.getElementById("commentInput");
   const comment = input.value.trim();
@@ -346,7 +317,7 @@ window.addComment = async function() {
   input.value = "";
 }
 
-// حفظ التقييم
+// ** حفظ التقييم **
 window.saveRating = async function() {
   const rating = parseInt(document.getElementById("stars").dataset.value || 0);
   const notes = document.getElementById("qualityNotes").value;
@@ -357,33 +328,30 @@ window.saveRating = async function() {
   Swal.fire("تم", "تم حفظ التقييم بنجاح", "success");
 }
 
-// PDF
+// ** PDF **
 window.downloadPDF = async function() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-
   doc.setFontSize(16);
   doc.text("تقرير الأشعة - مستشفى الحياة الذكية", 10, 20);
   doc.setFontSize(12);
   doc.text(`ID المريض: ${patientId}`, 10, 30);
   doc.text(`وقت التحميل: ${new Date().toLocaleString('ar-EG')}`, 10, 40);
-
-  doc.text("التفاصيل والتقرير مرفقة من النظام.", 10, 60);
+  doc.text("التفاصيل مرفقة من النظام.", 10, 60);
   doc.save(`Radiology_Report_${patientId}.pdf`);
 }
 
-// تبديل التبويبات
+// ** Tabs Switcher **
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("tab-btn")) {
     document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
     document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("tab-active"));
+    document.getElementById(e.target.dataset.tab).classList.remove("hidden");
     e.target.classList.add("tab-active");
-    const target = e.target.dataset.tab;
-    document.getElementById(target).classList.remove("hidden");
   }
 });
 
-// بدء التحميل
+// Start
 initRealtime();
 </script>
 </body>
