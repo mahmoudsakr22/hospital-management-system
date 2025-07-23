@@ -98,7 +98,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("patient");
 const transferId = urlParams.get("transfer");
 
-// تأكد من الباراميتر
 if (!patientId || !transferId) {
   Swal.fire("خطأ", "رابط غير صحيح، تأكد من ID المريض وطلب التحويل", "error");
   throw new Error("Missing URL Params");
@@ -111,7 +110,7 @@ function statusColor(status) {
   return "bg-gray-200 text-gray-800";
 }
 
-// تحميل البيانات Real-time
+// Real-time listener
 onValue(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), async (snapshot) => {
   const loader = document.getElementById("loader");
   const tabs = document.getElementById("tabsContainer");
@@ -123,15 +122,13 @@ onValue(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), asyn
   }
 
   const t = snapshot.val();
-  console.log("Transfer Data:", t);
-
   const patientSnap = await get(ref(db, `patients/emergency/${patientId}`));
   const patient = patientSnap.exists() ? patientSnap.val() : {};
 
   loader.classList.add("hidden");
   tabs.classList.remove("hidden");
 
-  // تفاصيل المريض
+  // بيانات المريض
   document.getElementById("patientDetails").innerHTML = `
     <div class="bg-white p-4 rounded shadow mb-4">
       <h3 class="text-lg font-bold text-blue-800 mb-2">بيانات المريض</h3>
@@ -171,10 +168,7 @@ onValue(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), asyn
   renderRatingTab(t);
 });
 
-// باقي الدوال (رفع ملفات – حفظ تقرير – تعليقات – تقييم – PDF – Tabs) نفس الكود السابق
-
-</script>
-    // ** عرض التقرير والملفات **
+// Render Report Tab
 function renderReportTab(t) {
   const filesHtml = (t.files || []).map(file =>
     `<a href="${file}" target="_blank"><img src="${file.endsWith('.pdf') ? 'https://img.icons8.com/color/80/pdf' : file}" class="thumbnail" title="اضغط للعرض"/></a>`
@@ -202,7 +196,7 @@ function renderReportTab(t) {
   `;
 }
 
-// ** التعليقات **
+// Render Comments
 function renderCommentsTab(t) {
   const comments = t.comments || [];
   document.getElementById("commentsSection").innerHTML = `
@@ -216,7 +210,7 @@ function renderCommentsTab(t) {
   `;
 }
 
-// ** التقييم **
+// Render Rating
 function renderRatingTab(t) {
   const starsHtml = Array.from({ length: 5 }, (_, i) => `
     <i class="fas fa-star star ${t.qualityRating > i ? 'selected' : ''}" data-star="${i+1}"></i>
@@ -243,7 +237,7 @@ function renderRatingTab(t) {
   });
 }
 
-// ** رفع ملفات متعددة **
+// رفع الملفات
 window.uploadFiles = async function() {
   const fileInput = document.getElementById("fileInput");
   if (!fileInput.files.length) {
@@ -261,7 +255,7 @@ window.uploadFiles = async function() {
   Swal.fire("تم", "تم رفع الملفات بنجاح", "success");
 }
 
-// ** حفظ التعديلات **
+// حفظ النتيجة
 window.saveResult = async function() {
   const technician = document.getElementById("technician").value;
   const report = document.getElementById("report").value;
@@ -277,7 +271,7 @@ window.saveResult = async function() {
   Swal.fire({ icon: "success", title: "تم الحفظ", text: "تم تحديث بيانات الطلب بنجاح.", timer: 1500, showConfirmButton: false });
 }
 
-// ** إضافة تعليق **
+// إضافة تعليق
 window.addComment = async function() {
   const input = document.getElementById("commentInput");
   const comment = input.value.trim();
@@ -290,7 +284,7 @@ window.addComment = async function() {
   input.value = "";
 }
 
-// ** حفظ التقييم **
+// حفظ التقييم
 window.saveRating = async function() {
   const rating = parseInt(document.getElementById("stars").dataset.value || 0);
   const notes = document.getElementById("qualityNotes").value;
@@ -301,26 +295,28 @@ window.saveRating = async function() {
   Swal.fire("تم", "تم حفظ التقييم بنجاح", "success");
 }
 
-// ** توليد PDF **
+// تحميل PDF
 window.downloadPDF = async function() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-
   doc.setFontSize(16);
   doc.text("تقرير الأشعة - مستشفى الحياة الذكية", 10, 20);
   doc.setFontSize(12);
   doc.text(`ID المريض: ${patientId}`, 10, 30);
   doc.text(`وقت التحميل: ${new Date().toLocaleString('ar-EG')}`, 10, 40);
-
   doc.text("التفاصيل والتقرير مرفقة من النظام.", 10, 60);
   doc.save(`Radiology_Report_${patientId}.pdf`);
 }
 
-// ** Tabs Switcher **
+// Tabs switcher
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("tab-btn")) {
     document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
     document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("tab-active"));
-    document.getElementById(e.target.dataset.tab).classList.remove("hidden
+    document.getElementById(e.target.dataset.tab).classList.remove("hidden");
+    e.target.classList.add("tab-active");
+  }
+});
+</script>
 </body>
 </html>
