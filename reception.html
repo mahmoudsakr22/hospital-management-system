@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>مستشفى الحياة الذكية - لوحة التحكم</title>
+  <title>لوحة استقبال المرضى - مستشفى الحياة الذكية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
     body { font-family: 'Tajawal', sans-serif; }
@@ -29,7 +30,6 @@
       align-items: center;
       z-index: 1000;
     }
-    /* تحسينات جديدة لزر التعديل والحذف */
     .action-btn {
       transition: all 0.2s ease;
       position: relative;
@@ -37,14 +37,6 @@
     }
     .action-btn:hover {
       transform: scale(1.05);
-    }
-    .edit-btn:hover {
-      background-color: #3b82f6 !important;
-      color: white !important;
-    }
-    .delete-btn:hover {
-      background-color: #ef4444 !important;
-      color: white !important;
     }
     .action-btn::after {
       content: '';
@@ -72,6 +64,39 @@
         opacity: 0;
       }
     }
+    .stat-card {
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    .search-box {
+      position: relative;
+    }
+    .search-box input {
+      padding-left: 40px;
+    }
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 20px;
+      height: 20px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -98,33 +123,49 @@
   <div class="container mx-auto px-4 py-8 max-w-5xl">
     <!-- Dashboard Stats -->
     <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white p-5 rounded-lg shadow-md text-center">
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
         <div class="flex justify-center mb-3">
           <i class="fas fa-users text-3xl text-blue-600"></i>
         </div>
         <h3 class="text-sm text-gray-500 mb-2">إجمالي المرضى</h3>
         <div id="totalPatients" class="text-3xl font-bold text-blue-700">0</div>
       </div>
-      <div class="bg-white p-5 rounded-lg shadow-md text-center">
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
         <div class="flex justify-center mb-3">
           <i class="fas fa-user-plus text-3xl text-green-600"></i>
         </div>
         <h3 class="text-sm text-gray-500 mb-2">المسجلين اليوم</h3>
         <div id="todayPatients" class="text-3xl font-bold text-green-600">0</div>
       </div>
-      <div class="bg-white p-5 rounded-lg shadow-md text-center">
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
         <div class="flex justify-center mb-3">
           <i class="fas fa-ambulance text-3xl text-red-600"></i>
         </div>
         <h3 class="text-sm text-gray-500 mb-2">مرضى الطوارئ</h3>
         <div id="emergencyPatients" class="text-3xl font-bold text-red-600">0</div>
       </div>
-      <div class="bg-white p-5 rounded-lg shadow-md text-center">
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
         <div class="flex justify-center mb-3">
           <i class="fas fa-procedures text-3xl text-purple-600"></i>
         </div>
         <h3 class="text-sm text-gray-500 mb-2">مرضى العمليات</h3>
         <div id="surgeryPatients" class="text-3xl font-bold text-purple-600">0</div>
+      </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+      <div class="flex items-center mb-4">
+        <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+        <h2 class="text-xl font-bold">إحصائيات الأقسام</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <canvas id="departmentChart" height="200"></canvas>
+        </div>
+        <div>
+          <canvas id="dailyChart" height="200"></canvas>
+        </div>
       </div>
     </section>
 
@@ -213,7 +254,7 @@
               <i class="fas fa-list-ul text-blue-600 mr-2"></i>
               <h2 class="text-xl font-bold">قائمة المرضى</h2>
             </div>
-            <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 w-full md:w-auto">
+            <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 w-full">
               <select id="filterDepartment" class="border border-gray-300 rounded-md p-2 text-sm">
                 <option value="all">جميع الأقسام</option>
                 <option value="emergency">الطوارئ</option>
@@ -223,7 +264,7 @@
                 <option value="admin">الإدارة</option>
                 <option value="radiology">الأشعة</option>
               </select>
-              <div class="relative">
+              <div class="search-box relative">
                 <input type="text" id="searchPatient" placeholder="بحث عن مريض..." class="w-full border border-gray-300 rounded-md p-2 pl-8 text-sm" />
                 <i class="fas fa-search absolute left-2 top-3 text-gray-400"></i>
               </div>
@@ -478,7 +519,7 @@
       });
     }
     
-    // Edit patient (NOW FULLY FUNCTIONAL!)
+    // Edit patient (FULLY FUNCTIONAL!)
     function editPatient(id, department, patient) {
       // Create a modal form for editing
       const editForm = document.createElement('form');
@@ -740,9 +781,138 @@
       });
     });
     
-    // Initialize
+    // Initialize charts
+    function initializeCharts() {
+      // Department distribution chart
+      const deptCtx = document.getElementById('departmentChart').getContext('2d');
+      const deptChart = new Chart(deptCtx, {
+        type: 'bar',
+        data: {
+          labels: ['الطوارئ', 'العناية المركزة', 'العمليات', 'الرعاية', 'الإدارة', 'الأشعة'],
+          datasets: [{
+            label: 'عدد المرضى',
+            data: [0, 0, 0, 0, 0, 0],
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.7)',
+              'rgba(139, 92, 246, 0.7)',
+              'rgba(59, 130, 246, 0.7)',
+              'rgba(16, 185, 129, 0.7)',
+              'rgba(107, 114, 128, 0.7)',
+              'rgba(14, 165, 233, 0.7)'
+            ],
+            borderColor: [
+              'rgb(239, 68, 68)',
+              'rgb(139, 92, 246)',
+              'rgb(59, 130, 246)',
+              'rgb(16, 185, 129)',
+              'rgb(107, 114, 128)',
+              'rgb(14, 165, 233)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'توزيع المرضى حسب الأقسام'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+      
+      // Daily patients chart
+      const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+      const dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+          labels: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+          datasets: [{
+            label: 'عدد المرضى المسجلين',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            fill: true,
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            borderColor: 'rgb(59, 130, 246)',
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'المرضى المسجلين يومياً'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+      
+      // Update charts with real data
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        const deptCounts = [0, 0, 0, 0, 0, 0]; // emergency, icu, surgery, care, admin, radiology
+        const dailyCounts = [0, 0, 0, 0, 0, 0, 0]; // Sunday to Saturday
+        
+        const today = new Date();
+        const currentDay = today.getDay(); // 0 = Sunday, 6 = Saturday
+        
+        Object.values(data).forEach(dept => {
+          Object.values(dept).forEach(patient => {
+            // Update department counts
+            const deptIndex = getDepartmentIndex(patient.department);
+            if (deptIndex !== -1) deptCounts[deptIndex]++;
+            
+            // Update daily counts
+            const patientDate = new Date(patient.timestamp);
+            const patientDay = patientDate.getDay();
+            if (patientDay >= 0 && patientDay <= 6) {
+              dailyCounts[patientDay]++;
+            }
+          });
+        });
+        
+        // Update charts
+        deptChart.data.datasets[0].data = deptCounts;
+        deptChart.update();
+        
+        dailyChart.data.datasets[0].data = dailyCounts;
+        dailyChart.update();
+      });
+    }
+    
+    // Helper function to get department index
+    function getDepartmentIndex(department) {
+      const departments = ['emergency', 'icu', 'surgery', 'care', 'admin', 'radiology'];
+      return departments.indexOf(department);
+    }
+    
+    // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
       setupDataListeners();
+      initializeCharts();
     });
   </script>
 </body>
