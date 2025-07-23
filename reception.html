@@ -3,22 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>لوحة استقبال المرضى - مستشفى الحياة الذكية</title>
+  <title>مستشفى الحياة الذكية - لوحة التحكم</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-    body {
-      font-family: 'Tajawal', sans-serif;
+    body { font-family: 'Tajawal', sans-serif; }
+    .status-badge { display:inline-flex; align-items:center; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:500; }
+    .tab-active { border-bottom:3px solid #2563eb; color:#2563eb; font-weight:bold; }
+    .star { font-size: 1.5rem; cursor:pointer; color:gray; }
+    .star.selected { color:gold; }
+    .thumbnail { width:80px; height:80px; object-fit:cover; border:1px solid #ccc; border-radius:6px; cursor:pointer; }
+    /* Timeline Custom */
+    .timeline-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; }
+    .timeline-step { flex: 1; text-align: center; position: relative; }
+    .timeline-circle {
+      width: 28px; height: 28px; background: #2563eb; color: #fff;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px auto; font-weight: bold; font-size: 1.1rem;
+      border: 3px solid #e5e7eb;
     }
-    .patient-card {
-      transition: all 0.3s ease;
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 14px; right: -50%; left: 50%;
+      height: 4px; background: #2563eb;
+      z-index: 0;
     }
-    .patient-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
+    .timeline-label { font-size: 0.95rem; color: #2563eb; font-weight: 500; }
+    .timeline-date { font-size: 0.85rem; color: #6b7280; margin-top: 2px; }
     .loading {
       position: fixed;
       top: 0;
@@ -31,6 +47,13 @@
       align-items: center;
       z-index: 1000;
     }
+    .patient-card {
+      transition: all 0.3s ease;
+    }
+    .patient-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -42,21 +65,19 @@
     </div>
   </div>
 
-  <div class="container mx-auto px-4 py-8 max-w-5xl">
-    <!-- Header -->
-    <header class="mb-8 bg-gradient-to-r from-blue-600 to-blue-800 p-6 rounded-lg shadow-lg text-white">
-      <div class="flex flex-col md:flex-row justify-between items-center">
-        <div class="flex items-center mb-4 md:mb-0">
-          <i class="fas fa-hospital text-3xl mr-3"></i>
-          <h1 class="text-3xl font-bold">مستشفى الحياة الذكية</h1>
-        </div>
-        <div class="flex items-center">
-          <i class="fas fa-calendar-alt text-xl mr-2"></i>
-          <div id="currentDate" class="text-lg"></div>
-        </div>
+  <!-- Header (دمج الهيدر الاحترافي) -->
+  <div class="flex justify-between items-center p-4 bg-white mb-6 border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+        <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
       </div>
-    </header>
+    </div>
+    <div id="currentDate" class="text-sm"></div>
+  </div>
 
+  <div class="container mx-auto px-4 py-8 max-w-5xl">
     <!-- Dashboard Stats -->
     <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-white p-5 rounded-lg shadow-md text-center">
@@ -165,7 +186,7 @@
           </form>
         </div>
       </div>
-
+      
       <!-- Patients List -->
       <div class="lg:col-span-2">
         <div class="bg-white p-6 rounded-xl shadow-lg">
@@ -190,7 +211,6 @@
               </div>
             </div>
           </div>
-
           <div id="patientsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
             <!-- Patients will be loaded here -->
           </div>
@@ -210,14 +230,14 @@
       messagingSenderId: "974610606258",
       appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
     };
-
+    
     // Initialize Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, push, onValue, remove, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
+    
     // DOM Elements
     const loadingElement = document.getElementById('loading');
     const currentDateElement = document.getElementById('currentDate');
@@ -229,23 +249,23 @@
     const todayPatientsElement = document.getElementById('todayPatients');
     const emergencyPatientsElement = document.getElementById('emergencyPatients');
     const surgeryPatientsElement = document.getElementById('surgeryPatients');
-
+    
     // Display current date
     const today = new Date();
     currentDateElement.textContent = today.toLocaleDateString("ar-EG", {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
-
+    
     // Show loading overlay
     function showLoading() {
       loadingElement.classList.remove('hidden');
     }
-
+    
     // Hide loading overlay
     function hideLoading() {
       loadingElement.classList.add('hidden');
     }
-
+    
     // Format date for display
     function formatDate(timestamp) {
       return new Date(timestamp).toLocaleString("ar-EG", {
@@ -253,7 +273,7 @@
         hour: '2-digit', minute: '2-digit'
       });
     }
-
+    
     // Create patient card
     function createPatientCard(patient, id, department) {
       const card = document.createElement('div');
@@ -267,7 +287,7 @@
       const departmentInfo = getDepartmentInfo(department);
       
       card.innerHTML = `
-        <div class="flex flex-col md:flex-row md:items-center justify-between">
+        <div class="flex flex-col md:flex-row md:items-between">
           <div class="flex-1">
             <div class="flex items-center mb-2">
               <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
@@ -337,7 +357,7 @@
       
       return card;
     }
-
+    
     // Get department information
     function getDepartmentInfo(department) {
       const departments = {
@@ -351,7 +371,7 @@
       
       return departments[department] || { name: department, icon: 'fa-hospital', color: 'blue' };
     }
-
+    
     // Render patients list
     function renderPatients(patients, filter = 'all', searchTerm = '') {
       patientsList.innerHTML = '';
@@ -399,7 +419,7 @@
         patientsList.appendChild(card);
       });
     }
-
+    
     // Delete patient
     function deletePatient(id, department) {
       Swal.fire({
@@ -424,7 +444,9 @@
               title: 'تم الحذف',
               text: 'تم حذف المريض بنجاح',
               timer: 1500,
-              showConfirmButton: false
+              showConfirmButton: false,
+              position: 'top-end',
+              toast: true
             });
           } catch (error) {
             hideLoading();
@@ -437,7 +459,7 @@
         }
       });
     }
-
+    
     // Edit patient (placeholder for now)
     function editPatient(id, department) {
       Swal.fire({
@@ -446,7 +468,7 @@
         icon: 'info'
       });
     }
-
+    
     // Update statistics
     function updateStats() {
       showLoading();
@@ -473,7 +495,7 @@
         hideLoading();
       });
     }
-
+    
     // Form submission
     patientForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -528,7 +550,7 @@
         });
       }
     });
-
+    
     // Real-time data listeners
     function setupDataListeners() {
       // Patients list listener
@@ -552,7 +574,7 @@
       // Stats listener
       updateStats();
     }
-
+    
     // Filter and search listeners
     filterDepartment.addEventListener('change', () => {
       const filter = filterDepartment.value;
@@ -573,7 +595,7 @@
         renderPatients(allPatients, filter, searchTerm);
       });
     });
-
+    
     searchPatient.addEventListener('input', () => {
       const filter = filterDepartment.value;
       const searchTerm = searchPatient.value;
@@ -593,7 +615,7 @@
         renderPatients(allPatients, filter, searchTerm);
       });
     });
-
+    
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       setupDataListeners();
