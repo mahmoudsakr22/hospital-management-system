@@ -17,20 +17,21 @@
     .timeline-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; }
     .timeline-step { flex: 1; text-align: center; position: relative; }
     .timeline-circle {
-      width: 28px; height: 28px; background: #2563eb; color: #fff;
+      width: 32px; height: 32px; background: #2563eb; color: #fff;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 8px auto; font-weight: bold; font-size: 1.1rem;
+      margin: 0 auto 8px auto; font-weight: bold; font-size: 1.2rem;
       border: 3px solid #e5e7eb;
+      z-index: 1;
     }
     .timeline-step:not(:last-child)::after {
       content: '';
       position: absolute;
-      top: 14px; right: -50%; left: 50%;
+      top: 16px; right: -50%; left: 50%;
       height: 4px; background: #2563eb;
       z-index: 0;
     }
-    .timeline-label { font-size: 0.95rem; color: #2563eb; font-weight: 500; }
-    .timeline-date { font-size: 0.85rem; color: #6b7280; margin-top: 2px; }
+    .timeline-label { font-size: 1rem; color: #2563eb; font-weight: 600; }
+    .timeline-date { font-size: 0.9rem; color: #6b7280; margin-top: 2px; }
   </style>
 </head>
 <body class="bg-white min-h-screen">
@@ -96,62 +97,124 @@
 <!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<script>
-  // زر الوضع الداكن (اختياري)
-  function toggleDarkMode() {
-    document.body.classList.toggle('dark');
-  }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-  // بيانات وهمية للعرض
+const firebaseConfig = {
+  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+  authDomain: "hospital-project-e4b59.firebaseapp.com",
+  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hospital-project-e4b59",
+  storageBucket: "hospital-project-e4b59.appspot.com",
+  messagingSenderId: "974610606258",
+  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const storage = getStorage(app);
+
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get("patient");
+const transferId = urlParams.get("transfer");
+
+function statusColor(status) {
+  if (status === "تم التنفيذ") return "bg-green-100 text-green-800";
+  if (status === "مرفوض") return "bg-red-100 text-red-800";
+  if (status === "قيد الانتظار") return "bg-yellow-100 text-yellow-800";
+  return "bg-gray-200 text-gray-800";
+}
+
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
+}
+
+// Realtime load
+onValue(ref(db, `patients/emergency/${patientId}/transfers/${transferId}`), async (snapshot) => {
+  if (!snapshot.exists()) {
+    Swal.fire("خطأ", "لم يتم العثور على طلب الأشعة", "error");
+    return;
+  }
+  const t = snapshot.val();
+  const patientSnap = await get(ref(db, `patients/emergency/${patientId}`));
+  const patient = patientSnap.exists() ? patientSnap.val() : {};
+
   document.getElementById("loader").classList.add("hidden");
   document.getElementById("tabsContainer").classList.remove("hidden");
 
-  // تفاصيل المريض
-  document.getElementById("patientDetails").innerHTML = `
-    <div class="bg-white p-4 rounded border border-gray-200 mb-4">
-      <h3 class="text-lg font-bold text-blue-800 mb-2"><i class="fas fa-user"></i> بيانات المريض</h3>
-      <div><b>الاسم:</b> أحمد علي | <b>العمر:</b> 35 | <b>القسم:</b> طوارئ</div>
-      <div><b>الرقم القومي:</b> 12345678901234</div>
-      <canvas id="qrCode" class="w-32 h-32 mt-4"></canvas>
+// تفاصيل المريض
+document.getElementById("patientDetails").innerHTML = `
+  <div class="bg-white p-4 rounded border border-gray-200 mb-4">
+    <h3 class="text-lg font-bold text-blue-800 mb-2"><i class="fas fa-user"></i> بيانات المريض</h3>
+    <div>
+      <b>الاسم:</b> ${patient.name || "-"} |
+      <b>العمر:</b> ${patient.age || "-"} |
+      <b>القسم:</b> ${patient.department || "-"}
     </div>
-  `;
-  QRCode.toCanvas(document.getElementById("qrCode"), "12345678901234");
+    <div><b>الرقم القومي:</b> ${patient.nid || "-"}</div>
+    <canvas id="qrCode" class="w-32 h-32 mt-4"></canvas>
+  </div>
+`;
+QRCode.toCanvas(document.getElementById("qrCode"), patientId);
 
-  // تفاصيل التحويل
-  document.getElementById("transferDetails").innerHTML = `
-    <div class="bg-white p-4 rounded border border-gray-200">
-      <h3 class="text-lg font-bold text-blue-800 mb-2"><i class="fas fa-x-ray"></i> بيانات التحويل</h3>
-      <div><b>نوع الأشعة:</b> أشعة مقطعية | <b>الجهاز:</b> CT</div>
-      <div><b>ملاحظات:</b> - </div>
-      <div><b>الحالة:</b> <span class="status-badge bg-yellow-100 text-yellow-800">قيد الانتظار</span></div>
-      <div><b>تاريخ الطلب:</b> 2025-07-23</div>
+// تفاصيل التحويل
+document.getElementById("transferDetails").innerHTML = `
+  <div class="bg-white p-4 rounded border border-gray-200">
+    <h3 class="text-lg font-bold text-blue-800 mb-2"><i class="fas fa-x-ray"></i> بيانات التحويل</h3>
+    <div>
+      <b>نوع الأشعة:</b> ${t.type || "-"} |
+      <b>الجهاز:</b> ${t.device || "-"}
     </div>
-  `;
+    <div><b>ملاحظات:</b> ${t.notes || "-"}</div>
+    <div>
+      <b>الحالة:</b>
+      <span class="status-badge ${statusColor(t.status)}">${t.status || "قيد الانتظار"}</span>
+    </div>
+    <div><b>تاريخ الطلب:</b> ${t.date || "-"}</div>
+  </div>
+`;
 
-  // مخطط زمني احترافي
-  document.getElementById("timelineSection").innerHTML = `
-    <div class="bg-white p-4 rounded border border-gray-200 mt-4">
-      <h3 class="text-lg font-bold text-blue-800 mb-4">الخط الزمني</h3>
-      <div class="timeline-container">
-        <div class="timeline-step">
-          <div class="timeline-circle"><i class="fas fa-file-medical"></i></div>
-          <div class="timeline-label">طلب الأشعة</div>
-          <div class="timeline-date">2025-07-23</div>
+// مخطط زمني احترافي
+document.getElementById("timelineSection").innerHTML = `
+  <div class="bg-white p-4 rounded border border-gray-200 mt-4">
+    <h3 class="text-lg font-bold text-blue-800 mb-4">الخط الزمني</h3>
+    <div class="flex justify-between items-center">
+      <div class="flex flex-col items-center flex-1">
+        <div class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white border-2 border-blue-200 mb-2">
+          <i class="fas fa-file-medical"></i>
         </div>
-        <div class="timeline-step">
-          <div class="timeline-circle"><i class="fas fa-cogs"></i></div>
-          <div class="timeline-label">قيد التنفيذ</div>
-          <div class="timeline-date">-</div>
+        <div class="text-blue-800 font-semibold text-sm">طلب الأشعة</div>
+        <div class="text-gray-500 text-xs mt-1">${t.date || "-"}</div>
+      </div>
+      <div class="flex-1 h-1 bg-blue-200 mx-2"></div>
+      <div class="flex flex-col items-center flex-1">
+        <div class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white border-2 border-blue-200 mb-2">
+          <i class="fas fa-cogs"></i>
         </div>
-        <div class="timeline-step">
-          <div class="timeline-circle"><i class="fas fa-check-circle"></i></div>
-          <div class="timeline-label">تم التنفيذ</div>
-          <div class="timeline-date">-</div>
+        <div class="text-blue-800 font-semibold text-sm">قيد التنفيذ</div>
+        <div class="text-gray-500 text-xs mt-1">${t.executionDate || "-"}</div>
+      </div>
+      <div class="flex-1 h-1 bg-blue-200 mx-2"></div>
+      <div class="flex flex-col items-center flex-1">
+        <div class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white border-2 border-blue-200 mb-2">
+          <i class="fas fa-check-circle"></i>
         </div>
+        <div class="text-blue-800 font-semibold text-sm">تم التنفيذ</div>
+        <div class="text-gray-500 text-xs mt-1">${t.lastEditDate || "-"}</div>
       </div>
     </div>
-  `;
+  </div>
+`;
 
+// تقرير
+renderReportTab(t);
+// تعليقات
+renderCommentsTab(t);
+// تقييم
+renderRatingTab(t);
+ 
   // تقرير
   document.getElementById("reportSection").innerHTML = `
     <div class="bg-white p-4 rounded border border-gray-200 mb-4">
