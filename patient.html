@@ -98,7 +98,6 @@ body { font-family: 'Tajawal', sans-serif; }
           <option value="surgery">العمليات</option>
         </select>
       </div>
-      
       <!-- اختيار الجهاز يظهر فقط عند اختيار الأشعة -->
       <div id="radiologyDeviceContainer" class="hidden">
         <label class="block text-sm font-medium text-gray-700 mb-1">جهاز الأشعة</label>
@@ -110,27 +109,22 @@ body { font-family: 'Tajawal', sans-serif; }
           <option value="ultrasound">موجات صوتية</option>
         </select>
       </div>
-      
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">نوع الإجراء</label>
         <input type="text" id="transferType" placeholder="مثال: أشعة صدر - تحليل دم" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
-      
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">طبيب المتابعة</label>
         <input type="text" id="doctor" placeholder="اسم الطبيب" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
-      
       <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
         <textarea id="transferNotes" rows="2" placeholder="ملاحظات التحويل أو بيانات المريض المهمة" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
       </div>
-      
       <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">ارفاق ملفات (اختياري)</label>
         <input type="file" id="transferFiles" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" multiple>
       </div>
-      
       <div class="md:col-span-2">
         <button onclick="addTransfer()" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center">
           <i class="fas fa-plus-circle mr-2"></i> تسجيل التحويل
@@ -157,7 +151,6 @@ body { font-family: 'Tajawal', sans-serif; }
         </select>
       </div>
     </div>
-    
     <div id="transfersContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
       <div class="text-center py-8 text-gray-500">
         <i class="fas fa-hourglass-half text-4xl mb-3"></i>
@@ -186,7 +179,6 @@ const storage = getStorage(app);
 async function loadPatientData() {
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get("id");
-  
   if (!patientId) {
     Swal.fire({
       icon: 'warning',
@@ -196,19 +188,15 @@ async function loadPatientData() {
     });
     return;
   }
-  
   const infoTable = document.getElementById("infoTable");
   const patientStatus = document.getElementById("patientStatus");
   const qrCanvas = document.getElementById("qrCode");
-  
   try {
     showLoading();
     const patientRef = ref(db, `patients/emergency/${patientId}`);
     const snapshot = await get(patientRef);
-    
     if (snapshot.exists()) {
       const patient = snapshot.val();
-      
       // تعبئة معلومات المريض
       infoTable.innerHTML = `
         <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
@@ -220,18 +208,14 @@ async function loadPatientData() {
         <tr><td class="font-semibold py-1">فصيلة الدم:</td><td class="py-1">${patient.bloodType || '-'}</td></tr>
         <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
       `;
-      
       // تعيين الحالة
       patientStatus.textContent = patient.status || "غير محدد";
-      
       // إنشاء رمز الاستجابة السريع
       QRCode.toCanvas(qrCanvas, patientId, function (error) {
         if (error) console.error(error);
       });
-      
       // تحميل سجل التحويلات
       loadTransfers(patientId);
-      
     } else {
       infoTable.innerHTML = "<tr><td colspan='2' class='text-center py-4'>لم يتم العثور على بيانات المريض</td></tr>";
       patientStatus.textContent = "";
@@ -264,7 +248,6 @@ window.addTransfer = async function() {
   const doctor = document.getElementById("doctor").value.trim();
   const device = document.getElementById("radiologyDevice").value;
   const files = document.getElementById("transferFiles").files;
-  
   if (!department || !type) {
     Swal.fire({
       icon: 'warning',
@@ -274,7 +257,6 @@ window.addTransfer = async function() {
     });
     return;
   }
-  
   if (department === "radiology" && !device) {
     Swal.fire({
       icon: 'warning',
@@ -284,13 +266,10 @@ window.addTransfer = async function() {
     });
     return;
   }
-  
   showLoading();
-  
   try {
     const patientId = new URLSearchParams(window.location.search).get("id");
     const transferRef = ref(db, `patients/emergency/${patientId}/transfers`);
-    
     // تحميل الملفات إن وجدت
     let fileUrls = [];
     if (files.length > 0) {
@@ -300,10 +279,8 @@ window.addTransfer = async function() {
         const downloadURL = await getDownloadURL(fileRef);
         return { name: file.name, url: downloadURL };
       });
-      
       fileUrls = await Promise.all(uploadPromises);
     }
-    
     // إنشاء سجل التحويل
     const newTransfer = {
       department,
@@ -316,9 +293,7 @@ window.addTransfer = async function() {
       files: fileUrls,
       timestamp: new Date().toISOString()
     };
-    
     await push(transferRef, newTransfer);
-    
     Swal.fire({
       icon: 'success',
       title: 'تم',
@@ -328,13 +303,11 @@ window.addTransfer = async function() {
       position: 'top-end',
       toast: true
     });
-    
     // مسح الحقول
     document.getElementById("transferType").value = "";
     document.getElementById("transferNotes").value = "";
     document.getElementById("doctor").value = "";
     document.getElementById("transferFiles").value = "";
-    
   } catch (error) {
     console.error("Error adding transfer:", error);
     Swal.fire({
@@ -351,24 +324,18 @@ window.loadTransfers = function(patientId) {
   const transfersContainer = document.getElementById("transfersContainer");
   const searchInput = document.getElementById("searchTransfer");
   const statusFilter = document.getElementById("filterStatus");
-  
   // ربط البحث والفلترة بالتحديث
   searchInput.addEventListener("input", () => renderTransfers());
   statusFilter.addEventListener("change", () => renderTransfers());
-  
   function renderTransfers() {
     showLoading();
-    
     const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
     onValue(transfersRef, (snapshot) => {
       transfersContainer.innerHTML = "";
-      
       const transfers = snapshot.val() || {};
       const searchTerm = searchInput.value.toLowerCase();
       const statusValue = statusFilter.value;
-      
       let filteredTransfers = Object.entries(transfers);
-      
       // تطبيق فلترة الحالة
       if (statusValue !== "all") {
         filteredTransfers = filteredTransfers.filter(([_, transfer]) => {
@@ -378,7 +345,6 @@ window.loadTransfers = function(patientId) {
           return true;
         });
       }
-      
       // تطبيق البحث
       if (searchTerm) {
         filteredTransfers = filteredTransfers.filter(([_, transfer]) => {
@@ -387,7 +353,6 @@ window.loadTransfers = function(patientId) {
                  (transfer.notes && transfer.notes.toLowerCase().includes(searchTerm));
         });
       }
-      
       if (filteredTransfers.length === 0) {
         transfersContainer.innerHTML = `
           <div class="text-center py-8 text-gray-500">
@@ -398,11 +363,9 @@ window.loadTransfers = function(patientId) {
         hideLoading();
         return;
       }
-      
       filteredTransfers.forEach(([transferId, transfer]) => {
         const card = document.createElement("div");
         card.className = "bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow";
-        
         // تحديد أيقونة القسم
         let deptIcon, deptColor;
         switch (transfer.department) {
@@ -426,7 +389,6 @@ window.loadTransfers = function(patientId) {
             deptIcon = "fa-hospital";
             deptColor = "text-gray-600";
         }
-        
         // تحديد لون الحالة
         let statusColor, statusBg;
         switch (transfer.status) {
@@ -446,7 +408,6 @@ window.loadTransfers = function(patientId) {
             statusColor = "text-gray-600";
             statusBg = "bg-gray-100";
         }
-        
         // عرض الملفات إن وجدت
         let filesHtml = "";
         if (transfer.files && transfer.files.length > 0) {
@@ -463,10 +424,8 @@ window.loadTransfers = function(patientId) {
             </div>
           `;
         }
-        
         // إضافة الأزرار المناسبة حسب الحالة
         let actionButtons = "";
-        
         // زر تعديل للتحويلات قيد الانتظار
         if (transfer.status === "قيد الانتظار") {
           actionButtons += `
@@ -475,23 +434,30 @@ window.loadTransfers = function(patientId) {
             </button>
           `;
         }
-        
         // زر حذف لجميع الحالات
         actionButtons += `
           <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700" title="حذف التحويل">
             <i class="fas fa-trash"></i>
           </button>
         `;
-        
         // زر عرض التقرير للتحويلات المكتملة
         if (transfer.status === "مكتمل") {
-          actionButtons += `
-            <button onclick="viewTransferReport('${transferId}')" class="bg-purple-600 text-white p-1.5 rounded hover:bg-purple-700 ml-1" title="عرض التقرير">
-              <i class="fas fa-file-medical-alt"></i>
-            </button>
-          `;
+          // إذا كان التحويل لقسم الأشعة، نعرض زر خاص بنتيجة الأشعة
+          if (transfer.department === "radiology") {
+            actionButtons += `
+              <button onclick="viewRadiologyResult('${transferId}')" class="bg-teal-600 text-white p-1.5 rounded hover:bg-teal-700 ml-1" title="عرض نتيجة الأشعة">
+                <i class="fas fa-eye"></i>
+              </button>
+            `;
+          } else {
+            // للأقسام الأخرى نبقي الزر القديم
+            actionButtons += `
+              <button onclick="viewTransferReport('${transferId}')" class="bg-purple-600 text-white p-1.5 rounded hover:bg-purple-700 ml-1" title="عرض التقرير">
+                <i class="fas fa-file-medical-alt"></i>
+              </button>
+            `;
+          }
         }
-        
         card.innerHTML = `
           <div class="flex justify-between">
             <div>
@@ -532,29 +498,23 @@ window.loadTransfers = function(patientId) {
             </div>
           </div>
         `;
-        
         transfersContainer.appendChild(card);
       });
-      
       hideLoading();
     });
   }
-  
   renderTransfers();
 }
 // عرض التقرير الكامل
 window.viewTransferReport = function(transferId) {
   const patientId = new URLSearchParams(window.location.search).get("id");
   const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
-  
   get(transferRef).then((snapshot) => {
     if (snapshot.exists()) {
       const transfer = snapshot.val();
-      
       // إنشاء محتوى النافذة
       let reportContent = "";
       let fileHtml = "";
-      
       // عرض التقرير إن وجد
       if (transfer.report) {
         reportContent = `
@@ -566,7 +526,6 @@ window.viewTransferReport = function(transferId) {
           </div>
         `;
       }
-      
       // عرض الملفات إن وجدت
       if (transfer.files && transfer.files.length > 0) {
         fileHtml = `
@@ -590,7 +549,6 @@ window.viewTransferReport = function(transferId) {
           </div>
         `;
       }
-      
       // إنشاء النافذة المنبثقة
       Swal.fire({
         title: 'تفاصيل التحويل',
@@ -617,9 +575,7 @@ window.viewTransferReport = function(transferId) {
                 </div>
               </div>
             </div>
-            
             ${reportContent}
-            
             <div class="mb-4">
               <h4 class="font-semibold mb-2">بيانات المريض:</h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
@@ -641,13 +597,55 @@ window.viewTransferReport = function(transferId) {
                 </div>
               </div>
             </div>
-            
             ${fileHtml}
           </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'إغلاق',
         width: '60vw'
+      });
+    }
+  });
+}
+// عرض نتيجة الأشعة
+window.viewRadiologyResult = function(transferId) {
+  const patientId = new URLSearchParams(window.location.search).get("id");
+  const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
+  get(transferRef).then((snapshot) => {
+    if (snapshot.exists()) {
+      const transfer = snapshot.val();
+      let filesHtml = "";
+      if (transfer.files && transfer.files.length > 0) {
+        filesHtml = `
+          <div class="mb-4">
+            <h4 class="font-semibold mb-2">الصور/الملفات:</h4>
+            <div class="flex flex-wrap gap-2">
+              ${transfer.files.map(file => `
+                <a href="${file.url}" target="_blank">
+                  <img src="${file.url}" class="thumbnail" style="width:100px; height:100px; object-fit:cover; border:1px solid #ccc; border-radius:4px;" />
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      Swal.fire({
+        title: 'نتيجة الأشعة',
+        html: `
+          <div class="text-right">
+            <div class="mb-3">
+              <strong>الطبيب الفني:</strong> ${transfer.technician || '-'}
+            </div>
+            <div class="mb-3">
+              <strong>التقرير:</strong>
+              <div class="bg-gray-100 p-3 rounded mt-1">${transfer.report || 'لا يوجد تقرير'}</div>
+            </div>
+            ${filesHtml}
+          </div>
+        `,
+        width: '70%',
+        confirmButtonText: 'إغلاق'
       });
     }
   });
@@ -665,11 +663,9 @@ window.updateTransferStatus = function(transferId, newStatus) {
     if (result.isConfirmed) {
       const patientId = new URLSearchParams(window.location.search).get("id");
       const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
-      
       await update(transferRef, {
         status: getStatusText(newStatus)
       });
-      
       Swal.fire({
         icon: 'success',
         title: 'تم',
@@ -695,9 +691,7 @@ window.deleteTransfer = function(transferId) {
     if (result.isConfirmed) {
       const patientId = new URLSearchParams(window.location.search).get("id");
       const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
-      
       await remove(transferRef);
-      
       Swal.fire({
         icon: 'success',
         title: 'تم الحذف',
