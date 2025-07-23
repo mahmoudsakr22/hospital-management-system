@@ -24,9 +24,8 @@ font-weight: 500;
 <!-- Header -->
 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
 <div class="flex items-center gap-3">
-<div class="bg-blue-800 p-3 rounded-lg shadow-md">
-<i class="fas fa-hospital text-white text-2xl"></i>
-</div>
+<!-- استبدال الشعار بالصورة الجديدة -->
+<img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
 <div>
 <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
 <p class="text-gray-600">نظام إدارة ملفات المرضى</p>
@@ -38,7 +37,6 @@ font-weight: 500;
 <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
 </div>
 </div>
-
 <!-- بيانات المريض -->
 <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
 <div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
@@ -63,7 +61,6 @@ font-weight: 500;
 </div>
 </div>
 </div>
-
 <!-- نموذج تسجيل تحويل -->
 <div class="bg-white p-4 rounded shadow mb-6">
 <h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
@@ -87,18 +84,15 @@ font-weight: 500;
 <button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
 </div>
 </div>
-
 <!-- سجل التحويلات -->
 <div class="bg-white p-4 rounded shadow" id="transfersContainer">
 <h2 class="text-lg font-semibold mb-2">سجل التحويلات</h2>
 <ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
 </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getDatabase, ref, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
   authDomain: "hospital-project-e4b59.firebaseapp.com",
@@ -108,27 +102,21 @@ const firebaseConfig = {
   messagingSenderId: "974610606258",
   appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
-
 // تحميل بيانات المريض
 async function loadPatientData() {
   const infoTable = document.getElementById("infoTable");
   const patientStatus = document.getElementById("patientStatus");
   const qrCanvas = document.getElementById("qrCode");
-
   if (!patientId) {
     infoTable.innerHTML = "<tr><td colspan='2'>معرف المريض غير موجود في الرابط.</td></tr>";
     return;
   }
-
   const patientRef = ref(db, `patients/emergency/${patientId}`);
   const snapshot = await get(patientRef);
-
   if (snapshot.exists()) {
     const patient = snapshot.val();
     infoTable.innerHTML = `
@@ -149,7 +137,6 @@ async function loadPatientData() {
     patientStatus.textContent = "";
   }
 }
-
 // إظهار اختيار الجهاز عند اختيار الأشعة
 document.getElementById("transferDepartment").addEventListener("change", function() {
   const deviceSelect = document.getElementById("radiologyDevice");
@@ -160,14 +147,12 @@ document.getElementById("transferDepartment").addEventListener("change", functio
     deviceSelect.value = "";
   }
 });
-
 // تسجيل التحويل
 window.addTransfer = async function() {
   const department = document.getElementById("transferDepartment").value;
   const type = document.getElementById("transferType").value.trim();
   const notes = document.getElementById("transferNotes").value.trim();
   const device = document.getElementById("radiologyDevice").value;
-
   if (!department || !type) {
     Swal.fire("تنبيه", "يرجى ملء جميع الحقول", "warning");
     return;
@@ -176,7 +161,6 @@ window.addTransfer = async function() {
     Swal.fire("تنبيه", "يرجى اختيار جهاز الأشعة", "warning");
     return;
   }
-
   const newTransfer = {
     department,
     type,
@@ -185,7 +169,6 @@ window.addTransfer = async function() {
     date: new Date().toLocaleString('ar-EG'),
     status: "قيد الانتظار"
   };
-
   try {
     await push(ref(db, `patients/emergency/${patientId}/transfers`), newTransfer);
     Swal.fire({
@@ -200,7 +183,6 @@ window.addTransfer = async function() {
     console.error(error);
   }
 };
-
 // حذف سجل تحويل
 window.deleteTransfer = function(transferKey) {
   Swal.fire({
@@ -222,7 +204,6 @@ window.deleteTransfer = function(transferKey) {
     }
   });
 };
-
 // عرض سجل التحويلات
 window.loadTransfers = function() {
   const list = document.getElementById("transferList");
@@ -261,7 +242,6 @@ window.loadTransfers = function() {
     });
   });
 };
-
 // عرض النتيجة (مودال)
 window.showRadiologyReport = function(transfer) {
   let fileHtml = '';
@@ -277,7 +257,6 @@ window.showRadiologyReport = function(transfer) {
   } else {
     fileHtml = `<span class="text-gray-500">لا يوجد ملف مرفق</span>`;
   }
-
   Swal.fire({
     title: "نتيجة الأشعة",
     html: `
@@ -293,7 +272,6 @@ window.showRadiologyReport = function(transfer) {
     confirmButtonText: "إغلاق"
   });
 };
-
 if (patientId) {
   loadPatientData();
   loadTransfers();
