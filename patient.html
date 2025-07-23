@@ -1,227 +1,174 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام تحويلات الأشعة - مستشفى الحياة الذكية</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body { font-family: 'Tajawal', sans-serif; transition: background 0.3s, color 0.3s; }
-    .status-badge { display:inline-flex; align-items:center; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:500; }
-    .tab-active { border-bottom:3px solid #2563eb; color:#2563eb; font-weight:bold; }
-    .star { font-size: 1.5rem; cursor:pointer; color:gray; }
-    .star.selected { color:gold; }
-    .thumbnail { width:80px; height:80px; object-fit:cover; border:1px solid #ccc; border-radius:6px; cursor:pointer; }
-    .file-preview { max-width: 200px; max-height: 150px; object-fit: contain; border-radius: 4px; }
-    .timeline-container { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; }
-    .timeline-step { flex: 1; text-align: center; position: relative; }
-    .timeline-circle {
-      width: 28px; height: 28px; background: #2563eb; color: #fff;
-      border-radius: 50%; display: flex; items-center; justify-content: center;
-      margin: 0 auto 8px auto; font-weight: bold; font-size: 1.1rem;
-      border: 3px solid #e5e7eb;
-    }
-    .timeline-step:not(:last-child)::after {
-      content: '';
-      position: absolute; top: 14px; right: -50%; left: 50%;
-      height: 4px; background: #2563eb;
-      z-index: 0;
-    }
-    .timeline-label { font-size: 0.95rem; color: #2563eb; font-weight: 500; }
-    .timeline-date { font-size: 0.85rem; color: #6b7280; margin-top: 2px; }
-    .badge-new { position: relative; }
-    .badge-new::after {
-      content: '';
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      width: 10px;
-      height: 10px;
-      background: #ef4444;
-      border-radius: 50%;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>نظام تحويلات المرضى - مستشفى الحياة الذكية</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<style>
+body { font-family: 'Tajawal', sans-serif; }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+.patient-card {
+  transition: all 0.3s ease;
+}
+.patient-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+</style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+<!-- Loading Overlay -->
+<div id="loading" class="loading hidden">
+  <div class="text-center">
+    <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-3"></i>
+    <p class="text-blue-800 font-medium">جاري تحميل البيانات...</p>
+  </div>
+</div>
 <!-- Header -->
 <div class="flex justify-between items-center p-4 bg-white mb-6 border-b border-gray-200">
   <div class="flex items-center gap-3">
-    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
+    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-12 h-12 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-      <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
+      <h1 class="text-xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+      <div class="text-blue-900 text-xs font-semibold">SMART HAYAT HOSPITAL</div>
     </div>
   </div>
-  <div class="flex items-center gap-3">
-    <div class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-      <i class="fas fa-user-md mr-1"></i> <span id="doctorName">دكتور محمد أحمد</span>
-    </div>
-    <button onclick="window.location.href='index.html'" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">الرئيسية</button>
-  </div>
+  <div id="currentDate" class="text-sm"></div>
 </div>
-
 <div class="container mx-auto px-4 py-8 max-w-5xl">
-  <!-- Tabs Navigation -->
-  <div class="flex justify-around mb-6 border-b">
-    <button class="tab-btn py-2 px-4 tab-active" data-tab="transfersTab">
-      <i class="fas fa-exchange-alt mr-2"></i> سجل التحويلات
-    </button>
-    <button class="tab-btn py-2 px-4" data-tab="radiologyTab">
-      <i class="fas fa-x-ray mr-2"></i> طلبات الأشعة
-    </button>
-    <button class="tab-btn py-2 px-4" data-tab="completedTab">
-      <i class="fas fa-check-circle mr-2"></i> المكتملة
-    </button>
+  <!-- معلومات المريض -->
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
+      <div>
+        <h2 class="text-2xl font-bold">تفاصيل المريض</h2>
+        <p class="opacity-90">بيانات المريض الأساسية وتاريخ التحويلات</p>
+      </div>
+      <div id="patientStatus" class="status-badge bg-white text-blue-800">غير محدد</div>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div class="md:col-span-2">
+          <h3 class="text-xl font-semibold mb-4 text-blue-800">المعلومات الأساسية</h3>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <table class="table-auto w-full" id="infoTable"></table>
+          </div>
+        </div>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold mb-2 text-blue-800">رمز الاستجابة السريع</h3>
+          <canvas id="qrCode" class="w-40 h-40 mx-auto"></canvas>
+        </div>
+      </div>
+    </div>
   </div>
-
+  <!-- نموذج تسجيل تحويل جديد -->
+  <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+    <h2 class="text-xl font-semibold mb-4 text-blue-800 flex items-center">
+      <i class="fas fa-exchange-alt mr-2"></i> تسجيل تحويل جديد
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">القسم المستهدف</label>
+        <select id="transferDepartment" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">اختر القسم</option>
+          <option value="radiology">الأشعة</option>
+          <option value="lab">التحاليل</option>
+          <option value="icu">العناية المركزة</option>
+          <option value="surgery">العمليات</option>
+        </select>
+      </div>
+      
+      <!-- اختيار الجهاز يظهر فقط عند اختيار الأشعة -->
+      <div id="radiologyDeviceContainer" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-1">جهاز الأشعة</label>
+        <select id="radiologyDevice" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">اختر الجهاز</option>
+          <option value="xray">أشعة عادية</option>
+          <option value="ct">أشعة مقطعية</option>
+          <option value="mri">رنين مغناطيسي</option>
+          <option value="ultrasound">موجات صوتية</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">نوع الإجراء</label>
+        <input type="text" id="transferType" placeholder="مثال: أشعة صدر - تحليل دم" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">طبيب المتابعة</label>
+        <input type="text" id="doctor" placeholder="اسم الطبيب" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
+        <textarea id="transferNotes" rows="2" placeholder="ملاحظات التحويل أو بيانات المريض المهمة" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+      </div>
+      
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">ارفاق ملفات (اختياري)</label>
+        <input type="file" id="transferFiles" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" multiple>
+      </div>
+      
+      <div class="md:col-span-2">
+        <button onclick="addTransfer()" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center">
+          <i class="fas fa-plus-circle mr-2"></i> تسجيل التحويل
+        </button>
+      </div>
+    </div>
+  </div>
   <!-- سجل التحويلات -->
-  <div id="transfersTab" class="tab-content">
-    <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-blue-800">
-          <i class="fas fa-history mr-2"></i> سجل التحويلات
-        </h2>
-        <div class="flex gap-2">
-          <select id="filterDepartment" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm">
-            <option value="all">كل الأقسام</option>
-            <option value="radiology">الأشعة</option>
-            <option value="lab">التحاليل</option>
-            <option value="icu">العناية المركزة</option>
-            <option value="surgery">العمليات</option>
-          </select>
-          <input type="text" id="searchTransfer" placeholder="بحث..." class="border border-gray-300 rounded-md px-3 py-1.5 text-sm">
+  <div class="bg-white p-6 rounded-xl shadow-lg">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold text-blue-800 flex items-center">
+        <i class="fas fa-history mr-2"></i> سجل التحويلات
+      </h2>
+      <div class="flex items-center">
+        <div class="relative">
+          <input type="text" id="searchTransfer" placeholder="بحث في التحويلات..." class="border border-gray-300 rounded-md pl-8 pr-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <i class="fas fa-search absolute left-2 top-2.5 text-gray-400"></i>
         </div>
-      </div>
-      
-      <div id="transfersContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-        <!-- سيتم تحميل التحويلات هنا -->
+        <select id="filterStatus" class="border border-gray-300 rounded-md px-2 py-1 ml-2">
+          <option value="all">كل الحالات</option>
+          <option value="pending">قيد الانتظار</option>
+          <option value="in-progress">جاري العمل</option>
+          <option value="completed">مكتمل</option>
+        </select>
       </div>
     </div>
-  </div>
-
-  <!-- طلبات الأشعة -->
-  <div id="radiologyTab" class="tab-content hidden">
-    <div class="bg-white p-6 rounded-xl shadow-lg">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-blue-800">
-          <i class="fas fa-x-ray mr-2"></i> طلبات الأشعة قيد الانتظار
-        </h2>
-        <div class="flex gap-2">
-          <select id="radiologyFilter" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm">
-            <option value="pending">قيد الانتظار</option>
-            <option value="processing">جاري المعالجة</option>
-            <option value="completed">مكتمل</option>
-          </select>
-        </div>
-      </div>
-      
-      <div id="radiologyContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-        <!-- سيتم تحميل طلبات الأشعة هنا -->
-      </div>
-    </div>
-  </div>
-
-  <!-- المكتملة -->
-  <div id="completedTab" class="tab-content hidden">
-    <div class="bg-white p-6 rounded-xl shadow-lg">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-blue-800">
-          <i class="fas fa-check-circle mr-2"></i> التحويلات المكتملة
-        </h2>
-        <div class="flex gap-2">
-          <select id="completedFilter" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm">
-            <option value="all">كل الحالات</option>
-            <option value="today">اليوم</option>
-            <option value="week">هذا الأسبوع</option>
-          </select>
-        </div>
-      </div>
-      
-      <div id="completedContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-        <!-- سيتم تحميل التحويلات المكتملة هنا -->
-      </div>
-    </div>
-  </div>
-
-  <!-- تفاصيل التحويل (Modal) -->
-  <div id="transferModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-      <div class="p-6 border-b">
-        <div class="flex justify-between items-center">
-          <h3 class="text-xl font-bold text-blue-800" id="modalTitle">تفاصيل التحويل</h3>
-          <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-      </div>
-      
-      <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- معلومات المريض -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="font-bold text-blue-800 mb-3">معلومات المريض</h4>
-            <div id="modalPatientInfo" class="space-y-2 text-sm"></div>
-            <div class="mt-4 flex justify-center">
-              <canvas id="modalQrCode" class="w-32 h-32"></canvas>
-            </div>
-          </div>
-          
-          <!-- تفاصيل التحويل -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="font-bold text-blue-800 mb-3">تفاصيل التحويل</h4>
-            <div id="modalTransferInfo" class="space-y-2 text-sm"></div>
-          </div>
-          
-          <!-- ملفات وأشعة -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h4 class="font-bold text-blue-800 mb-3">ملفات وأشعة</h4>
-            <div id="modalFiles" class="space-y-3"></div>
-          </div>
-        </div>
-        
-        <!-- تقرير الأشعة -->
-        <div id="modalRadiologyReport" class="mt-6 bg-gray-50 p-4 rounded-lg doctor-controls">
-          <h4 class="font-bold text-blue-800 mb-3">تقرير الأشعة</h4>
-          <div class="space-y-3">
-            <div>
-              <label class="block text-sm font-medium mb-1">اسم الفني:</label>
-              <input id="modalTechnician" class="border rounded p-2 w-full" placeholder="اسم الفني">
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">تقرير:</label>
-              <textarea id="modalReport" class="border rounded p-2 w-full" rows="3" placeholder="اكتب تقرير الأشعة..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">الحالة:</label>
-              <select id="modalStatus" class="border rounded p-2 w-full">
-                <option value="قيد الانتظار">قيد الانتظار</option>
-                <option value="جاري المعالجة">جاري المعالجة</option>
-                <option value="تم التنفيذ">تم التنفيذ</option>
-                <option value="مرفوض">مرفوض</option>
-              </select>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="saveRadiologyReport()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">
-                <i class="fas fa-save mr-1"></i> حفظ التقرير
-              </button>
-              <button onclick="downloadRadiologyReport()" class="bg-green-600 text-white px-4 py-2 rounded text-sm">
-                <i class="fas fa-download mr-1"></i> تحميل PDF
-              </button>
-            </div>
-          </div>
-        </div>
+    
+    <div id="transfersContainer" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+      <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-hourglass-half text-4xl mb-3"></i>
+        <p>جاري تحميل سجل التحويلات...</p>
       </div>
     </div>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, child, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onValue, get, remove, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -235,584 +182,530 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const storage = getStorage(app);
-
-// Global variables
-let currentTransferId = null;
-let currentPatientId = null;
-let isDoctor = true; // Assume doctor by default
-
-// Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-  setupTabNavigation();
-  loadDoctorName();
-  loadTransfers();
-  setupEventListeners();
-});
-
-// Setup tab navigation
-function setupTabNavigation() {
-  document.querySelectorAll('.tab-btn').forEach(button => {
-    button.addEventListener('click', () => {
-      // Hide all tab contents
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.add('hidden');
-      });
-      
-      // Remove active class from all buttons
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('tab-active');
-      });
-      
-      // Show selected tab content
-      const tabId = button.getAttribute('data-tab');
-      document.getElementById(tabId).classList.remove('hidden');
-      
-      // Add active class to clicked button
-      button.classList.add('tab-active');
-    });
-  });
-}
-
-// Load doctor name
-function loadDoctorName() {
-  // This would typically come from authentication
-  // For demo purposes, we'll use a static name
-  document.getElementById('doctorName').textContent = 'دكتور محمد أحمد';
-}
-
-// Load transfers
-function loadTransfers() {
-  showLoading();
+// تحميل بيانات المريض
+async function loadPatientData() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get("id");
   
-  const transfersRef = ref(db, 'transfers');
-  onValue(transfersRef, (snapshot) => {
-    const transfers = snapshot.val() || {};
-    const transfersContainer = document.getElementById('transfersContainer');
-    const radiologyContainer = document.getElementById('radiologyContainer');
-    const completedContainer = document.getElementById('completedContainer');
+  if (!patientId) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'خطأ',
+      text: 'معرف المريض غير موجود في الرابط',
+      confirmButtonText: 'حسناً'
+    });
+    return;
+  }
+  
+  const infoTable = document.getElementById("infoTable");
+  const patientStatus = document.getElementById("patientStatus");
+  const qrCanvas = document.getElementById("qrCode");
+  
+  try {
+    showLoading();
+    const patientRef = ref(db, `patients/emergency/${patientId}`);
+    const snapshot = await get(patientRef);
     
-    transfersContainer.innerHTML = '';
-    radiologyContainer.innerHTML = '';
-    completedContainer.innerHTML = '';
-    
-    if (Object.keys(transfers).length === 0) {
-      transfersContainer.innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-          <i class="fas fa-folder-open text-4xl mb-3"></i>
-          <p>لا يوجد تحويلات مسجلة</p>
-        </div>
+    if (snapshot.exists()) {
+      const patient = snapshot.val();
+      
+      // تعبئة معلومات المريض
+      infoTable.innerHTML = `
+        <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
+        <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${patient.timestamp ? new Date(patient.timestamp).toLocaleString("ar-EG") : '-'}</td></tr>
+        <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">فصيلة الدم:</td><td class="py-1">${patient.bloodType || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctor || '-'}</td></tr>
       `;
-      return;
-    }
-    
-    // Sort transfers by date (newest first)
-    const sortedTransfers = Object.entries(transfers).sort((a, b) => {
-      return new Date(b[1].timestamp) - new Date(a[1].timestamp);
-    });
-    
-    sortedTransfers.forEach(([transferId, transfer]) => {
-      const transferCard = createTransferCard(transferId, transfer);
       
-      // Add to appropriate container based on status
-      if (transfer.status === 'قيد الانتظار' && transfer.department === 'radiology') {
-        radiologyContainer.appendChild(transferCard);
-      } else if (transfer.status === 'مكتمل') {
-        completedContainer.appendChild(transferCard);
-      } else {
-        transfersContainer.appendChild(transferCard);
-      }
-    });
-    
-    hideLoading();
-  });
-}
-
-// Create transfer card
-function createTransferCard(transferId, transfer) {
-  const card = document.createElement('div');
-  card.className = 'bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300';
-  
-  // Determine status color
-  let statusColor = 'bg-gray-200 text-gray-800';
-  if (transfer.status === 'قيد الانتظار') statusColor = 'bg-yellow-100 text-yellow-800';
-  else if (transfer.status === 'مكتمل') statusColor = 'bg-green-100 text-green-800';
-  else if (transfer.status === 'جاري المعالجة') statusColor = 'bg-blue-100 text-blue-800';
-  else if (transfer.status === 'مرفوض') statusColor = 'bg-red-100 text-red-800';
-  
-  // Format date
-  const transferDate = new Date(transfer.timestamp).toLocaleString('ar-EG');
-  
-  // Check if this transfer has new results
-  const hasNewResults = transfer.radiologyReport && transfer.radiologyReport.status === 'completed' && 
-                        !transfer.viewedByDoctor;
-  
-  card.innerHTML = `
-    <div class="flex justify-between">
-      <div class="flex-1">
-        <div class="flex items-center mb-2">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 mr-2">
-            <i class="fas ${getDepartmentIcon(transfer.department)}"></i>
-          </span>
-          <h3 class="font-bold text-lg">${transfer.patientName}</h3>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-          <div class="flex items-center">
-            <i class="fas fa-calendar-alt text-gray-500 mr-1"></i>
-            <span>${transferDate}</span>
-          </div>
-          <div class="flex items-center">
-            <i class="fas fa-hospital-alt text-gray-500 mr-1"></i>
-            <span>${getDepartmentName(transfer.department)}</span>
-          </div>
-          <div class="flex items-center">
-            <i class="fas fa-clipboard-list text-gray-500 mr-1"></i>
-            <span>${transfer.type || 'تحويل عام'}</span>
-          </div>
-          <div class="flex items-center">
-            <i class="fas fa-user-md text-gray-500 mr-1"></i>
-            <span>${transfer.doctor || 'غير محدد'}</span>
-          </div>
-        </div>
-        
-        <div class="mt-2">
-          <span class="status-badge ${statusColor} text-sm py-1 px-2 rounded-full">
-            ${transfer.status || 'غير محدد'}
-          </span>
-          
-          ${hasNewResults ? `
-            <span class="status-badge bg-red-100 text-red-800 text-sm py-1 px-2 rounded-full ml-2 badge-new">
-              <i class="fas fa-bell mr-1"></i> نتائج جديدة
-            </span>
-          ` : ''}
-        </div>
-      </div>
+      // تعيين الحالة
+      patientStatus.textContent = patient.status || "غير محدد";
       
-      <div class="flex flex-col space-y-2">
-        <button onclick="viewTransferDetails('${transferId}')" class="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700 text-sm">
-          <i class="fas fa-eye mr-1"></i> عرض التفاصيل
-        </button>
-        
-        ${isDoctor ? `
-          <button onclick="viewRadiologyReport('${transferId}')" class="bg-green-600 text-white p-1.5 rounded hover:bg-green-700 text-sm">
-            <i class="fas fa-file-medical mr-1"></i> عرض التقرير
-          </button>
-        ` : ''}
-        
-        <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700 text-sm">
-          <i class="fas fa-trash mr-1"></i> حذف
-        </button>
-      </div>
-    </div>
-  `;
-  
-  return card;
-}
-
-// Get department icon
-function getDepartmentIcon(department) {
-  const icons = {
-    'radiology': 'fa-x-ray',
-    'lab': 'fa-flask',
-    'icu': 'fa-procedures',
-    'surgery': 'fa-user-md',
-    'pharmacy': 'fa-pills',
-    'physiotherapy': 'fa-heartbeat'
-  };
-  
-  return icons[department] || 'fa-hospital';
-}
-
-// Get department name
-function getDepartmentName(department) {
-  const names = {
-    'radiology': 'الأشعة',
-    'lab': 'التحاليل',
-    'icu': 'العناية المركزة',
-    'surgery': 'العمليات',
-    'pharmacy': 'الصيدلية',
-    'physiotherapy': 'العلاج الطبيعي'
-  };
-  
-  return names[department] || department;
-}
-
-// View transfer details
-window.viewTransferDetails = function(transferId) {
-  showLoading();
-  currentTransferId = transferId;
-  
-  const transferRef = ref(db, `transfers/${transferId}`);
-  get(transferRef).then((snapshot) => {
-    if (snapshot.exists()) {
-      const transfer = snapshot.val();
-      currentPatientId = transfer.patientId;
-      
-      // Populate modal with transfer details
-      populateModal(transfer);
-      openModal();
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'خطأ',
-        text: 'لم يتم العثور على تفاصيل التحويل'
+      // إنشاء رمز الاستجابة السريع
+      QRCode.toCanvas(qrCanvas, patientId, function (error) {
+        if (error) console.error(error);
       });
+      
+      // تحميل سجل التحويلات
+      loadTransfers(patientId);
+      
+    } else {
+      infoTable.innerHTML = "<tr><td colspan='2' class='text-center py-4'>لم يتم العثور على بيانات المريض</td></tr>";
+      patientStatus.textContent = "";
     }
-    hideLoading();
-  });
-};
-
-// Populate modal with transfer details
-function populateModal(transfer) {
-  // Patient info
-  const patientInfo = document.getElementById('modalPatientInfo');
-  patientInfo.innerHTML = `
-    <div><b>الاسم:</b> ${transfer.patientName || '-'}</div>
-    <div><b>العمر:</b> ${transfer.patientAge || '-'}</div>
-    <div><b>الرقم القومي:</b> ${transfer.patientId || '-'}</div>
-    <div><b>القسم:</b> ${getDepartmentName(transfer.department) || '-'}</div>
-    <div><b>الطبيب المعالج:</b> ${transfer.doctor || '-'}</div>
-    <div><b>التاريخ:</b> ${new Date(transfer.timestamp).toLocaleString('ar-EG') || '-'}</div>
-  `;
-  
-  // Generate QR code
-  QRCode.toCanvas(document.getElementById('modalQrCode'), transfer.patientId, function (error) {
-    if (error) console.error(error);
-  });
-  
-  // Transfer info
-  const transferInfo = document.getElementById('modalTransferInfo');
-  transferInfo.innerHTML = `
-    <div><b>نوع التحويل:</b> ${transfer.type || '-'}</div>
-    <div><b>القسم المستهدف:</b> ${getDepartmentName(transfer.department) || '-'}</div>
-    <div><b>الحالة:</b> <span class="status-badge ${getStatusColor(transfer.status)}">${transfer.status || '-'}</span></div>
-    <div><b>الملاحظات:</b> ${transfer.notes || '-'}</div>
-  `;
-  
-  // Files and radiology info
-  const filesContainer = document.getElementById('modalFiles');
-  filesContainer.innerHTML = '';
-  
-  if (transfer.files && transfer.files.length > 0) {
-    transfer.files.forEach(file => {
-      const filePreview = document.createElement('div');
-      filePreview.className = 'flex items-center bg-gray-100 p-2 rounded';
-      
-      if (file.type.startsWith('image/')) {
-        filePreview.innerHTML = `
-          <img src="${file.url}" class="file-preview mr-3" alt="ملف">
-          <div>
-            <div class="text-sm font-medium">${file.name}</div>
-            <div class="text-xs text-gray-500">صورة</div>
-          </div>
-        `;
-      } else if (file.type === 'application/pdf') {
-        filePreview.innerHTML = `
-          <div class="bg-red-100 text-red-800 w-10 h-10 flex items-center justify-center rounded mr-3">
-            <i class="fas fa-file-pdf"></i>
-          </div>
-          <div>
-            <div class="text-sm font-medium">${file.name}</div>
-            <div class="text-xs text-gray-500">PDF</div>
-          </div>
-        `;
-      }
-      
-      filesContainer.appendChild(filePreview);
+  } catch (error) {
+    console.error("Error loading patient data:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'خطأ',
+      text: 'حدث خطأ أثناء تحميل بيانات المريض'
     });
+  } finally {
+    hideLoading();
+  }
+}
+// إظهار اختيار الجهاز عند اختيار الأشعة
+document.getElementById("transferDepartment").addEventListener("change", function() {
+  const deviceContainer = document.getElementById("radiologyDeviceContainer");
+  if (this.value === "radiology") {
+    deviceContainer.classList.remove("hidden");
   } else {
-    filesContainer.innerHTML = '<div class="text-gray-500 text-sm">لا توجد ملفات مرفقة</div>';
+    deviceContainer.classList.add("hidden");
+  }
+});
+// إضافة تحويل جديد
+window.addTransfer = async function() {
+  const department = document.getElementById("transferDepartment").value;
+  const type = document.getElementById("transferType").value.trim();
+  const notes = document.getElementById("transferNotes").value.trim();
+  const doctor = document.getElementById("doctor").value.trim();
+  const device = document.getElementById("radiologyDevice").value;
+  const files = document.getElementById("transferFiles").files;
+  
+  if (!department || !type) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'بيانات ناقصة',
+      text: 'يرجى ملء الحقول الإلزامية',
+      confirmButtonText: 'حسناً'
+    });
+    return;
   }
   
-  // Radiology report section
-  const radiologyReportSection = document.getElementById('modalRadiologyReport');
-  if (transfer.department === 'radiology') {
-    radiologyReportSection.classList.remove('hidden');
-    
-    // Pre-fill radiology report if exists
-    document.getElementById('modalTechnician').value = transfer.radiologyReport?.technician || '';
-    document.getElementById('modalReport').value = transfer.radiologyReport?.report || '';
-    document.getElementById('modalStatus').value = transfer.radiologyReport?.status || 'قيد الانتظار';
-  } else {
-    radiologyReportSection.classList.add('hidden');
+  if (department === "radiology" && !device) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'بيانات ناقصة',
+      text: 'يرجى اختيار جهاز الأشعة',
+      confirmButtonText: 'حسناً'
+    });
+    return;
   }
-}
-
-// Open modal
-function openModal() {
-  document.getElementById('transferModal').classList.remove('hidden');
-}
-
-// Close modal
-window.closeModal = function() {
-  document.getElementById('transferModal').classList.add('hidden');
-};
-
-// View radiology report
-window.viewRadiologyReport = function(transferId) {
+  
   showLoading();
   
-  const transferRef = ref(db, `transfers/${transferId}`);
-  get(transferRef).then(async (snapshot) => {
-    if (snapshot.exists()) {
-      const transfer = snapshot.val();
+  try {
+    const patientId = new URLSearchParams(window.location.search).get("id");
+    const transferRef = ref(db, `patients/emergency/${patientId}/transfers`);
+    
+    // تحميل الملفات إن وجدت
+    let fileUrls = [];
+    if (files.length > 0) {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const fileRef = storageRef(storage, `transfers/${patientId}/${Date.now()}_${file.name}`);
+        await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(fileRef);
+        return { name: file.name, url: downloadURL };
+      });
       
-      if (transfer.department === 'radiology') {
-        // Create a dedicated radiology report view
-        const reportHtml = generateRadiologyReportHtml(transfer);
-        
-        Swal.fire({
-          title: 'تقرير الأشعة',
-          html: reportHtml,
-          width: '80%',
-          showCloseButton: true,
-          confirmButtonText: 'إغلاق',
-          showClass: {
-            popup: 'animate__animated animate__fadeInDown'
-          },
-          hideClass: {
-            popup: 'animate__animated animate__fadeOutUp'
-          }
-        });
-      } else {
-        Swal.fire({
-          icon: 'warning',
-          title: 'غير متاح',
-          text: 'هذا التحويل ليس لقسم الأشعة'
-        });
-      }
+      fileUrls = await Promise.all(uploadPromises);
     }
-    hideLoading();
-  });
-};
-
-// Generate radiology report HTML
-function generateRadiologyReportHtml(transfer) {
-  let filesHtml = '';
-  if (transfer.files && transfer.files.length > 0) {
-    filesHtml = `
-      <div class="mt-4">
-        <h4 class="font-bold mb-2">الملفات المرفقة:</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          ${transfer.files.map(file => `
-            <div class="border rounded-lg overflow-hidden">
-              <div class="bg-gray-100 p-2 text-center">
-                <i class="fas fa-file-alt text-blue-600 mr-1"></i>
-                <span class="text-sm font-medium">${file.name}</span>
-              </div>
-              <div class="p-2 flex justify-center">
-                <a href="${file.url}" target="_blank" class="bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                  <i class="fas fa-download mr-1"></i> تحميل
-                </a>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
-  
-  return `
-    <div class="rtl">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h4 class="font-bold mb-3">معلومات المريض</h4>
-          <div class="space-y-2 text-sm">
-            <div><b>الاسم:</b> ${transfer.patientName || '-'}</div>
-            <div><b>العمر:</b> ${transfer.patientAge || '-'}</div>
-            <div><b>الرقم القومي:</b> ${transfer.patientId || '-'}</div>
-            <div><b>القسم:</b> ${getDepartmentName(transfer.department) || '-'}</div>
-          </div>
-        </div>
-        
-        <div>
-          <h4 class="font-bold mb-3">تفاصيل الأشعة</h4>
-          <div class="space-y-2 text-sm">
-            <div><b>نوع الأشعة:</b> ${transfer.type || '-'}</div>
-            <div><b>الجهاز:</b> ${transfer.radiologyReport?.device || '-'}</div>
-            <div><b>الفني:</b> ${transfer.radiologyReport?.technician || '-'}</div>
-            <div><b>تاريخ التنفيذ:</b> ${transfer.radiologyReport?.executionDate || '-'}</div>
-            <div><b>الحالة:</b> <span class="status-badge ${getStatusColor(transfer.radiologyReport?.status)}">${transfer.radiologyReport?.status || '-'}</span></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="mt-6">
-        <h4 class="font-bold mb-3">تقرير الأشعة</h4>
-        <div class="bg-gray-50 p-3 rounded-lg text-sm">
-          ${transfer.radiologyReport?.report || 'لا يوجد تقرير بعد'}
-        </div>
-      </div>
-      
-      ${filesHtml}
-      
-      <div class="mt-6">
-        <h4 class="font-bold mb-3">الملاحظات الطبية</h4>
-        <div class="bg-gray-50 p-3 rounded-lg text-sm">
-          ${transfer.radiologyReport?.medicalNotes || 'لا توجد ملاحظات طبية'}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// Save radiology report
-window.saveRadiologyReport = function() {
-  if (!currentTransferId) return;
-  
-  const technician = document.getElementById('modalTechnician').value;
-  const report = document.getElementById('modalReport').value;
-  const status = document.getElementById('modalStatus').value;
-  
-  const updates = {
-    'radiologyReport': {
-      technician,
-      report,
-      status,
-      lastEditedBy: 'دكتور محمد أحمد',
-      lastEditDate: new Date().toLocaleString('ar-EG')
-    }
-  };
-  
-  // If status is completed, add execution date
-  if (status === 'تم التنفيذ') {
-    updates['radiologyReport'].executionDate = new Date().toLocaleString('ar-EG');
-  }
-  
-  const transferRef = ref(db, `transfers/${currentTransferId}`);
-  update(transferRef, updates).then(() => {
+    
+    // إنشاء سجل التحويل
+    const newTransfer = {
+      department,
+      type,
+      notes,
+      doctor,
+      device: department === "radiology" ? device : "",
+      date: new Date().toLocaleString('ar-EG'),
+      status: "قيد الانتظار",
+      files: fileUrls,
+      timestamp: new Date().toISOString()
+    };
+    
+    await push(transferRef, newTransfer);
+    
     Swal.fire({
       icon: 'success',
-      title: 'تم الحفظ',
-      text: 'تم تحديث تقرير الأشعة بنجاح',
+      title: 'تم',
+      text: 'تم تسجيل التحويل بنجاح',
       timer: 1500,
       showConfirmButton: false,
       position: 'top-end',
       toast: true
     });
-  });
-};
-
-// Download radiology report as PDF
-window.downloadRadiologyReport = function() {
-  if (!currentTransferId) return;
+    
+    // مسح الحقول
+    document.getElementById("transferType").value = "";
+    document.getElementById("transferNotes").value = "";
+    document.getElementById("doctor").value = "";
+    document.getElementById("transferFiles").value = "";
+    
+  } catch (error) {
+    console.error("Error adding transfer:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'خطأ',
+      text: 'حدث خطأ أثناء تسجيل التحويل'
+    });
+  } finally {
+    hideLoading();
+  }
+}
+// تحميل سجل التحويلات
+window.loadTransfers = function(patientId) {
+  const transfersContainer = document.getElementById("transfersContainer");
+  const searchInput = document.getElementById("searchTransfer");
+  const statusFilter = document.getElementById("filterStatus");
   
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  // ربط البحث والفلترة بالتحديث
+  searchInput.addEventListener("input", () => renderTransfers());
+  statusFilter.addEventListener("change", () => renderTransfers());
   
-  doc.setFont('Tajawal', 'normal');
-  doc.setFontSize(16);
-  doc.text('تقرير الأشعة - مستشفى الحياة الذكية', 105, 15, { align: 'center' });
-  
-  doc.setFontSize(12);
-  doc.text(`المريض: ${currentPatientId}`, 10, 30);
-  doc.text(`التاريخ: ${new Date().toLocaleDateString('ar-EG')}`, 10, 40);
-  
-  doc.setFontSize(14);
-  doc.text('تفاصيل الأشعة', 10, 55);
-  doc.setFontSize(12);
-  doc.text(`نوع الأشعة: ${document.getElementById('modalReport').value || '-'}`, 10, 65);
-  doc.text(`الجهاز: ${document.getElementById('modalTechnician').value || '-'}`, 10, 75);
-  
-  doc.setFontSize(14);
-  doc.text('التقرير', 10, 90);
-  doc.setFontSize(12);
-  
-  // Split report text into lines
-  const reportText = document.getElementById('modalReport').value;
-  const splitText = doc.splitTextToSize(reportText, 180, 12);
-  doc.text(splitText, 10, 100);
-  
-  doc.save(`تقرير_أشعة_${currentPatientId}.pdf`);
-};
-
-// Delete transfer
-window.deleteTransfer = function(transferId) {
-  Swal.fire({
-    title: 'تأكيد الحذف',
-    text: 'هل أنت متأكد من حذف هذا التحويل؟',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'نعم، احذف',
-    cancelButtonText: 'إلغاء'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const transferRef = ref(db, `transfers/${transferId}`);
-      remove(transferRef)
-        .then(() => {
-          Swal.fire({
-            icon: 'success',
-            title: 'تم الحذف',
-            text: 'تم حذف التحويل بنجاح',
-            timer: 1500,
-            showConfirmButton: false,
-            position: 'top-end',
-            toast: true
-          });
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: 'حدث خطأ أثناء الحذف'
-          });
+  function renderTransfers() {
+    showLoading();
+    
+    const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
+    onValue(transfersRef, (snapshot) => {
+      transfersContainer.innerHTML = "";
+      
+      const transfers = snapshot.val() || {};
+      const searchTerm = searchInput.value.toLowerCase();
+      const statusValue = statusFilter.value;
+      
+      let filteredTransfers = Object.entries(transfers);
+      
+      // تطبيق فلترة الحالة
+      if (statusValue !== "all") {
+        filteredTransfers = filteredTransfers.filter(([_, transfer]) => {
+          if (statusValue === "pending") return transfer.status === "قيد الانتظار";
+          if (statusValue === "in-progress") return transfer.status === "جاري العمل";
+          if (statusValue === "completed") return transfer.status === "مكتمل";
+          return true;
         });
-    }
-  });
-};
-
-// Setup event listeners
-function setupEventListeners() {
-  // Search functionality
-  document.getElementById('searchTransfer').addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    document.querySelectorAll('#transfersContainer .bg-white').forEach(card => {
-      const cardText = card.textContent.toLowerCase();
-      card.style.display = cardText.includes(searchTerm) ? 'block' : 'none';
+      }
+      
+      // تطبيق البحث
+      if (searchTerm) {
+        filteredTransfers = filteredTransfers.filter(([_, transfer]) => {
+          return transfer.type.toLowerCase().includes(searchTerm) ||
+                 transfer.department.toLowerCase().includes(searchTerm) ||
+                 (transfer.notes && transfer.notes.toLowerCase().includes(searchTerm));
+        });
+      }
+      
+      if (filteredTransfers.length === 0) {
+        transfersContainer.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-search text-4xl mb-3"></i>
+            <p>لا يوجد تحويلات تطابق البحث</p>
+          </div>
+        `;
+        hideLoading();
+        return;
+      }
+      
+      filteredTransfers.forEach(([transferId, transfer]) => {
+        const card = document.createElement("div");
+        card.className = "bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow";
+        
+        // تحديد أيقونة القسم
+        let deptIcon, deptColor;
+        switch (transfer.department) {
+          case "radiology":
+            deptIcon = "fa-x-ray";
+            deptColor = "text-teal-600";
+            break;
+          case "lab":
+            deptIcon = "fa-flask";
+            deptColor = "text-purple-600";
+            break;
+          case "icu":
+            deptIcon = "fa-procedures";
+            deptColor = "text-red-600";
+            break;
+          case "surgery":
+            deptIcon = "fa-user-md";
+            deptColor = "text-blue-600";
+            break;
+          default:
+            deptIcon = "fa-hospital";
+            deptColor = "text-gray-600";
+        }
+        
+        // تحديد لون الحالة
+        let statusColor, statusBg;
+        switch (transfer.status) {
+          case "قيد الانتظار":
+            statusColor = "text-yellow-600";
+            statusBg = "bg-yellow-100";
+            break;
+          case "جاري العمل":
+            statusColor = "text-blue-600";
+            statusBg = "bg-blue-100";
+            break;
+          case "مكتمل":
+            statusColor = "text-green-600";
+            statusBg = "bg-green-100";
+            break;
+          default:
+            statusColor = "text-gray-600";
+            statusBg = "bg-gray-100";
+        }
+        
+        // عرض الملفات إن وجدت
+        let filesHtml = "";
+        if (transfer.files && transfer.files.length > 0) {
+          filesHtml = `
+            <div class="mt-2 pt-2 border-t border-gray-100">
+              <p class="text-sm font-medium text-gray-700 mb-1">الملفات المرفقة:</p>
+              <div class="flex flex-wrap gap-2">
+                ${transfer.files.map(file => `
+                  <a href="${file.url}" target="_blank" class="flex items-center bg-gray-100 text-blue-700 px-2 py-1 rounded text-xs">
+                    <i class="fas fa-file-alt mr-1"></i> ${file.name}
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+        
+        // إضافة أزرار التعديل والحذف للتحويلات قيد الانتظار
+        let actionButtons = "";
+        if (transfer.status === "قيد الانتظار") {
+          actionButtons = `
+            <button onclick="updateTransferStatus('${transferId}', 'in-progress')" class="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700 mr-1" title="بدء العمل">
+              <i class="fas fa-play"></i>
+            </button>
+            <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700" title="حذف التحويل">
+              <i class="fas fa-trash"></i>
+            </button>
+          `;
+        } else if (transfer.status === "جاري العمل") {
+          actionButtons = `
+            <button onclick="updateTransferStatus('${transferId}', 'completed')" class="bg-green-600 text-white p-1.5 rounded hover:bg-green-700 mr-1" title="إكمال التحويل">
+              <i class="fas fa-check"></i>
+            </button>
+            <button onclick="deleteTransfer('${transferId}')" class="bg-red-600 text-white p-1.5 rounded hover:bg-red-700" title="حذف التحويل">
+              <i class="fas fa-trash"></i>
+            </button>
+          `;
+        }
+        
+        // إضافة زر عرض التقرير للتحويلات المكتملة للأشعة
+        if (transfer.status === "مكتمل" && transfer.department === "radiology") {
+          actionButtons += `
+            <button onclick="viewRadiologyReport('${transferId}')" class="bg-purple-600 text-white p-1.5 rounded hover:bg-purple-700 ml-1" title="عرض التقرير">
+              <i class="fas fa-file-medical-alt"></i>
+            </button>
+          `;
+        }
+        
+        card.innerHTML = `
+          <div class="flex justify-between">
+            <div>
+              <div class="flex items-center mb-2">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 mr-2">
+                  <i class="fas ${deptIcon}"></i>
+                </span>
+                <h3 class="font-bold text-lg">${transfer.type}</h3>
+              </div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div class="flex items-center">
+                  <i class="fas fa-hospital-alt text-gray-500 mr-1"></i>
+                  <span>${getDepartmentName(transfer.department)}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-calendar-alt text-gray-500 mr-1"></i>
+                  <span>${transfer.date}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-user-md text-gray-500 mr-1"></i>
+                  <span>${transfer.doctor || '-'}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-clipboard-check text-gray-500 mr-1"></i>
+                  <span class="${statusColor} font-medium">${transfer.status}</span>
+                </div>
+              </div>
+              ${transfer.notes ? `
+                <div class="mt-2 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                  <i class="fas fa-sticky-note text-gray-500 mr-1"></i>
+                  <span>${transfer.notes}</span>
+                </div>
+              ` : ''}
+              ${filesHtml}
+            </div>
+            <div class="flex flex-col space-y-2">
+              ${actionButtons}
+            </div>
+          </div>
+        `;
+        
+        transfersContainer.appendChild(card);
+      });
+      
+      hideLoading();
     });
-  });
+  }
   
-  // Department filter
-  document.getElementById('filterDepartment').addEventListener('change', (e) => {
-    const department = e.target.value;
-    document.querySelectorAll('#transfersContainer .bg-white').forEach(card => {
-      const cardDepartment = card.querySelector('.text-blue-800').textContent.toLowerCase();
-      card.style.display = department === 'all' || cardDepartment.includes(department) ? 'block' : 'none';
-    });
-  });
+  renderTransfers();
+}
+// عرض التقرير الأشعاعي
+window.viewRadiologyReport = function(transferId) {
+  const patientId = new URLSearchParams(window.location.search).get("id");
+  const transferRef = ref(db, `patients/emergency/${patientId}/transfers/${transferId}`);
   
-  // Close modal when clicking outside
-  document.getElementById('transferModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('transferModal')) {
-      closeModal();
+  get(transferRef).then((snapshot) => {
+    if (snapshot.exists()) {
+      const transfer = snapshot.val();
+      
+      // إنشاء محتوى النافذة
+      let reportContent = "";
+      let fileHtml = "";
+      
+      // عرض التقرير إن وجد
+      if (transfer.report) {
+        reportContent = `
+          <div class="mb-4">
+            <h4 class="font-semibold mb-2">تفاصيل التقرير:</h4>
+            <div class="bg-gray-50 p-3 rounded">
+              <p class="text-gray-700">${transfer.report}</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      // عرض الملفات إن وجدت
+      if (transfer.files && transfer.files.length > 0) {
+        fileHtml = `
+          <div class="mb-4">
+            <h4 class="font-semibold mb-2">الملفات المرفقة:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              ${transfer.files.map(file => `
+                <div class="border rounded-lg overflow-hidden">
+                  <div class="bg-gray-100 p-2 text-center">
+                    <i class="fas fa-file-alt text-blue-600 mr-1"></i>
+                    <span class="text-sm font-medium">${file.name}</span>
+                  </div>
+                  <div class="p-2 flex justify-center">
+                    <a href="${file.url}" target="_blank" class="bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                      <i class="fas fa-download mr-1"></i> تحميل
+                    </a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      // إنشاء النافذة المنبثقة
+      Swal.fire({
+        title: 'تقرير الأشعة',
+        html: `
+          <div class="rtl">
+            <div class="mb-4">
+              <h4 class="font-semibold mb-2">بيانات التحويل:</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">القسم:</span>
+                  <span>${getDepartmentName(transfer.department)}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">نوع الإجراء:</span>
+                  <span>${transfer.type}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">الطبيب:</span>
+                  <span>${transfer.doctor || '-'}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">التاريخ:</span>
+                  <span>${transfer.date}</span>
+                </div>
+              </div>
+            </div>
+            
+            ${reportContent}
+            
+            <div class="mb-4">
+              <h4 class="font-semibold mb-2">بيانات المريض:</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">الاسم:</span>
+                  <span>${transfer.patientName || '-'}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">العمر:</span>
+                  <span>${transfer.patientAge || '-'}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">الرقم القومي:</span>
+                  <span>${transfer.patientId || '-'}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">فصيلة الدم:</span>
+                  <span>${transfer.bloodType || '-'}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="font-semibold mb-2">بيانات الأشعة:</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">نوع الجهاز:</span>
+                  <span>${getDeviceName(transfer.device)}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">موظف الأشعة:</span>
+                  <span>${transfer.radiologyTechnician || '-'}</span>
+                </div>
+                <div class="flex items-center">
+                  <span class="font-medium mr-2">تاريخ الأشعة:</span>
+                  <span>${transfer.radiologyDate || '-'}</span>
+                </div>
+              </div>
+            </div>
+            
+            ${fileHtml}
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'إغلاق',
+        width: '60vw'
+      });
     }
   });
 }
-
-// Helper functions
-function getStatusColor(status) {
-  const colors = {
-    'قيد الانتظار': 'bg-yellow-100 text-yellow-800',
-    'مكتمل': 'bg-green-100 text-green-800',
-    'جاري المعالجة': 'bg-blue-100 text-blue-800',
-    'مرفوض': 'bg-red-100 text-red-800'
+// الحصول على اسم القسم بالعربي
+function getDepartmentName(dept) {
+  const departments = {
+    radiology: "الأشعة",
+    lab: "التحاليل",
+    icu: "العناية المركزة",
+    surgery: "العمليات"
   };
-  
-  return colors[status] || 'bg-gray-200 text-gray-800';
+  return departments[dept] || dept;
 }
-
-// Show loading
+// الحصول على اسم الجهاز بالعربي
+function getDeviceName(device) {
+  const devices = {
+    xray: "أشعة عادية",
+    ct: "أشعة مقطعية",
+    mri: "رنين مغناطيسي",
+    ultrasound: "موجات صوتية"
+  };
+  return devices[device] || device;
+}
+// عرض التاريخ الحالي
+document.getElementById("currentDate").textContent = new Date().toLocaleDateString("ar-EG", {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+});
+// دالة عرض التحميل
 function showLoading() {
-  document.getElementById('loader').classList.remove('hidden');
+  document.getElementById("loading").classList.remove("hidden");
 }
-
-// Hide loading
 function hideLoading() {
-  document.getElementById('loader').classList.add('hidden');
+  document.getElementById("loading").classList.add("hidden");
 }
-
-// Initialize
-loadTransfers();
+// تحميل بيانات المريض عند فتح الصفحة
+document.addEventListener("DOMContentLoaded", loadPatientData);
 </script>
 </body>
 </html>
