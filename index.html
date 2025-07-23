@@ -8,41 +8,94 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: 'Tajawal', sans-serif;
       background-color: #f9fafb;
+      transition: background 0.3s, color 0.3s;
     }
-
-    /* حركة نصف لفة يمين وشمال للأيقونات */
+    /* أيقونات بدوران خفيف يمين وشمال */
     .icon-rotate {
       display: inline-block;
-      animation: rotate-swing 2s infinite ease-in-out;
+      animation: swing 2s ease-in-out infinite;
     }
-    @keyframes rotate-swing {
+    @keyframes swing {
       0% { transform: rotate(0deg); }
-      25% { transform: rotate(15deg); }
+      25% { transform: rotate(10deg); }
       50% { transform: rotate(0deg); }
-      75% { transform: rotate(-15deg); }
+      75% { transform: rotate(-10deg); }
       100% { transform: rotate(0deg); }
     }
-
-    /* تصغير الأزرار على الموبايل */
-    @media (max-width: 640px) {
-      .responsive-btn {
-        padding: 0.35rem 0.75rem; /* تصغير البادينج */
-        font-size: 0.8rem;       /* تصغير الخط */
-      }
-      .responsive-btn i {
-        font-size: 1rem; /* تصغير الأيقونة */
-      }
+    .tab-active {
+      border-bottom: 3px solid #2563eb;
+      color: #2563eb;
+      font-weight: bold;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+    .star {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: gray;
+      transition: color 0.2s;
+    }
+    .star:hover, .star.selected {
+      color: gold;
+    }
+    /* Timeline */
+    .timeline-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      position: relative;
+    }
+    .timeline-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+    .timeline-circle {
+      width: 30px;
+      height: 30px;
+      background: #2563eb;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px auto;
+      font-size: 1.2rem;
+      border: 3px solid #e5e7eb;
+    }
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      right: -50%;
+      height: 3px;
+      background: #2563eb;
+      z-index: 0;
+    }
+    .timeline-label {
+      font-size: 0.95rem;
+      color: #2563eb;
+      font-weight: 500;
     }
   </style>
 </head>
-<body class="bg-white min-h-screen">
+<body class="min-h-screen">
 
 <!-- Header -->
-<header class="flex justify-between items-center p-4 bg-white shadow-md border-b border-gray-200">
+<header class="flex flex-col sm:flex-row justify-between items-center p-4 bg-white shadow-md border-b border-gray-200 gap-3">
+  <!-- شعار المستشفى -->
   <div class="flex items-center gap-3">
     <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
          class="w-14 h-14 rounded-full border-2 border-blue-700 p-1"
@@ -54,24 +107,27 @@
   </div>
 
   <!-- أزرار التحكم -->
-  <div class="flex flex-wrap gap-3">
-    <!-- زر الترجمة -->
-    <button class="responsive-btn bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
+  <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-center sm:justify-end">
+    <button class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
       <i class="fa-solid fa-globe icon-rotate"></i> ترجمة
     </button>
 
-    <!-- زر الهاتف -->
-    <button class="responsive-btn bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
+    <button class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
       <i class="fa-solid fa-phone icon-rotate"></i> 12345
     </button>
 
-    <!-- زر بوابة المريض -->
     <a href="search.html" target="_blank"
-       class="responsive-btn bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
+       class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
       <i class="fa-solid fa-user icon-rotate"></i> بوابة المريض
     </a>
   </div>
 </header>
+
+<!-- باقي محتوى الصفحة هيكون هنا -->
+<main class="p-6">
+  <h2 class="text-xl font-bold text-gray-800 mb-4">تنفيذ طلب الأشعة</h2>
+  <p class="text-gray-600">هنا تقدر تعرض أو تضيف تفاصيل طلب الأشعة الخاص بالمريض...</p>
+</main>
 
 </body>
 </html>
