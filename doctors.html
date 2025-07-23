@@ -8,132 +8,66 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
-  <div class="max-w-3xl mx-auto p-6">
-    <h1 class="text-2xl font-bold text-center mb-6">نظام إدارة الدكاترة</h1>
-
-    <!-- نموذج إضافة دكتور -->
-    <div class="bg-white p-4 rounded shadow mb-6">
-      <h2 class="text-xl font-semibold mb-4">إضافة دكتور جديد</h2>
-      <input id="doctorName" placeholder="اسم الدكتور" class="border p-2 rounded w-full mb-2">
-      
-      <select id="doctorDept" class="border p-2 rounded w-full mb-2">
-        <option value="طوارئ">طوارئ</option>
-        <option value="رعاية مركزة">رعاية مركزة</option>
-        <option value="عمليات">عمليات</option>
-        <option value="استقبال">استقبال</option>
-      </select>
-      
-      <select id="doctorShift" class="border p-2 rounded w-full mb-2">
-        <option value="صباحي">صباحي</option>
-        <option value="مسائي">مسائي</option>
-        <option value="ليلي">ليلي</option>
-      </select>
-
-      <button onclick="addDoctor()" class="bg-blue-500 text-white px-4 py-2 rounded">إضافة</button>
-    </div>
-
-    <!-- قائمة الدكاترة -->
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="text-xl font-semibold mb-4">قائمة الدكاترة</h2>
-      <table class="w-full border text-center">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="border p-2">الاسم</th>
-            <th class="border p-2">القسم</th>
-            <th class="border p-2">الوردية</th>
-            <th class="border p-2">الحالة</th>
-            <th class="border p-2">تحكم</th>
-          </tr>
-        </thead>
-        <tbody id="doctorsTable"></tbody>
-      </table>
-    </div>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto bg-white p-4 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4 text-center">قائمة الدكاترة</h1>
+    <table class="w-full border text-center">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border p-2">الاسم</th>
+          <th class="border p-2">القسم</th>
+          <th class="border p-2">الوردية</th>
+          <th class="border p-2">الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="doctorsTable"></tbody>
+    </table>
   </div>
 
   <script>
-   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-  authDomain: "hospital-project-e4b59.firebaseapp.com",
-  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "hospital-project-e4b59",
-  storageBucket: "hospital-project-e4b59.firebasestorage.app",
-  messagingSenderId: "974610606258",
-  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
-  measurementId: "G-0GV30LL28T"
-};
+    // Config بتاعك اللي انت جبته من Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.firebasestorage.app",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
+      measurementId: "G-0GV30LL28T"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // إضافة دكتور جديد
-    function addDoctor() {
-      const name = document.getElementById('doctorName').value;
-      const department = document.getElementById('doctorDept').value;
-      const shift = document.getElementById('doctorShift').value;
-
-      if (!name) return alert('أدخل اسم الدكتور');
-
-      const newDoctorRef = db.ref('doctors').push();
-      newDoctorRef.set({
-        name: name,
-        department: department,
-        shift: shift,
-        status: 'متاح'
-      }).then(() => {
-        document.getElementById('doctorName').value = '';
-        loadDoctors();
+    // إضافة دكاترة افتراضيين لو الجدول فاضي
+    function addDefaultDoctors() {
+      db.ref('doctors').once('value').then(snapshot => {
+        if (!snapshot.exists()) {
+          const doctors = [
+            { name: "د. أحمد علي", department: "طوارئ", shift: "صباحي", status: "متاح" },
+            { name: "د. سارة محمد", department: "رعاية مركزة", shift: "مسائي", status: "متاح" },
+            { name: "د. خالد مصطفى", department: "عمليات", shift: "ليلي", status: "مشغول" }
+          ];
+          doctors.forEach(doc => db.ref('doctors').push(doc));
+        }
       });
     }
 
-    // تحميل الدكاترة
+    // تحميل وعرض الدكاترة
     function loadDoctors() {
       const table = document.getElementById('doctorsTable');
-      table.innerHTML = '';
       db.ref('doctors').on('value', snapshot => {
         table.innerHTML = '';
         snapshot.forEach(child => {
           const doc = child.val();
-          const row = `
+          table.innerHTML += `
             <tr>
               <td class="border p-2">${doc.name}</td>
               <td class="border p-2">${doc.department}</td>
               <td class="border p-2">${doc.shift}</td>
               <td class="border p-2">${doc.status}</td>
-              <td class="border p-2">
-                <button onclick="toggleStatus('${child.key}', '${doc.status}')" class="bg-yellow-500 text-white px-2 py-1 rounded">تغيير الحالة</button>
-                <button onclick="deleteDoctor('${child.key}')" class="bg-red-500 text-white px-2 py-1 rounded">حذف</button>
-              </td>
             </tr>`;
-          table.innerHTML += row;
         });
-      });
-    }
-
-    // تغيير حالة الدكتور
-    function toggleStatus(id, currentStatus) {
-      const newStatus = currentStatus === 'متاح' ? 'مشغول' : 'متاح';
-      db.ref('doctors/' + id + '/status').set(newStatus);
-    }
-
-    // حذف دكتور
-    function deleteDoctor(id) {
-      if (confirm('هل تريد حذف هذا الدكتور؟')) {
-        db.ref('doctors/' + id).remove();
-      }
-    }
-
-    // إضافة دكاترة افتراضيين أول مرة
-    function addDefaultDoctors() {
-      db.ref('doctors').once('value').then(snapshot => {
-        if (!snapshot.exists()) {
-          const defaultDoctors = [
-            { name: 'د. محمود علي', department: 'طوارئ', shift: 'صباحي', status: 'متاح' },
-            { name: 'د. سارة محمد', department: 'رعاية مركزة', shift: 'مسائي', status: 'متاح' },
-            { name: 'د. خالد مصطفى', department: 'عمليات', shift: 'ليلي', status: 'مشغول' }
-          ];
-          defaultDoctors.forEach(doc => db.ref('doctors').push(doc));
-        }
       });
     }
 
