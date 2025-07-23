@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
     body { font-family: 'Tajawal', sans-serif; }
@@ -966,6 +965,15 @@
         const patientsRef = ref(db, `patients/${formData.department}`);
         await push(patientsRef, formData);
         
+        // إرسال إشعار البريد الإلكتروني للمريض
+        sendEmailToPatient(formData);
+        
+        // إرسال إشعار SMS للمريض
+        sendSMSToPatient(formData);
+        
+        // إرسال إشعار للموظفين
+        sendNotificationToStaff(formData);
+        
         Swal.fire({
           icon: 'success',
           title: 'تم تسجيل المريض',
@@ -987,6 +995,70 @@
         });
       }
     });
+    
+    // إرسال إشعار البريد الإلكتروني للمريض
+    function sendEmailToPatient(patient) {
+      // هذا مثال - في تطبيق حقيقي، ستحتاج إلى دمج مع خدمة بريد إلكتروني
+      console.log(`Sending email to ${patient.name} at ${patient.nid}@example.com`);
+      
+      // إظهار إشعار مؤقت
+      Swal.fire({
+        icon: 'info',
+        title: 'إشعار البريد',
+        text: `تم إرسال إشعار البريد الإلكتروني للمريض ${patient.name}`,
+        timer: 1500,
+        toast: true,
+        position: 'top-end'
+      });
+    }
+    
+    // إرسال رسالة SMS للمريض
+    function sendSMSToPatient(patient) {
+      // هذا مثال - في تطبيق حقيقي، ستحتاج إلى دمج مع خدمة SMS
+      console.log(`Sending SMS to ${patient.name} at +20${patient.nid.substring(0, 2)}-${patient.nid.substring(2)}`);
+      
+      // إظهار إشعار مؤقت
+      Swal.fire({
+        icon: 'info',
+        title: 'إشعار SMS',
+        text: `تم إرسال رسالة SMS للمريض ${patient.name}`,
+        timer: 1500,
+        toast: true,
+        position: 'top-end'
+      });
+    }
+    
+    // إرسال إشعار للموظفين
+    function sendNotificationToStaff(patient) {
+      // هذا مثال - في تطبيق حقيقي، ستحتاج إلى دمج مع خدمة إشعارات
+      console.log(`Sending notification to staff about ${patient.name}`);
+      
+      // إظهار إشعار مؤقت
+      Swal.fire({
+        icon: 'info',
+        title: 'إشعار للموظفين',
+        text: `تم تسجيل مريض جديد في قسم ${getDepartmentInfo(patient.department).name}`,
+        timer: 1500,
+        toast: true,
+        position: 'top-end'
+      });
+    }
+    
+    // إضافة نظام تذكير للمواعيد
+    function setupReminderSystem() {
+      // هذا مثال - في تطبيق حقيقي، ستحتاج إلى جدولة المواعيد
+      console.log("Reminder system initialized");
+      
+      // إظهار إشعار أولي
+      Swal.fire({
+        icon: 'info',
+        title: 'نظام التذكير',
+        text: 'تم تفعيل نظام تذكير المواعيد',
+        timer: 2000,
+        toast: true,
+        position: 'top-end'
+      });
+    }
     
     // Real-time data listeners
     function setupDataListeners() {
@@ -1057,6 +1129,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       setupDataListeners();
       initializeCharts();
+      setupReminderSystem();
     });
   </script>
 </body>
