@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>لوحة استقبال المرضى - مستشفى الحياة الذكية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -262,6 +262,13 @@
                   <option value="radiology">الأشعة</option>
                 </select>
               </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">اختر الطبيب</label>
+                <select id="doctor" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                  <option value="">اختر طبيب متاح</option>
+                  <!-- Doctors will be loaded here -->
+                </select>
+              </div>
             </div>
             <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-md p-3 hover:from-blue-700 hover:to-blue-900 transition-all duration-300 flex items-center justify-center">
               <i class="fas fa-save mr-2"></i> تسجيل المريض
@@ -333,6 +340,7 @@
     const surgeryPatientsElement = document.getElementById('surgeryPatients');
     const printReportBtn = document.getElementById('printReportBtn');
     const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const doctorSelect = document.getElementById('doctor');
     
     // Show loading overlay
     function showLoading() {
@@ -387,89 +395,39 @@
       return currentTime >= doctor.startTime && currentTime < doctor.endTime;
     }
     
-    // Display available doctors
-    function displayAvailableDoctors() {
-      const doctorsSection = document.createElement('div');
-      doctorsSection.className = 'bg-white p-6 rounded-xl shadow-lg mb-8';
-      doctorsSection.innerHTML = `
-        <div class="flex items-center mb-4">
-          <i class="fas fa-user-md text-blue-600 mr-2"></i>
-          <h2 class="text-xl font-bold">الأطباء المتاحين الآن</h2>
-          <span class="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full" id="current-time"></span>
-        </div>
-        <div id="doctors-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Doctors will be loaded here -->
-        </div>
-      `;
+    // Populate doctor dropdown based on selected department
+    function populateDoctorDropdown(department) {
+      // Clear previous options except the first one
+      while (doctorSelect.options.length > 1) {
+        doctorSelect.remove(1);
+      }
       
-      // Insert before patient form
-      const mainContent = document.querySelector('.container .grid');
-      mainContent.insertBefore(doctorsSection, mainContent.firstChild);
+      // Add default option
+      const defaultOption = document.createElement('option');
+      defaultOption.value = "";
+      defaultOption.textContent = "اختر طبيب متاح";
+      doctorSelect.appendChild(defaultOption);
       
-      // Update current time
-      const currentTimeElement = document.getElementById('current-time');
-      currentTimeElement.textContent = formatTime(getEgyptTime());
+      // Filter doctors by department
+      const filteredDoctors = Object.values(doctors).filter(doctor => doctor.department === department);
       
-      // Populate doctors list
-      const doctorsList = document.getElementById('doctors-list');
-      
-      Object.values(doctors).forEach(doctor => {
+      // Add available doctors to dropdown
+      filteredDoctors.forEach(doctor => {
         if (isDoctorAvailable(doctor)) {
-          const doctorCard = document.createElement('div');
-          doctorCard.className = 'bg-blue-50 p-4 rounded-lg border border-blue-200 hover:shadow-md transition-all duration-300';
-          doctorCard.innerHTML = `
-            <div class="flex items-center mb-2">
-              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                <i class="fas fa-user-md"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-blue-800">${doctor.name}</h3>
-                <div class="text-sm text-gray-600">قسم الطوارئ</div>
-              </div>
-            </div>
-            <div class="text-sm text-gray-700 mb-2">
-              <i class="fas fa-clock mr-1"></i> ${doctor.startTime} - ${doctor.endTime}
-            </div>
-            <div class="text-sm text-gray-700">
-              <i class="fas fa-calendar-day mr-1"></i> ${getDayName(getEgyptTime())}
-            </div>
-            <button class="select-doctor-btn w-full mt-3 bg-blue-600 text-white rounded-md p-2 hover:bg-blue-700 transition-colors duration-300" 
-                    data-doctor-id="${doctor.name}">
-              <i class="fas fa-check mr-1"></i> اختيار الطبيب
-            </button>
-          `;
-          doctorsList.appendChild(doctorCard);
+          const option = document.createElement('option');
+          option.value = doctor.name;
+          option.textContent = `${doctor.name} (${doctor.shift})`;
+          doctorSelect.appendChild(option);
         }
       });
       
-      // Add event listeners to doctor selection buttons
-      document.querySelectorAll('.select-doctor-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const doctorName = this.getAttribute('data-doctor-id');
-          selectDoctor(doctorName);
-        });
-      });
-    }
-
-    // Select a doctor for appointment
-    function selectDoctor(doctorName) {
-      Swal.fire({
-        title: 'تم اختيار الطبيب',
-        text: `سيتم تسجيل المريض لدى الطبيب: ${doctorName}`,
-        icon: 'success',
-        confirmButtonText: 'حسنًا',
-        timer: 2000,
-        timerProgressBar: true,
-        showClass: {
-          popup: 'animate__animated animate__fadeInDown'
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOutUp'
-        }
-      }).then(() => {
-        // Auto-scroll to registration form
-        document.getElementById('patientForm').scrollIntoView({ behavior: 'smooth' });
-      });
+      // If no doctors available, add message
+      if (filteredDoctors.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "لا يوجد أطباء متاحين في هذا القسم الآن";
+        doctorSelect.appendChild(option);
+      }
     }
     
     // Create patient card
@@ -595,14 +553,14 @@
       
       if (filter !== 'all') {
         allPatients = Object.fromEntries(
-          Object.entries(allPatients).filter(([id, patient]) => patient.department === filter)
+          Object.entries(allPatients).filter(([_, patient]) => patient.department === filter)
         );
       }
       
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         allPatients = Object.fromEntries(
-          Object.entries(allPatients).filter(([id, patient]) => 
+          Object.entries(allPatients).filter(([_, patient]) => 
             patient.name.toLowerCase().includes(term) || 
             patient.nid.includes(term) || 
             patient.address.toLowerCase().includes(term)
@@ -825,188 +783,32 @@
       showLoading();
     });
     
-    // Form submission
-    patientForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    // Update statistics
+    function updateStats() {
+      showLoading();
+      const todayDate = new Date().toDateString();
+      let total = 0, today = 0, emergency = 0, surgery = 0;
       
-      const formData = {
-        name: document.getElementById("name").value.trim(),
-        age: document.getElementById("age").value.trim(),
-        nid: document.getElementById("nid").value.trim(),
-        gender: document.getElementById("gender").value,
-        address: document.getElementById("address").value.trim(),
-        bloodType: document.getElementById("bloodType").value,
-        diseases: document.getElementById("diseases").value.trim(),
-        department: document.getElementById("department").value,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Validation
-      if (!formData.name || !formData.age || !formData.nid || !formData.gender || 
-          !formData.address || !formData.bloodType || !formData.department) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'بيانات ناقصة',
-          text: 'يرجى ملء جميع الحقول الإلزامية',
-          confirmButtonText: 'حسناً'
-        });
-        return;
-      }
-      
-      try {
-        showLoading();
-        const patientsRef = ref(db, `patients/${formData.department}`);
-        await push(patientsRef, formData);
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'تم تسجيل المريض',
-          text: `تم تسجيل المريض ${formData.name} بنجاح`,
-          timer: 2000,
-          showConfirmButton: false,
-          position: 'top-end',
-          toast: true
-        });
-        
-        patientForm.reset();
-        hideLoading();
-      } catch (error) {
-        hideLoading();
-        Swal.fire({
-          icon: 'error',
-          title: 'خطأ',
-          text: 'حدث خطأ أثناء تسجيل المريض'
-        });
-      }
-    });
-    
-    // Real-time data listeners
-    function setupDataListeners() {
-      // Patients list listener
       onValue(ref(db, "patients"), (snapshot) => {
         const data = snapshot.val() || {};
-        const filter = filterDepartment.value;
-        const searchTerm = searchPatient.value;
         
-        let allPatients = {};
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
-            }
+        Object.values(data).forEach(dept => {
+          Object.values(dept).forEach(patient => {
+            total++;
+            if (new Date(patient.timestamp).toDateString() === todayDate) today++;
+            if (patient.department === 'emergency') emergency++;
+            if (patient.department === 'surgery') surgery++;
           });
         });
         
-        renderPatients(allPatients, filter, searchTerm);
+        totalPatientsElement.textContent = total;
+        todayPatientsElement.textContent = today;
+        emergencyPatientsElement.textContent = emergency;
+        surgeryPatientsElement.textContent = surgery;
+        
+        hideLoading();
       });
-      
-      // Stats listener
-      updateStats();
     }
-    
-    // Filter and search listeners
-    filterDepartment.addEventListener('change', () => {
-      const filter = filterDepartment.value;
-      
-      onValue(ref(db, "patients"), (snapshot) => {
-        const data = snapshot.val() || {};
-        let allPatients = {};
-        
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
-            }
-          });
-        });
-        
-        renderPatients(allPatients, filter, searchPatient.value);
-      });
-    });
-    
-    searchPatient.addEventListener('input', () => {
-      const searchTerm = searchPatient.value;
-      
-      onValue(ref(db, "patients"), (snapshot) => {
-        const data = snapshot.val() || {};
-        let allPatients = {};
-        
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
-            }
-          });
-        });
-        
-        renderPatients(allPatients, filterDepartment.value, searchTerm);
-      });
-    });
-    
-    // Initialize everything
-    document.addEventListener('DOMContentLoaded', () => {
-      displayAvailableDoctors(); // Add this line to show available doctors
-      setupDataListeners();
-      initializeCharts();
-    });
-    
-    // Doctors data
-    const doctors = {
-      "doc1": {
-        "name": "Dr. Ahmed Ali",
-        "department": "Emergency",
-        "shift": "Morning",
-        "startTime": "08:00",
-        "endTime": "16:00",
-        "workDays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "manualStatus": "online"
-      },
-      "doc2": {
-        "name": "Dr. Mona Hassan",
-        "department": "Emergency",
-        "shift": "Morning",
-        "startTime": "08:00",
-        "endTime": "16:00",
-        "workDays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "manualStatus": "online"
-      },
-      "doc3": {
-        "name": "Dr. Youssef Ibrahim",
-        "department": "Emergency",
-        "shift": "Evening",
-        "startTime": "16:00",
-        "endTime": "00:00",
-        "workDays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "manualStatus": "online"
-      },
-      "doc4": {
-        "name": "Dr. Sara Mohamed",
-        "department": "Emergency",
-        "shift": "Evening",
-        "startTime": "16:00",
-        "endTime": "00:00",
-        "workDays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "manualStatus": "online"
-      },
-      "doc5": {
-        "name": "Dr. Hany Fouad",
-        "department": "Emergency",
-        "shift": "Night",
-        "startTime": "00:00",
-        "endTime": "08:00",
-        "workDays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "manualStatus": "online"
-      },
-      "doc6": {
-        "name": "Dr. Layla Adel",
-        "department": "Emergency",
-        "shift": "Night",
-        "startTime": "00:00",
-        "endTime": "08:00",
-        "workDays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "manualStatus": "online"
-      }
-    };
     
     // Initialize charts
     function initializeCharts() {
@@ -1213,9 +1015,170 @@
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
     
+    // Populate doctor dropdown based on selected department
+    function populateDoctorDropdown(department) {
+      // Clear previous options except the first one
+      while (doctorSelect.options.length > 1) {
+        doctorSelect.remove(1);
+      }
+      
+      // Add default option
+      const defaultOption = document.createElement('option');
+      defaultOption.value = "";
+      defaultOption.textContent = "اختر طبيب متاح";
+      doctorSelect.appendChild(defaultOption);
+      
+      // Filter doctors by department
+      const filteredDoctors = Object.values(doctors).filter(doctor => doctor.department === department);
+      
+      // Add available doctors to dropdown
+      filteredDoctors.forEach(doctor => {
+        if (isDoctorAvailable(doctor)) {
+          const option = document.createElement('option');
+          option.value = doctor.name;
+          option.textContent = `${doctor.name} (${doctor.shift})`;
+          doctorSelect.appendChild(option);
+        }
+      });
+      
+      // If no doctors available, add message
+      if (filteredDoctors.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "لا يوجد أطباء متاحين في هذا القسم الآن";
+        doctorSelect.appendChild(option);
+      }
+    }
+    
+    // Form submission
+    patientForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        name: document.getElementById("name").value.trim(),
+        age: document.getElementById("age").value.trim(),
+        nid: document.getElementById("nid").value.trim(),
+        gender: document.getElementById("gender").value,
+        address: document.getElementById("address").value.trim(),
+        bloodType: document.getElementById("bloodType").value,
+        diseases: document.getElementById("diseases").value.trim(),
+        department: document.getElementById("department").value,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Get selected doctor
+      const selectedDoctor = document.getElementById("doctor").value;
+      if (selectedDoctor) {
+        formData.doctor = selectedDoctor;
+      }
+      
+      // Validation
+      if (!formData.name || !formData.age || !formData.nid || !formData.gender || 
+          !formData.address || !formData.bloodType || !formData.department) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'بيانات ناقصة',
+          text: 'يرجى ملء جميع الحقول الإلزامية',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      }
+      
+      try {
+        showLoading();
+        const patientsRef = ref(db, `patients/${formData.department}`);
+        await push(patientsRef, formData);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'تم تسجيل المريض',
+          text: `تم تسجيل المريض ${formData.name} بنجاح`,
+          timer: 2000,
+          showConfirmButton: false,
+          position: 'top-end',
+          toast: true
+        });
+        
+        patientForm.reset();
+        hideLoading();
+      } catch (error) {
+        hideLoading();
+        Swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: 'حدث خطأ أثناء تسجيل المريض'
+        });
+      }
+    });
+    
+    // Real-time data listeners
+    function setupDataListeners() {
+      // Patients list listener
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        const filter = filterDepartment.value;
+        const searchTerm = searchPatient.value;
+        
+        let allPatients = {};
+        Object.entries(data).forEach(([dept, patients]) => {
+          Object.entries(patients).forEach(([id, patient]) => {
+            if (!allPatients[id]) {
+              allPatients[id] = { ...patient, department: dept };
+            }
+          });
+        });
+        
+        renderPatients(allPatients, filter, searchTerm);
+      });
+      
+      // Stats listener
+      updateStats();
+    }
+    
+    // Filter and search listeners
+    filterDepartment.addEventListener('change', () => {
+      const filter = filterDepartment.value;
+      
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        let allPatients = {};
+        
+        Object.entries(data).forEach(([dept, patients]) => {
+          Object.entries(patients).forEach(([id, patient]) => {
+            if (!allPatients[id]) {
+              allPatients[id] = { ...patient, department: dept };
+            }
+          });
+        });
+        
+        renderPatients(allPatients, filter, searchPatient.value);
+      });
+      
+      // Update doctor dropdown when department changes
+      populateDoctorDropdown(filter);
+    });
+    
+    searchPatient.addEventListener('input', () => {
+      const searchTerm = searchPatient.value;
+      
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        let allPatients = {};
+        
+        Object.entries(data).forEach(([dept, patients]) => {
+          Object.entries(patients).forEach(([id, patient]) => {
+            if (!allPatients[id]) {
+              allPatients[id] = { ...patient, department: dept };
+            }
+          });
+        });
+        
+        renderPatients(allPatients, filterDepartment.value, searchTerm);
+      });
+    });
+    
     // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
-      displayAvailableDoctors(); // Add this line to show available doctors
       setupDataListeners();
       initializeCharts();
     });
