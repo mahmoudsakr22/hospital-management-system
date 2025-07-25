@@ -316,6 +316,14 @@ document.getElementById("department").addEventListener("change", function () {
 
   if (!dept) return;
 
+// تحميل الأطباء حسب القسم
+document.getElementById("department").addEventListener("change", function () {
+  const dept = this.value;
+  const doctorSelect = document.getElementById("doctorSelect");
+  doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+
+  if (!dept) return;
+
   const doctorsRef = ref(db, "hospital/doctors"); // تعديل المسار
 
   onValue(doctorsRef, (snapshot) => {
