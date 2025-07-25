@@ -317,18 +317,19 @@
     if (!dept) return;
 
     const doctorsRef = ref(db, "doctors");
-    onValue(doctorsRef, (snapshot) => {
-      doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-      snapshot.forEach(child => {
-        const doc = child.val();
-        if (doc.department.toLowerCase() === dept.toLowerCase()) {
-          const option = document.createElement("option");
-          option.value = doc.name;
-          option.textContent = `${doc.name} (${doc.shift})`;
-          doctorSelect.appendChild(option);
-        }
-      });
-    });
+onValue(doctorsRef, (snapshot) => {
+  doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+  snapshot.forEach(child => {
+    const doc = child.val();
+    // شرط القسم + شرط التوفر
+    if (doc.department.toLowerCase() === dept && doc.manualStatus === "online") {
+      const option = document.createElement("option");
+      option.value = doc.name;
+      option.textContent = `${doc.name} (${doc.shift})`;
+      doctorSelect.appendChild(option);
+    }
+  });
+});
   });
 
   // تسجيل المريض
