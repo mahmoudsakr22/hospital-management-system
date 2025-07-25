@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>اختبار عرض الدكاترة</title>
+  <title>اختبار اتصال Firebase - الدكاترة</title>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body style="font-family: sans-serif; padding: 20px;">
+  <h2>اختبار عرض الدكاترة</h2>
 
-  <h2>اختبار عرض الدكاترة حسب القسم</h2>
-
-  <!-- اختيار القسم -->
   <label>اختر القسم:</label>
   <select id="department">
     <option value="">-- اختر القسم --</option>
@@ -23,28 +21,29 @@
 
   <br><br>
 
-  <!-- اختيار الدكتور -->
   <label>الدكاترة المتاحين:</label>
   <select id="doctor">
     <option value="">اختر القسم أولاً</option>
   </select>
 
   <script type="module">
-    // Firebase imports
+    // استيراد Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    // إعداد Firebase
+    // Config بتاعك
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.firebasestorage.app",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
+      measurementId: "G-0GV30LL28T"
     };
 
+    // تهيئة Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
@@ -78,16 +77,18 @@
       const doctorsRef = ref(db, 'doctors');
 
       onValue(doctorsRef, (snapshot) => {
+        console.log("كل الدكاترة في قاعدة البيانات:");
+        console.log(snapshot.val()); // عرض كل البيانات للتأكد
+
+        if (!snapshot.exists()) {
+          Swal.fire("تنبيه", "مفيش دكاترة في قاعدة البيانات", "warning");
+          doctorSelect.innerHTML = '<option value="">لا يوجد بيانات</option>';
+          return;
+        }
+
         doctorSelect.innerHTML = '<option value="">اختر الدكتور</option>';
         let found = false;
 
-        // طباعة كل الدكاترة في Console للفحص
-        console.log("كل الدكاترة في قاعدة البيانات:");
-        snapshot.forEach(childSnapshot => {
-          console.log(childSnapshot.val());
-        });
-
-        // فلترة وعرض الدكاترة
         snapshot.forEach(childSnapshot => {
           const doctor = childSnapshot.val();
 
@@ -107,11 +108,12 @@
 
         if (!found) {
           doctorSelect.innerHTML = '<option value="">لا يوجد دكاترة متاحين الآن</option>';
+        } else {
+          Swal.fire("نجاح", "تم جلب بيانات الدكاترة بنجاح", "success");
         }
       });
     }
 
-    // لما يغير القسم
     departmentSelect.addEventListener("change", loadDoctors);
   </script>
 </body>
