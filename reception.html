@@ -209,11 +209,13 @@
         </div>
         <form id="patientForm" class="space-y-4">
           <div class="space-y-3">
+            <!-- اسم المريض -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">اسم المريض</label>
               <input type="text" id="name" class="w-full border rounded-md p-2" required />
             </div>
 
+            <!-- العمر والرقم القومي -->
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
@@ -225,6 +227,7 @@
               </div>
             </div>
 
+            <!-- الجنس وفصيلة الدم -->
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
@@ -250,128 +253,125 @@
               </div>
             </div>
 
+            <!-- العنوان -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
               <input type="text" id="address" class="w-full border rounded-md p-2" required />
             </div>
 
+            <!-- الأمراض -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
               <textarea id="diseases" rows="3" class="w-full border rounded-md p-2"></textarea>
             </div>
 
             <!-- اختيار القسم -->
-    <label class="block mb-2 font-medium">اختر القسم</label>
-    <select id="department" class="w-full border rounded p-2 mb-4">
-      <option value="">-- اختر القسم --</option>
-      <option value="emergency">الطوارئ</option>
-      <option value="radiology">الأشعة</option>
-      <option value="icu">العناية المركزة</option>
-      <option value="operations">العمليات</option>
-    </select>
+            <label class="block mb-2 font-medium">اختر القسم</label>
+            <select id="department" class="w-full border rounded p-2 mb-4">
+              <option value="">-- اختر القسم --</option>
+              <option value="emergency">الطوارئ</option>
+              <option value="radiology">الأشعة</option>
+              <option value="icu">العناية المركزة</option>
+              <option value="operations">العمليات</option>
+            </select>
 
-    <!-- اختيار الدكتور -->
-    <label class="block mb-2 font-medium">اختر الدكتور</label>
-    <select id="doctorSelect" class="w-full border rounded p-2 mb-4">
-      <option value="">-- اختر الدكتور --</option>
-    </select>
+            <!-- اختيار الدكتور -->
+            <label class="block mb-2 font-medium">اختر الدكتور</label>
+            <select id="doctorSelect" class="w-full border rounded p-2 mb-4">
+              <option value="">-- اختر الدكتور --</option>
+            </select>
 
-    <!-- بيانات المريض -->
-    <input id="name" type="text" placeholder="اسم المريض" class="w-full border rounded p-2 mb-2">
-    <input id="age" type="text" placeholder="العمر" class="w-full border rounded p-2 mb-2">
-    <input id="nid" type="text" placeholder="الرقم القومي" class="w-full border rounded p-2 mb-2">
-    <input id="address" type="text" placeholder="العنوان" class="w-full border rounded p-2 mb-2">
-    <input id="bloodType" type="text" placeholder="فصيلة الدم" class="w-full border rounded p-2 mb-2">
-    <input id="diseases" type="text" placeholder="الأمراض" class="w-full border rounded p-2 mb-2">
-
-    <!-- زر تسجيل -->
-    <button onclick="registerPatient()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">تسجيل المريض</button>
+            <!-- زر التسجيل -->
+            <button type="button" onclick="registerPatient()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">تسجيل المريض</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-    // إعداد Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-      authDomain: "hospital-project-e4b59.firebaseapp.com",
-      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hospital-project-e4b59",
-      storageBucket: "hospital-project-e4b59.appspot.com",
-      messagingSenderId: "974610606258",
-      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-    };
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+    authDomain: "hospital-project-e4b59.firebaseapp.com",
+    databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "hospital-project-e4b59",
+    storageBucket: "hospital-project-e4b59.appspot.com",
+    messagingSenderId: "974610606258",
+    appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    // تحميل الأطباء حسب القسم
-    document.getElementById("department").addEventListener("change", function () {
-      const dept = this.value;
-      const doctorSelect = document.getElementById("doctorSelect");
+  // تحميل الأطباء حسب القسم
+  document.getElementById("department").addEventListener("change", function () {
+    const dept = this.value;
+    const doctorSelect = document.getElementById("doctorSelect");
+    doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+
+    if (!dept) return;
+
+    const doctorsRef = ref(db, "doctors");
+    onValue(doctorsRef, (snapshot) => {
       doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-
-      if (!dept) return;
-
-      const doctorsRef = ref(db, "doctors");
-      onValue(doctorsRef, (snapshot) => {
-        doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-        snapshot.forEach(child => {
-          const doc = child.val();
-          if (doc.department.toLowerCase() === dept) {
-            const option = document.createElement("option");
-            option.value = doc.name;
-            option.textContent = `${doc.name} (${doc.shift})`;
-            doctorSelect.appendChild(option);
-          }
-        });
+      snapshot.forEach(child => {
+        const doc = child.val();
+        if (doc.department.toLowerCase() === dept.toLowerCase()) {
+          const option = document.createElement("option");
+          option.value = doc.name;
+          option.textContent = `${doc.name} (${doc.shift})`;
+          doctorSelect.appendChild(option);
+        }
       });
     });
+  });
 
-    // تسجيل المريض
-    window.registerPatient = function () {
-      const name = document.getElementById("name").value.trim();
-      const age = document.getElementById("age").value.trim();
-      const nid = document.getElementById("nid").value.trim();
-      const address = document.getElementById("address").value.trim();
-      const bloodType = document.getElementById("bloodType").value.trim();
-      const diseases = document.getElementById("diseases").value.trim();
-      const department = document.getElementById("department").value;
-      const doctor = document.getElementById("doctorSelect").value;
+  // تسجيل المريض
+  window.registerPatient = function () {
+    const name = document.getElementById("name").value.trim();
+    const age = document.getElementById("age").value.trim();
+    const nid = document.getElementById("nid").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const bloodType = document.getElementById("bloodType").value;
+    const diseases = document.getElementById("diseases").value.trim();
+    const department = document.getElementById("department").value;
+    const doctor = document.getElementById("doctorSelect").value;
 
-      if (!name || !age || !nid || !department || !doctor) {
-        Swal.fire("تنبيه", "يرجى إدخال كل البيانات المطلوبة واختيار الدكتور", "warning");
-        return;
-      }
+    if (!name || !age || !nid || !department || !doctor) {
+      Swal.fire("تنبيه", "يرجى إدخال كل البيانات المطلوبة واختيار الدكتور", "warning");
+      return;
+    }
 
-      const patientData = {
-        name,
-        age,
-        nid,
-        address,
-        bloodType,
-        diseases,
-        department,
-        doctor,
-        timestamp: new Date().toISOString()
-      };
-
-      const patientsRef = ref(db, `patients/${department}`);
-      const newPatientRef = push(patientsRef);
-
-      set(newPatientRef, patientData)
-        .then(() => {
-          Swal.fire("تم الحفظ", "تم تسجيل المريض بنجاح", "success");
-        })
-        .catch(() => {
-          Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
-        });
+    const patientData = {
+      name,
+      age,
+      nid,
+      address,
+      bloodType,
+      diseases,
+      department,
+      doctor,
+      timestamp: new Date().toISOString()
     };
-  </script>
-</body>
-</html>
-      
+
+    const patientsRef = ref(db, `patients/${department}`);
+    const newPatientRef = push(patientsRef);
+
+    set(newPatientRef, patientData)
+      .then(() => {
+        Swal.fire("تم الحفظ", "تم تسجيل المريض بنجاح", "success");
+        document.getElementById("patientForm").reset();
+      })
+      .catch(() => {
+        Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
+      });
+  };
+</script>     
       <!-- Patients List -->
       <div class="lg:col-span-2">
         <div class="bg-white p-6 rounded-xl shadow-lg">
