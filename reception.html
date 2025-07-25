@@ -197,6 +197,15 @@
       </div>
     </section>
 
+ <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل مريض - الاستقبال</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
 <!-- Main Content -->
 <div class="max-w-5xl mx-auto p-6">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -293,7 +302,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
   import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  // Config بتاعك
+  // Config Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
     authDomain: "hospital-project-e4b59.firebaseapp.com",
@@ -311,19 +320,7 @@
   const departmentSelect = document.getElementById("department");
   const doctorSelect = document.getElementById("doctor");
 
-  function getCurrentShift() {
-    const now = new Date();
-    const currentHour = now.getHours();
-    const dayName = now.toLocaleString('en-US', { weekday: 'long' });
-
-    let shift;
-    if (currentHour >= 8 && currentHour < 16) shift = "Morning";
-    else if (currentHour >= 16 && currentHour < 24) shift = "Evening";
-    else shift = "Night";
-
-    return { shift, dayName };
-  }
-
+  // تحميل الأطباء بناءً على القسم
   function loadDoctors() {
     const selectedDept = departmentSelect.value;
     if (!selectedDept) {
@@ -331,21 +328,14 @@
       return;
     }
 
-    const { shift, dayName } = getCurrentShift();
-    const doctorsRef = ref(db, 'doctors');
-
+    const doctorsRef = ref(db, "hospital/doctors");
     onValue(doctorsRef, (snapshot) => {
       doctorSelect.innerHTML = '<option value="">اختر الدكتور</option>';
       snapshot.forEach(childSnapshot => {
         const doctor = childSnapshot.val();
-        if (
-          doctor.department === selectedDept &&
-          doctor.shift === shift &&
-          doctor.workDays.includes(dayName) &&
-          doctor.manualStatus === "online"
-        ) {
+        if (doctor.department === selectedDept && doctor.manualStatus === "online") {
           const option = document.createElement("option");
-          option.value = doctor.id;
+          option.value = childSnapshot.key; // ID الطبيب
           option.textContent = doctor.name;
           doctorSelect.appendChild(option);
         }
@@ -370,6 +360,11 @@
     const doctorId = doctorSelect.value;
     const doctorName = doctorSelect.options[doctorSelect.selectedIndex]?.textContent || "";
 
+    if (!doctorId) {
+      Swal.fire("تنبيه", "يرجى اختيار الطبيب", "warning");
+      return;
+    }
+
     const patientsRef = ref(db, "patients");
     const newPatientRef = push(patientsRef);
 
@@ -386,6 +381,7 @@
 </script>
 </body>
 </html>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
