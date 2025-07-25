@@ -405,18 +405,10 @@
   const db = getDatabase(app);
 
  // تحميل الأطباء حسب القسم
-document.getElementById("department").addEventListener("change", function () {
-  const dept = this.value;
-  const doctorSelect = document.getElementById("doctorSelect");
-  doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-
-  if (!dept) return;
-
-// تحميل الأطباء حسب القسم
-document.getElementById("department").addEventListener("change", function () {
-  const dept = this.value;
-  const doctorSelect = document.getElementById("doctorSelect");
- doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+  document.getElementById("department").addEventListener("change", function () {
+    const dept = this.value;
+    const doctorSelect = document.getElementById("doctorSelect");
+    doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
 
     if (!dept) return;
 
@@ -434,6 +426,7 @@ document.getElementById("department").addEventListener("change", function () {
       });
     });
   });
+
   // تسجيل المريض
   window.registerPatient = function () {
     const name = document.getElementById("name").value.trim();
@@ -451,16 +444,16 @@ document.getElementById("department").addEventListener("change", function () {
     }
 
     const patientData = {
-      name,
-      age,
-      nid,
-      address,
-      bloodType,
-      diseases,
-      department,
-      doctors: doctor,
-      timestamp: new Date().toISOString()
-    };
+  name,
+  age,
+  nid,
+  address,
+  bloodType,
+  diseases,
+  department,
+  doctors: doctor,   // ← خليها doctors هنا
+  timestamp: new Date().toISOString()
+};
 
     const patientsRef = ref(db, `patients/${department}`);
     const newPatientRef = push(patientsRef);
@@ -474,7 +467,7 @@ document.getElementById("department").addEventListener("change", function () {
         Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
       });
   };
-</script>    
+</script>   
     </body>
 </html>
       <!-- Patients List -->
