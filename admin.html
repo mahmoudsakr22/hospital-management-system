@@ -1,161 +1,132 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>لوحة إدارة المستشفى</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<meta charset="UTF-8" />
+<title>لوحة إدارة المستشفى</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-    body { font-family: 'Tajawal', sans-serif; }
-  </style>
-</head>
-<body class="bg-gray-50 min-h-screen">
-
-<!-- Header -->
-<div class="flex justify-between items-center p-4 bg-white mb-6 border-b border-gray-200">
-  <div class="flex items-center gap-3">
-    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
-      class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-      <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
-    </div>
-  </div>
-
-  <!-- زر الرجوع -->
-  <a href="index.html" class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition flex items-center gap-2">
-    <i class="fas fa-arrow-right"></i>
-    رجوع للرئيسية
-  </a>
-</div>
-
-<div class="max-w-6xl mx-auto p-4">
-  <!-- العنوان -->
-  <h1 class="text-3xl font-bold text-center text-blue-800 mb-6">👨‍⚕️ لوحة إدارة المستشفى</h1>
-
-  <!-- الإحصائيات -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
-    <div class="bg-white shadow-md p-4 rounded">
-      <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
-      <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
-    </div>
-    <div class="bg-white shadow-md p-4 rounded">
-      <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
-      <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
-    </div>
-    <div class="bg-white shadow-md p-4 rounded">
-      <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
-      <p id="totalVisits" class="text-2xl font-bold text-red-600">0</p>
-    </div>
-  </div>
-
-  <!-- جدول المرضى -->
-  <div class="bg-white shadow-md rounded overflow-x-auto">
-    <table class="min-w-full table-auto border">
-      <thead class="bg-gray-100 text-gray-700 text-sm">
-        <tr>
-          <th class="border p-2">الاسم</th>
-          <th class="border p-2">العمر</th>
-          <th class="border p-2">القسم</th>
-          <th class="border p-2">تاريخ التسجيل</th>
-          <th class="border p-2">إجراء</th>
-        </tr>
-      </thead>
-      <tbody id="patientsTable" class="text-center">
-        <!-- بيانات المرضى تظهر هنا -->
-      </tbody>
-    </table>
-  </div>
-
-  <!-- جدول الأطباء -->
-  <div class="bg-white shadow-md rounded overflow-x-auto mt-8">
-    <h2 class="text-xl font-bold text-blue-700 p-4">إدارة الأطباء</h2>
-    <table class="min-w-full table-auto border">
-      <thead class="bg-gray-100 text-gray-700 text-sm">
-        <tr>
-          <th class="border p-2">الاسم</th>
-          <th class="border p-2">القسم</th>
-          <th class="border p-2">الوردية</th>
-          <th class="border p-2">الحالة</th>
-          <th class="border p-2">إجراء</th>
-        </tr>
-      </thead>
-      <tbody id="doctorsTable" class="text-center">
-        <!-- بيانات الأطباء تظهر هنا -->
-      </tbody>
-    </table>
-  </div>
-</div>
-
+<!-- Firebase -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, onValue, remove, update, push, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-    authDomain: "hospital-project-e4b59.firebaseapp.com",
-    databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "hospital-project-e4b59",
-    storageBucket: "hospital-project-e4b59.appspot.com",
-    messagingSenderId: "974610606258",
-    appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+  authDomain: "hospital-project-e4b59.firebaseapp.com",
+  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hospital-project-e4b59",
+  storageBucket: "hospital-project-e4b59.appspot.com",
+  messagingSenderId: "974610606258",
+  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  // إحصائيات المرضى
+window.addEventListener("DOMContentLoaded", () => {
   const statsPatients = document.getElementById("totalPatients");
   const statsDepartments = document.getElementById("totalDepartments");
   const statsVisits = document.getElementById("totalVisits");
-  const tableBody = document.getElementById("patientsTable");
+  const statsDoctorsOnline = document.getElementById("totalDoctorsOnline");
+  const patientsTable = document.getElementById("patientsTable");
+  const searchInput = document.getElementById("searchPatient");
 
+  let allPatients = [];
+
+  // ===================== تحميل المرضى =====================
   const patientsRef = ref(db, "patients");
   onValue(patientsRef, (snapshot) => {
     const data = snapshot.val();
     let countPatients = 0;
     let countVisits = 0;
     let departmentSet = new Set();
-    tableBody.innerHTML = "";
+    allPatients = [];
+
+    patientsTable.innerHTML = "";
 
     if (data) {
       Object.entries(data).forEach(([department, patients]) => {
         departmentSet.add(department);
         Object.entries(patients).forEach(([id, patient]) => {
           countPatients++;
-          if (patient.visits) {
-            countVisits += Object.keys(patient.visits).length;
-          }
+          if (patient.visits) countVisits += Object.keys(patient.visits).length;
 
-          const row = document.createElement("tr");
-          row.className = "hover:bg-gray-50 text-sm";
-          row.innerHTML = `
-            <td class="border p-2">${patient.name}</td>
-            <td class="border p-2">${patient.age}</td>
-            <td class="border p-2">${department}</td>
-            <td class="border p-2">${new Date(patient.timestamp).toLocaleString("ar-EG")}</td>
-            <td class="border p-2">
-              <button
-                class="text-red-600 hover:underline deleteBtn"
-                data-id="${id}"
-                data-department="${department}">
-                حذف
-              </button>
-            </td>
-          `;
-          tableBody.appendChild(row);
+          allPatients.push({ id, department, ...patient });
         });
       });
 
+      renderPatients(allPatients);
       statsPatients.textContent = countPatients;
       statsDepartments.textContent = departmentSet.size;
       statsVisits.textContent = countVisits;
     }
+  });
 
-    // حذف المريض
+  // دالة لعرض المرضى في الجدول
+  function renderPatients(patients) {
+    patientsTable.innerHTML = "";
+    patients.forEach((patient) => {
+      const row = document.createElement("tr");
+      row.className = "hover:bg-gray-50 text-sm";
+
+      row.innerHTML = `
+        <td class="border p-2">${patient.name}</td>
+        <td class="border p-2">${patient.age}</td>
+        <td class="border p-2">${patient.department}</td>
+        <td class="border p-2">${new Date(patient.timestamp).toLocaleString("ar-EG")}</td>
+        <td class="border p-2 flex gap-2 justify-center">
+          <button class="detailsBtn text-blue-600 hover:underline" data-id="${patient.id}" data-department="${patient.department}">تفاصيل</button>
+          <button class="text-red-600 hover:underline deleteBtn" data-id="${patient.id}" data-department="${patient.department}">حذف</button>
+        </td>
+      `;
+
+      patientsTable.appendChild(row);
+    });
+
+    attachPatientEvents();
+  }
+
+  // البحث الفوري
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    const filtered = allPatients.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      p.nid?.toLowerCase().includes(query)
+    );
+    renderPatients(filtered);
+  });
+
+  // الأحداث: تفاصيل وحذف
+  function attachPatientEvents() {
+    // تفاصيل
+    document.querySelectorAll(".detailsBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const dept = btn.dataset.department;
+        const patient = allPatients.find(p => p.id === id && p.department === dept);
+        if (patient) {
+          Swal.fire({
+            title: "تفاصيل المريض",
+            html: `
+              <div class="text-right text-sm">
+                <p><b>الاسم:</b> ${patient.name}</p>
+                <p><b>العمر:</b> ${patient.age}</p>
+                <p><b>القسم:</b> ${patient.department}</p>
+                <p><b>العنوان:</b> ${patient.address || "-"}</p>
+                <p><b>الأمراض:</b> ${patient.diseases || "-"}</p>
+                <p><b>الدكتور:</b> ${patient.doctors || "-"}</p>
+              </div>
+            `,
+            icon: "info",
+            confirmButtonText: "إغلاق"
+          });
+        }
+      });
+    });
+
+    // حذف
     document.querySelectorAll(".deleteBtn").forEach(button => {
       button.addEventListener("click", () => {
         const id = button.getAttribute("data-id");
@@ -178,16 +149,19 @@
         });
       });
     });
-  });
+  }
 
-  // جدول الأطباء
+  // ===================== الأطباء =====================
   const doctorsTable = document.getElementById("doctorsTable");
   const doctorsRef = ref(db, "doctors");
   onValue(doctorsRef, (snapshot) => {
     const doctors = snapshot.val();
     doctorsTable.innerHTML = "";
+    let countOnline = 0;
+
     if (doctors) {
       Object.entries(doctors).forEach(([docId, doc]) => {
+        if (doc.manualStatus === "online") countOnline++;
         const row = document.createElement("tr");
         row.className = "hover:bg-gray-50 text-sm";
         row.innerHTML = `
@@ -204,27 +178,131 @@
               class="changeStatusBtn bg-blue-500 text-white px-3 py-1 rounded"
               data-id="${docId}"
               data-status="${doc.manualStatus}">
-              ${doc.manualStatus === "online" ? "إخفاء من الاستقبال" : "إظهار في الاستقبال"}
+              ${doc.manualStatus === "online" ? "إخفاء" : "إظهار"}
             </button>
           </td>
         `;
         doctorsTable.appendChild(row);
       });
 
-      // تغيير الحالة
+      statsDoctorsOnline.textContent = countOnline;
+
+      // تغيير حالة الطبيب
       document.querySelectorAll(".changeStatusBtn").forEach(button => {
         button.addEventListener("click", () => {
           const docId = button.getAttribute("data-id");
           const currentStatus = button.getAttribute("data-status");
           const newStatus = currentStatus === "online" ? "offline" : "online";
           const doctorStatusRef = ref(db, `doctors/${docId}`);
-          update(doctorStatusRef, { manualStatus: newStatus })
-            .then(() => Swal.fire("تم التحديث", "تم تغيير حالة الطبيب بنجاح", "success"))
-            .catch(() => Swal.fire("خطأ", "حدث خطأ أثناء التحديث", "error"));
+          update(doctorStatusRef, { manualStatus: newStatus });
         });
       });
     }
   });
+
+  // إضافة طبيب جديد
+  document.getElementById("addDoctorBtn").addEventListener("click", () => {
+    Swal.fire({
+      title: "إضافة طبيب",
+      html: `
+        <input id="docName" class="swal2-input" placeholder="اسم الطبيب">
+        <input id="docDept" class="swal2-input" placeholder="القسم (emergency)">
+        <input id="docShift" class="swal2-input" placeholder="Morning/Evening/Night">
+      `,
+      focusConfirm: false,
+      preConfirm: () => {
+        const name = document.getElementById("docName").value;
+        const department = document.getElementById("docDept").value;
+        const shift = document.getElementById("docShift").value;
+        if (!name || !department || !shift) {
+          Swal.showValidationMessage("يرجى إدخال جميع الحقول");
+          return false;
+        }
+        const newDocRef = push(ref(db, "doctors"));
+        return set(newDocRef, { name, department, shift, manualStatus: "online" });
+      }
+    }).then(result => {
+      if (result.isConfirmed) Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
+    });
+  });
+});
 </script>
+</head>
+<body class="bg-gray-100 p-6">
+<div class="max-w-6xl mx-auto">
+
+<!-- Header -->
+<div class="flex justify-between items-center p-4 bg-white mb-6 border-b border-gray-200">
+  <div class="flex items-center gap-3">
+    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+      <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
+    </div>
+  </div>
+</div>
+
+<!-- إحصائيات -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 text-center">
+  <div class="bg-white shadow-md p-4 rounded">
+    <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
+    <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
+  </div>
+  <div class="bg-white shadow-md p-4 rounded">
+    <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
+    <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
+  </div>
+  <div class="bg-white shadow-md p-4 rounded">
+    <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
+    <p id="totalVisits" class="text-2xl font-bold text-red-600">0</p>
+  </div>
+  <div class="bg-white shadow-md p-4 rounded">
+    <h3 class="text-sm text-gray-500">الأطباء المتاحين الآن</h3>
+    <p id="totalDoctorsOnline" class="text-2xl font-bold text-purple-600">0</p>
+  </div>
+</div>
+
+<!-- بحث المرضى -->
+<div class="mb-4">
+  <input id="searchPatient" type="text" placeholder="🔍 ابحث عن مريض بالاسم أو الرقم القومي" class="w-full p-2 border rounded">
+</div>
+
+<!-- جدول المرضى -->
+<div class="bg-white shadow-md rounded overflow-x-auto">
+  <table class="min-w-full table-auto border">
+    <thead class="bg-gray-100 text-gray-700 text-sm">
+      <tr>
+        <th class="border p-2">الاسم</th>
+        <th class="border p-2">العمر</th>
+        <th class="border p-2">القسم</th>
+        <th class="border p-2">تاريخ التسجيل</th>
+        <th class="border p-2">إجراء</th>
+      </tr>
+    </thead>
+    <tbody id="patientsTable" class="text-center"></tbody>
+  </table>
+</div>
+
+<!-- جدول الأطباء -->
+<div class="bg-white shadow-md rounded overflow-x-auto mt-8">
+  <div class="flex justify-between items-center p-4">
+    <h2 class="text-xl font-bold text-blue-700">إدارة الأطباء</h2>
+    <button id="addDoctorBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">إضافة طبيب</button>
+  </div>
+  <table class="min-w-full table-auto border">
+    <thead class="bg-gray-100 text-gray-700 text-sm">
+      <tr>
+        <th class="border p-2">الاسم</th>
+        <th class="border p-2">القسم</th>
+        <th class="border p-2">الوردية</th>
+        <th class="border p-2">الحالة</th>
+        <th class="border p-2">إجراء</th>
+      </tr>
+    </thead>
+    <tbody id="doctorsTable" class="text-center"></tbody>
+  </table>
+</div>
+
+</div>
 </body>
 </html>
