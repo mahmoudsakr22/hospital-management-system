@@ -218,11 +218,13 @@
         </div>
         <form id="patientForm" class="space-y-4">
           <div class="space-y-3">
+            <!-- اسم المريض -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">اسم المريض</label>
               <input type="text" id="name" class="w-full border rounded-md p-2" required />
             </div>
 
+            <!-- العمر والرقم القومي -->
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
@@ -234,6 +236,7 @@
               </div>
             </div>
 
+            <!-- الجنس وفصيلة الدم -->
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
@@ -259,39 +262,37 @@
               </div>
             </div>
 
+            <!-- العنوان -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
               <input type="text" id="address" class="w-full border rounded-md p-2" required />
             </div>
 
+            <!-- الأمراض -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
               <textarea id="diseases" rows="3" class="w-full border rounded-md p-2"></textarea>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">القسم</label>
-              <select id="department" class="w-full border rounded-md p-2" required>
-                <option value="">اختر القسم</option>
-                <option value="emergency">الطوارئ</option>
-                <option value="icu">العناية المركزة</option>
-                <option value="surgery">العمليات</option>
-                <option value="care">الرعاية</option>
-                <option value="radiology">الأشعة</option>
-              </select>
-            </div>
+            <!-- اختيار القسم -->
+            <label class="block mb-2 font-medium">اختر القسم</label>
+            <select id="department" class="w-full border rounded p-2 mb-4">
+              <option value="">-- اختر القسم --</option>
+              <option value="emergency">الطوارئ</option>
+              <option value="radiology">الأشعة</option>
+              <option value="icu">العناية المركزة</option>
+              <option value="operations">العمليات</option>
+            </select>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">الدكتور</label>
-              <select id="doctor" class="w-full border rounded-md p-2">
-                <option value="">اختر القسم أولاً</option>
-              </select>
-            </div>
+            <!-- اختيار الدكتور -->
+            <label class="block mb-2 font-medium">اختر الدكتور</label>
+            <select id="doctorSelect" class="w-full border rounded p-2 mb-4">
+              <option value="">-- اختر الدكتور --</option>
+            </select>
+
+            <!-- زر التسجيل -->
+            <button type="button" onclick="registerPatient()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">تسجيل المريض</button>
           </div>
-
-          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-md p-3">
-            <i class="fas fa-save mr-2"></i> تسجيل المريض
-          </button>
         </form>
       </div>
     </div>
@@ -299,88 +300,88 @@
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-  // Config Firebase
+  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
     authDomain: "hospital-project-e4b59.firebaseapp.com",
     databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "hospital-project-e4b59",
-    storageBucket: "hospital-project-e4b59.firebasestorage.app",
+    storageBucket: "hospital-project-e4b59.appspot.com",
     messagingSenderId: "974610606258",
-    appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
-    measurementId: "G-0GV30LL28T"
+    appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const departmentSelect = document.getElementById("department");
-  const doctorSelect = document.getElementById("doctor");
+  // تحميل الأطباء حسب القسم
+  document.getElementById("department").addEventListener("change", function () {
+    const dept = this.value;
+    const doctorSelect = document.getElementById("doctorSelect");
+    doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
 
-  // تحميل الأطباء بناءً على القسم
-  function loadDoctors() {
-    const selectedDept = departmentSelect.value;
-    if (!selectedDept) {
-      doctorSelect.innerHTML = '<option value="">اختر القسم أولاً</option>';
-      return;
-    }
+    if (!dept) return;
 
-    const doctorsRef = ref(db, "hospital/doctors");
+    const doctorsRef = ref(db, "doctors");
     onValue(doctorsRef, (snapshot) => {
-      doctorSelect.innerHTML = '<option value="">اختر الدكتور</option>';
-      snapshot.forEach(childSnapshot => {
-        const doctor = childSnapshot.val();
-        if (doctor.department === selectedDept && doctor.manualStatus === "online") {
+      doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+      snapshot.forEach(child => {
+        const doc = child.val();
+        if (doc.department.toLowerCase() === dept.toLowerCase()) {
           const option = document.createElement("option");
-          option.value = childSnapshot.key; // ID الطبيب
-          option.textContent = doctor.name;
+          option.value = doc.name;
+          option.textContent = `${doc.name} (${doc.shift})`;
           doctorSelect.appendChild(option);
         }
       });
     });
-  }
-
-  departmentSelect.addEventListener("change", loadDoctors);
+  });
 
   // تسجيل المريض
-  document.getElementById("patientForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById("name").value;
-    const age = document.getElementById("age").value;
-    const nid = document.getElementById("nid").value;
-    const gender = document.getElementById("gender").value;
+  window.registerPatient = function () {
+    const name = document.getElementById("name").value.trim();
+    const age = document.getElementById("age").value.trim();
+    const nid = document.getElementById("nid").value.trim();
+    const address = document.getElementById("address").value.trim();
     const bloodType = document.getElementById("bloodType").value;
-    const address = document.getElementById("address").value;
-    const diseases = document.getElementById("diseases").value;
-    const department = departmentSelect.value;
-    const doctorId = doctorSelect.value;
-    const doctorName = doctorSelect.options[doctorSelect.selectedIndex]?.textContent || "";
+    const diseases = document.getElementById("diseases").value.trim();
+    const department = document.getElementById("department").value;
+    const doctor = document.getElementById("doctorSelect").value;
 
-    if (!doctorId) {
-      Swal.fire("تنبيه", "يرجى اختيار الطبيب", "warning");
+    if (!name || !age || !nid || !department || !doctor) {
+      Swal.fire("تنبيه", "يرجى إدخال كل البيانات المطلوبة واختيار الدكتور", "warning");
       return;
     }
 
-    const patientsRef = ref(db, "patients");
+    const patientData = {
+      name,
+      age,
+      nid,
+      address,
+      bloodType,
+      diseases,
+      department,
+      doctor,
+      timestamp: new Date().toISOString()
+    };
+
+    const patientsRef = ref(db, `patients/${department}`);
     const newPatientRef = push(patientsRef);
 
-    set(newPatientRef, {
-      name, age, nid, gender, bloodType, address, diseases,
-      department, doctorId, doctorName,
-      registeredAt: new Date().toISOString()
-    }).then(() => {
-      Swal.fire("تم التسجيل", "تم تسجيل المريض بنجاح وربطه بالدكتور", "success");
-      document.getElementById("patientForm").reset();
-      doctorSelect.innerHTML = '<option value="">اختر القسم أولاً</option>';
-    });
-  });
+    set(newPatientRef, patientData)
+      .then(() => {
+        Swal.fire("تم الحفظ", "تم تسجيل المريض بنجاح", "success");
+        document.getElementById("patientForm").reset();
+      })
+      .catch(() => {
+        Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
+      });
+  };
 </script>
-</body>
-</html>
+
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
