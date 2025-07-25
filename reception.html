@@ -317,15 +317,18 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // دالة لتحديد الوردية الحالية
+  // دالة لتحديد الوردية بتوقيت مصر
   function getCurrentShift() {
-    const hour = new Date().getHours();
-    if (hour >= 8 && hour < 16) return "Morning";  // 8ص لـ 4م
-    if (hour >= 16 && hour < 24) return "Evening"; // 4م لـ 12ص
-    return "Night";                                // 12ص لـ 8ص
+    const nowCairo = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+    const date = new Date(nowCairo);
+    const hour = date.getHours();
+
+    if (hour >= 8 && hour < 16) return "Morning";
+    if (hour >= 16 && hour < 24) return "Evening";
+    return "Night";
   }
 
-  // تحميل الأطباء حسب القسم + الوردية الحالية + الحالة
+  // تحميل الأطباء حسب القسم + الوردية + الحالة
   document.getElementById("department").addEventListener("change", function () {
     const dept = this.value;
     const doctorSelect = document.getElementById("doctorSelect");
@@ -333,19 +336,17 @@
 
     if (!dept) return;
 
-    const currentShift = getCurrentShift();
+    const shift = getCurrentShift();
     const doctorsRef = ref(db, "doctors");
-
     onValue(doctorsRef, (snapshot) => {
       doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
       snapshot.forEach(child => {
         const doc = child.val();
-
-        // التحقق من القسم + حالة Online + الوردية الحالية
+        // شرط: نفس القسم + نفس الوردية + اونلاين
         if (
           doc.department.toLowerCase() === dept.toLowerCase() &&
-          doc.manualStatus === "online" &&
-          doc.shift === currentShift
+          doc.shift === shift &&
+          doc.manualStatus === "online"
         ) {
           const option = document.createElement("option");
           option.value = doc.name;
@@ -353,14 +354,6 @@
           doctorSelect.appendChild(option);
         }
       });
-
-      // لو مفيش دكاترة متاحين
-      if (doctorSelect.options.length === 1) {
-        const noDocOption = document.createElement("option");
-        noDocOption.textContent = "لا يوجد دكاترة متاحين الآن";
-        noDocOption.disabled = true;
-        doctorSelect.appendChild(noDocOption);
-      }
     });
   });
 
@@ -388,7 +381,7 @@
       bloodType,
       diseases,
       department,
-      doctors: doctor,
+      doctors: doctor,   // تخزين اسم الدكتور
       timestamp: new Date().toISOString()
     };
 
@@ -405,8 +398,7 @@
       });
   };
 </script>
-
-    </body>
+</body>
 </html>
       <!-- Patients List -->
       <div class="lg:col-span-2">
