@@ -317,45 +317,58 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // تحميل الأطباء حسب القسم
-  document.getElementById("department").addEventListener("change", function () {
-    const dept = this.value;
-    const doctorSelect = document.getElementById("doctorSelect");
-    doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+ function loadDoctors() {
+    const selectedDept = departmentSelect.value;
+    if (!selectedDept) {
+      doctorSelect.innerHTML = '<option value="">اختر القسم أولاً</option>';
+      return;
+    }
 
-    if (!dept) return;
+    const { shift, dayName } = getCurrentShift();
+    const doctorsRef = ref(db, 'doctors');
 
-    const doctorsRef = ref(db, "doctors");
     onValue(doctorsRef, (snapshot) => {
-      doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-      snapshot.forEach(child => {
-        const doc = child.val();
-        if (doc.department.toLowerCase() === dept.toLowerCase()) {
+      doctorSelect.innerHTML = '<option value="">اختر الدكتور</option>';
+      snapshot.forEach(childSnapshot => {
+        const doctor = childSnapshot.val();
+        if (
+          doctor.department === selectedDept &&
+          doctor.shift === shift &&
+          doctor.workDays.includes(dayName) &&
+          doctor.manualStatus === "online"
+        ) {
           const option = document.createElement("option");
-          option.value = doc.name;
-          option.textContent = `${doc.name} (${doc.shift})`;
+          option.value = doctor.id;
+          option.textContent = doctor.name;
           doctorSelect.appendChild(option);
         }
       });
     });
-  });
+  }
 
-  // تسجيل المريض
-  window.registerPatient = function () {
-    const name = document.getElementById("name").value.trim();
-    const age = document.getElementById("age").value.trim();
-    const nid = document.getElementById("nid").value.trim();
-    const address = document.getElementById("address").value.trim();
+  departmentSelect.addEventListener("change", loadDoctors);
+ // تسجيل المريض
+  document.getElementById("patientForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const age = document.getElementById("age").value;
+    const nid = document.getElementById("nid").value;
+    const gender = document.getElementById("gender").value;
     const bloodType = document.getElementById("bloodType").value;
-    const diseases = document.getElementById("diseases").value.trim();
-    const department = document.getElementById("department").value;
-    const doctor = document.getElementById("doctorSelect").value;
+    const address = document.getElementById("address").value;
+    const diseases = document.getElementById("diseases").value;
+    const department = departmentSelect.value;
+    const doctorId = doctorSelect.value;
+    const doctorName = doctorSelect.options[doctorSelect.selectedIndex]?.textContent || "";
 
-    if (!name || !age || !nid || !department || !doctor) {
-      Swal.fire("تنبيه", "يرجى إدخال كل البيانات المطلوبة واختيار الدكتور", "warning");
-      return;
-    }
+    const patientsRef = ref(db, "patients");
+    const newPatientRef = push(patientsRef);
 
+    set(newPatientRef, {
+      name, age, nid, gender, bloodType, address, diseases,
+      department, doctorId, doctorName,
+      registeredAt: new Date().toISOString()
  const patientData = {
   name,
   age,
