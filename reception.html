@@ -320,31 +320,24 @@ document.getElementById("department").addEventListener("change", function () {
 document.getElementById("department").addEventListener("change", function () {
   const dept = this.value;
   const doctorSelect = document.getElementById("doctorSelect");
-  doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+ doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
 
-  if (!dept) return;
+    if (!dept) return;
 
-  const doctorsRef = ref(db, "hospital/doctors"); // تعديل المسار
-
-  onValue(doctorsRef, (snapshot) => {
-    doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-    snapshot.forEach(child => {
-      const doc = child.val();
-      if (
-        doc.department &&
-        doc.department.toLowerCase() === dept &&
-        doc.manualStatus &&
-        doc.manualStatus.toLowerCase() === "online"
-      ) {
-        const option = document.createElement("option");
-        option.value = doc.name;
-        option.textContent = `${doc.name} (${doc.shift})`;
-        doctorSelect.appendChild(option);
-      }
+    const doctorsRef = ref(db, "doctors");
+    onValue(doctorsRef, (snapshot) => {
+      doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+      snapshot.forEach(child => {
+        const doc = child.val();
+        if (doc.department.toLowerCase() === dept.toLowerCase()) {
+          const option = document.createElement("option");
+          option.value = doc.name;
+          option.textContent = `${doc.name} (${doc.shift})`;
+          doctorSelect.appendChild(option);
+        }
+      });
     });
   });
-});
-
   // تسجيل المريض
   window.registerPatient = function () {
     const name = document.getElementById("name").value.trim();
