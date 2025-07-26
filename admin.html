@@ -1,112 +1,360 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لوحة تحكم المستشفى</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    body {
-      font-family: 'Tajawal', sans-serif;
+<meta charset="UTF-8">
+<title>لوحة تحكم مدير المستشفى</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, onValue, remove, update, push, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+  authDomain: "hospital-project-e4b59.firebaseapp.com",
+  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hospital-project-e4b59",
+  storageBucket: "hospital-project-e4b59.appspot.com",
+  messagingSenderId: "974610606258",
+  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.addEventListener("DOMContentLoaded", () => {
+  // عناصر التنقل
+  const sections = document.querySelectorAll(".section");
+  const navLinks = document.querySelectorAll(".nav-link");
+
+  navLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      sections.forEach(sec => sec.classList.add("hidden"));
+      document.getElementById(link.dataset.target).classList.remove("hidden");
+      navLinks.forEach(l => l.classList.remove("bg-blue-600", "text-white"));
+      link.classList.add("bg-blue-600", "text-white");
+    });
+  });
+
+  // ========== تحميل بيانات المرضى ==========
+  const statsPatients = document.getElementById("totalPatients");
+  const statsDepartments = document.getElementById("totalDepartments");
+  const statsVisits = document.getElementById("totalVisits");
+  const patientsTable = document.getElementById("patientsTable");
+  const searchInput = document.getElementById("searchPatient");
+
+  let allPatients = [];
+
+  const patientsRef = ref(db, "patients");
+  onValue(patientsRef, (snapshot) => {
+    const data = snapshot.val();
+    let countPatients = 0;
+    let countVisits = 0;
+    let departmentSet = new Set();
+    allPatients = [];
+
+    patientsTable.innerHTML = "";
+
+    if (data) {
+      Object.entries(data).forEach(([department, patients]) => {
+        departmentSet.add(department);
+        Object.entries(patients).forEach(([id, patient]) => {
+          countPatients++;
+          if (patient.visits) countVisits += Object.keys(patient.visits).length;
+          allPatients.push({ id, department, ...patient });
+        });
+      });
+
+      renderPatients(allPatients);
+      statsPatients.textContent = countPatients;
+      statsDepartments.textContent = departmentSet.size;
+      statsVisits.textContent = countVisits;
     }
-  </style>
+  });
+
+  function renderPatients(patients) {
+    patientsTable.innerHTML = "";
+    patients.forEach((patient) => {
+      const row = document.createElement("tr");
+      row.className = "hover:bg-gray-50 text-sm";
+
+      row.innerHTML = `
+        <td class="border p-2">${patient.name}</td>
+        <td class="border p-2">${patient.age}</td>
+        <td class="border p-2">${patient.department}</td>
+        <td class="border p-2">${new Date(patient.timestamp).toLocaleString("ar-EG")}</td>
+        <td class="border p-2 flex gap-2 justify-center">
+          <button class="detailsBtn text-blue-600 hover:underline" data-id="${patient.id}" data-department="${patient.department}">تفاصيل</button>
+          <button class="text-red-600 hover:underline deleteBtn" data-id="${patient.id}" data-department="${patient.department}">حذف</button>
+        </td>
+      `;
+      patientsTable.appendChild(row);
+    });
+
+    attachPatientEvents();
+  }
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    const filtered = allPatients.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      p.nid?.toLowerCase().includes(query)
+    );
+    renderPatients(filtered);
+  });
+
+  function attachPatientEvents() {
+    // تفاصيل
+    document.querySelectorAll(".detailsBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const dept = btn.dataset.department;
+        const patient = allPatients.find(p => p.id === id && p.department === dept);
+        if (patient) {
+          Swal.fire({
+            title: "تفاصيل المريض",
+            html: `
+              <div class="text-right text-sm">
+                <p><b>الاسم:</b> ${patient.name}</p>
+                <p><b>العمر:</b> ${patient.age}</p>
+                <p><b>القسم:</b> ${patient.department}</p>
+                <p><b>العنوان:</b> ${patient.address || "-"}</p>
+                <p><b>الأمراض:</b> ${patient.diseases || "-"}</p>
+                <p><b>الدكتور:</b> ${patient.doctors || "-"}</p>
+              </div>
+            `,
+            icon: "info",
+            confirmButtonText: "إغلاق"
+          });
+        }
+      });
+    });
+
+    // حذف
+    document.querySelectorAll(".deleteBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const id = button.getAttribute("data-id");
+        const department = button.getAttribute("data-department");
+        const patientRef = ref(db, `patients/${department}/${id}`);
+
+        Swal.fire({
+          title: "هل أنت متأكد؟",
+          text: "لن تتمكن من التراجع!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "نعم، احذف",
+          cancelButtonText: "إلغاء"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            remove(patientRef)
+              .then(() => Swal.fire("تم الحذف", "تم حذف المريض بنجاح", "success"))
+              .catch(() => Swal.fire("خطأ", "حدث خطأ أثناء الحذف", "error"));
+          }
+        });
+      });
+    });
+  }
+
+  // ========== الأطباء ==========
+  const doctorsTable = document.getElementById("doctorsTable");
+  const doctorsRef = ref(db, "doctors");
+
+  onValue(doctorsRef, (snapshot) => {
+    const doctors = snapshot.val();
+    doctorsTable.innerHTML = "";
+
+    if (doctors) {
+      Object.entries(doctors).forEach(([docId, doc]) => {
+        const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50 text-sm";
+        row.innerHTML = `
+          <td class="border p-2">${doc.name}</td>
+          <td class="border p-2">${doc.department}</td>
+          <td class="border p-2">${doc.shift}</td>
+          <td class="border p-2">
+            <span class="${doc.manualStatus === "online" ? "text-green-600" : "text-red-600"} font-bold">
+              ${doc.manualStatus === "online" ? "متاح" : "غير متاح"}
+            </span>
+          </td>
+          <td class="border p-2 flex gap-2 justify-center">
+            <button class="changeStatusBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${docId}" data-status="${doc.manualStatus}">
+              ${doc.manualStatus === "online" ? "إخفاء" : "إظهار"}
+            </button>
+            <button class="editDoctorBtn bg-yellow-500 text-white px-2 py-1 rounded" data-id="${docId}">تعديل</button>
+            <button class="deleteDoctorBtn bg-red-500 text-white px-2 py-1 rounded" data-id="${docId}">حذف</button>
+          </td>
+        `;
+        doctorsTable.appendChild(row);
+      });
+
+      // تغيير حالة الطبيب
+      document.querySelectorAll(".changeStatusBtn").forEach(button => {
+        button.addEventListener("click", () => {
+          const docId = button.getAttribute("data-id");
+          const currentStatus = button.getAttribute("data-status");
+          const newStatus = currentStatus === "online" ? "offline" : "online";
+          const doctorStatusRef = ref(db, `doctors/${docId}`);
+          update(doctorStatusRef, { manualStatus: newStatus });
+        });
+      });
+
+      // تعديل الطبيب
+      document.querySelectorAll(".editDoctorBtn").forEach(button => {
+        button.addEventListener("click", () => {
+          const docId = button.getAttribute("data-id");
+          const doctor = snapshot.val()[docId];
+
+          Swal.fire({
+            title: "تعديل بيانات الطبيب",
+            html: `
+              <input id="editDocName" class="swal2-input" value="${doctor.name}">
+              <input id="editDocDept" class="swal2-input" value="${doctor.department}">
+              <input id="editDocShift" class="swal2-input" value="${doctor.shift}">
+            `,
+            preConfirm: () => {
+              const name = document.getElementById("editDocName").value;
+              const department = document.getElementById("editDocDept").value;
+              const shift = document.getElementById("editDocShift").value;
+              if (!name || !department || !shift) {
+                Swal.showValidationMessage("أدخل جميع البيانات");
+                return false;
+              }
+              update(ref(db, `doctors/${docId}`), { name, department, shift });
+            }
+          }).then(result => {
+            if (result.isConfirmed) Swal.fire("تم", "تم تعديل الطبيب بنجاح", "success");
+          });
+        });
+      });
+
+      // حذف الطبيب
+      document.querySelectorAll(".deleteDoctorBtn").forEach(button => {
+        button.addEventListener("click", () => {
+          const docId = button.getAttribute("data-id");
+          Swal.fire({
+            title: "هل أنت متأكد؟",
+            text: "سيتم حذف الطبيب نهائياً",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "نعم، احذف",
+            cancelButtonText: "إلغاء"
+          }).then((result) => {
+            if (result.isConfirmed) {
+              remove(ref(db, `doctors/${docId}`))
+                .then(() => Swal.fire("تم", "تم حذف الطبيب", "success"))
+                .catch(() => Swal.fire("خطأ", "فشل الحذف", "error"));
+            }
+          });
+        });
+      });
+    }
+  });
+
+  // إضافة طبيب جديد
+  document.getElementById("addDoctorBtn").addEventListener("click", () => {
+    Swal.fire({
+      title: "إضافة طبيب",
+      html: `
+        <input id="docName" class="swal2-input" placeholder="اسم الطبيب">
+        <input id="docDept" class="swal2-input" placeholder="القسم (emergency)">
+        <input id="docShift" class="swal2-input" placeholder="Morning/Evening/Night">
+      `,
+      preConfirm: () => {
+        const name = document.getElementById("docName").value;
+        const department = document.getElementById("docDept").value;
+        const shift = document.getElementById("docShift").value;
+        if (!name || !department || !shift) {
+          Swal.showValidationMessage("يرجى إدخال جميع الحقول");
+          return false;
+        }
+        const newDocRef = push(ref(db, "doctors"));
+        return set(newDocRef, { name, department, shift, manualStatus: "online" });
+      }
+    }).then(result => {
+      if (result.isConfirmed) Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
+    });
+  });
+});
+</script>
 </head>
 <body class="bg-gray-100 min-h-screen flex">
 
-  <!-- الشريط الجانبي -->
-  <aside class="w-64 bg-white shadow-md p-4 hidden md:block">
-    <div class="flex items-center gap-3 mb-6">
-      <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-12 h-12 rounded-full border border-blue-700">
-      <div>
-        <h2 class="text-lg font-bold text-gray-700">مستشفى الحياة الذكية</h2>
-        <span class="text-sm text-blue-700">لوحة المدير</span>
+<!-- Sidebar -->
+<div class="w-64 bg-white shadow-md h-screen p-4">
+  <h2 class="text-2xl font-bold mb-6 text-blue-700">لوحة المدير</h2>
+  <nav class="flex flex-col gap-2">
+    <button class="nav-link px-4 py-2 rounded text-right hover:bg-blue-100" data-target="dashboard">لوحة التحكم</button>
+    <button class="nav-link px-4 py-2 rounded text-right hover:bg-blue-100" data-target="doctors">إدارة الأطباء</button>
+    <button class="nav-link px-4 py-2 rounded text-right hover:bg-blue-100" data-target="patients">إدارة المرضى</button>
+  </nav>
+</div>
+
+<!-- Main Content -->
+<div class="flex-1 p-6">
+  <!-- Dashboard Section -->
+  <section id="dashboard" class="section">
+    <h1 class="text-3xl font-bold mb-6">لوحة التحكم</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
+      <div class="bg-white shadow-md p-4 rounded">
+        <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
+        <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
+      </div>
+      <div class="bg-white shadow-md p-4 rounded">
+        <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
+        <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
+      </div>
+      <div class="bg-white shadow-md p-4 rounded">
+        <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
+        <p id="totalVisits" class="text-2xl font-bold text-red-600">0</p>
       </div>
     </div>
-    <nav class="space-y-2 text-sm">
-      <button onclick="showSection('dashboard')" class="w-full text-right text-gray-700 hover:text-blue-600"><i class="fas fa-chart-line ml-2"></i> لوحة التحكم</button>
-      <button onclick="showSection('doctors')" class="w-full text-right text-gray-700 hover:text-blue-600"><i class="fas fa-user-md ml-2"></i> إدارة الأطباء</button>
-      <button onclick="showSection('patients')" class="w-full text-right text-gray-700 hover:text-blue-600"><i class="fas fa-procedures ml-2"></i> المرضى</button>
-      <button onclick="showSection('nurses')" class="w-full text-right text-gray-700 hover:text-blue-600"><i class="fas fa-user-nurse ml-2"></i> التمريض</button>
-      <button onclick="showSection('staff')" class="w-full text-right text-gray-700 hover:text-blue-600"><i class="fas fa-users ml-2"></i> الموظفين</button>
-    </nav>
-  </aside>
+  </section>
 
-  <!-- محتوى الصفحة -->
-  <main class="flex-1 p-6">
-    <!-- عنوان الصفحة -->
-    <div class="mb-6">
-      <h1 id="pageTitle" class="text-2xl font-bold text-gray-800">لوحة التحكم</h1>
+  <!-- Doctors Section -->
+  <section id="doctors" class="section hidden">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-blue-700">إدارة الأطباء</h2>
+      <button id="addDoctorBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">إضافة طبيب</button>
     </div>
+    <div class="bg-white shadow-md rounded overflow-x-auto">
+      <table class="min-w-full table-auto border">
+        <thead class="bg-gray-100 text-gray-700 text-sm">
+          <tr>
+            <th class="border p-2">الاسم</th>
+            <th class="border p-2">القسم</th>
+            <th class="border p-2">الوردية</th>
+            <th class="border p-2">الحالة</th>
+            <th class="border p-2">إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="doctorsTable" class="text-center"></tbody>
+      </table>
+    </div>
+  </section>
 
-    <!-- لوحة التحكم -->
-    <section id="dashboardSection">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-        <div class="bg-white p-4 rounded shadow">
-          <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
-          <p class="text-2xl font-bold text-blue-600">120</p>
-        </div>
-        <div class="bg-white p-4 rounded shadow">
-          <h3 class="text-sm text-gray-500">الأطباء</h3>
-          <p class="text-2xl font-bold text-green-600">35</p>
-        </div>
-        <div class="bg-white p-4 rounded shadow">
-          <h3 class="text-sm text-gray-500">التمريض</h3>
-          <p class="text-2xl font-bold text-red-600">60</p>
-        </div>
-        <div class="bg-white p-4 rounded shadow">
-          <h3 class="text-sm text-gray-500">موظفي الإدارة</h3>
-          <p class="text-2xl font-bold text-yellow-600">10</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- إدارة الأطباء -->
-    <section id="doctorsSection" class="hidden">
-      <h2 class="text-xl font-bold text-blue-700 mb-4">قائمة الأطباء</h2>
-      <p class="text-sm text-gray-600">هنا تظهر بيانات الأطباء...</p>
-    </section>
-
-    <!-- المرضى -->
-    <section id="patientsSection" class="hidden">
-      <h2 class="text-xl font-bold text-blue-700 mb-4">قائمة المرضى</h2>
-      <p class="text-sm text-gray-600">هنا تظهر بيانات المرضى...</p>
-    </section>
-
-    <!-- التمريض -->
-    <section id="nursesSection" class="hidden">
-      <h2 class="text-xl font-bold text-blue-700 mb-4">قائمة التمريض</h2>
-      <p class="text-sm text-gray-600">هنا تظهر بيانات الممرضين...</p>
-    </section>
-
-    <!-- الموظفين -->
-    <section id="staffSection" class="hidden">
-      <h2 class="text-xl font-bold text-blue-700 mb-4">قائمة الموظفين</h2>
-      <p class="text-sm text-gray-600">هنا تظهر بيانات الموظفين...</p>
-    </section>
-
-  </main>
-
-  <script>
-    function showSection(section) {
-      document.getElementById("dashboardSection").classList.add("hidden");
-      document.getElementById("doctorsSection").classList.add("hidden");
-      document.getElementById("patientsSection").classList.add("hidden");
-      document.getElementById("nursesSection").classList.add("hidden");
-      document.getElementById("staffSection").classList.add("hidden");
-
-      document.getElementById(section + "Section").classList.remove("hidden");
-
-      const titles = {
-        dashboard: "لوحة التحكم",
-        doctors: "إدارة الأطباء",
-        patients: "المرضى",
-        nurses: "التمريض",
-        staff: "الموظفين"
-      };
-      document.getElementById("pageTitle").textContent = titles[section];
-    }
-  </script>
+  <!-- Patients Section -->
+  <section id="patients" class="section hidden">
+    <h2 class="text-xl font-bold text-blue-700 mb-4">إدارة المرضى</h2>
+    <input id="searchPatient" type="text" placeholder="🔍 ابحث عن مريض بالاسم أو الرقم القومي" class="w-full p-2 border rounded mb-4">
+    <div class="bg-white shadow-md rounded overflow-x-auto">
+      <table class="min-w-full table-auto border">
+        <thead class="bg-gray-100 text-gray-700 text-sm">
+          <tr>
+            <th class="border p-2">الاسم</th>
+            <th class="border p-2">العمر</th>
+            <th class="border p-2">القسم</th>
+            <th class="border p-2">تاريخ التسجيل</th>
+            <th class="border p-2">إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="patientsTable" class="text-center"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
 
 </body>
 </html>
