@@ -5,359 +5,996 @@
 <title>لوحة إدارة المستشفى</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getDatabase, ref, onValue, remove, update, push, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-// إعداد Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-  authDomain: "hospital-project-e4b59.firebaseapp.com",
-  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "hospital-project-e4b59",
-  storageBucket: "hospital-project-e4b59.appspot.com",
-  messagingSenderId: "974610606258",
-  appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-window.addEventListener("DOMContentLoaded", () => {
-  // عناصر DOM
-  const totalPatients = document.getElementById("totalPatients");
-  const totalDepartments = document.getElementById("totalDepartments");
-  const totalVisits = document.getElementById("totalVisits");
-  const totalDoctorsOnline = document.getElementById("totalDoctorsOnline");
-  const patientsTable = document.getElementById("patientsTable");
-  const searchPatient = document.getElementById("searchPatient");
-  const doctorsTable = document.getElementById("doctorsTable");
-
-  let allPatients = [];
-
-  // ================= تحميل بيانات المرضى =================
-  const patientsRef = ref(db, "patients");
-  onValue(patientsRef, (snapshot) => {
-    const data = snapshot.val();
-    let countPatients = 0;
-    let countVisits = 0;
-    let departmentSet = new Set();
-    allPatients = [];
-    patientsTable.innerHTML = "";
-
-    if (data) {
-      Object.entries(data).forEach(([department, patients]) => {
-        departmentSet.add(department);
-        Object.entries(patients).forEach(([id, patient]) => {
-          countPatients++;
-          if (patient.visits) countVisits += Object.keys(patient.visits).length;
-          allPatients.push({ id, department, ...patient });
-        });
-      });
-
-      renderPatients(allPatients);
-      totalPatients.textContent = countPatients;
-      totalDepartments.textContent = departmentSet.size;
-      totalVisits.textContent = countVisits;
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<style>
+    body {
+        font-family: 'Cairo', sans-serif;
+        background-color: #f8fafc;
     }
-  });
-
-  // عرض المرضى
-  function renderPatients(patients) {
-    patientsTable.innerHTML = "";
-    patients.forEach((patient) => {
-      const row = document.createElement("tr");
-      row.className = "hover:bg-gray-50 text-sm";
-      row.innerHTML = `
-        <td class="border p-2">${patient.name}</td>
-        <td class="border p-2">${patient.age}</td>
-        <td class="border p-2">${patient.department}</td>
-        <td class="border p-2">${new Date(patient.timestamp).toLocaleString("ar-EG")}</td>
-        <td class="border p-2 flex gap-2 justify-center">
-          <button class="detailsBtn text-blue-600 hover:underline" data-id="${patient.id}" data-department="${patient.department}">تفاصيل</button>
-          <button class="text-red-600 hover:underline deleteBtn" data-id="${patient.id}" data-department="${patient.department}">حذف</button>
-        </td>
-      `;
-      patientsTable.appendChild(row);
-    });
-    attachPatientEvents();
-  }
-
-  // بحث عن مريض
-  searchPatient.addEventListener("input", () => {
-    const query = searchPatient.value.toLowerCase();
-    const filtered = allPatients.filter(p =>
-      p.name.toLowerCase().includes(query) || p.nid?.toLowerCase().includes(query)
-    );
-    renderPatients(filtered);
-  });
-
-  // أحداث المرضى
-  function attachPatientEvents() {
-    // تفاصيل
-    document.querySelectorAll(".detailsBtn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        const dept = btn.dataset.department;
-        const patient = allPatients.find(p => p.id === id && p.department === dept);
-        if (patient) {
-          Swal.fire({
-            title: "تفاصيل المريض",
-            html: `
-              <div class="text-right text-sm">
-                <p><b>الاسم:</b> ${patient.name}</p>
-                <p><b>العمر:</b> ${patient.age}</p>
-                <p><b>القسم:</b> ${patient.department}</p>
-                <p><b>العنوان:</b> ${patient.address || "-"}</p>
-                <p><b>الأمراض:</b> ${patient.diseases || "-"}</p>
-                <p><b>الدكتور:</b> ${patient.doctors || "-"}</p>
-              </div>
-            `,
-            icon: "info",
-            confirmButtonText: "إغلاق"
-          });
-        }
-      });
-    });
-
-    // حذف
-    document.querySelectorAll(".deleteBtn").forEach(button => {
-      button.addEventListener("click", () => {
-        const id = button.getAttribute("data-id");
-        const department = button.getAttribute("data-department");
-        const patientRef = ref(db, `patients/${department}/${id}`);
-
-        Swal.fire({
-          title: "هل أنت متأكد؟",
-          text: "لن تتمكن من التراجع!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "نعم، احذف",
-          cancelButtonText: "إلغاء"
-        }).then((result) => {
-          if (result.isConfirmed) {
-            remove(patientRef)
-              .then(() => Swal.fire("تم الحذف", "تم حذف المريض بنجاح", "success"))
-              .catch(() => Swal.fire("خطأ", "حدث خطأ أثناء الحذف", "error"));
-          }
-        });
-      });
-    });
-  }
-
-  // ================= الأطباء =================
-  const doctorsRef = ref(db, "doctors");
-  onValue(doctorsRef, (snapshot) => {
-    const doctors = snapshot.val();
-    doctorsTable.innerHTML = "";
-    let countOnline = 0;
-
-    if (doctors) {
-      Object.entries(doctors).forEach(([docId, doc]) => {
-        if (doc.manualStatus === "online") countOnline++;
-        const row = document.createElement("tr");
-        row.className = "hover:bg-gray-50 text-sm";
-        row.innerHTML = `
-          <td class="border p-2">${doc.name}</td>
-          <td class="border p-2">${doc.department}</td>
-          <td class="border p-2">${doc.shift}</td>
-          <td class="border p-2">
-            <span class="${doc.manualStatus === "online" ? "text-green-600" : "text-red-600"} font-bold">
-              ${doc.manualStatus === "online" ? "متاح" : "غير متاح"}
-            </span>
-          </td>
-          <td class="border p-2 flex gap-2 justify-center">
-            <button class="changeStatusBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${docId}" data-status="${doc.manualStatus}">
-              ${doc.manualStatus === "online" ? "إخفاء" : "إظهار"}
-            </button>
-            <button class="editDoctorBtn bg-yellow-500 text-white px-2 py-1 rounded" data-id="${docId}">تعديل</button>
-            <button class="deleteDoctorBtn bg-red-500 text-white px-2 py-1 rounded" data-id="${docId}">حذف</button>
-          </td>
-        `;
-        doctorsTable.appendChild(row);
-      });
-
-      totalDoctorsOnline.textContent = countOnline;
-
-      // تغيير حالة الطبيب
-      document.querySelectorAll(".changeStatusBtn").forEach(button => {
-        button.addEventListener("click", () => {
-          const docId = button.getAttribute("data-id");
-          const currentStatus = button.getAttribute("data-status");
-          const newStatus = currentStatus === "online" ? "offline" : "online";
-          const doctorStatusRef = ref(db, `doctors/${docId}`);
-          update(doctorStatusRef, { manualStatus: newStatus });
-        });
-      });
-
-      // تعديل الطبيب
-      document.querySelectorAll(".editDoctorBtn").forEach(button => {
-        button.addEventListener("click", () => {
-          const docId = button.getAttribute("data-id");
-          Swal.fire({
-            title: "تعديل الطبيب",
-            html: `
-              <input id="editDept" class="swal2-input" placeholder="القسم الجديد">
-              <input id="editShift" class="swal2-input" placeholder="الوردية الجديدة">
-            `,
-            preConfirm: () => {
-              const department = document.getElementById("editDept").value;
-              const shift = document.getElementById("editShift").value;
-              if (!department || !shift) {
-                Swal.showValidationMessage("أدخل جميع الحقول");
-                return false;
-              }
-              return update(ref(db, `doctors/${docId}`), { department, shift });
-            }
-          }).then(r => { if (r.isConfirmed) Swal.fire("تم", "تم تعديل بيانات الطبيب", "success"); });
-        });
-      });
-
-      // حذف الطبيب
-      document.querySelectorAll(".deleteDoctorBtn").forEach(button => {
-        button.addEventListener("click", () => {
-          const docId = button.getAttribute("data-id");
-          Swal.fire({
-            title: "حذف الطبيب؟",
-            text: "لن تتمكن من التراجع",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "نعم، احذف"
-          }).then((result) => {
-            if (result.isConfirmed) {
-              remove(ref(db, `doctors/${docId}`))
-                .then(() => Swal.fire("تم الحذف", "تم حذف الطبيب بنجاح", "success"));
-            }
-          });
-        });
-      });
+    
+    .sidebar {
+        transition: all 0.3s ease;
+        height: 100vh;
+        overflow-y: auto;
     }
-  });
-
-  // إضافة طبيب
-  document.getElementById("addDoctorBtn").addEventListener("click", () => {
-    Swal.fire({
-      title: "إضافة طبيب",
-      html: `
-        <input id="docName" class="swal2-input" placeholder="اسم الطبيب">
-        <input id="docDept" class="swal2-input" placeholder="القسم (emergency)">
-        <input id="docShift" class="swal2-input" placeholder="Morning/Evening/Night">
-      `,
-      preConfirm: () => {
-        const name = document.getElementById("docName").value;
-        const department = document.getElementById("docDept").value;
-        const shift = document.getElementById("docShift").value;
-        if (!name || !department || !shift) {
-          Swal.showValidationMessage("يرجى إدخال جميع الحقول");
-          return false;
-        }
-        const newDocRef = push(ref(db, "doctors"));
-        return set(newDocRef, { name, department, shift, manualStatus: "online" });
-      }
-    }).then(result => {
-      if (result.isConfirmed) Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
-    });
-  });
-
-  // التحكم في التبويبات
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-content").forEach(tc => tc.classList.add("hidden"));
-      document.getElementById(btn.dataset.target).classList.remove("hidden");
-    });
-  });
-});
-</script>
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .menu-item {
+        transition: all 0.2s ease;
+    }
+    
+    .menu-item:hover {
+        background-color: #f1f5f9;
+        transform: translateX(5px);
+    }
+    
+    .menu-item.active {
+        background-color: #e0f2fe;
+        border-left: 4px solid #0ea5e9;
+    }
+    
+    .welcome-section {
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 </head>
-<body class="bg-gray-100 p-4">
-<div class="max-w-6xl mx-auto">
-
-<!-- الهيدر -->
-<div class="flex justify-between items-center p-4 bg-white mb-6 border-b border-gray-200">
-  <div class="flex items-center gap-3">
-    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-      <div class="text-blue-900 text-sm font-semibold">لوحة تحكم المدير</div>
-    </div>
+<body>
+<!-- شاشة التحميل -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mx-auto"></div>
+    <p class="mt-4 text-gray-700 font-medium">جاري تحميل البيانات...</p>
   </div>
 </div>
 
-<!-- تبويبات -->
-<div class="flex gap-4 mb-6">
-  <button class="tab-btn bg-blue-600 text-white px-4 py-2 rounded" data-target="statsTab">الإحصائيات</button>
-  <button class="tab-btn bg-green-600 text-white px-4 py-2 rounded" data-target="doctorsTab">الأطباء</button>
-  <button class="tab-btn bg-purple-600 text-white px-4 py-2 rounded" data-target="patientsTab">المرضى</button>
-</div>
+<div class="flex h-screen">
+    <!-- الشريط الجانبي -->
+    <div class="sidebar bg-white shadow-md w-64 flex flex-col">
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex items-center justify-center mb-4">
+                <img src="https://picsum.photos/seed/hospital-logo/80/80.jpg" alt="شعار المستشفى" class="w-16 h-16 rounded-full border-2 border-blue-600">
+            </div>
+            <h2 class="text-xl font-bold text-center text-gray-800">مستشفى الحياة الذكية</h2>
+            <p class="text-sm text-center text-gray-500">SMART HAYAT HOSPITAL</p>
+        </div>
+        
+        <div class="p-4 flex-1">
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#welcome" class="menu-item active flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-home text-blue-600 w-6"></i>
+                            <span>الصفحة الرئيسية</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#dashboard" class="menu-item flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-chart-line text-blue-600 w-6"></i>
+                            <span>لوحة التحكم</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#doctors" class="menu-item flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-user-md text-blue-600 w-6"></i>
+                            <span>إدارة الأطباء</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#nurses" class="menu-item flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-user-nurse text-blue-600 w-6"></i>
+                            <span>إدارة الممرضين</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#employees" class="menu-item flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-users-cog text-blue-600 w-6"></i>
+                            <span>إدارة الموظفين</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#patients" class="menu-item flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-procedures text-blue-600 w-6"></i>
+                            <span>إدارة المرضى</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#reports" class="menu-item flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-file-alt text-blue-600 w-6"></i>
+                            <span>التقارير</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#settings" class="menu-item flex items-center p-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-cog text-blue-600 w-6"></i>
+                            <span>الإعدادات</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex items-center">
+                <img src="https://picsum.photos/seed/admin-user/40/40.jpg" alt="المدير" class="w-10 h-10 rounded-full mr-3">
+                <div>
+                    <p class="font-medium">د. أحمد علي</p>
+                    <p class="text-xs text-gray-500">المدير العام</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- تبويب الإحصائيات -->
-<div id="statsTab" class="tab-content">
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 text-center">
-    <div class="bg-white shadow-md p-4 rounded">
-      <h3 class="text-sm text-gray-500">إجمالي المرضى</h3>
-      <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
-    </div>
-    <div class="bg-white shadow-md p-4 rounded">
-      <h3 class="text-sm text-gray-500">عدد الأقسام</h3>
-      <p id="totalDepartments" class="text-2xl font-bold text-green-600">0</p>
-    </div>
-    <div class="bg-white shadow-md p-4 rounded">
-      <h3 class="text-sm text-gray-500">إجمالي الكشوف</h3>
-      <p id="totalVisits" class="text-2xl font-bold text-red-600">0</p>
-    </div>
-    <div class="bg-white shadow-md p-4 rounded">
-      <h3 class="text-sm text-gray-500">الأطباء المتاحين الآن</h3>
-      <p id="totalDoctorsOnline" class="text-2xl font-bold text-purple-600">0</p>
-    </div>
-  </div>
-</div>
-
-<!-- تبويب الأطباء -->
-<div id="doctorsTab" class="tab-content hidden">
-  <div class="bg-white shadow-md rounded overflow-x-auto">
-    <div class="flex justify-between items-center p-4">
-      <h2 class="text-xl font-bold text-blue-700">إدارة الأطباء</h2>
-      <button id="addDoctorBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">إضافة طبيب</button>
-    </div>
-    <table class="min-w-full table-auto border">
-      <thead class="bg-gray-100 text-gray-700 text-sm">
-        <tr>
-          <th class="border p-2">الاسم</th>
-          <th class="border p-2">القسم</th>
-          <th class="border p-2">الوردية</th>
-          <th class="border p-2">الحالة</th>
-          <th class="border p-2">إجراء</th>
-        </tr>
-      </thead>
-      <tbody id="doctorsTable" class="text-center"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- تبويب المرضى -->
-<div id="patientsTab" class="tab-content hidden">
-  <div class="mb-4">
-    <input id="searchPatient" type="text" placeholder="🔍 ابحث عن مريض بالاسم أو الرقم القومي" class="w-full p-2 border rounded">
-  </div>
-  <div class="bg-white shadow-md rounded overflow-x-auto">
-    <table class="min-w-full table-auto border">
-      <thead class="bg-gray-100 text-gray-700 text-sm">
-        <tr>
-          <th class="border p-2">الاسم</th>
-          <th class="border p-2">العمر</th>
-          <th class="border p-2">القسم</th>
-          <th class="border p-2">تاريخ التسجيل</th>
-          <th class="border p-2">إجراء</th>
-        </tr>
-      </thead>
-      <tbody id="patientsTable" class="text-center"></tbody>
-    </table>
-  </div>
-</div>
-
-</div>
-</body>
-</html>
+    <!-- المحتوى الرئيسي -->
+    <div class="flex-1 flex flex-col overflow-y-auto">
+        <!-- صفحة الترحيب -->
+        <div id="welcome" class="tab-content active">
+            <div class="welcome-section text-white p-8">
+                <div class="container mx-auto">
+                    <h1 class="text-4xl font-bold mb-4">مرحباً بك في نظام إدارة المستشفى</h1>
+                    <p class="text-xl opacity-90">نظام متكامل لإدارة كافة جوانب المستشفى</p>
+                </div>
+            </div>
+            
+            <div class="container mx-auto p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي المرضى</p>
+                                <h3 id="totalPatients" class="text-3xl font-bold text-blue-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الأطباء</p>
+                                <h3 id="totalDoctors" class="text-3xl font-bold text-green-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <i class="fas fa-user-md text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الممرضين</p>
+                                <h3 id="totalNurses" class="text-3xl font-bold text-purple-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-lg">
+                                <i class="fas fa-user-nurse text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الموظفين</p>
+                                <h3 id="totalEmployees" class="text-3xl font-bold text-orange-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <i class="fas fa-users-cog text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">النشاط الأخير</h3>
+                            <i class="fas fa-history text-blue-600"></i>
+                        </div>
+                        <ul id="recentActivity" class="space-y-3">
+                            <li class="flex items-start p-3 bg-gray-50 rounded-lg">
+                                <div class="bg-blue-100 text-blue-600 p-2 rounded-full mr-3">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">تم إضافة طبيب جديد</p>
+                                    <p class="text-sm text-gray-500">د. محمد أحمد - طب عام</p>
+                                    <p class="text-xs text-gray-400">قبل 10 دقائق</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-3 bg-gray-50 rounded-lg">
+                                <div class="bg-green-100 text-green-600 p-2 rounded-full mr-3">
+                                    <i class="fas fa-procedures"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">تم تسجيل مريض جديد</p>
+                                    <p class="text-sm text-gray-500">علي حسن - طب باطني</p>
+                                    <p class="text-xs text-gray-400">قبل ساعة</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-3 bg-gray-50 rounded-lg">
+                                <div class="bg-purple-100 text-purple-600 p-2 rounded-full mr-3">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">تم تحديث مواعيد الطبيب</p>
+                                    <p class="text-sm text-gray-500">د. فاطمة خالد - جراحة</p>
+                                    <p class="text-xs text-gray-400">قبل 3 ساعات</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">الاحصائيات الأسبوعية</h3>
+                            <i class="fas fa-chart-line text-blue-600"></i>
+                        </div>
+                        <canvas id="weeklyStats" height="200"></canvas>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">الأقسام الأكثر طلباً</h3>
+                            <i class="fas fa-hospital text-blue-600"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">1</span>
+                                <span class="flex-1">طب الطوارئ</span>
+                                <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">42 مريض</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">2</span>
+                                <span class="flex-1">طب باطني</span>
+                                <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">38 مريض</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">3</span>
+                                <span class="flex-1">جراحة عامة</span>
+                                <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">27 مريض</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">أفضل الأطباء</h3>
+                            <i class="fas fa-user-md text-green-600"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/seed/doctor1/40/40.jpg" alt="طبيب" class="w-10 h-10 rounded-full mr-3">
+                                <div class="flex-1">
+                                    <p class="font-medium">د. أحمد عبد الله</p>
+                                    <p class="text-sm text-gray-500">طب باطني</p>
+                                </div>
+                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-sm">4.9 ★</span>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/seed/doctor2/40/40.jpg" alt="طبيب" class="w-10 h-10 rounded-full mr-3">
+                                <div class="flex-1">
+                                    <p class="font-medium">د. سارة محمد</p>
+                                    <p class="text-sm text-gray-500">طب أطفال</p>
+                                </div>
+                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-sm">4.8 ★</span>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/seed/doctor3/40/40.jpg" alt="طبيب" class="w-10 h-10 rounded-full mr-3">
+                                <div class="flex-1">
+                                    <p class="font-medium">د. خالد يوسف</p>
+                                    <p class="text-sm text-gray-500">جراحة عامة</p>
+                                </div>
+                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-sm">4.7 ★</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">المواعيد القادمة</h3>
+                            <i class="fas fa-calendar-alt text-purple-600"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="font-medium">مريض جديد</p>
+                                <p class="text-sm text-gray-500">يوم غد، 10:00 صباحاً</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs mr-2">10</span>
+                                    <span class="text-sm">د. أحمد عبد الله</span>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="font-medium">فحص روتيني</p>
+                                <p class="text-sm text-gray-500">اليوم، 2:30 مساءً</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs mr-2">15</span>
+                                    <span class="text-sm">د. فاطمة خالد</span>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="font-medium">عملية جراحية</p>
+                                <p class="text-sm text-gray-500">بعد غد، 9:00 صباحاً</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs mr-2">25</span>
+                                    <span class="text-sm">د. خالد يوسف</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- لوحة التحكم -->
+        <div id="dashboard" class="tab-content">
+            <div class="bg-white p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">لوحة التحكم</h2>
+                    <div class="flex gap-2">
+                        <button id="refreshBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-sync-alt mr-2"></i> تحديث
+                        </button>
+                        <button id="savePDF" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                            <i class="fas fa-file-pdf mr-2"></i> حفظ تقرير PDF
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي المرضى</p>
+                                <h3 id="dashboardTotalPatients" class="text-3xl font-bold text-blue-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الأطباء</p>
+                                <h3 id="dashboardTotalDoctors" class="text-3xl font-bold text-green-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <i class="fas fa-user-md text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الممرضين</p>
+                                <h3 id="dashboardTotalNurses" class="text-3xl font-bold text-purple-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-lg">
+                                <i class="fas fa-user-nurse text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الموظفين</p>
+                                <h3 id="dashboardTotalEmployees" class="text-3xl font-bold text-orange-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <i class="fas fa-users-cog text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">توزيع المرضى حسب الأقسام</h3>
+                        <canvas id="deptChart" height="300"></canvas>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">أداء الأقسام هذا الشهر</h3>
+                        <canvas id="performanceChart" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">عدد الأقسام</p>
+                                <h3 id="dashboardTotalDepartments" class="text-3xl font-bold text-indigo-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-indigo-100 p-3 rounded-lg">
+                                <i class="fas fa-hospital text-indigo-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">عدد الأسرة</p>
+                                <h3 id="dashboardTotalBeds" class="text-3xl font-bold text-red-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-lg">
+                                <i class="fas fa-bed text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">العيادات الخارجية</p>
+                                <h3 id="dashboardTotalClinics" class="text-3xl font-bold text-teal-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-teal-100 p-3 rounded-lg">
+                                <i class="fas fa-clinic-medical text-teal-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">الإيرادات الشهرية</p>
+                                <h3 id="dashboardTotalRevenue" class="text-3xl font-bold text-yellow-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-yellow-100 p-3 rounded-lg">
+                                <i class="fas fa-dollar-sign text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- إدارة الأطباء -->
+        <div id="doctors" class="tab-content">
+            <div class="bg-white p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة الأطباء</h2>
+                    <button id="addDoctorBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                        <i class="fas fa-plus mr-2"></i> إضافة طبيب
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الأطباء</p>
+                                <h3 id="doctorsTotal" class="text-3xl font-bold text-green-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <i class="fas fa-user-md text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">الأطباء المتاحين</p>
+                                <h3 id="doctorsAvailable" class="text-3xl font-bold text-blue-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-check-circle text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">الأطباء غير المتاحين</p>
+                                <h3 id="doctorsUnavailable" class="text-3xl font-bold text-red-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-lg">
+                                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <div class="relative flex-1">
+                            <input type="text" placeholder="🔍 ابحث عن طبيب" class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                        </div>
+                        <select class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">كل الأقسام</option>
+                            <option value="emergency">طب الطوارئ</option>
+                            <option value="internal">طب باطني</option>
+                            <option value="surgery">جراحة عامة</option>
+                            <option value="pediatrics">طب أطفال</option>
+                        </select>
+                        <select class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">كل الحالات</option>
+                            <option value="online">متاح</option>
+                            <option value="offline">غير متاح</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto border-collapse">
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th class="border p-3 text-left">الطبيب</th>
+                                <th class="border p-3 text-left">التخصص</th>
+                                <th class="border p-3 text-left">القسم</th>
+                                <th class="border p-3 text-left">الوردية</th>
+                                <th class="border p-3 text-left">الحالة</th>
+                                <th class="border p-3 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doctorsTable" class="text-center">
+                            <!-- سيتم ملء هذا الجدول بالبيانات من Firebase -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- إدارة الممرضين -->
+        <div id="nurses" class="tab-content">
+            <div class="bg-white p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة الممرضين</h2>
+                    <button id="addNurseBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                        <i class="fas fa-plus mr-2"></i> إضافة ممرض
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الممرضين</p>
+                                <h3 id="nursesTotal" class="text-3xl font-bold text-purple-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-lg">
+                                <i class="fas fa-user-nurse text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">الممرضين النشطين</p>
+                                <h3 id="nursesActive" class="text-3xl font-bold text-blue-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-check-circle text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">الممرضين غير النشطين</p>
+                                <h3 id="nursesInactive" class="text-3xl font-bold text-red-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-lg">
+                                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <div class="relative flex-1">
+                            <input type="text" placeholder="🔍 ابحث عن ممرض" class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                        </div>
+                        <select class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">كل الأقسام</option>
+                            <option value="emergency">طب الطوارئ</option>
+                            <option value="internal">طب باطني</option>
+                            <option value="surgery">جراحة عامة</option>
+                            <option value="pediatrics">طب أطفال</option>
+                        </select>
+                        <select class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">كل الحالات</option>
+                            <option value="active">نشط</option>
+                            <option value="inactive">غير نشط</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto border-collapse">
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th class="border p-3 text-left">الممرض</th>
+                                <th class="border p-3 text-left">التخصص</th>
+                                <th class="border p-3 text-left">القسم</th>
+                                <th class="border p-3 text-left">الوردية</th>
+                                <th class="border p-3 text-left">الحالة</th>
+                                <th class="border p-3 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nursesTable" class="text-center">
+                            <!-- سيتم ملء هذا الجدول بالبيانات من Firebase -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- إدارة الموظفين -->
+        <div id="employees" class="tab-content">
+            <div class="bg-white p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة الموظفين</h2>
+                    <button id="addEmployeeBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                        <i class="fas fa-plus mr-2"></i> إضافة موظف
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الموظفين</p>
+                                <h3 id="employeesTotal" class="text-3xl font-bold text-orange-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <i class="fas fa-users-cog text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">الموظفين النشطين</p>
+                                <h3 id="employeesActive" class="text-3xl font-bold text-blue-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-check-circle text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">الموظفين غير النشطين</p>
+                                <h3 id="employeesInactive" class="text-3xl font-bold text-red-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-lg">
+                                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <div class="relative flex-1">
+                            <input type="text" placeholder="🔍 ابحث عن موظف" class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                        </div>
+                        <select class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">كل الأقسام</option>
+                            <option value="admin">الإدارة</option>
+                            <option value="finance">المالية</option>
+                            <option value="hr">الموارد البشرية</option>
+                            <option value="operations">العمليات</option>
+                        </select>
+                        <select class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">كل الحالات</option>
+                            <option value="active">نشط</option>
+                            <option value="inactive">غير نشط</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto border-collapse">
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th class="border p-3 text-left">الموظف</th>
+                                <th class="border p-3 text-left">القسم</th>
+                                <th class="border p-3 text-left">المنصب</th>
+                                <th class="border p-3 text-left">الوردية</th>
+                                <th class="border p-3 text-left">الحالة</th>
+                                <th class="border p-3 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeesTable" class="text-center">
+                            <!-- سيتم ملء هذا الجدول بالبيانات من Firebase -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- إدارة المرضى -->
+        <div id="patients" class="tab-content">
+            <div class="bg-white p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">إدارة المرضى</h2>
+                    <button id="addPatientBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                        <i class="fas fa-plus mr-2"></i> إضافة مريض
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي المرضى</p>
+                                <h3 id="patientsTotal" class="text-3xl font-bold text-blue-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-procedures text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">المرضى الحاليون</p>
+                                <h3 id="patientsCurrent" class="text-3xl font-bold text-green-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <i class="fas fa-bed text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">إجمالي الكشوف</p>
+                                <h3 id="patientsVisits" class="text-3xl font-bold text-red-600 mt-1">0</h3>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-lg">
+                                <i class="fas fa-clipboard-list text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <div class="relative flex-1">
+                            <input id="searchPatient" type="text" placeholder="🔍 ابحث عن مريض بالاسم أو الرقم القومي" class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                        </div>
+                        <select id="filterDept" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">كل الأقسام</option>
+                            <option value="emergency">طب الطوارئ</option>
+                            <option value="internal">طب باطني</option>
+                            <option value="surgery">جراحة عامة</option>
+                            <option value="pediatrics">طب أطفال</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto border-collapse">
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th class="border p-3 text-left">الاسم</th>
+                                <th class="border p-3 text-left">العمر</th>
+                                <th class="border p-3 text-left">القسم</th>
+                                <th class="border p-3 text-left">تاريخ التسجيل</th>
+                                <th class="border p-3 text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsTable" class="text-center">
+                            <!-- سيتم ملء هذا الجدول بالبيانات من Firebase -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- التقارير -->
+        <div id="reports" class="tab-content">
+            <div class="bg-white p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">التقارير</h2>
+                    <div class="flex gap-2">
+                        <button id="generateReportBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-file-export mr-2"></i> إنشاء تقرير
+                        </button>
+                        <button id="savePDF" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                            <i class="fas fa-file-pdf mr-2"></i> حفظ كـ PDF
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">تقرير المرضى</h3>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">من تاريخ</label>
+                            <input type="date" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">إلى تاريخ</label>
+                            <input type="date" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">القسم</label>
+                            <select class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">كل الأقسام</option>
+                                <option value="emergency">طب الطوارئ</option>
+                                <option value="internal">طب باطني</option>
+                                <option value="surgery">جراحة عامة</option>
+                                <option value="pediatrics">طب أطفال</option>
+                            </select>
+                        </div>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            إنشاء التقرير
+                        </button>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">تقرير الأطباء</h3>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">من تاريخ</label>
+                            <input type="date" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">إلى تاريخ</label>
+                            <input type="date" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">القسم</label>
+                            <select class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">كل الأقسام</option>
+                                <option value="emergency">طب الطوارئ</option>
+                                <option value="internal">طب باطني</option>
+                                <option value="surgery">جراحة عامة</option>
+                                <option value="pediatrics">طب أطفال</option>
+                            </select>
+                        </div>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            إنشاء التقرير
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">التقارير المخصصة</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-3 rounded-lg mr-3">
+                                    <i class="fas fa-chart-pie text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">توزيع المرضى</p>
+                                    <p class="text-sm text-gray-500">حسب الأقسام</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-lg mr-3">
+                                    <i class="fas fa-chart-line text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">أداء الأقسام</p>
+                                    <p class="text-sm text-gray-500">مقارنة شهرية</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-lg mr-3">
+                                    <i class="fas fa-calendar-check text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">حجوزات الأطباء</p>
+                                    <p class="text-sm text-gray-500">شهرية</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="bg-yellow-100 p-3 rounded-lg mr-3">
+                                    <i class="fas fa-dollar-sign text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">الإيرادات</p>
+                                    <p class="text-sm text-gray-500">مقارنة شهرية</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="bg-red-100 p-3 rounded-lg mr-3">
+                                    <i class="fas fa-procedures text-red-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">عمليات جراحية</p>
+                                    <p class="text-sm text-gray-500">شهري</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="bg-indigo-100 p-3 rounded-lg mr-3">
+                                    <i class="fas fa-user-friends text-indigo-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">الموارد البشرية</p>
+                                    <p class="text-sm text-gray-500">شهري</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- الإعدادات -->
+        <div id="settings" class="tab-content">
+            <div class="bg-white p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">الإعدادات</h2>
+                    <button id="saveSettingsBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i> حفظ الإعدادات
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">معلومات المستشفى</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font
