@@ -216,7 +216,7 @@
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
-                        <div class="flex justify-between items-start mb-4">
+                        <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold text-gray-800">النشاط الأخير</h3>
                             <i class="fas fa-history text-blue-600"></i>
                         </div>
@@ -255,7 +255,7 @@
                     </div>
                     
                     <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
-                        <div class="flex justify-between items-start mb-4">
+                        <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold text-gray-800">الاحصائيات الأسبوعية</h3>
                             <i class="fas fa-chart-line text-blue-600"></i>
                         </div>
@@ -997,4 +997,206 @@
                         <h3 class="text-xl font-bold text-gray-800 mb-4">معلومات المستشفى</h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-gray-700 text-sm font
+                                <label class="block text-gray-700 text-sm font-medium mb-2">اسم المستشفى</label>
+                                <input type="text" value="مستشفى الحياة الذكية" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">العنوان</label>
+                                <input type="text" value="شارع النيل، 123، القاهرة" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">رقم الهاتف</label>
+                                <input type="text" value="02-12345678" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">البريد الإلكتروني</label>
+                                <input type="email" value="info@hayat-hospital.com" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-white shadow-md rounded-xl p-6 border border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">إعدادات النظام</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">لغة النظام</label>
+                                <select class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="ar" selected>العربية</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">تنسيق التاريخ</label>
+                                <select class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="dd/mm/yyyy" selected>يوم/شهر/سنة</option>
+                                    <option value="mm/dd/yyyy">شهر/يوم/سنة</option>
+                                    <option value="yyyy/mm/dd">سنة/شهر/يوم</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">إشعارات البريد الإلكتروني</label>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="emailNotifications" class="mr-2" checked>
+                                    <label for="emailNotifications">تفعيل الإشعارات</label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">إشعارات SMS</label>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="smsNotifications" class="mr-2" checked>
+                                    <label for="smsNotifications">تفعيل الإشعارات</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove, update, push, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    
+    // إعدادات Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+      authDomain: "hospital-project-e4b59.firebaseapp.com",
+      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hospital-project-e4b59",
+      storageBucket: "hospital-project-e4b59.appspot.com",
+      messagingSenderId: "974610606258",
+      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+    };
+    
+    // تهيئة Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    // عناصر DOM
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const menuItems = document.querySelectorAll(".menu-item");
+    const tabContents = document.querySelectorAll(".tab-content");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const savePDF = document.getElementById("savePDF");
+    const addDoctorBtn = document.getElementById("addDoctorBtn");
+    const addNurseBtn = document.getElementById("addNurseBtn");
+    const addEmployeeBtn = document.getElementById("addEmployeeBtn");
+    const addPatientBtn = document.getElementById("addPatientBtn");
+    const generateReportBtn = document.getElementById("generateReportBtn");
+    const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+    
+    // متغيرات لتخزين البيانات
+    let allPatients = [];
+    let allDoctors = [];
+    let allNurses = [];
+    let allEmployees = [];
+    let activityData = [];
+    
+    // دالة لعرض التحميل
+    function showLoading() {
+        loadingOverlay.classList.remove("hidden");
+    }
+    
+    // دالة لإخفاء التحميل
+    function hideLoading() {
+        loadingOverlay.classList.add("hidden");
+    }
+    
+    // دالة لتبديل علامات التبويب
+    function switchTab(tabId) {
+        // إخفاء كل المحتويات
+        tabContents.forEach(tab => {
+            tab.classList.remove("active");
+        });
+        
+        // إزالة الفعالية من كل عناصر القائمة
+        menuItems.forEach(item => {
+            item.classList.remove("active");
+        });
+        
+        // إظهار المحتوى المحدد
+        document.getElementById(tabId).classList.add("active");
+        
+        // جعل العنصر المطابق نشطاً
+        const activeItem = Array.from(menuItems).find(item => item.getAttribute("href") === `#${tabId}`);
+        if (activeItem) {
+            activeItem.classList.add("active");
+        }
+    }
+    
+    // إضافة مستمعي الأحداث للتبديل العلامات
+    menuItems.forEach(item => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const tabId = item.getAttribute("href").substring(1);
+            switchTab(tabId);
+        });
+    });
+    
+    // إضافة مستمعي الأحداث للزر التحديث
+    refreshBtn.addEventListener("click", () => {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            Swal.fire({
+                title: "تم التحديث",
+                text: "تم تحديث البيانات بنجاح",
+                icon: "success",
+                confirmButtonColor: "#10b981"
+            });
+        }, 1000);
+    });
+    
+    // إضافة مستمعي الأحداث لزر حفظ PDF
+    savePDF.addEventListener("click", () => {
+        Swal.fire({
+            title: "جاري إنشاء التقرير...",
+            text: "يرجى الانتظار",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        setTimeout(() => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFont('Cairo', 'normal');
+            doc.setFontSize(18);
+            doc.text("تقرير لوحة إدارة المستشفى", 105, 15, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.text(`تاريخ التقرير: ${new Date().toLocaleDateString("ar-EG")}`, 105, 25, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text("إحصائيات عامة", 20, 40);
+            
+            doc.setFontSize(12);
+            doc.text(`عدد المرضى: ${document.getElementById("totalPatients")?.textContent || '0'}`, 20, 50);
+            doc.text(`عدد الأطباء: ${document.getElementById("totalDoctors")?.textContent || '0'}`, 20, 60);
+            doc.text(`عدد الممرضين: ${document.getElementById("totalNurses")?.textContent || '0'}`, 20, 70);
+            doc.text(`عدد الموظفين: ${document.getElementById("totalEmployees")?.textContent || '0'}`, 20, 80);
+            
+            doc.save("تقرير-المستشفى.pdf");
+            
+            Swal.fire({
+                title: "تم!",
+                text: "تم حفظ التقرير بنجاح",
+                icon: "success",
+                confirmButtonColor: "#10b981"
+            });
+        }, 1500);
+    });
+    
+    // إضافة مستمعي الأحداث لأزرار الإضافة
+    addDoctorBtn.addEventListener("click", () => {
+        Swal.fire({
+            title: "إضافة طبيب جديد",
+            html: `
+                <div class="space-y-3">
+                    <input id="docName" class="swal2-input" placeholder="اسم الطبيب">
+                    <input id="docDept" class="swal2-input" placeholder="القسم (emergency)">
+                    <input id="docShift" class="swal2-input" placeholder="الوردية (Morning/Evening/Night)">
+                    <input id="docSpecialty" c
