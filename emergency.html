@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>قسم الطوارئ - مستشفى الحياة الذكية</title>
-    <meta name="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
+    <title>نظام إدارة الطوارئ - مستشفى الحياة الذكية</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -36,86 +35,26 @@
             overflow: hidden;
         }
         
-        .emergency-header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 150px;
-            height: 150px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(30%, -30%);
-        }
-        
-        .patient-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .patient-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .patient-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 6px;
-            height: 100%;
-        }
-        
-        /* أنماط الأطباء الجديدة */
-        .doctor-card {
+        .card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
-            overflow: hidden;
         }
         
-        .doctor-card:hover {
+        .card:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         
-        .status-online {
-            background-color: #dcfce7;
-            color: #166534;
-        }
+        .status-online { background-color: #dcfce7; color: #166534; }
+        .status-offline { background-color: #fee2e2; color: #991b1b; }
+        .status-busy { background-color: #fef9c3; color: #854d0e; }
         
-        .status-offline {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
+        .shift-morning { background-color: #e0f2fe; color: #075985; }
+        .shift-evening { background-color: #f5f3ff; color: #5b21b6; }
+        .shift-night { background-color: #1e293b; color: #f8fafc; }
         
-        .status-busy {
-            background-color: #fef9c3;
-            color: #854d0e;
-        }
-        
-        .shift-morning {
-            background-color: #e0f2fe;
-            color: #075985;
-        }
-        
-        .shift-evening {
-            background-color: #f5f3ff;
-            color: #5b21b6;
-        }
-        
-        .shift-night {
-            background-color: #1e293b;
-            color: #f8fafc;
-        }
-        
-        /* باقي الأنماط الأصلية */
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
@@ -126,220 +65,107 @@
             gap: 6px;
         }
         
-        .search-container {
-            position: relative;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 1rem;
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            width: 2rem;
+            height: 2rem;
+            animation: spin 1s linear infinite;
         }
         
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-        }
-        
-        .header-container {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.3);
-        }
-        
-        .footer-section {
-            background: #0f172a;
-            color: #cbd5e1;
-            padding: 3rem 0;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <!-- Header Section -->
     <header class="container mx-auto px-4 py-6">
-        <div class="header-container flex justify-between items-center">
-            <div class="flex items-center space-x-4 space-x-reverse">
-                <img
-                    src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp"
-                    alt="شعار المستشفى"
-                    class="h-14 w-auto rounded-lg shadow-md"
-                />
-                <div>
-                    <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
-                    <p class="text-sm text-blue-100">رعاية طبية متكاملة باستخدام أحدث التقنيات</p>
+        <div class="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-6 rounded-xl shadow-lg">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp"
+                         alt="شعار المستشفى"
+                         class="h-14 w-auto rounded-lg shadow-md border-2 border-white border-opacity-20">
+                    <div>
+                        <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
+                        <p class="text-blue-100 opacity-90">رعاية طبية متكاملة باستخدام أحدث التقنيات</p>
+                    </div>
                 </div>
+                <nav class="hidden md:block">
+                    <ul class="flex space-x-6 space-x-reverse">
+                        <li><a href="index.html" class="text-white hover:text-blue-200 font-medium">الرئيسية</a></li>
+                        <li><a href="#" class="text-white hover:text-blue-200 font-medium">الأقسام</a></li>
+                    </ul>
+                </nav>
             </div>
-            <nav>
-                <ul class="flex space-x-6 space-x-reverse">
-                    <li>
-                        <a href="index.html" class="text-white hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-home"></i> الرئيسية</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-hospital"></i> الأقسام</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-chart-bar"></i> الإحصائيات</a
-                        >
-                    </li>
-                </ul>
-            </nav>
         </div>
     </header>
     
-    <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
         <div class="emergency-header mb-8">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold flex items-center">
+                    <h1 class="text-2xl md:text-3xl font-bold flex items-center">
                         <i class="fas fa-ambulance mr-3"></i>
                         قسم الطوارئ
                     </h1>
-                    <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
+                    <p class="text-white text-opacity-90">إدارة حالات الطوارئ بكفاءة واحترافية</p>
                 </div>
-                <button
-                    class="btn btn-primary"
-                    onclick="window.location.href='add_patient.html'"
-                >
-                    <i class="fas fa-plus"></i>
-                    إضافة مريض جديد
+                <button onclick="window.location.href='add_patient.html'" 
+                        class="btn bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg">
+                    <i class="fas fa-plus"></i> إضافة مريض جديد
                 </button>
             </div>
         </div>
         
-        <!-- Filters Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div class="lg:col-span-1">
-                <div class="search-container">
-                    <div class="filter-label">البحث عن مريض</div>
-                    <div class="relative">
-                        <i class="fas fa-search search-icon"></i>
-                        <input
-                            id="searchInput"
-                            type="text"
-                            placeholder="ابحث باسم المريض أو الرقم القومي..."
-                            class="search-input"
-                        />
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="filter-container">
-                    <div class="filter-label">التاريخ</div>
-                    <input
-                        id="dateFilter"
-                        type="date"
-                        class="filter-input"
-                    />
-                </div>
-            </div>
-            <div>
-                <div class="filter-container">
-                    <div class="filter-label">الحالة</div>
-                    <select id="statusFilter" class="filter-input">
-                        <option value="">جميع الحالات</option>
-                        <option value="critical">حالات حرجة</option>
-                        <option value="stable">حالات مستقرة</option>
-                        <option value="improving">في تحسن</option>
-                        <option value="deteriorating">في تدهور</option>
-                    </select>
-                </div>
-            </div>
-            <div>
-                <div class="filter-container">
-                    <div class="filter-label">ترتيب حسب</div>
-                    <select id="sortFilter" class="filter-input">
-                        <option value="newest">الأحدث أولاً</option>
-                        <option value="oldest">الأقدم أولاً</option>
-                        <option value="critical">الأكثر أهمية</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        
-        <!-- قسم الأطباء المناوبين -->
+        <!-- قسم الأطباء المناوبين حالياً -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
             <div class="bg-blue-600 text-white px-6 py-4">
                 <h2 class="text-xl font-bold flex items-center">
                     <i class="fas fa-user-md ml-2"></i>
-                    الأطباء المناوبون اليوم في الطوارئ
+                    الأطباء المناوبون حالياً
                 </h2>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6" id="doctorsList">
-                <!-- سيتم إضافة الأطباء هنا ديناميكيًا -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6" id="activeDoctorsList">
                 <div class="col-span-full">
-                    <div class="loading-container">
+                    <div class="flex flex-col items-center justify-center py-8">
                         <div class="loading-spinner"></div>
-                        <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات الأطباء...</h3>
+                        <p class="text-gray-600 mt-4">جاري تحميل بيانات الأطباء...</p>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Patients List -->
-        <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Patient cards will be dynamically inserted here -->
-            <div class="col-span-full">
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                    <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+        <!-- قسم المرضى -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold flex items-center">
+                    <i class="fas fa-procedures ml-2"></i>
+                    قائمة المرضى
+                </h2>
+                <div class="flex space-x-3 space-x-reverse">
+                    <input id="patientSearch" type="text" placeholder="ابحث عن مريض..." 
+                           class="px-4 py-2 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6" id="patientsList">
+                <div class="col-span-full">
+                    <div class="flex flex-col items-center justify-center py-8">
+                        <div class="loading-spinner"></div>
+                        <p class="text-gray-600 mt-4">جاري تحميل بيانات المرضى...</p>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
     
-    <!-- Footer Section -->
-    <footer class="footer-section">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 class="footer-title">مستشفى الحياة الذكية</h3>
-                    <p class="text-gray-400 mb-4">
-                        نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية
-                        والكوادر الطبية المتخصصة.
-                    </p>
-                    <div class="flex space-x-3">
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                    </div>
-                </div>
-                <!-- باقي قسم الفوتر -->
-            </div>
-            <div class="border-t border-gray-700 pt-6 text-center">
-                <p class="text-gray-400">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
-            </div>
+    <footer class="bg-gray-900 text-gray-400 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
-    
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -351,177 +177,238 @@
             projectId: "hospital-project-e4b59",
             storageBucket: "hospital-project-e4b59.appspot.com",
             messagingSenderId: "974610606258",
-            appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
+            appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
         };
         
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let allPatients = {};
-        let allDoctors = {};
         
-        window.addEventListener("DOMContentLoaded", () => {
-            // تحميل المرضى
-            const emergencyRef = ref(db, "patients/emergency");
-            onValue(emergencyRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    allPatients = snapshot.val();
-                    renderPatients(allPatients);
-                } else {
-                    document.getElementById('patientsList').innerHTML = `
-                        <div class="col-span-full">
-                            <div class="empty-state">
-                                <i class="fas fa-user-injured text-5xl"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mb-2">لا يوجد مرضى حالياً</h3>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            
-            // تحميل الأطباء
-            const doctorsRef = ref(db, "doctors");
-            onValue(doctorsRef, (snapshot) => {
-                const doctorsList = document.getElementById('doctorsList');
-                
-                if (snapshot.exists()) {
-                    allDoctors = snapshot.val();
-                    renderDoctors(allDoctors);
-                } else {
-                    doctorsList.innerHTML = `
-                        <div class="col-span-full">
-                            <div class="empty-state">
-                                <i class="fas fa-user-md text-5xl"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mb-2">لا يوجد أطباء مناوبين اليوم</h3>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            
-            // باقي كود الفلترة والبحث كما هو
-        });
+        // تحويل الوقت من نص إلى دقائق
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
         
-        // دالة لعرض الأطباء
-        function renderDoctors(doctorsData) {
-            const doctorsList = document.getElementById('doctorsList');
-            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        // التحقق من أن الطبيب في فترة عمله اليوم
+        function isDoctorWorkingToday(doctor) {
+            const now = new Date();
+            const currentDayEn = now.toLocaleDateString('en-US', { weekday: 'long' });
             
-            doctorsList.innerHTML = '';
+            // إذا لم يكن هناك أيام محددة، يعمل كل الأيام
+            if (!doctor.workDays || Object.keys(doctor.workDays).length === 0) {
+                return true;
+            }
+            
+            // التحقق من وجود اليوم الحالي في workDays
+            return Object.values(doctor.workDays).includes(currentDayEn);
+        }
+        
+        // التحقق من أن الطبيب في فترة عمله الآن
+        function isDoctorOnDuty(doctor) {
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            
+            // إذا لم يكن هناك وقت محدد، يعمل 24 ساعة
+            const startTime = doctor.startTime ? timeToMinutes(doctor.startTime) : 0;
+            const endTime = doctor.endTime ? timeToMinutes(doctor.endTime) : 1440; // 24*60
+            
+            // معالجة الورديات الليلية
+            if (endTime < startTime) {
+                return currentTime >= startTime || currentTime <= endTime;
+            }
+            
+            return currentTime >= startTime && currentTime <= endTime;
+        }
+        
+        // عرض الأطباء النشطين
+        function renderActiveDoctors(doctorsData) {
+            const activeDoctorsList = document.getElementById('activeDoctorsList');
+            activeDoctorsList.innerHTML = '';
+            
+            const now = new Date();
+            const currentDayAr = now.toLocaleDateString('ar-EG', { weekday: 'long' });
+            const currentTimeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+            
+            let hasActiveDoctors = false;
             
             Object.entries(doctorsData).forEach(([id, doctor]) => {
-                // التحقق من أن الطبيب في قسم الطوارئ ويعمل اليوم
-                if (doctor.department !== "emergency" || 
-                    !doctor.workDays || 
-                    !Object.values(doctor.workDays).includes(today)) {
-                    return;
-                }
-                
-                // تحديد حالة الطبيب
-                let statusClass, statusIcon, statusText;
-                switch(doctor.manualStatus) {
-                    case "online":
-                        statusClass = "status-online";
-                        statusIcon = "fa-check-circle";
-                        statusText = "متاح";
-                        break;
-                    case "busy":
-                        statusClass = "status-busy";
-                        statusIcon = "fa-user-clock";
-                        statusText = "مشغول";
-                        break;
-                    default:
-                        statusClass = "status-offline";
-                        statusIcon = "fa-times-circle";
-                        statusText = "غير متاح";
-                }
-                
-                // تحديد وردية الطبيب
-                let shiftClass, shiftText;
-                switch(doctor.shift) {
-                    case "Morning":
-                        shiftClass = "shift-morning";
-                        shiftText = "صباحية (8 ص - 4 م)";
-                        break;
-                    case "Evening":
-                        shiftClass = "shift-evening";
-                        shiftText = "مسائية (4 م - 12 ص)";
-                        break;
-                    case "Night":
-                        shiftClass = "shift-night";
-                        shiftText = "ليلية (12 ص - 8 ص)";
-                        break;
-                    default:
-                        shiftClass = "bg-gray-100 text-gray-800";
-                        shiftText = doctor.shift || "غير محدد";
-                }
-                
-                const doctorCard = document.createElement('div');
-                doctorCard.className = "doctor-card p-6";
-                doctorCard.innerHTML = `
-                    <div class="flex items-start justify-between mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800">${doctor.name}</h3>
-                            <p class="text-gray-600 text-sm">طبيب طوارئ</p>
-                        </div>
-                        <span class="status-badge ${statusClass}">
-                            <i class="fas ${statusIcon}"></i>
-                            ${statusText}
-                        </span>
-                    </div>
+                // التحقق من أن الطبيب في قسم الطوارئ وفي فترة عمله
+                if (doctor.department === "emergency" && isDoctorWorkingToday(doctor) && isDoctorOnDuty(doctor)) {
+                    hasActiveDoctors = true;
                     
-                    <div class="space-y-3 text-gray-600 mb-4">
-                        <div class="flex items-center">
-                            <i class="fas fa-clock ml-2"></i>
-                            <span>الوردية: <span class="${shiftClass} px-2 py-1 rounded-full text-xs">${shiftText}</span></span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-calendar-day ml-2"></i>
-                            <span>ساعات العمل: ${doctor.startTime || "08:00"} - ${doctor.endTime || "16:00"}</span>
-                        </div>
-                    </div>
+                    const statusInfo = {
+                        online: { class: "status-online", icon: "fa-check-circle", text: "متاح الآن" },
+                        busy: { class: "status-busy", icon: "fa-user-clock", text: "مشغول" },
+                        offline: { class: "status-offline", icon: "fa-times-circle", text: "غير متاح" }
+                    }[doctor.manualStatus || "offline"];
                     
-                    <div class="flex justify-end space-x-3 space-x-reverse">
-                        <button onclick="viewDoctorSchedule('${id}')" class="btn btn-secondary">
-                            <i class="fas fa-calendar-alt"></i>
-                            الجدول
-                        </button>
-                        <button onclick="contactDoctor('${id}')" class="btn btn-primary">
-                            <i class="fas fa-phone"></i>
-                            اتصل
-                        </button>
-                    </div>
-                `;
-                
-                doctorsList.appendChild(doctorCard);
+                    const shiftClass = {
+                        Morning: "shift-morning",
+                        Evening: "shift-evening",
+                        Night: "shift-night"
+                    }[doctor.shift] || "bg-gray-100 text-gray-800";
+                    
+                    const doctorCard = document.createElement('div');
+                    doctorCard.className = "card p-6";
+                    doctorCard.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="font-bold text-lg">${doctor.name}</h3>
+                                <p class="text-gray-600 text-sm">طبيب طوارئ</p>
+                            </div>
+                            <span class="status-badge ${statusInfo.class}">
+                                <i class="fas ${statusInfo.icon}"></i>
+                                ${statusInfo.text}
+                            </span>
+                        </div>
+                        <div class="space-y-3 mb-4">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-clock ml-2"></i>
+                                <span>الوردية: <span class="${shiftClass} px-2 py-1 rounded-full text-xs">${doctor.shift} (${doctor.startTime} - ${doctor.endTime})</span></span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-calendar-day ml-2"></i>
+                                <span>اليوم: ${currentDayAr} - الوقت: ${currentTimeStr}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button onclick="callDoctor('${id}')" class="btn bg-blue-600 hover:bg-blue-700 text-white">
+                                <i class="fas fa-phone"></i> اتصل
+                            </button>
+                        </div>
+                    `;
+                    activeDoctorsList.appendChild(doctorCard);
+                }
             });
             
-            if (doctorsList.innerHTML === '') {
-                doctorsList.innerHTML = `
-                    <div class="col-span-full">
-                        <div class="empty-state">
-                            <i class="fas fa-user-md text-5xl"></i>
-                            <h3 class="text-xl font-bold text-gray-700 mb-2">لا يوجد أطباء مناوبين اليوم</h3>
-                        </div>
+            if (!hasActiveDoctors) {
+                activeDoctorsList.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <i class="fas fa-user-md text-4xl text-gray-400 mb-3"></i>
+                        <h3 class="text-lg font-bold text-gray-700">لا يوجد أطباء في الخدمة حالياً</h3>
+                        <p class="text-gray-500 mt-2">
+                            اليوم: ${currentDayAr}<br>
+                            الوقت: ${currentTimeStr}<br>
+                            يرجى التحقق من أوقات العمل المحددة للأطباء
+                        </p>
                     </div>
                 `;
             }
         }
         
-        // دالة لعرض المرضى (كما هي في الكود الأصلي)
-        function renderPatients(data) {
-            // ... نفس كود renderPatients الأصلي ...
+        // عرض المرضى
+        function renderPatients(patientsData) {
+            const patientsList = document.getElementById('patientsList');
+            patientsList.innerHTML = '';
+            
+            Object.entries(patientsData).forEach(([id, patient]) => {
+                const statusInfo = {
+                    critical: { class: "bg-red-100 text-red-800", icon: "fa-heartbeat", text: "حالة حرجة" },
+                    stable: { class: "bg-green-100 text-green-800", icon: "fa-check-circle", text: "مستقر" },
+                    improving: { class: "bg-yellow-100 text-yellow-800", icon: "fa-arrow-up", text: "في تحسن" },
+                    deteriorating: { class: "bg-orange-100 text-orange-800", icon: "fa-arrow-down", text: "في تدهور" }
+                }[patient.status] || { class: "bg-gray-100 text-gray-800", icon: "fa-question", text: "غير محدد" };
+                
+                const patientCard = document.createElement('div');
+                patientCard.className = "card p-6";
+                patientCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg">${patient.name}</h3>
+                            <p class="text-gray-600 text-sm">الرقم القومي: ${patient.nid || "غير محدد"}</p>
+                        </div>
+                        <span class="status-badge ${statusInfo.class}">
+                            <i class="fas ${statusInfo.icon}"></i>
+                            ${statusInfo.text}
+                        </span>
+                    </div>
+                    <div class="space-y-3 mb-4">
+                        <div class="flex items-center text-gray-600">
+                            <i class="fas fa-birthday-cake ml-2"></i>
+                            <span>العمر: ${patient.age || "غير محدد"} سنة</span>
+                        </div>
+                        <div class="flex items-center text-gray-600">
+                            <i class="fas fa-calendar-day ml-2"></i>
+                            <span>تاريخ التسجيل: ${new Date(patient.timestamp).toLocaleDateString('ar-EG')}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="viewPatient('${id}')" class="btn bg-blue-600 hover:bg-blue-700 text-white">
+                            <i class="fas fa-eye"></i> عرض التفاصيل
+                        </button>
+                    </div>
+                `;
+                patientsList.appendChild(patientCard);
+            });
         }
         
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            // جلب بيانات الأطباء
+            const doctorsRef = ref(db, 'doctors');
+            onValue(doctorsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    renderActiveDoctors(snapshot.val());
+                } else {
+                    document.getElementById('activeDoctorsList').innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <i class="fas fa-user-md text-4xl text-gray-400 mb-3"></i>
+                            <h3 class="text-lg font-bold text-gray-700">لا يوجد أطباء مسجلين</h3>
+                        </div>
+                    `;
+                }
+            });
+            
+            // جلب بيانات المرضى
+            const patientsRef = ref(db, 'patients/emergency');
+            onValue(patientsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    renderPatients(snapshot.val());
+                } else {
+                    document.getElementById('patientsList').innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <i class="fas fa-user-injured text-4xl text-gray-400 mb-3"></i>
+                            <h3 class="text-lg font-bold text-gray-700">لا يوجد مرضى مسجلين</h3>
+                            <p class="text-gray-500">لم يتم تسجيل أي مرضى في قسم الطوارئ بعد</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            // تحديث البيانات كل دقيقة
+            setInterval(() => {
+                const doctorsRef = ref(db, 'doctors');
+                onValue(doctorsRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        renderActiveDoctors(snapshot.val());
+                    }
+                });
+            }, 60000);
+            
+            // بحث المرضى
+            document.getElementById('patientSearch').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const patientCards = document.querySelectorAll('#patientsList > div.card');
+                
+                patientCards.forEach(card => {
+                    const name = card.querySelector('h3').textContent.toLowerCase();
+                    const nid = card.querySelector('p').textContent.toLowerCase();
+                    if (name.includes(searchTerm) || nid.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
         // وظائف الأطباء
-        window.viewDoctorSchedule = function(id) {
-            alert(`عرض جدول الطبيب ID: ${id}`);
+        window.callDoctor = function(id) {
+            alert(`سيتم الاتصال بالطبيب ID: ${id}`);
         };
         
-        window.contactDoctor = function(id) {
-            alert(`الاتصال بالطبيب ID: ${id}`);
-        };
-        
-        // باقي الوظائف الأصلية
+        // وظائف المرضى
         window.viewPatient = function(id) {
             window.location.href = `patient.html?id=${id}`;
         };
