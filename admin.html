@@ -44,37 +44,6 @@ window.addEventListener("DOMContentLoaded", () => {
   let allPatients = [];
   const patientsRef = ref(db, "patients");
   
-  // دالة رئيسية لتحميل بيانات لوحة التحكم
-  function loadDashboardData() {
-    // تحميل المرضى
-    onValue(patientsRef, (snapshot) => {
-      const data = snapshot.val();
-      let countPatients = 0;
-      let countVisits = 0;
-      let departmentSet = new Set();
-      allPatients = [];
-
-      if (data) {
-        Object.entries(data).forEach(([department, patients]) => {
-          departmentSet.add(department);
-          Object.entries(patients).forEach(([id, patient]) => {
-            countPatients++;
-            if (patient.visits) countVisits += Object.keys(patient.visits).length;
-            allPatients.push({ id, department, ...patient });
-          });
-        });
-        renderPatients(allPatients);
-        statsPatients.textContent = countPatients;
-        statsDepartments.textContent = departmentSet.size;
-        statsVisits.textContent = countVisits;
-        
-        // تحديث لوحة التحكم بعد تحميل المرضى
-        updateDashboardStats();
-        updateDashboardPatients(allPatients.slice(0, 5)); // عرض آخر 5 مرضى
-      }
-    });
-  }
-  
   // دالة لتحديث إحصائيات لوحة التحكم
   function updateDashboardStats() {
     const statsPatients = document.getElementById("dashboardTotalPatients");
@@ -136,6 +105,10 @@ window.addEventListener("DOMContentLoaded", () => {
       statsPatients.textContent = countPatients;
       statsDepartments.textContent = departmentSet.size;
       statsVisits.textContent = countVisits;
+      
+      // تحديث لوحة التحكم بعد تحميل المرضى
+      updateDashboardStats();
+      updateDashboardPatients(allPatients.slice(0, 5)); // عرض آخر 5 مرضى
     }
   });
 
@@ -262,9 +235,9 @@ window.addEventListener("DOMContentLoaded", () => {
       if (result.isConfirmed) {
         Swal.fire("تم", "تمت إضافة المريض بنجاح", "success");
         
-        // <--- السطر الحل ---
-        loadDashboardData(); // أمر التحديث
-        // --------------------
+        // ====== هذا السطر الجديد اللي محتاجينه ======
+        loadDashboardData(); // هذا السطر بيجبر الصفحة إنها تعرض المرضى الجديد
+        // =============================================
         
       }
     }).catch(error => {
@@ -373,6 +346,11 @@ window.addEventListener("DOMContentLoaded", () => {
     }).then(result => {
       if (result.isConfirmed) {
         Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
+        
+        // ====== هذا السطر الجديد اللي محتاجينه ======
+        loadDashboardData(); // هذا السطر بيجبر الصفحة إنها تعرض الأطباء الجدد
+        // =============================================
+        
       }
     });
   });
