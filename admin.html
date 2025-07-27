@@ -9,7 +9,7 @@
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getDatabase, ref, onValue, remove, update, push, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+import { getDatabase, ref, onValue, remove, update, push, set, get, child } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 // ====== إعدادات Firebase ======
 const firebaseConfig = {
@@ -33,7 +33,7 @@ window.addEventListener("DOMContentLoaded", () => {
       document.getElementById(link.dataset.target).classList.remove("hidden");
     });
   });
-
+  
   // ===== المرضى =====
   const patientsTable = document.getElementById("patientsTable");
   const searchPatient = document.getElementById("searchPatient");
@@ -51,12 +51,10 @@ window.addEventListener("DOMContentLoaded", () => {
     const statsTotalVisits = document.getElementById("dashboardTotalVisits");
     const statsTotalDepartments = document.getElementById("dashboardTotalDepartments");
     
-    // استخدام البيانات المحملة مسبقاً
     if (allPatients.length > 0) {
       const uniqueDepartments = new Set(allPatients.map(p => p.department)).size;
       statsPatients.textContent = allPatients.length;
       statsTotalDepartments.textContent = uniqueDepartments;
-      // حساب الزيارات
       let totalVisits = 0;
       allPatients.forEach(p => {
         if (p.visits) totalVisits += Object.keys(p.visits).length;
@@ -64,6 +62,7 @@ window.addEventListener("DOMContentLoaded", () => {
       statsTotalVisits.textContent = totalVisits;
     }
   }
+  
   // دالة لتحديث جدول آخر المرضى في لوحة التحكم
   function updateDashboardPatients(recentPatients) {
     const recentPatientsTable = document.getElementById("recentPatientsTable");
@@ -74,7 +73,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     recentPatients.forEach((patient) => {
       const row = document.createElement("tr");
-      row.className = "border-b border-gray-100";
+      row.className = "hover:bg-gray-50 text-sm";
       row.innerHTML = `
         <td class="p-2 text-right">${patient.name}</td>
         <td class="p-2 text-right">${patient.department}</td>
@@ -109,6 +108,7 @@ window.addEventListener("DOMContentLoaded", () => {
       updateDashboardPatients(allPatients.slice(0, 5)); // عرض آخر 5 مرضى
     }
   });
+  
   function renderPatients(patients) {
     patientsTable.innerHTML = "";
     if (patients.length === 0) {
@@ -132,6 +132,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     attachPatientEvents();
   }
+  
   searchPatient.addEventListener("input", () => {
     const query = searchPatient.value.toLowerCase();
     const filtered = allPatients.filter(p =>
@@ -140,6 +141,7 @@ window.addEventListener("DOMContentLoaded", () => {
     );
     renderPatients(filtered);
   });
+  
   function attachPatientEvents() {
     document.querySelectorAll(".detailsBtn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -187,6 +189,7 @@ window.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+  
   // ===================== إضافة مريض =====================
   document.getElementById("addPatientBtn").addEventListener("click", () => {
     Swal.fire({
@@ -235,6 +238,7 @@ window.addEventListener("DOMContentLoaded", () => {
       Swal.fire("خطأ", "حدث خطأ أثناء إضافة المريض", "error");
     });
   });
+  
   function validatePatientData(patient) {
     const errors = [];
     if (!patient.name || patient.name.trim() === '') errors.push('الاسم مطلوب');
@@ -242,6 +246,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!patient.department || patient.department.trim() === '') errors.push('القسم مطلوب');
     return errors;
   }
+  
   // ===================== الأطباء =====================
   const doctorsTable = document.getElementById("doctorsTable");
   const doctorsRef = ref(db, "doctors");
@@ -253,13 +258,11 @@ window.addEventListener("DOMContentLoaded", () => {
     
     availableDoctorsTable.innerHTML = "";
     
-    // فلترة الأطباء المتاحين بناءً على الوردية المختارة
     let filteredDoctors = allDoctors.filter(doc => doc.manualStatus === "online");
     
     if (filterShift !== "all") {
       filteredDoctors = filteredDoctors.filter(doc => doc.shift === filterShift);
     }
-
     if (filteredDoctors.length === 0) {
       availableDoctorsTable.innerHTML = '<tr><td colspan="4" class="text-center p-2">لا يوجد أطباء متاحون بهذه الوردية</td></tr>';
       return;
@@ -279,7 +282,7 @@ window.addEventListener("DOMContentLoaded", () => {
       availableDoctorsTable.appendChild(row);
     });
   }
-
+  
   onValue(doctorsRef, (snapshot) => {
     const doctors = snapshot.val();
     doctorsTable.innerHTML = "";
@@ -314,9 +317,9 @@ window.addEventListener("DOMContentLoaded", () => {
       updateDashboardStats(); // تحديث إحصائيات لوحة التحكم بعد تحميل الأطباء
     }
   });
-
+  
   document.getElementById("filterShift").addEventListener("change", updateAvailableDoctors);
-
+  
   function attachDoctorEvents() {
     document.querySelectorAll(".changeStatusBtn").forEach(button => {
       button.addEventListener("click", () => {
@@ -347,6 +350,7 @@ window.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+  
   document.getElementById("addDoctorBtn").addEventListener("click", () => {
     Swal.fire({
       title: "إضافة طبيب",
@@ -378,7 +382,6 @@ window.addEventListener("DOMContentLoaded", () => {
   // ===== إدارة الأقسام (ميزة جديدة) =====
   const departmentsTable = document.getElementById("departmentsTable");
   const departmentsRef = ref(db, "departments");
-
   onValue(departmentsRef, (snapshot) => {
     const departments = snapshot.val();
     departmentsTable.innerHTML = "";
@@ -403,7 +406,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     attachDepartmentEvents();
   });
-
+  
   document.getElementById("addDeptBtn").addEventListener("click", () => {
     Swal.fire({
         title: "إضافة قسم جديد",
@@ -425,7 +428,7 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     });
   });
-
+  
   function attachDepartmentEvents() {
     document.querySelectorAll(".editDeptBtn").forEach(button => {
         button.addEventListener("click", () => {
@@ -462,11 +465,10 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     });
   }
-
+  
   // ===== إدارة المخزون (ميزة جديدة) =====
   const inventoryTable = document.getElementById("inventoryTable");
   const inventoryRef = ref(db, "inventory");
-
   onValue(inventoryRef, (snapshot) => {
     const items = snapshot.val();
     inventoryTable.innerHTML = "";
@@ -491,7 +493,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     attachInventoryEvents();
   });
-
+  
   document.getElementById("addInventoryBtn").addEventListener("click", () => {
     Swal.fire({
         title: "إضافة منتج جديد للمخزون",
@@ -518,7 +520,7 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     });
   });
-
+  
   function attachInventoryEvents() {
     document.querySelectorAll(".editInventoryBtn").forEach(button => {
         button.addEventListener("click", () => {
@@ -556,7 +558,375 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     });
   }
-
+  
+  // ===================== إدارة الموظفين =====================
+  const staffTable = document.getElementById("staffTable");
+  const staffRef = ref(db, "staff");
+  let allStaffMembers = [];
+  
+  onValue(staffRef, (snapshot) => {
+    const staff = snapshot.val();
+    staffTable.innerHTML = "";
+    allStaffMembers = [];
+    
+    if (!staff) {
+      staffTable.innerHTML = '<tr><td colspan="5" class="text-center p-4">لا توجد بيانات موظفين</td></tr>';
+      return;
+    }
+    
+    Object.entries(staff).forEach(([staffId, staffMember]) => {
+      allStaffMembers.push({ id: staffId, ...staffMember });
+      
+      const row = document.createElement("tr");
+      row.className = "hover:bg-gray-50 text-sm";
+      row.innerHTML = `
+        <td class="border p-2">${staffMember.name}</td>
+        <td class="border p-2">${staffMember.position || "غير محدد"}</td>
+        <td class="border p-2">${staffMember.department || "غير محدد"}</td>
+        <td class="border p-2">${staffMember.phone || "-"}</td>
+        <td class="border p-2 flex gap-2 justify-center">
+          <button class="editStaffBtn bg-blue-500 text-white px-3 py-1 rounded" data-id="${staffId}">تعديل</button>
+          <button class="deleteStaffBtn bg-red-500 text-white px-3 py-1 rounded" data-id="${staffId}">حذف</button>
+        </td>
+      `;
+      staffTable.appendChild(row);
+    });
+    
+    attachStaffEvents();
+  });
+  
+  document.getElementById("addStaffBtn").addEventListener("click", () => {
+    Swal.fire({
+      title: "إضافة موظف جديد",
+      html: `
+        <input id="staffName" class="swal2-input" placeholder="الاسم الكامل">
+        <input id="staffPosition" class="swal2-input" placeholder="الوظيفة">
+        <input id="staffDepartment" class="swal2-input" placeholder="القسم">
+        <input id="staffPhone" class="swal2-input" placeholder="رقم الهاتف">
+      `,
+      focusConfirm: false,
+      preConfirm: () => {
+        const name = document.getElementById("staffName").value;
+        const position = document.getElementById("staffPosition").value;
+        const department = document.getElementById("staffDepartment").value;
+        const phone = document.getElementById("staffPhone").value;
+        
+        if (!name || !position || !department) {
+          Swal.showValidationMessage("يرجى إدخال جميع الحقول");
+          return false;
+        }
+        
+        const newStaffRef = push(ref(db, "staff"));
+        return set(newStaffRef, {
+          name,
+          position,
+          department,
+          phone,
+          fingerprint: "",
+          timestamp: Date.now()
+        });
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        Swal.fire("تم", "تمت إضافة الموظف بنجاح", "success");
+        loadDashboardData();
+      }
+    });
+  });
+  
+  function attachStaffEvents() {
+    document.querySelectorAll(".editStaffBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const staffId = button.dataset.id;
+        const staffMember = allStaffMembers.find(s => s.id === staffId);
+        
+        if (!staffMember) return;
+        
+        Swal.fire({
+          title: "تعديل معلومات الموظف",
+          html: `
+            <input id="editStaffName" class="swal2-input" value="${staffMember.name}">
+            <input id="editStaffPosition" class="swal2-input" value="${staffMember.position || ''}">
+            <input id="editStaffDepartment" class="swal2-input" value="${staffMember.department || ''}">
+            <input id="editStaffPhone" class="swal2-input" value="${staffMember.phone || ''}">
+          `,
+          focusConfirm: false,
+          preConfirm: () => {
+            const name = document.getElementById("editStaffName").value;
+            const position = document.getElementById("editStaffPosition").value;
+            const department = document.getElementById("editStaffDepartment").value;
+            const phone = document.getElementById("editStaffPhone").value;
+            
+            if (!name || !position || !department) {
+              Swal.showValidationMessage("يرجى إدخال الاسم والوظيفة والقسم");
+              return false;
+            }
+            
+            return update(ref(db, `staff/${staffId}`), {
+              name,
+              position,
+              department,
+              phone
+            });
+          }
+        }).then(result => {
+          if (result.isConfirmed) {
+            Swal.fire("تم", "تم تعديل معلومات الموظف بنجاح", "success");
+          }
+        });
+      });
+    });
+    
+    document.querySelectorAll(".deleteStaffBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const staffId = button.dataset.id;
+        Swal.fire({
+          title: "حذف الموظف",
+          text: "هل أنت متأكد؟ سيتم حذف الموظف نهائياً",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "نعم، احذف",
+          cancelButtonText: "إلغاء"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            remove(ref(db, `staff/${staffId}`));
+          }
+        });
+      });
+    });
+  }
+  
+  // ===================== إدارة الحضور بالبصمة =====================
+  const attendanceTable = document.getElementById("attendanceTable");
+  const attendanceRef = ref(db, "attendance");
+  
+  // دالة لتحميل بيانات الحضور
+  function loadAttendanceData() {
+    const attendanceTab = document.querySelector('.attendance-tab.active') || 
+                           document.querySelector('.attendance-tab[data-type="all"]');
+    const userType = attendanceTab.dataset.type;
+    
+    let query = ref(db, "attendance");
+    
+    if (userType === "doctors") {
+      query = ref(db, "doctors");
+    } else if (userType === "staff") {
+      query = ref(db, "staff");
+    }
+    
+    onValue(query, (snapshot) => {
+      const data = snapshot.val();
+      attendanceTable.innerHTML = "";
+      
+      if (!data) {
+        attendanceTable.innerHTML = '<tr><td colspan="5" class="text-center p-4">لا توجد بيانات</td></tr>';
+        return;
+      }
+      
+      Object.entries(data).forEach(([userId, user]) => {
+        // تحديد نوع المستخدم
+        let userType = "موظف";
+        let status = "غير متصل";
+        let statusClass = "text-gray-500";
+        
+        if (user.shift) {
+          userType = "طبيب";
+          status = user.manualStatus === "online" ? "متصل" : "غير متصل";
+          statusClass = user.manualStatus === "online" ? "text-green-600" : "text-red-600";
+        }
+        
+        const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50 text-sm";
+        row.innerHTML = `
+          <td class="border p-2">${user.name}</td>
+          <td class="border p-2">${userType}</td>
+          <td class="border p-2">${user.department || "-"}</td>
+          <td class="border p-2 ${statusClass}">${status}</td>
+          <td class="border p-2 flex gap-2 justify-center">
+            <button class="checkInBtn bg-green-600 text-white px-3 py-1 rounded" data-id="${userId}" data-type="${userType}">
+              <i class="fas fa-fingerprint mr-1"></i> تسجيل دخول
+            </button>
+            <button class="checkOutBtn bg-red-600 text-white px-3 py-1 rounded" data-id="${userId}" data-type="${userType}">
+              <i class="fas fa-sign-out-alt mr-1"></i> تسجيل خروج
+            </button>
+          </td>
+        `;
+        attendanceTable.appendChild(row);
+      });
+      
+      attachAttendanceEvents();
+    });
+  }
+  
+  // دالة لربط أحداث الحضور
+  function attachAttendanceEvents() {
+    document.querySelectorAll(".checkInBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const userId = button.dataset.id;
+        const userType = button.dataset.type;
+        simulateFingerprintScan(userId, userType, "in");
+      });
+    });
+    
+    document.querySelectorAll(".checkOutBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const userId = button.dataset.id;
+        const userType = button.dataset.type;
+        simulateFingerprintScan(userId, userType, "out");
+      });
+    });
+  }
+  
+  // دالة لمحاكاة مسح البصمة
+  function simulateFingerprintScan(userId, userType, action) {
+    Swal.fire({
+      title: "جاري مسح البصمة...",
+      html: `
+        <div class="text-center">
+          <i class="fas fa-fingerprint text-5xl text-blue-600 animate-pulse mb-4"></i>
+          <p>الرجاء وضع إصبعك على مستشعر البصمة</p>
+          <p class="text-sm text-gray-600 mt-2">المستخدم: ${userId}</p>
+          <p class="text-sm text-gray-600">النوع: ${userType}</p>
+          <p class="text-sm text-gray-600">الإجراء: ${action === "in" ? "دخول" : "خروج"}</p>
+        </div>
+      `,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      timer: 3000,
+      timerProgressBar: true
+    }).then(() => {
+      registerAttendance(userId, userType, action);
+    });
+  }
+  
+  // دالة لتسجيل الحضور
+  function registerAttendance(userId, userType, action) {
+    const timestamp = Date.now();
+    const date = new Date(timestamp).toLocaleDateString("ar-EG");
+    const time = new Date(timestamp).toLocaleTimeString("ar-EG");
+    
+    const attendanceData = {
+      userId: userId,
+      userName: userType === "طبيب" ? "طبيب: " + userId : "موظف: " + userId,
+      userType: userType,
+      action: action,
+      date: date,
+      time: time,
+      timestamp: timestamp
+    };
+    
+    // التحقق من تسجيل الدخول قبل تسجيل الخروج
+    if (action === "out") {
+      // التحقق إذا كان قد سجل دخول اليوم
+      get(child(ref(db, "attendance"))).then((snapshot) => {
+        const attendance = snapshot.val();
+        const todayAttendance = attendance ? 
+          Object.values(attendance).find(a => 
+            a.userId === userId && 
+            a.date === date && 
+            a.action === "in"
+          ) : null;
+        
+        if (!todayAttendance) {
+          Swal.fire("خطأ", "لا يمكن تسجيل الخروج قبل تسجيل الدخول", "error");
+          return;
+        }
+        
+        // تسجيل الخروج
+        push(attendanceRef, attendanceData).then(() => {
+          Swal.fire("تم", "تم تسجيل خروج الموظف بنجاح", "success");
+        });
+      });
+    } else {
+      // تسجيل الدخول مباشرة
+      push(attendanceRef, attendanceData).then(() => {
+        Swal.fire("تم", "تم تسجيل دخول الموظف بنجاح", "success");
+      });
+    }
+  }
+  
+  // دالة لتسجيل بصمة جديدة
+  function registerFingerprint() {
+    Swal.fire({
+      title: "تسجيل بصمة جديدة",
+      html: `
+        <div class="text-center">
+          <i class="fas fa-fingerprint text-5xl text-blue-600 animate-pulse mb-4"></i>
+          <p class="mb-4">الرجاء مسح بصمة المستخدم</p>
+          <div class="mb-4">
+            <input type="text" id="newUserType" class="swal2-input" placeholder="نوع المستخدم (طبيب/موظف)">
+          </div>
+          <div class="mb-4">
+            <input type="text" id="newUserName" class="swal2-input" placeholder="اسم المستخدم">
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "تسجيل",
+      cancelButtonText: "إلغاء",
+      preConfirm: () => {
+        const userType = document.getElementById("newUserType").value;
+        const userName = document.getElementById("newUserName").value;
+        
+        if (!userType || !userName) {
+          Swal.showValidationMessage("الرجاء إدخال جميع الحقول");
+          return false;
+        }
+        
+        if (userType !== "طبيب" && userType !== "موظف") {
+          Swal.showValidationMessage("نوع المستخدم يجب أن يكون 'طبيب' أو 'موظف'");
+          return false;
+        }
+        
+        // هنا يمكنك إضافة منطق تسجيل البصمة الفعلية
+        // حالياً نحفظ بصمة وهمية
+        const newUserId = "user_" + Date.now();
+        const fingerprintData = "fingerprint_" + Date.now();
+        
+        if (userType === "طبيب") {
+          set(ref(db, `doctors/${newUserId}`), {
+            name: userName,
+            department: "غير محدد",
+            shift: "غير محدد",
+            manualStatus: "offline",
+            fingerprint: fingerprintData
+          });
+        } else {
+          set(ref(db, `staff/${newUserId}`), {
+            name: userName,
+            position: "غير محدد",
+            department: "غير محدد",
+            fingerprint: fingerprintData
+          });
+        }
+        
+        return true;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire("تم", "تم تسجيل البصمة بنجاح", "success");
+        loadAttendanceData();
+      }
+    });
+  }
+  
+  // ربط حدث زر تسجيل البصمة الجديدة
+  document.getElementById("registerFingerprintBtn").addEventListener("click", registerFingerprint);
+  
+  // ربط تبويبات الحضور
+  document.querySelectorAll('.attendance-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.attendance-tab').forEach(t => {
+        t.classList.remove('active', 'text-blue-600', 'border-b-2', 'border-blue-600');
+        t.classList.add('text-gray-500');
+      });
+      tab.classList.add('active', 'text-blue-600', 'border-b-2', 'border-blue-600');
+      tab.classList.remove('text-gray-500');
+      loadAttendanceData();
+    });
+  });
+  
   // دالة لتحميل بيانات لوحة التحكم (إذا لم تكن معرفة)
   function loadDashboardData() {
     // تحديث إحصائيات المرضى
@@ -578,7 +948,7 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("dashboardTotalDepartments").textContent = departments.size;
         document.getElementById("dashboardTotalVisits").textContent = countVisits;
     });
-
+    
     // تحديث إحصائيات الأطباء
     onValue(ref(db, "doctors"), (snapshot) => {
         const doctors = snapshot.val();
@@ -591,13 +961,14 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("dashboardDoctorsOnline").textContent = countOnline;
         document.getElementById("totalDoctorsOnline").textContent = countOnline;
     });
-
+    
     // تحديث الأطباء المتاحين
     updateAvailableDoctors();
   }
   
   // استدعاء دالة تحميل البيانات
   loadDashboardData();
+  loadAttendanceData();
 });
 </script>
 </head>
@@ -613,6 +984,8 @@ window.addEventListener("DOMContentLoaded", () => {
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="patientsPage">إدارة المرضى</button>
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="doctorsPage">إدارة الأطباء</button>
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="departmentsPage">إدارة الأقسام</button>
+    <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="staffPage">إدارة الموظفين</button>
+    <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="attendancePage">إدارة الحضور بالبصمة</button>
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="inventoryPage">المخزون</button>
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="statsPage">الإحصائيات</button>
   </nav>
@@ -758,6 +1131,66 @@ window.addEventListener("DOMContentLoaded", () => {
         </tr>
       </thead>
       <tbody id="departmentsTable" class="text-center"></tbody>
+    </table>
+  </div>
+</div>
+<!-- إدارة الموظفين -->
+<div id="staffPage" class="page hidden">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-blue-700">إدارة الموظفين</h2>
+    <button id="addStaffBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">إضافة موظف</button>
+  </div>
+  <div class="bg-white shadow-md rounded overflow-x-auto">
+    <table class="min-w-full table-auto border">
+      <thead class="bg-gray-100 text-gray-700 text-sm">
+        <tr>
+          <th class="border p-2">الاسم</th>
+          <th class="border p-2">الوظيفة</th>
+          <th class="border p-2">القسم</th>
+          <th class="border p-2">رقم الهاتف</th>
+          <th class="border p-2">إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="staffTable" class="text-center"></tbody>
+    </table>
+  </div>
+</div>
+<!-- إدارة الحضور بالبصمة -->
+<div id="attendancePage" class="page hidden">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-blue-700">إدارة الحضور بالبصمة</h2>
+    <button id="registerFingerprintBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      <i class="fas fa-fingerprint mr-1"></i> تسجيل بصمة جديدة
+    </button>
+  </div>
+  
+  <!-- تبويبات للتبديل بين الأطباء والموظفين -->
+  <div class="mb-4">
+    <div class="flex border-b">
+      <button class="attendance-tab py-2 px-4 font-medium text-blue-600 border-b-2 border-blue-600 active" data-type="all">
+        الكل
+      </button>
+      <button class="attendance-tab py-2 px-4 font-medium text-gray-500 hover:text-blue-600" data-type="doctors">
+        الأطباء
+      </button>
+      <button class="attendance-tab py-2 px-4 font-medium text-gray-500 hover:text-blue-600" data-type="staff">
+        الموظفين
+      </button>
+    </div>
+  </div>
+  
+  <div class="bg-white shadow-md rounded overflow-x-auto">
+    <table class="min-w-full table-auto border">
+      <thead class="bg-gray-100 text-gray-700 text-sm">
+        <tr>
+          <th class="border p-2">الاسم</th>
+          <th class="border p-2">النوع</th>
+          <th class="border p-2">القسم</th>
+          <th class="border p-2">الحالة الحالية</th>
+          <th class="border p-2">إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTable" class="text-center"></tbody>
     </table>
   </div>
 </div>
