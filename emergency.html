@@ -675,6 +675,11 @@
             background: rgba(34, 197, 94, 0.1);
             color: var(--success);
         }
+        
+        .patient-count {
+            font-weight: bold;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -778,7 +783,7 @@
                     </button>
                 </div>
                 <div>
-                    <span class="text-sm text-blue-200">عدد المرضى: <span id="patientCount" class="font-bold">0</span></span>
+                    <span class="text-sm text-blue-200">عدد المرضى: <span id="patientCount" class="patient-count">0</span></span>
                 </div>
             </div>
         </div>
@@ -963,6 +968,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
         
+        // إعدادات Firebase - يرجى استبدالها بإعدادات مشروعك
         const firebaseConfig = {
             apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
             authDomain: "hospital-project-e4b59.firebaseapp.com",
@@ -1268,7 +1274,7 @@
             
             const nextPatient = currentQueue[0];
             
-            // Update the patient status to "called"
+            // Update patient status to "called"
             update(ref(db, `patients/emergency/${nextPatient.id}`), {
                 status: "called",
                 callTime: Date.now()
@@ -1319,7 +1325,7 @@
         
         function resetQueue() {
             if (Object.keys(allPatients).length === 0) {
-                showNotification("لا توجد مرضى لاعادة ترتيبهم", "error");
+                showNotification("لا توجد مرضى لاعادة ترتيبها", "error");
                 return;
             }
             
