@@ -10,7 +10,6 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getDatabase, ref, onValue, remove, update, push, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
 // ====== إعدادات Firebase ======
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -33,7 +32,6 @@ window.addEventListener("DOMContentLoaded", () => {
       document.getElementById(link.dataset.target).classList.remove("hidden");
     });
   });
-
   // ===== المرضى =====
   const patientsTable = document.getElementById("patientsTable");
   const searchPatient = document.getElementById("searchPatient");
@@ -64,7 +62,6 @@ window.addEventListener("DOMContentLoaded", () => {
       statsTotalVisits.textContent = totalVisits;
     }
   }
-
   // دالة لتحديث جدول آخر المرضى في لوحة التحكم
   function updateDashboardPatients(recentPatients) {
     const recentPatientsTable = document.getElementById("recentPatientsTable");
@@ -91,7 +88,6 @@ window.addEventListener("DOMContentLoaded", () => {
     let countVisits = 0;
     let departmentSet = new Set();
     allPatients = [];
-
     if (data) {
       Object.entries(data).forEach(([department, patients]) => {
         departmentSet.add(department);
@@ -111,7 +107,6 @@ window.addEventListener("DOMContentLoaded", () => {
       updateDashboardPatients(allPatients.slice(0, 5)); // عرض آخر 5 مرضى
     }
   });
-
   function renderPatients(patients) {
     patientsTable.innerHTML = "";
     if (patients.length === 0) {
@@ -135,7 +130,6 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     attachPatientEvents();
   }
-
   searchPatient.addEventListener("input", () => {
     const query = searchPatient.value.toLowerCase();
     const filtered = allPatients.filter(p =>
@@ -144,7 +138,6 @@ window.addEventListener("DOMContentLoaded", () => {
     );
     renderPatients(filtered);
   });
-
   function attachPatientEvents() {
     document.querySelectorAll(".detailsBtn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -170,7 +163,6 @@ window.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
-
     document.querySelectorAll(".deleteBtn").forEach(button => {
       button.addEventListener("click", () => {
         const id = button.getAttribute("data-id");
@@ -257,12 +249,45 @@ window.addEventListener("DOMContentLoaded", () => {
   const doctorsRef = ref(db, "doctors");
   let allDoctors = [];
   
+  // دالة لتحديث جدول الأطباء المتاحين في لوحة التحكم
+  function updateAvailableDoctors() {
+    const availableDoctorsTable = document.getElementById("availableDoctorsTable");
+    const filterShift = document.getElementById("filterShift").value;
+    
+    availableDoctorsTable.innerHTML = "";
+    
+    // فلترة الأطباء المتاحين بناءً على الوردية المختارة
+    let filteredDoctors = allDoctors.filter(doc => doc.manualStatus === "online");
+    
+    if (filterShift !== "all") {
+      filteredDoctors = filteredDoctors.filter(doc => doc.shift === filterShift);
+    }
+
+    if (filteredDoctors.length === 0) {
+      availableDoctorsTable.innerHTML = '<tr><td colspan="4" class="text-center p-2">لا يوجد أطباء متاحون بهذه الوردية</td></tr>';
+      return;
+    }
+    
+    filteredDoctors.forEach(doc => {
+      const row = document.createElement("tr");
+      row.className = "hover:bg-gray-50 text-sm";
+      row.innerHTML = `
+        <td class="p-2 text-right">${doc.name}</td>
+        <td class="p-2 text-right">${doc.department}</td>
+        <td class="p-2 text-right">${doc.shift}</td>
+        <td class="p-2 text-right">
+          <span class="text-green-600 font-bold">متاح</span>
+        </td>
+      `;
+      availableDoctorsTable.appendChild(row);
+    });
+  }
+
   onValue(doctorsRef, (snapshot) => {
     const doctors = snapshot.val();
     doctorsTable.innerHTML = "";
     let countOnline = 0;
     allDoctors = [];
-
     if (doctors) {
       Object.entries(doctors).forEach(([docId, doc]) => {
         allDoctors.push({ id: docId, ...doc });
@@ -293,6 +318,9 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // إضافة مستمع لحدث تغيير الوردية من القائمة المنسدلة
+  document.getElementById("filterShift").addEventListener("change", updateAvailableDoctors);
+
   function attachDoctorEvents() {
     document.querySelectorAll(".changeStatusBtn").forEach(button => {
       button.addEventListener("click", () => {
@@ -300,10 +328,12 @@ window.addEventListener("DOMContentLoaded", () => {
         const currentStatus = button.getAttribute("data-status");
         const newStatus = currentStatus === "online" ? "offline" : "online";
         const doctorStatusRef = ref(db, `doctors/${docId}`);
-        update(doctorStatusRef, { manualStatus: newStatus });
+        update(doctorStatusRef, { manualStatus: newStatus }).then(() => {
+            // تحديث قائمة الأطباء المتاحين بعد تغيير الحالة
+            updateAvailableDoctors();
+        });
       });
     });
-
     document.querySelectorAll(".deleteDoctorBtn").forEach(button => {
       button.addEventListener("click", () => {
         const docId = button.getAttribute("data-id");
@@ -322,7 +352,6 @@ window.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
-
   document.getElementById("addDoctorBtn").addEventListener("click", () => {
     Swal.fire({
       title: "إضافة طبيب",
@@ -354,6 +383,109 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+  
+  // =========== هذا هو الكود الجديد والصحيح لعرض الأطباء المتاحين في لوحة التحكم ===========
+  const availableDoctorsTable = document.getElementById("availableDoctorsTable");
+  
+  function updateAvailableDoctors() {
+    const availableDoctorsTable = document.getElementById("availableDoctorsTable");
+    const filterShift = document.getElementById("filterShift").value;
+    
+    availableDoctorsTable.innerHTML = "";
+    
+    // فلترة الأطباء المتاحين بناءً على الوردية المختارة
+    let filteredDoctors = allDoctors.filter(doc => doc.manualStatus === "online");
+    
+    if (filterShift !== "all") {
+      filteredDoctors = filteredDoctors.filter(doc => doc.shift === filterShift);
+    }
+
+    if (filteredDoctors.length === 0) {
+      availableDoctorsTable.innerHTML = '<tr><td colspan="4" class="text-center p-2">لا يوجد أطباء متاحون بهذه الوردية</td></tr>';
+      return;
+    }
+    
+    filteredDoctors.forEach(doc => {
+      const row = document.createElement("tr");
+      row.className = "hover:bg-gray-50 text-sm";
+      row.innerHTML = `
+        <td class="p-2 text-right">${doc.name}</td>
+        <td class="p-2 text-right">${doc.department}</td>
+        <td class="p-2 text-right">${doc.shift}</td>
+        <td class="p-2 text-right">
+          <span class="text-green-600 font-bold">متاح</span>
+        </td>
+      `;
+      availableDoctorsTable.appendChild(row);
+    });
+  }
+  
+  // استدعاء الدالة عند تحميل الأطباء
+  onValue(doctorsRef, () => {
+    updateAvailableDoctors();
+  });
+  
+  // استدعاء الدالة عند تغيير حالة الطبيب
+  function attachDoctorEvents() {
+    // ... الكود القديم ...
+    document.querySelectorAll(".changeStatusBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const docId = button.getAttribute("data-id");
+        const currentStatus = button.getAttribute("data-status");
+        const newStatus = currentStatus === "online" ? "offline" : "online";
+        const doctorStatusRef = ref(db, `doctors/${docId}`);
+        update(doctorStatusRef, { manualStatus: newStatus }).then(() => {
+            // تحديث قائمة الأطباء المتاحين بعد تغيير الحالة
+            updateAvailableDoctors();
+        });
+      });
+    });
+    // ... باقي الكود ...
+  }
+  // =================================================================================
+
+  // دالة لتحميل بيانات لوحة التحكم (إذا لم تكن موجودة)
+  function loadDashboardData() {
+    // تحديث إحصائيات المرضى
+    onValue(ref(db, "patients"), (snapshot) => {
+      const patients = snapshot.val();
+      let countPatients = 0;
+      let countVisits = 0;
+      let departments = new Set();
+      
+      if (patients) {
+        Object.values(patients).forEach(deptPatients => {
+          Object.values(deptPatients).forEach(patient => {
+            countPatients++;
+            departments.add(patient.department);
+            if (patient.visits) countVisits += Object.keys(patient.visits).length;
+          });
+        });
+      }
+      
+      document.getElementById("dashboardTotalPatients").textContent = countPatients;
+      document.getElementById("dashboardTotalDepartments").textContent = departments.size;
+      document.getElementById("dashboardTotalVisits").textContent = countVisits;
+    });
+    
+    // تحديث إحصائيات الأطباء
+    onValue(ref(db, "doctors"), (snapshot) => {
+      const doctors = snapshot.val();
+      let countOnline = 0;
+      
+      if (doctors) {
+        Object.values(doctors).forEach(doc => {
+          if (doc.manualStatus === "online") countOnline++;
+        });
+      }
+      
+      document.getElementById("dashboardDoctorsOnline").textContent = countOnline;
+      document.getElementById("totalDoctorsOnline").textContent = countOnline;
+    });
+  }
+  
+  // استدعاء الدالة عند تحميل الصفحة
+  loadDashboardData();
 });
 </script>
 </head>
@@ -397,7 +529,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <p id="dashboardTotalDepartments" class="text-2xl font-bold text-purple-600">0</p>
       </div>
     </div>
-
+    
     <!-- 2. آخر المرضى المسجلين -->
     <div class="mb-6">
       <div class="flex justify-between items-center mb-4">
@@ -419,12 +551,21 @@ window.addEventListener("DOMContentLoaded", () => {
         </table>
       </div>
     </div>
-
+    
     <!-- 3. الأطباء المتاحون -->
     <div>
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold text-blue-700">الأطباء المتاحون</h2>
         <button class="text-blue-600 hover:underline" onclick="document.querySelector('.sidebar-link[data-target=\'doctorsPage\']').click()">إدارة الأطباء</button>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 mb-4">
+        <label for="filterShift" class="block text-sm font-medium text-gray-700 mb-2 text-right">تصفية حسب الوردية:</label>
+        <select id="filterShift" class="w-full p-2 border rounded">
+          <option value="all">كل الورديات</option>
+          <option value="Morning">صباحي</option>
+          <option value="Evening">مسائي</option>
+          <option value="Night">ليلي</option>
+        </select>
       </div>
       <div class="bg-gray-50 rounded-lg p-4">
         <table class="min-w-full">
@@ -444,7 +585,6 @@ window.addEventListener("DOMContentLoaded", () => {
     </div>
   </div>
 </div>
-
 <!-- إدارة المرضى -->
 <div id="patientsPage" class="page hidden">
   <div class="flex justify-between items-center mb-4">
@@ -467,7 +607,6 @@ window.addEventListener("DOMContentLoaded", () => {
     </table>
   </div>
 </div>
-
 <!-- إدارة الأطباء -->
 <div id="doctorsPage" class="page hidden">
   <div class="flex justify-between items-center mb-4">
@@ -489,7 +628,6 @@ window.addEventListener("DOMContentLoaded", () => {
     </table>
   </div>
 </div>
-
 <!-- الإحصائيات -->
 <div id="statsPage" class="page hidden">
   <h2 class="text-xl font-bold mb-4 text-blue-700">إحصائيات المستشفى</h2>
