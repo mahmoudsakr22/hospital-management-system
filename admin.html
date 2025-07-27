@@ -43,13 +43,55 @@ window.addEventListener("DOMContentLoaded", () => {
   const statsDoctorsOnline = document.getElementById("totalDoctorsOnline");
   let allPatients = [];
   const patientsRef = ref(db, "patients");
+  
+  // دالة لتحديث إحصائيات لوحة التحكم
+  function updateDashboardStats() {
+    const statsPatients = document.getElementById("dashboardTotalPatients");
+    const statsDoctorsOnline = document.getElementById("dashboardDoctorsOnline");
+    const statsTotalVisits = document.getElementById("dashboardTotalVisits");
+    const statsTotalDepartments = document.getElementById("dashboardTotalDepartments");
+    
+    // استخدام البيانات المحملة مسبقاً
+    if (allPatients.length > 0) {
+      const uniqueDepartments = new Set(allPatients.map(p => p.department)).size;
+      statsPatients.textContent = allPatients.length;
+      statsTotalDepartments.textContent = uniqueDepartments;
+      // حساب الزيارات
+      let totalVisits = 0;
+      allPatients.forEach(p => {
+        if (p.visits) totalVisits += Object.keys(p.visits).length;
+      });
+      statsTotalVisits.textContent = totalVisits;
+    }
+  }
+
+  // دالة لتحديث جدول آخر المرضى في لوحة التحكم
+  function updateDashboardPatients(recentPatients) {
+    const recentPatientsTable = document.getElementById("recentPatientsTable");
+    recentPatientsTable.innerHTML = "";
+    if (recentPatients.length === 0) {
+      recentPatientsTable.innerHTML = '<tr><td colspan="3" class="text-center p-2">لا توجد بيانات</td></tr>';
+      return;
+    }
+    recentPatients.forEach((patient) => {
+      const row = document.createElement("tr");
+      row.className = "border-b border-gray-100";
+      row.innerHTML = `
+        <td class="p-2 text-right">${patient.name}</td>
+        <td class="p-2 text-right">${patient.department}</td>
+        <td class="p-2 text-right">${new Date(patient.timestamp).toLocaleDateString("ar-EG")}</td>
+      `;
+      recentPatientsTable.appendChild(row);
+    });
+  }
+  
   onValue(patientsRef, (snapshot) => {
     const data = snapshot.val();
     let countPatients = 0;
     let countVisits = 0;
     let departmentSet = new Set();
     allPatients = [];
-    patientsTable.innerHTML = "";
+
     if (data) {
       Object.entries(data).forEach(([department, patients]) => {
         departmentSet.add(department);
@@ -63,10 +105,19 @@ window.addEventListener("DOMContentLoaded", () => {
       statsPatients.textContent = countPatients;
       statsDepartments.textContent = departmentSet.size;
       statsVisits.textContent = countVisits;
+      
+      // تحديث لوحة التحكم بعد تحميل البيانات
+      updateDashboardStats();
+      updateDashboardPatients(allPatients.slice(0, 5)); // عرض آخر 5 مرضى
     }
   });
+
   function renderPatients(patients) {
     patientsTable.innerHTML = "";
+    if (patients.length === 0) {
+      patientsTable.innerHTML = '<tr><td colspan="5" class="text-center p-4">لا توجد نتائج</td></tr>';
+      return;
+    }
     patients.forEach((patient) => {
       const row = document.createElement("tr");
       row.className = "hover:bg-gray-50 text-sm";
@@ -84,6 +135,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     attachPatientEvents();
   }
+
   searchPatient.addEventListener("input", () => {
     const query = searchPatient.value.toLowerCase();
     const filtered = allPatients.filter(p =>
@@ -92,6 +144,7 @@ window.addEventListener("DOMContentLoaded", () => {
     );
     renderPatients(filtered);
   });
+
   function attachPatientEvents() {
     document.querySelectorAll(".detailsBtn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -117,6 +170,7 @@ window.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+
     document.querySelectorAll(".deleteBtn").forEach(button => {
       button.addEventListener("click", () => {
         const id = button.getAttribute("data-id");
@@ -196,12 +250,17 @@ window.addEventListener("DOMContentLoaded", () => {
   // ===================== الأطباء =====================
   const doctorsTable = document.getElementById("doctorsTable");
   const doctorsRef = ref(db, "doctors");
+  let allDoctors = [];
+  
   onValue(doctorsRef, (snapshot) => {
     const doctors = snapshot.val();
     doctorsTable.innerHTML = "";
     let countOnline = 0;
+    allDoctors = [];
+
     if (doctors) {
       Object.entries(doctors).forEach(([docId, doc]) => {
+        allDoctors.push({ id: docId, ...doc });
         if (doc.manualStatus === "online") countOnline++;
         const row = document.createElement("tr");
         row.className = "hover:bg-gray-50 text-sm";
@@ -224,34 +283,41 @@ window.addEventListener("DOMContentLoaded", () => {
         doctorsTable.appendChild(row);
       });
       statsDoctorsOnline.textContent = countOnline;
-      document.querySelectorAll(".changeStatusBtn").forEach(button => {
-        button.addEventListener("click", () => {
-          const docId = button.getAttribute("data-id");
-          const currentStatus = button.getAttribute("data-status");
-          const newStatus = currentStatus === "online" ? "offline" : "online";
-          const doctorStatusRef = ref(db, `doctors/${docId}`);
-          update(doctorStatusRef, { manualStatus: newStatus });
-        });
-      });
-      document.querySelectorAll(".deleteDoctorBtn").forEach(button => {
-        button.addEventListener("click", () => {
-          const docId = button.getAttribute("data-id");
-          Swal.fire({
-            title: "حذف الطبيب؟",
-            text: "سيتم حذف الطبيب نهائياً",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "نعم، احذف",
-            cancelButtonText: "إلغاء"
-          }).then((result) => {
-            if (result.isConfirmed) {
-              remove(ref(db, `doctors/${docId}`));
-            }
-          });
-        });
-      });
+      attachDoctorEvents();
+      updateDashboardStats(); // تحديث إحصائيات لوحة التحكم بعد تحميل الأطباء
     }
   });
+
+  function attachDoctorEvents() {
+    document.querySelectorAll(".changeStatusBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const docId = button.getAttribute("data-id");
+        const currentStatus = button.getAttribute("data-status");
+        const newStatus = currentStatus === "online" ? "offline" : "online";
+        const doctorStatusRef = ref(db, `doctors/${docId}`);
+        update(doctorStatusRef, { manualStatus: newStatus });
+      });
+    });
+
+    document.querySelectorAll(".deleteDoctorBtn").forEach(button => {
+      button.addEventListener("click", () => {
+        const docId = button.getAttribute("data-id");
+        Swal.fire({
+          title: "حذف الطبيب؟",
+          text: "سيتم حذف الطبيب نهائياً",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "نعم، احذف",
+          cancelButtonText: "إلغاء"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            remove(ref(db, `doctors/${docId}`));
+          }
+        });
+      });
+    });
+  }
+
   document.getElementById("addDoctorBtn").addEventListener("click", () => {
     Swal.fire({
       title: "إضافة طبيب",
@@ -273,7 +339,9 @@ window.addEventListener("DOMContentLoaded", () => {
         return set(newDocRef, { name, department, shift, manualStatus: "online" });
       }
     }).then(result => {
-      if (result.isConfirmed) Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
+      if (result.isConfirmed) {
+        Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
+      }
     });
   });
 });
