@@ -10,6 +10,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getDatabase, ref, onValue, remove, update, push, set } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
 // ====== إعدادات Firebase ======
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -32,6 +33,7 @@ window.addEventListener("DOMContentLoaded", () => {
       document.getElementById(link.dataset.target).classList.remove("hidden");
     });
   });
+
   // ===== المرضى =====
   const patientsTable = document.getElementById("patientsTable");
   const searchPatient = document.getElementById("searchPatient");
@@ -226,11 +228,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }).then(result => {
       if (result.isConfirmed) {
         Swal.fire("تم", "تمت إضافة المريض بنجاح", "success");
-        
-        // ====== هذا السطر الجديد اللي محتاجينه ======
-        loadDashboardData(); // هذا السطر بيجبر الصفحة إنها تعرض المرضى الجديد
-        // =============================================
-        
+        loadDashboardData(); // تحديث البيانات
       }
     }).catch(error => {
       console.error("خطأ في إضافة المريض:", error);
@@ -249,7 +247,6 @@ window.addEventListener("DOMContentLoaded", () => {
   const doctorsRef = ref(db, "doctors");
   let allDoctors = [];
   
-  // دالة لتحديث جدول الأطباء المتاحين في لوحة التحكم
   function updateAvailableDoctors() {
     const availableDoctorsTable = document.getElementById("availableDoctorsTable");
     const filterShift = document.getElementById("filterShift").value;
@@ -318,7 +315,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // إضافة مستمع لحدث تغيير الوردية من القائمة المنسدلة
   document.getElementById("filterShift").addEventListener("change", updateAvailableDoctors);
 
   function attachDoctorEvents() {
@@ -329,7 +325,6 @@ window.addEventListener("DOMContentLoaded", () => {
         const newStatus = currentStatus === "online" ? "offline" : "online";
         const doctorStatusRef = ref(db, `doctors/${docId}`);
         update(doctorStatusRef, { manualStatus: newStatus }).then(() => {
-            // تحديث قائمة الأطباء المتاحين بعد تغيير الحالة
             updateAvailableDoctors();
         });
       });
@@ -375,116 +370,233 @@ window.addEventListener("DOMContentLoaded", () => {
     }).then(result => {
       if (result.isConfirmed) {
         Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
-        
-        // ====== هذا السطر الجديد اللي محتاجينه ======
-        loadDashboardData(); // هذا السطر بيجبر الصفحة إنها تعرض الأطباء الجدد
-        // =============================================
-        
+        loadDashboardData();
       }
     });
   });
   
-  // =========== هذا هو الكود الجديد والصحيح لعرض الأطباء المتاحين في لوحة التحكم ===========
-  const availableDoctorsTable = document.getElementById("availableDoctorsTable");
-  
-  function updateAvailableDoctors() {
-    const availableDoctorsTable = document.getElementById("availableDoctorsTable");
-    const filterShift = document.getElementById("filterShift").value;
-    
-    availableDoctorsTable.innerHTML = "";
-    
-    // فلترة الأطباء المتاحين بناءً على الوردية المختارة
-    let filteredDoctors = allDoctors.filter(doc => doc.manualStatus === "online");
-    
-    if (filterShift !== "all") {
-      filteredDoctors = filteredDoctors.filter(doc => doc.shift === filterShift);
-    }
+  // ===== إدارة الأقسام (ميزة جديدة) =====
+  const departmentsTable = document.getElementById("departmentsTable");
+  const departmentsRef = ref(db, "departments");
 
-    if (filteredDoctors.length === 0) {
-      availableDoctorsTable.innerHTML = '<tr><td colspan="4" class="text-center p-2">لا يوجد أطباء متاحون بهذه الوردية</td></tr>';
-      return;
+  onValue(departmentsRef, (snapshot) => {
+    const departments = snapshot.val();
+    departmentsTable.innerHTML = "";
+    if (!departments) {
+        departmentsTable.innerHTML = '<tr><td colspan="3" class="text-center p-4">لا توجد أقسام بعد. اضغط "إضافة قسم" لإضافة واحد.</td></tr>';
+        return;
     }
-    
-    filteredDoctors.forEach(doc => {
-      const row = document.createElement("tr");
-      row.className = "hover:bg-gray-50 text-sm";
-      row.innerHTML = `
-        <td class="p-2 text-right">${doc.name}</td>
-        <td class="p-2 text-right">${doc.department}</td>
-        <td class="p-2 text-right">${doc.shift}</td>
-        <td class="p-2 text-right">
-          <span class="text-green-600 font-bold">متاح</span>
-        </td>
-      `;
-      availableDoctorsTable.appendChild(row);
+    Object.entries(departments).forEach(([deptId, dept]) => {
+        const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50 text-sm";
+        const statusClass = dept.manager ? "text-green-600" : "text-red-600";
+        const manager = dept.manager || "غير محدد";
+        row.innerHTML = `
+            <td class="border p-2">${dept.name}</td>
+            <td class="border p-2 ${statusClass}">${manager}</td>
+            <td class="border p-2 flex gap-2 justify-center">
+                <button class="editDeptBtn bg-blue-500 text-white px-3 py-1 rounded" data-id="${deptId}" data-name="${dept.name}">تعديل</button>
+                <button class="deleteDeptBtn bg-red-500 text-white px-3 py-1 rounded" data-id="${deptId}">حذف</button>
+            </td>
+        `;
+        departmentsTable.appendChild(row);
     });
-  }
-  
-  // استدعاء الدالة عند تحميل الأطباء
-  onValue(doctorsRef, () => {
-    updateAvailableDoctors();
+    attachDepartmentEvents();
   });
-  
-  // استدعاء الدالة عند تغيير حالة الطبيب
-  function attachDoctorEvents() {
-    // ... الكود القديم ...
-    document.querySelectorAll(".changeStatusBtn").forEach(button => {
-      button.addEventListener("click", () => {
-        const docId = button.getAttribute("data-id");
-        const currentStatus = button.getAttribute("data-status");
-        const newStatus = currentStatus === "online" ? "offline" : "online";
-        const doctorStatusRef = ref(db, `doctors/${docId}`);
-        update(doctorStatusRef, { manualStatus: newStatus }).then(() => {
-            // تحديث قائمة الأطباء المتاحين بعد تغيير الحالة
-            updateAvailableDoctors();
-        });
-      });
-    });
-    // ... باقي الكود ...
-  }
-  // =================================================================================
 
-  // دالة لتحميل بيانات لوحة التحكم (إذا لم تكن موجودة)
+  document.getElementById("addDeptBtn").addEventListener("click", () => {
+    Swal.fire({
+        title: "إضافة قسم جديد",
+        input: "text",
+        inputLabel: "اسم القسم الجديد",
+        showCancelButton: true,
+        confirmButtonText: "إضافة",
+        inputValidator: (value) => {
+            if (!value || value.trim() === '') {
+                return 'الرجاء إدخال اسم القسم';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const deptName = result.value;
+            const newDeptRef = push(ref(db, "departments"));
+            set(newDeptRef, { name: deptName, manager: "" });
+            Swal.fire("تم!", "تمت إضافة القسم بنجاح", "success");
+        }
+    });
+  });
+
+  function attachDepartmentEvents() {
+    document.querySelectorAll(".editDeptBtn").forEach(button => {
+        button.addEventListener("click", () => {
+            const deptId = button.dataset.id;
+            const deptName = button.dataset.name;
+            Swal.fire({
+                title: "تعديل اسم القسم",
+                input: "text",
+                inputValue: deptName,
+                showCancelButton: true,
+                confirmButtonText: "حفظ"
+            }).then((result) => {
+                if (result.value) {
+                    update(ref(db, `departments/${deptId}`), { name: result.value });
+                }
+            });
+        });
+    });
+    document.querySelectorAll(".deleteDeptBtn").forEach(button => {
+        button.addEventListener("click", () => {
+            const deptId = button.dataset.id;
+            Swal.fire({
+                title: "حذف القسم",
+                text: "هل أنت متأكد؟ سيتم حذف القسم نهائياً",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "نعم، احذف",
+                cancelButtonText: "إلغاء"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    remove(ref(db, `departments/${deptId}`));
+                }
+            });
+        });
+    });
+  }
+
+  // ===== إدارة المخزون (ميزة جديدة) =====
+  const inventoryTable = document.getElementById("inventoryTable");
+  const inventoryRef = ref(db, "inventory");
+
+  onValue(inventoryRef, (snapshot) => {
+    const items = snapshot.val();
+    inventoryTable.innerHTML = "";
+    if (!items) {
+        inventoryTable.innerHTML = '<tr><td colspan="4" class="text-center p-4">لا يوجد مخزون بعد. اضغط "إضافة منتج" لإضافة واحد.</td></tr>';
+        return;
+    }
+    Object.entries(items).forEach(([itemId, item]) => {
+        const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50 text-sm";
+        const statusClass = item.quantity <= item.min_quantity ? "text-red-600 font-bold" : "text-gray-700";
+        row.innerHTML = `
+            <td class="border p-2">${item.name}</td>
+            <td class="border p-2 ${statusClass}">${item.quantity}</td>
+            <td class="border p-2">${item.min_quantity}</td>
+            <td class="border p-2 flex gap-2 justify-center">
+                <button class="editInventoryBtn bg-blue-500 text-white px-3 py-1 rounded" data-id="${itemId}" data-quantity="${item.quantity}">تحديث الكمية</button>
+                <button class="deleteInventoryBtn bg-red-500 text-white px-3 py-1 rounded" data-id="${itemId}">حذف</button>
+            </td>
+        `;
+        inventoryTable.appendChild(row);
+    });
+    attachInventoryEvents();
+  });
+
+  document.getElementById("addInventoryBtn").addEventListener("click", () => {
+    Swal.fire({
+        title: "إضافة منتج جديد للمخزون",
+        html: `
+            <input id="itemName" class="swal2-input" placeholder="اسم المنتج">
+            <input id="itemQuantity" class="swal2-input" placeholder="الكمية الحالية" type="number">
+            <input id="itemMinQuantity" class="swal2-input" placeholder="الحد الأدنى" type="number">
+        `,
+        focusConfirm: false,
+        preConfirm: () => {
+            const name = document.getElementById("itemName").value;
+            const quantity = parseInt(document.getElementById("itemQuantity").value);
+            const min_quantity = parseInt(document.getElementById("itemMinQuantity").value);
+            if (!name || isNaN(quantity) || isNaN(min_quantity) || quantity < 0 || min_quantity < 0) {
+                Swal.showValidationMessage("الرجاء إدخال جميع الحقول بشكل صحيح");
+                return false;
+            }
+            const newItemRef = push(ref(db, "inventory"));
+            return set(newItemRef, { name, quantity, min_quantity });
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            Swal.fire("تم!", "تمت إضافة المنتج للمخزون بنجاح", "success");
+        }
+    });
+  });
+
+  function attachInventoryEvents() {
+    document.querySelectorAll(".editInventoryBtn").forEach(button => {
+        button.addEventListener("click", () => {
+            const itemId = button.dataset.id;
+            const currentQuantity = parseInt(button.dataset.quantity);
+            Swal.fire({
+                title: "تحديث الكمية",
+                input: "number",
+                inputValue: currentQuantity,
+                inputLabel: "الكمية الجديدة",
+                showCancelButton: true,
+                confirmButtonText: "تحديث"
+            }).then((result) => {
+                if (result.value !== null) {
+                    update(ref(db, `inventory/${itemId}`), { quantity: parseInt(result.value) });
+                }
+            });
+        });
+    });
+    document.querySelectorAll(".deleteInventoryBtn").forEach(button => {
+        button.addEventListener("click", () => {
+            const itemId = button.dataset.id;
+            Swal.fire({
+                title: "حذف المنتج",
+                text: "هل أنت متأكد؟ سيتم حذف المنتج نهائياً",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "نعم، احذف",
+                cancelButtonText: "إلغاء"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    remove(ref(db, `inventory/${itemId}`));
+                }
+            });
+        });
+    });
+  }
+
+  // دالة لتحميل بيانات لوحة التحكم (إذا لم تكن معرفة)
   function loadDashboardData() {
     // تحديث إحصائيات المرضى
     onValue(ref(db, "patients"), (snapshot) => {
-      const patients = snapshot.val();
-      let countPatients = 0;
-      let countVisits = 0;
-      let departments = new Set();
-      
-      if (patients) {
-        Object.values(patients).forEach(deptPatients => {
-          Object.values(deptPatients).forEach(patient => {
-            countPatients++;
-            departments.add(patient.department);
-            if (patient.visits) countVisits += Object.keys(patient.visits).length;
-          });
-        });
-      }
-      
-      document.getElementById("dashboardTotalPatients").textContent = countPatients;
-      document.getElementById("dashboardTotalDepartments").textContent = departments.size;
-      document.getElementById("dashboardTotalVisits").textContent = countVisits;
+        const patients = snapshot.val();
+        let countPatients = 0;
+        let countVisits = 0;
+        let departments = new Set();
+        if (patients) {
+            Object.values(patients).forEach(deptPatients => {
+                Object.values(deptPatients).forEach(patient => {
+                    countPatients++;
+                    departments.add(patient.department);
+                    if (patient.visits) countVisits += Object.keys(patient.visits).length;
+                });
+            });
+        }
+        document.getElementById("dashboardTotalPatients").textContent = countPatients;
+        document.getElementById("dashboardTotalDepartments").textContent = departments.size;
+        document.getElementById("dashboardTotalVisits").textContent = countVisits;
     });
-    
+
     // تحديث إحصائيات الأطباء
     onValue(ref(db, "doctors"), (snapshot) => {
-      const doctors = snapshot.val();
-      let countOnline = 0;
-      
-      if (doctors) {
-        Object.values(doctors).forEach(doc => {
-          if (doc.manualStatus === "online") countOnline++;
-        });
-      }
-      
-      document.getElementById("dashboardDoctorsOnline").textContent = countOnline;
-      document.getElementById("totalDoctorsOnline").textContent = countOnline;
+        const doctors = snapshot.val();
+        let countOnline = 0;
+        if (doctors) {
+            Object.values(doctors).forEach(doc => {
+                if (doc.manualStatus === "online") countOnline++;
+            });
+        }
+        document.getElementById("dashboardDoctorsOnline").textContent = countOnline;
+        document.getElementById("totalDoctorsOnline").textContent = countOnline;
     });
+
+    // تحديث الأطباء المتاحين
+    updateAvailableDoctors();
   }
   
-  // استدعاء الدالة عند تحميل الصفحة
+  // استدعاء دالة تحميل البيانات
   loadDashboardData();
 });
 </script>
@@ -497,16 +609,18 @@ window.addEventListener("DOMContentLoaded", () => {
     <h2 class="text-xl font-bold">مستشفى الحياة الذكية</h2>
   </div>
   <nav class="space-y-3 flex-grow">
-    <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="homePage">الرئيسية</button>
+    <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="adminDashboard">لوحة التحكم</button>
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="patientsPage">إدارة المرضى</button>
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="doctorsPage">إدارة الأطباء</button>
+    <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="departmentsPage">إدارة الأقسام</button>
+    <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="inventoryPage">المخزون</button>
     <button class="sidebar-link w-full text-right px-3 py-2 hover:bg-blue-700 rounded" data-target="statsPage">الإحصائيات</button>
   </nav>
 </div>
 <!-- المحتوى -->
 <div class="flex-1 p-6 space-y-6">
-<!-- الصفحة الرئيسية (الـ Dashboard) -->
-<div id="homePage" class="page">
+<!-- لوحة التحكم (Admin Dashboard) -->
+<div id="adminDashboard" class="page">
   <div class="bg-white p-6 rounded shadow">
     <h1 class="text-3xl font-bold mb-6 text-blue-800">لوحة تحكم المستشفى</h1>
     
@@ -625,6 +739,45 @@ window.addEventListener("DOMContentLoaded", () => {
         </tr>
       </thead>
       <tbody id="doctorsTable" class="text-center"></tbody>
+    </table>
+  </div>
+</div>
+<!-- إدارة الأقسام -->
+<div id="departmentsPage" class="page hidden">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-blue-700">إدارة الأقسام</h2>
+    <button id="addDeptBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">إضافة قسم</button>
+  </div>
+  <div class="bg-white shadow-md rounded overflow-x-auto">
+    <table class="min-w-full table-auto border">
+      <thead class="bg-gray-100 text-gray-700 text-sm">
+        <tr>
+          <th class="border p-2">اسم القسم</th>
+          <th class="border p-2">مدير القسم</th>
+          <th class="border p-2">إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="departmentsTable" class="text-center"></tbody>
+    </table>
+  </div>
+</div>
+<!-- المخزون -->
+<div id="inventoryPage" class="page hidden">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-blue-700">المخزون والمستلزمات</h2>
+    <button id="addInventoryBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">إضافة منتج</button>
+  </div>
+  <div class="bg-white shadow-md rounded overflow-x-auto">
+    <table class="min-w-full table-auto border">
+      <thead class="bg-gray-100 text-gray-700 text-sm">
+        <tr>
+          <th class="border p-2">اسم المنتج</th>
+          <th class="border p-2">الكمية الحالية</th>
+          <th class="border p-2">الحد الأدنى</th>
+          <th class="border p-2">إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryTable" class="text-center"></tbody>
     </table>
   </div>
 </div>
