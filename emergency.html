@@ -18,12 +18,14 @@
             --info: #3b82f6;
             --dark: #1e293b;
             --light: #f8fafc;
+            --accent: #8b5cf6;
         }
         
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
             direction: rtl;
+            overflow-x: hidden;
         }
         
         .emergency-header {
@@ -358,17 +360,196 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .dashboard-card {
+        /* تحسينات جديدة */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .notification.error {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .notification.warning {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .notification.info {
+            border-left: 4px solid var(--info);
+        }
+        
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .notification.success .notification-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        
+        .notification.error .notification-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .notification.warning .notification-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .notification.info .notification-icon {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+        
+        .header-banner {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+        
+        .stat-card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             padding: 1.5rem;
             transition: all 0.3s ease;
+            border-left: 4px solid transparent;
         }
         
-        .dashboard-card:hover {
+        .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card.primary {
+            border-left-color: var(--primary);
+        }
+        
+        .stat-card.danger {
+            border-left-color: var(--danger);
+        }
+        
+        .stat-card.secondary {
+            border-left-color: var(--secondary);
+        }
+        
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .stat-card .icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card.primary .icon {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+        
+        .stat-card.danger .icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .stat-card.secondary .icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        
+        .stat-card.warning .icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .filter-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        
+        .filter-badge.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .filter-badge i {
+            font-size: 0.75rem;
+        }
+        
+        .filter-badge .close {
+            margin-left: 0.25rem;
+            cursor: pointer;
+        }
+        
+        .filter-badge .close:hover {
+            color: #ef4444;
+        }
+        
+        .active-filters {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
     </style>
 </head>
@@ -412,79 +593,8 @@
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
         <!-- لوحة المعلومات -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="dashboard-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500">إجمالي المرضى</p>
-                        <h2 class="text-3xl font-bold text-gray-800" id="totalPatients">0</h2>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <i class="fas fa-users text-blue-600"></i>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-green-500 text-sm font-medium flex items-center">
-                        <i class="fas fa-arrow-up mr-1"></i> +5% من الأمس
-                    </span>
-                </div>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500">حالات حرجة</p>
-                        <h2 class="text-3xl font-bold text-gray-800" id="criticalPatients">0</h2>
-                    </div>
-                    <div class="bg-red-100 p-3 rounded-full">
-                        <i class="fas fa-heartbeat text-red-600"></i>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-red-500 text-sm font-medium flex items-center">
-                        <i class="fas fa-exclamation-circle mr-1"></i> يتطلب اهتماماً فورياً
-                    </span>
-                </div>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500">في تحسن</p>
-                        <h2 class="text-3xl font-bold text-gray-800" id="improvingPatients">0</h2>
-                    </div>
-                    <div class="bg-yellow-100 p-3 rounded-full">
-                        <i class="fas fa-arrow-trend-up text-yellow-600"></i>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-green-500 text-sm font-medium flex items-center">
-                        <i class="fas fa-arrow-up mr-1"></i> +3 حالات اليوم
-                    </span>
-                </div>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500">حالات مستقرة</p>
-                        <h2 class="text-3xl font-bold text-gray-800" id="stablePatients">0</h2>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-check-circle text-green-600"></i>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-gray-500 text-sm font-medium flex items-center">
-                        <i class="fas fa-minus mr-1"></i> لا يوجد تغيير
-                    </span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- قسم الطوارئ -->
-        <div class="emergency-header mb-8">
-            <div class="flex justify-between items-center">
+        <div class="header-banner">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
                 <div>
                     <h1 class="text-3xl font-bold flex items-center">
                         <i class="fas fa-ambulance mr-3"></i>
@@ -493,7 +603,7 @@
                     <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
                 </div>
                 <button
-                    class="btn btn-primary"
+                    class="btn btn-primary mt-4 md:mt-0"
                     onclick="window.location.href='add_patient.html'"
                 >
                     <i class="fas fa-plus"></i>
@@ -502,10 +612,75 @@
             </div>
         </div>
         
+        <!-- إحصائيات لوحة المعلومات -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card primary">
+                <div class="icon">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
+                <h3 class="text-gray-500 text-sm font-medium">إجمالي المرضى</h3>
+                <div class="flex items-end justify-between">
+                    <h2 class="text-3xl font-bold text-gray-800" id="totalPatients">0</h2>
+                    <span class="text-green-500 text-sm font-medium flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i> +5%
+                    </span>
+                </div>
+            </div>
+            
+            <div class="stat-card danger">
+                <div class="icon">
+                    <i class="fas fa-heartbeat fa-lg"></i>
+                </div>
+                <h3 class="text-gray-500 text-sm font-medium">حالات حرجة</h3>
+                <div class="flex items-end justify-between">
+                    <h2 class="text-3xl font-bold text-gray-800" id="criticalPatients">0</h2>
+                    <span class="text-red-500 text-sm font-medium flex items-center">
+                        <i class="fas fa-exclamation-circle mr-1"></i> فوري
+                    </span>
+                </div>
+            </div>
+            
+            <div class="stat-card secondary">
+                <div class="icon">
+                    <i class="fas fa-arrow-trend-up fa-lg"></i>
+                </div>
+                <h3 class="text-gray-500 text-sm font-medium">في تحسن</h3>
+                <div class="flex items-end justify-between">
+                    <h2 class="text-3xl font-bold text-gray-800" id="improvingPatients">0</h2>
+                    <span class="text-green-500 text-sm font-medium flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i> +3 حالات
+                    </span>
+                </div>
+            </div>
+            
+            <div class="stat-card warning">
+                <div class="icon">
+                    <i class="fas fa-check-circle fa-lg"></i>
+                </div>
+                <h3 class="text-gray-500 text-sm font-medium">حالات مستقرة</h3>
+                <div class="flex items-end justify-between">
+                    <h2 class="text-3xl font-bold text-gray-800" id="stablePatients">0</h2>
+                    <span class="text-gray-500 text-sm font-medium flex items-center">
+                        <i class="fas fa-minus mr-1"></i> لا يوجد تغيير
+                    </span>
+                </div>
+            </div>
+        </div>
+        
         <!-- الفلاتر -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div class="lg:col-span-1">
-                <div class="search-container">
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">فلترة المرضى</h2>
+                <div class="filter-actions">
+                    <button id="clearFilters" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                        <i class="fas fa-times-circle"></i>
+                        مسح الفلاتر
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div>
                     <div class="filter-label">البحث عن مريض</div>
                     <div class="relative">
                         <i class="fas fa-search search-icon"></i>
@@ -520,9 +695,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
-            <div>
-                <div class="filter-container">
+                <div>
                     <div class="filter-label">التاريخ</div>
                     <input
                         id="dateFilter"
@@ -530,9 +703,7 @@
                         class="filter-input"
                     />
                 </div>
-            </div>
-            <div>
-                <div class="filter-container">
+                <div>
                     <div class="filter-label">الحالة</div>
                     <select id="statusFilter" class="filter-input">
                         <option value="">جميع الحالات</option>
@@ -542,9 +713,7 @@
                         <option value="deteriorating">في تدهور</option>
                     </select>
                 </div>
-            </div>
-            <div>
-                <div class="filter-container">
+                <div>
                     <div class="filter-label">ترتيب حسب</div>
                     <select id="sortFilter" class="filter-input">
                         <option value="newest">الأحدث أولاً</option>
@@ -552,165 +721,4 @@
                         <option value="critical">الأكثر أهمية</option>
                     </select>
                 </div>
-            </div>
-        </div>
-        
-        <!-- قائمة المرضى -->
-        <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- بطاقات المرضى سيتم إدراجها هنا ديناميكيًا -->
-            <div class="col-span-full">
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                    <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <!-- Footer Section -->
-    <footer class="footer-section">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 class="footer-title">مستشفى الحياة الذكية</h3>
-                    <p class="text-gray-400 mb-4">
-                        نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية
-                        والكوادر الطبية المتخصصة.
-                    </p>
-                    <div class="flex space-x-3">
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="footer-title">روابط سريعة</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>المواعيد</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-user-md"></i>
-                        <span>الأطباء</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-hand-holding-usd"></i>
-                        <span>الأسعار</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-info-circle"></i>
-                        <span>عن المستشفى</span>
-                    </a>
-                </div>
-                <div>
-                    <h3 class="footer-title">اتصل بنا</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-phone-alt"></i>
-                        <span>1234</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-envelope"></i>
-                        <span>info@alhayah-smart.com</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>شارع الطبيعة، الرياض</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-clock"></i>
-                        <span>24 ساعة طوال أيام الأسبوع</span>
-                    </a>
-                </div>
-                <div>
-                    <h3 class="footer-title">خدماتنا</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-procedures"></i>
-                        <span>الطوارئ</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-stethoscope"></i>
-                        <span>العيادات الخارجية</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-x-ray"></i>
-                        <span>الأشعة والتصوير</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-flask"></i>
-                        <span>المختبرات الطبية</span>
-                    </a>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 pt-6 text-center">
-                <p class="text-gray-400">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
-            </div>
-        </div>
-    </footer>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-            authDomain: "hospital-project-e4b59.firebaseapp.com",
-            databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "hospital-project-e4b59",
-            storageBucket: "hospital-project-e4b59.appspot.com",
-            messagingSenderId: "974610606258",
-            appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        let allPatients = {};
-        
-        window.addEventListener("DOMContentLoaded", () => {
-            const emergencyRef = ref(db, "patients/emergency");
-            const container = document.getElementById("patientsList");
-            const searchInput = document.getElementById("searchInput");
-            const dateFilter = document.getElementById("dateFilter");
-            const statusFilter = document.getElementById("statusFilter");
-            const sortFilter = document.getElementById("sortFilter");
-            
-            // إحصائيات لوحة المعلومات
-            const totalPatientsEl = document.getElementById("totalPatients");
-            const criticalPatientsEl = document.getElementById("criticalPatients");
-            const improvingPatientsEl = document.getElementById("improvingPatients");
-            const stablePatientsEl = document.getElementById("stablePatients");
-            
-            onValue(emergencyRef, (snapshot) => {
-                container.innerHTML = "";
-                
-                if (snapshot.exists()) {
-                    allPatients = snapshot.val();
-                    renderPatients(allPatients);
-                    updateDashboardStats(allPatients);
-                } else {
-                    container.innerHTML = `
-                        <div class="col-span-full">
-                            <div class="empty-state">
-                                <i class="fas fa-user-injured text-5xl"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mb-2">لا يوجد مرضى حالياً</h3>
-                                <p class="text-gray-500">لا توجد حالات مسجلة في قسم الطوارئ في الوقت الحالي.</p>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            
-            searchInput.addEventListener("input", () => {
-                applyFilters();
-            });
-            
-            dateFilter.addEventListener
+            </div
