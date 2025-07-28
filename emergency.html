@@ -347,6 +347,134 @@
                 opacity: 1;
             }
         }
+        
+        /* New styles for statistics sidebar */
+        .stats-sidebar {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 1.5rem;
+        }
+        
+        .stats-card {
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+        }
+        
+        .stats-card.critical::before {
+            background: var(--danger);
+        }
+        
+        .stats-card.stable::before {
+            background: var(--secondary);
+        }
+        
+        .stats-card.improving::before {
+            background: var(--warning);
+        }
+        
+        .stats-card.deteriorating::before {
+            background: #f97316;
+        }
+        
+        .stats-card.total::before {
+            background: var(--primary);
+        }
+        
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stats-label {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1.5rem;
+        }
+        
+        .stats-card.critical .stats-icon {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        
+        .stats-card.stable .stats-icon {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        
+        .stats-card.improving .stats-icon {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+        
+        .stats-card.deteriorating .stats-icon {
+            background: rgba(249, 115, 22, 0.15);
+            color: #f97316;
+        }
+        
+        .stats-card.total .stats-icon {
+            background: rgba(37, 99, 235, 0.15);
+            color: var(--primary);
+        }
+        
+        .stats-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .stats-change.positive {
+            color: #10b981;
+        }
+        
+        .stats-change.negative {
+            color: #ef4444;
+        }
+        
+        .stats-change.neutral {
+            color: #64748b;
+        }
+        
+        .stats-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 1rem 0;
+        }
+        
+        .chart-container {
+            height: 200px;
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -388,155 +516,158 @@
     
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
-        <div class="emergency-header mb-8">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold flex items-center">
-                        <i class="fas fa-ambulance mr-3"></i>
-                        قسم الطوارئ
-                    </h1>
-                    <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
-                </div>
-                <button
-                    class="btn btn-primary"
-                    onclick="window.location.href='add_patient.html'"
-                >
-                    <i class="fas fa-plus"></i>
-                    إضافة مريض جديد
-                </button>
-            </div>
-        </div>
-   <!-- Main Content -->
-<main class="container mx-auto px-4 py-8">
-<!-- لوحة المعلومات -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-<div class="dashboard-card">
-<div class="flex items-center justify-between">
-<div>
-<p class="text-sm text-gray-500">إجمالي المرضى</p>
-<h2 class="text-3xl font-bold text-gray-800" id="totalPatients">0</h2>
-</div>
-<div class="bg-blue-100 p-3 rounded-full">
-<i class="fas fa-users text-blue-600"></i>
-</div>
-</div>
-<div class="mt-4">
-<span class="text-green-500 text-sm font-medium flex items-center">
-<i class="fas fa-arrow-up mr-1"></i> +5% من الأمس
-</span>
-</div>
-</div>
-
-<div class="dashboard-card">
-<div class="flex items-center justify-between">
-<div>
-<p class="text-sm text-gray-500">حالات حرجة</p>
-<h2 class="text-3xl font-bold text-gray-800" id="criticalPatients">0</h2>
-</div>
-<div class="bg-red-100 p-3 rounded-full">
-<i class="fas fa-heartbeat text-red-600"></i>
-</div>
-</div>
-<div class="mt-4">
-<span class="text-red-500 text-sm font-medium flex items-center">
-<i class="fas fa-exclamation-circle mr-1"></i> يتطلب اهتماماً فورياً
-</span>
-</div>
-</div>
-
-<div class="dashboard-card">
-<div class="flex items-center justify-between">
-<div>
-<p class="text-sm text-gray-500">في تحسن</p>
-<h2 class="text-3xl font-bold text-gray-800" id="improvingPatients">0</h2>
-</div>
-<div class="bg-yellow-100 p-3 rounded-full">
-<i class="fas fa-arrow-trend-up text-yellow-600"></i>
-</div>
-</div>
-<div class="mt-4">
-<span class="text-green-500 text-sm font-medium flex items-center">
-<i class="fas fa-arrow-up mr-1"></i> +3 حالات اليوم
-</span>
-</div>
-</div>
-
-<div class="dashboard-card">
-<div class="flex items-center justify-between">
-<div>
-<p class="text-sm text-gray-500">حالات مستقرة</p>
-<h2 class="text-3xl font-bold text-gray-800" id="stablePatients">0</h2>
-</div>
-<div class="bg-green-100 p-3 rounded-full">
-<i class="fas fa-check-circle text-green-600"></i>
-</div>
-</div>
-<div class="mt-4">
-<span class="text-gray-500 text-sm font-medium flex items-center">
-<i class="fas fa-minus mr-1"></i> لا يوجد تغيير
-</span>
-</div>
-</div>
-</div
-        
-        <!-- Filters Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Statistics Sidebar -->
             <div class="lg:col-span-1">
-                <div class="search-container">
-                    <div class="filter-label">البحث عن مريض</div>
-                    <div class="relative">
-                        <i class="fas fa-search search-icon"></i>
-                        <input
-                            id="searchInput"
-                            type="text"
-                            placeholder="ابحث باسم المريض أو الرقم القومي..."
-                            class="search-input"
-                        />
+                <div class="stats-sidebar">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">إحصائيات قسم الطوارئ</h2>
+                    
+                    <!-- Total Patients Card -->
+                    <div class="stats-card total">
+                        <div class="stats-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <div class="stats-number" id="totalPatients">0</div>
+                            <div class="stats-label">إجمالي المرضى</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Critical Patients Card -->
+                    <div class="stats-card critical">
+                        <div class="stats-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <div>
+                            <div class="stats-number" id="criticalPatients">0</div>
+                            <div class="stats-label">حالات حرجة</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Deteriorating Patients Card -->
+                    <div class="stats-card deteriorating">
+                        <div class="stats-icon">
+                            <i class="fas fa-arrow-trend-down"></i>
+                        </div>
+                        <div>
+                            <div class="stats-number" id="deterioratingPatients">0</div>
+                            <div class="stats-label">في تدهور</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Improving Patients Card -->
+                    <div class="stats-card improving">
+                        <div class="stats-icon">
+                            <i class="fas fa-arrow-trend-up"></i>
+                        </div>
+                        <div>
+                            <div class="stats-number" id="improvingPatients">0</div>
+                            <div class="stats-label">في تحسن</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stable Patients Card -->
+                    <div class="stats-card stable">
+                        <div class="stats-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <div class="stats-number" id="stablePatients">0</div>
+                            <div class="stats-label">حالات مستقرة</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-divider"></div>
+                    
+                    <!-- Status Change -->
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-600">آخر تحديث</div>
+                        <div class="text-sm text-gray-600" id="lastUpdate">-</div>
                     </div>
                 </div>
             </div>
-            <div>
-                <div class="filter-container">
-                    <div class="filter-label">التاريخ</div>
-                    <input
-                        id="dateFilter"
-                        type="date"
-                        class="filter-input"
-                    />
+            
+            <!-- Patients List Section -->
+            <div class="lg:col-span-3">
+                <div class="emergency-header mb-8">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-3xl font-bold flex items-center">
+                                <i class="fas fa-ambulance mr-3"></i>
+                                قسم الطوارئ
+                            </h1>
+                            <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
+                        </div>
+                        <button
+                            class="btn btn-primary"
+                            onclick="window.location.href='add_patient.html'"
+                        >
+                            <i class="fas fa-plus"></i>
+                            إضافة مريض جديد
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div>
-                <div class="filter-container">
-                    <div class="filter-label">الحالة</div>
-                    <select id="statusFilter" class="filter-input">
-                        <option value="">جميع الحالات</option>
-                        <option value="critical">حالات حرجة</option>
-                        <option value="stable">حالات مستقرة</option>
-                        <option value="improving">في تحسن</option>
-                        <option value="deteriorating">في تدهور</option>
-                    </select>
+                
+                <!-- Filters Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="lg:col-span-1">
+                        <div class="search-container">
+                            <div class="filter-label">البحث عن مريض</div>
+                            <div class="relative">
+                                <i class="fas fa-search search-icon"></i>
+                                <input
+                                    id="searchInput"
+                                    type="text"
+                                    placeholder="ابحث باسم المريض أو الرقم القومي..."
+                                    class="search-input"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="filter-container">
+                            <div class="filter-label">التاريخ</div>
+                            <input
+                                id="dateFilter"
+                                type="date"
+                                class="filter-input"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <div class="filter-container">
+                            <div class="filter-label">الحالة</div>
+                            <select id="statusFilter" class="filter-input">
+                                <option value="">جميع الحالات</option>
+                                <option value="critical">حالات حرجة</option>
+                                <option value="stable">حالات مستقرة</option>
+                                <option value="improving">في تحسن</option>
+                                <option value="deteriorating">في تدهور</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="filter-container">
+                            <div class="filter-label">ترتيب حسب</div>
+                            <select id="sortFilter" class="filter-input">
+                                <option value="newest">الأحدث أولاً</option>
+                                <option value="oldest">الأقدم أولاً</option>
+                                <option value="critical">الأكثر أهمية</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div>
-                <div class="filter-container">
-                    <div class="filter-label">ترتيب حسب</div>
-                    <select id="sortFilter" class="filter-input">
-                        <option value="newest">الأحدث أولاً</option>
-                        <option value="oldest">الأقدم أولاً</option>
-                        <option value="critical">الأكثر أهمية</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Patients List -->
-        <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Patient cards will be dynamically inserted here -->
-            <div class="col-span-full">
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                    <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+                
+                <!-- Patients List -->
+                <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Patient cards will be dynamically inserted here -->
+                    <div class="col-span-full">
+                        <div class="loading-container">
+                            <div class="loading-spinner"></div>
+                            <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
+                            <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -657,23 +788,20 @@
             const statusFilter = document.getElementById("statusFilter");
             const sortFilter = document.getElementById("sortFilter");
             
+            // Statistics elements
+            const totalPatientsEl = document.getElementById("totalPatients");
+            const criticalPatientsEl = document.getElementById("criticalPatients");
+            const deterioratingPatientsEl = document.getElementById("deterioratingPatients");
+            const improvingPatientsEl = document.getElementById("improvingPatients");
+            const stablePatientsEl = document.getElementById("stablePatients");
+            const lastUpdateEl = document.getElementById("lastUpdate");
+            
             onValue(emergencyRef, (snapshot) => {
                 container.innerHTML = "";
+                allPatients = snapshot.val() || {};
                 
-                if (snapshot.exists()) {
-                    allPatients = snapshot.val();
-                    renderPatients(allPatients);
-                } else {
-                    container.innerHTML = `
-                        <div class="col-span-full">
-                            <div class="empty-state">
-                                <i class="fas fa-user-injured text-5xl"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mb-2">لا يوجد مرضى حالياً</h3>
-                                <p class="text-gray-500">لا توجد حالات مسجلة في قسم الطوارئ في الوقت الحالي.</p>
-                            </div>
-                        </div>
-                    `;
-                }
+                updateStatistics();
+                renderPatients(allPatients);
             });
             
             searchInput.addEventListener("input", () => {
@@ -691,6 +819,43 @@
             sortFilter.addEventListener("change", () => {
                 applyFilters();
             });
+            
+            function updateStatistics() {
+                const counts = {
+                    total: Object.keys(allPatients).length,
+                    critical: 0,
+                    deteriorating: 0,
+                    improving: 0,
+                    stable: 0
+                };
+                
+                Object.values(allPatients).forEach(patient => {
+                    counts[patient.status]++;
+                });
+                
+                // Update statistics with animation
+                animateCounter(totalPatientsEl, counts.total);
+                animateCounter(criticalPatientsEl, counts.critical);
+                animateCounter(deterioratingPatientsEl, counts.deteriorating);
+                animateCounter(improvingPatientsEl, counts.improving);
+                animateCounter(stablePatientsEl, counts.stable);
+                
+                // Update last update time
+                const now = new Date();
+                lastUpdateEl.textContent = now.toLocaleTimeString("ar-EG");
+            }
+            
+            function animateCounter(element, target) {
+                const current = parseInt(element.textContent) || 0;
+                const duration = 1000; // 1 second
+                const step = Math.ceil(Math.abs(target - current) / (duration / 16));
+                
+                if (current < target) {
+                    element.textContent = Math.min(current + step, target);
+                } else if (current > target) {
+                    element.textContent = Math.max(current - step, target);
+                }
+            }
             
             function applyFilters() {
                 const term = searchInput.value.toLowerCase();
