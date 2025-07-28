@@ -1030,37 +1030,6 @@ improvingPatientsEl.textContent = improving;
 stablePatientsEl.textContent = stable;
 }
 });
-
-// دالة التحقق من الحالات الحرجة
-function checkForCriticalPatients() {
-const emergencyRef = ref(db, "patients/emergency");
-
-onValue(emergencyRef, (snapshot) => {
-if (snapshot.exists()) {
-let criticalPatients = [];
-let warningPatients = [];
-
-snapshot.forEach((child) => {
-const patient = child.val();
-if (patient.status === "critical") {
-criticalPatients.push({
-id: child.key,
-name: patient.name,
-age: patient.age
-});
-} else if (patient.status === "deteriorating") {
-warningPatients.push({
-id: child.key,
-name: patient.name,
-age: patient.age
-});
-}
-});
-
-window.hideNotification = function() {
-const notification = document.getElementById('notification');
-notification.classList.remove('show');
-}
 </script>
 </body>
 </html>
