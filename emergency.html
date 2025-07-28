@@ -360,7 +360,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* تحسينات جديدة */
         .notification {
             position: fixed;
             top: 20px;
@@ -721,4 +720,209 @@
                         <option value="critical">الأكثر أهمية</option>
                     </select>
                 </div>
-            </div
+            </div>
+            
+            <div class="active-filters" id="activeFilters">
+                <!-- الفلاتر الفعالة ستظهر هنا -->
+            </div>
+        </div>
+        
+        <!-- قائمة المرضى -->
+        <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- بطاقات المرضى سيتم إدراجها هنا ديناميكيًا -->
+            <div class="col-span-full">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
+                    <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer Section -->
+    <footer class="footer-section">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="footer-title">مستشفى الحياة الذكية</h3>
+                    <p class="text-gray-400 mb-4">
+                        نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية
+                        والكوادر الطبية المتخصصة.
+                    </p>
+                    <div class="flex space-x-3">
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="footer-title">روابط سريعة</h3>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>المواعيد</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-user-md"></i>
+                        <span>الأطباء</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <span>الأسعار</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-info-circle"></i>
+                        <span>عن المستشفى</span>
+                    </a>
+                </div>
+                <div>
+                    <h3 class="footer-title">اتصل بنا</h3>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-phone-alt"></i>
+                        <span>1234</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>info@alhayah-smart.com</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>شارع الطبيعة، الرياض</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-clock"></i>
+                        <span>24 ساعة طوال أيام الأسبوع</span>
+                    </a>
+                </div>
+                <div>
+                    <h3 class="footer-title">خدماتنا</h3>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-procedures"></i>
+                        <span>الطوارئ</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-stethoscope"></i>
+                        <span>العيادات الخارجية</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-x-ray"></i>
+                        <span>الأشعة والتصوير</span>
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-flask"></i>
+                        <span>المختبرات الطبية</span>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-6 text-center">
+                <p class="text-gray-400">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+        
+        // استبدل هذا المفتاح بالمفتاح الصحيح من Firebase Console
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY_HERE",
+          authDomain: "hospital-project-e4b59.firebaseapp.com",
+          databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "hospital-project-e4b59",
+          storageBucket: "hospital-project-e4b59.appspot.com",
+          messagingSenderId: "974610606258",
+          appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
+          measurementId: "G-0GV30LL28T"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let allPatients = {};
+        
+        window.addEventListener("DOMContentLoaded", () => {
+            const emergencyRef = ref(db, "patients/emergency");
+            const container = document.getElementById("patientsList");
+            const searchInput = document.getElementById("searchInput");
+            const dateFilter = document.getElementById("dateFilter");
+            const statusFilter = document.getElementById("statusFilter");
+            const sortFilter = document.getElementById("sortFilter");
+            const clearFiltersBtn = document.getElementById("clearFilters");
+            const activeFiltersContainer = document.getElementById("activeFilters");
+            
+            // إحصائيات لوحة المعلومات
+            const totalPatientsEl = document.getElementById("totalPatients");
+            const criticalPatientsEl = document.getElementById("criticalPatients");
+            const improvingPatientsEl = document.getElementById("improvingPatients");
+            const stablePatientsEl = document.getElementById("stablePatients");
+            
+            // Clear filters button
+            clearFiltersBtn.addEventListener("click", () => {
+                searchInput.value = "";
+                dateFilter.value = "";
+                statusFilter.value = "";
+                sortFilter.value = "newest";
+                renderPatients(allPatients);
+                activeFiltersContainer.innerHTML = "";
+            });
+            
+            // Search and filter functionality
+            const applyFilters = () => {
+                const term = searchInput.value.toLowerCase();
+                const selectedDate = dateFilter.value;
+                const selectedStatus = statusFilter.value;
+                const sortOption = sortFilter.value;
+                
+                let filtered = Object.fromEntries(
+                    Object.entries(allPatients).filter(([id, patient]) => {
+                        const matchSearch = 
+                            patient.name.toLowerCase().includes(term) ||
+                            id.toLowerCase().includes(term) ||
+                            patient.nid.toLowerCase().includes(term);
+                            
+                        const matchDate = selectedDate
+                            ? new Date(patient.timestamp).toISOString().split("T")[0] === selectedDate
+                            : true;
+                            
+                        const matchStatus = selectedStatus
+                            ? patient.status === selectedStatus
+                            : true;
+                            
+                        return matchSearch && matchDate && matchStatus;
+                    })
+                );
+                
+                // Sort patients
+                if (sortOption === 'newest') {
+                    filtered = Object.fromEntries(
+                        Object.entries(filtered).sort(([, a], [, b]) => b.timestamp - a.timestamp)
+                    );
+                } else if (sortOption === 'oldest') {
+                    filtered = Object.fromEntries(
+                        Object.entries(filtered).sort(([, a], [, b]) => a.timestamp - b.timestamp)
+                    );
+                } else if (sortOption === 'critical') {
+                    filtered = Object.fromEntries(
+                        Object.entries(filtered).sort(([, a], [, b]) => {
+                            const statusOrder = { critical: 0, deteriorating: 1, improving: 2, stable: 3 };
+                            return statusOrder[a.status] - statusOrder[b.status];
+                        })
+                    );
+                }
+                
+                renderPatients(filtered);
+                updateActiveFilters(term, selectedDate, selectedStatus, sortOption);
+            };
+            
+            // Update active filters display
+            const
