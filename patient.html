@@ -52,8 +52,11 @@
           <div class="bg-gray-50 p-4 rounded-lg">
             <table class="table-auto w-full" id="infoTable"></table>
           </div>
-          <!-- زر كشف الطبيب -->
+          <!-- زر تغيير الحالة -->
           <div class="flex flex-wrap gap-3 mt-4">
+            <button onclick="changePatientStatus()" class="bg-purple-700 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-exchange-alt mr-2"></i> تغيير الحالة
+            </button>
             <button onclick="doctorCheckup()" class="bg-purple-700 text-white px-4 py-2 rounded-lg">كشف الطبيب</button>
           </div>
         </div>
@@ -110,6 +113,45 @@ const db = getDatabase(app);
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
 
+// دالة تغيير حالة المريض
+window.changePatientStatus = function() {
+  Swal.fire({
+    title: 'تغيير حالة المريض',
+    input: 'select',
+    inputOptions: {
+      'critical': 'حرجة',
+      'stable': 'مستقرة',
+      'improving': 'في تحسن',
+      'deteriorating': 'في تدهور'
+    },
+    inputPlaceholder: 'اختر الحالة الجديدة',
+    showCancelButton: true,
+    confirmButtonText: 'حفظ',
+    cancelButtonText: 'إلغاء',
+    inputValidator: (value) => {
+      if (!value) {
+        return 'يرجى اختيار الحالة';
+      }
+    }
+  }).then(async (result) => {
+    if (result.isConfirmed && result.value) {
+      const patientRef = ref(db, `patients/emergency/${patientId}`);
+      await update(patientRef, { status: result.value });
+      
+      // تحديث العرض مباشرة
+      document.getElementById("patientStatus").textContent = result.value;
+      
+      Swal.fire({
+        title: 'تم!',
+        text: 'تم تغيير حالة المريض بنجاح',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+  });
+};
+
 // تحميل بيانات المريض مع عرض نوع الخدمة
 async function loadPatientData() {
   const infoTable = document.getElementById("infoTable");
@@ -132,6 +174,7 @@ async function loadPatientData() {
   <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
   <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctors || '-'}</td></tr>
   <tr><td class="font-semibold py-1">نوع الخدمة:</td><td class="py-1" id="serviceType">${patient.serviceType || 'غير محدد'}</td></tr>
+  <tr><td class="font-semibold py-1">الحالة:</td><td class="py-1" id="patientStatusInTable">${patient.status || 'غير محدد'}</td></tr>
 `;
     patientStatus.textContent = patient.status || "غير محدد";
     QRCode.toCanvas(qrCanvas, patientId, function (error) {
