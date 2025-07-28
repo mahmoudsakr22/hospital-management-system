@@ -475,6 +475,22 @@
             height: 200px;
             margin-top: 1.5rem;
         }
+        
+        /* Animation for statistics update */
+        @keyframes countUp {
+            from {
+                opacity: 0.5;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stats-number.updated {
+            animation: countUp 0.5s ease-out forwards;
+        }
     </style>
 </head>
 <body>
@@ -796,11 +812,28 @@
             const stablePatientsEl = document.getElementById("stablePatients");
             const lastUpdateEl = document.getElementById("lastUpdate");
             
+            // Initialize with loading state
+            container.innerHTML = `
+                <div class="col-span-full">
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
+                        <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+                    </div>
+                </div>
+            `;
+            
+            // Initialize statistics
+            updateStatistics(allPatients);
+            
+            // Listen for changes in the database
             onValue(emergencyRef, (snapshot) => {
-                container.innerHTML = "";
                 allPatients = snapshot.val() || {};
                 
-                updateStatistics();
+                // Update statistics first
+                updateStatistics(allPatients);
+                
+                // Then render patients list
                 renderPatients(allPatients);
             });
             
@@ -820,41 +853,45 @@
                 applyFilters();
             });
             
-            function updateStatistics() {
+            function updateStatistics(patients) {
                 const counts = {
-                    total: Object.keys(allPatients).length,
+                    total: Object.keys(patients).length,
                     critical: 0,
                     deteriorating: 0,
                     improving: 0,
                     stable: 0
                 };
                 
-                Object.values(allPatients).forEach(patient => {
+                Object.values(patients).forEach(patient => {
                     counts[patient.status]++;
                 });
                 
-                // Update statistics with animation
-                animateCounter(totalPatientsEl, counts.total);
-                animateCounter(criticalPatientsEl, counts.critical);
-                animateCounter(deterioratingPatientsEl, counts.deteriorating);
-                animateCounter(improvingPatientsEl, counts.improving);
-                animateCounter(stablePatientsEl, counts.stable);
+                // Add animation class before updating
+                const statsElements = [
+                    totalPatientsEl,
+                    criticalPatientsEl,
+                    deterioratingPatientsEl,
+                    improvingPatientsEl,
+                    stablePatientsEl
+                ];
+                
+                statsElements.forEach(el => {
+                    el.classList.add('updated');
+                    setTimeout(() => {
+                        el.classList.remove('updated');
+                    }, 500);
+                });
+                
+                // Update statistics
+                totalPatientsEl.textContent = counts.total;
+                criticalPatientsEl.textContent = counts.critical;
+                deterioratingPatientsEl.textContent = counts.deteriorating;
+                improvingPatientsEl.textContent = counts.improving;
+                stablePatientsEl.textContent = counts.stable;
                 
                 // Update last update time
                 const now = new Date();
                 lastUpdateEl.textContent = now.toLocaleTimeString("ar-EG");
-            }
-            
-            function animateCounter(element, target) {
-                const current = parseInt(element.textContent) || 0;
-                const duration = 1000; // 1 second
-                const step = Math.ceil(Math.abs(target - current) / (duration / 16));
-                
-                if (current < target) {
-                    element.textContent = Math.min(current + step, target);
-                } else if (current > target) {
-                    element.textContent = Math.max(current - step, target);
-                }
             }
             
             function applyFilters() {
