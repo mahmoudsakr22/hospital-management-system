@@ -1030,6 +1030,1197 @@ improvingPatientsEl.textContent = improving;
 stablePatientsEl.textContent = stable;
 }
 });
+
+// دالة التحقق من الحالات الحرجة
+function checkForCriticalPatients() {
+const emergencyRef = ref(db, "patients/emergency");
+
+onValue(emergencyRef, (snapshot) => {
+if (snapshot.exists()) {
+let criticalPatients = [];
+let warningPatients = [];
+
+snapshot.forEach((child) => {
+const patient = child.val();
+if (patient.status === "critical") {
+criticalPatients.push({
+id: child.key,
+name: patient.name,
+age: patient.age
+});
+} else if (patient.status === "deteriorating") {
+warningPatients.push({
+id: child.key,
+name: patient.name,
+age: patient.age
+});
+}
+});
+
+// إظهار تنبيه واحد فقط
+if (criticalPatients.length > 0) {
+showNextPatientAlert(criticalPatients, warningPatients);
+}
+}
+});
+}
+
+// دالة إظهار تنبيه المريض (تظهر تنبيه واحد فقط)
+function showNextPatientAlert(criticalPatients, warningPatients) {
+// إذا كان هناك تنبيه حالي، لا تظهر جديد
+if (currentAlert && currentAlert.timeout) {
+return;
+}
+
+// اختيار المريض التالي
+let nextPatient;
+if (criticalPatients.length > 0) {
+nextPatient = criticalPatients.shift();
+showPatientAlert('critical', 'تنبيه حالة حرجة', `${nextPatient.name} (${nextPatient.age} سنة)`);
+} else if (warningPatients.length > 0) {
+nextPatient = warningPatients.shift();
+showPatientAlert('warning', 'تنبيه حالة في تدهور', `${nextPatient.name} (${nextPatient.age} سنة)`);
+}
+
+// إعادة استدعاء الدالة بعد 10 ثواني إذا لم يكن هناك تنبيه حالي
+if (criticalPatients.length > 0 || warningPatients.length > 0) {
+currentAlert = {
+timeout: setTimeout(() => {
+checkForCriticalPatients();
+}, 10000)
+};
+}
+}
+
+// دالة إظهار تنبيه المريض
+function showPatientAlert(type, title, message) {
+const alertContainer = document.getElementById('patientAlerts');
+
+// إنشاء عنصر التنبيه
+const alertElement = document.createElement('div');
+alertElement.className = `patient-alert ${type} ${type === 'critical' ? 'pulse-alert' : ''}`;
+
+// محتوى التنبيه
+alertElement.innerHTML = `
+<div class="alert-icon">
+<i class="fas ${type === 'critical' ? 'fa-exclamation-triangle' : 'fa-exclamation-circle'}"></i>
+</div>
+<div class="alert-content">
+<h4 class="alert-title">${title}</h4>
+<p class="alert-message">${message}</p>
+</div>
+<button class="alert-close" onclick="dismissPatientAlert(this.parentElement)">
+<i class="fas fa-times"></i>
+</button>
+`;
+
+// إضافة التنبيه إلى الحاوية
+alertContainer.appendChild(alertElement);
+
+// إظهار التنبيه
+setTimeout(() => {
+alertElement.classList.add('show');
+}, 100);
+
+// إخفاء التنبيه بعد 10 ثوانٍ إذا لم يكن من النوع الحرج
+if (type !== 'critical') {
+currentAlert = {
+timeout: setTimeout(() => {
+dismissPatientAlert(alertElement);
+}, 10000)
+};
+}
+}
+
+// دالة إخفاء تنبيه المريض
+window.dismissPatientAlert = function(alertElement) {
+alertElement.classList.remove('show');
+setTimeout(() => {
+alertElement.remove();
+}, 300);
+
+// إعادة التحقق من الحالات بعد إغلاق التنبيه
+setTimeout(() => {
+checkForCriticalPatients();
+}, 1000);
+}
+
+window.viewPatient = function (id) {
+window.location.href = `patient.html?id=${id}`;
+};
+
+window.printCard = function (id) {
+showNotification('warning', 'تنبيه', 'ميزة الطباعة قيد التطوير');
+};
+
+window.showNotification = function(type, title, message) {
+const notification = document.getElementById('notification');
+const iconEl = notification.querySelector('.notification-icon i');
+const titleEl = notification.querySelector('h4');
+const messageEl = notification.querySelector('p');
+
+// إعداد الأنواع
+if (type === 'success') {
+notification.className = 'notification success';
+iconEl.className = 'fas fa-check';
+} else if (type === 'error') {
+notification.className = 'notification error';
+iconEl.className = 'fas fa-times';
+} else if (type === 'warning') {
+notification.className = 'notification warning';
+iconEl.className = 'fas fa-exclamation-triangle';
+} else if (type === 'info') {
+notification.className = 'notification info';
+iconEl.className = 'fas fa-info';
+}
+
+titleEl.textContent = title;
+messageEl.textContent = message;
+
+notification.classList.add('show');
+
+// إخفاء الإشعار بعد 5 ثوانٍ
+setTimeout(hideNotification, 5000);
+};
+
+window.hideNotification = function() {
+const notification = document.getElementById('notification');
+notification.classList.remove('show');
+}
+</script>
+</body>
+</html> <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>قسم الطوارئ - مستشفى الحياة الذكية</title>
+<meta name="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+--primary: #2563eb;
+--primary-dark: #1d4ed8;
+--secondary: #10b981;
+--danger: #ef4444;
+--warning: #f59e0b;
+--info: #3b82f6;
+--dark: #1e293b;
+--light: #f8fafc;
+}
+
+body {
+font-family: 'Cairo', sans-serif;
+background-color: #f1f5f9;
+direction: rtl;
+}
+
+.emergency-header {
+background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+color: white;
+padding: 1.5rem;
+border-radius: 12px;
+box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.3);
+position: relative;
+overflow: hidden;
+}
+
+.emergency-header::before {
+content: "";
+position: absolute;
+top: 0;
+right: 0;
+width: 150px;
+height: 150px;
+background: rgba(255, 255, 255, 0.1);
+border-radius: 50%;
+transform: translate(30%, -30%);
+}
+
+.patient-card {
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+transition: all 0.3s ease;
+overflow: hidden;
+position: relative;
+}
+
+.patient-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.patient-card::before {
+content: "";
+position: absolute;
+top: 0;
+left: 0;
+width: 6px;
+height: 100%;
+}
+
+.patient-card.critical::before {
+background: var(--danger);
+}
+
+.patient-card.stable::before {
+background: var(--secondary);
+}
+
+.patient-card.improving::before {
+background: var(--warning);
+}
+
+.patient-card.deteriorating::before {
+background: #f97316;
+}
+
+.status-badge {
+padding: 6px 12px;
+border-radius: 20px;
+font-size: 0.875rem;
+font-weight: 500;
+display: inline-flex;
+align-items: center;
+gap: 6px;
+}
+
+.status-badge.critical {
+background: rgba(239, 68, 68, 0.15);
+color: #ef4444;
+border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.stable {
+background: rgba(16, 185, 129, 0.15);
+color: #10b981;
+border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.improving {
+background: rgba(245, 158, 11, 0.15);
+color: #f59e0b;
+border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.deteriorating {
+background: rgba(249, 115, 22, 0.15);
+color: #f97316;
+border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.search-container {
+position: relative;
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+padding: 1rem;
+}
+
+.search-input {
+width: 100%;
+padding: 0.75rem 1rem 0.75rem 3rem;
+border: 2px solid #e2e8f0;
+border-radius: 8px;
+font-size: 1rem;
+transition: all 0.3s ease;
+}
+
+.search-input:focus {
+outline: none;
+border-color: var(--primary);
+box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.search-icon {
+position: absolute;
+left: 1rem;
+top: 50%;
+transform: translateY(-50%);
+color: #94a3b8;
+font-size: 1.25rem;
+}
+
+.filter-container {
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+padding: 1rem;
+}
+
+.filter-label {
+font-size: 0.875rem;
+font-weight: 500;
+color: #64748b;
+margin-bottom: 0.5rem;
+}
+
+.filter-input {
+width: 100%;
+padding: 0.75rem 1rem;
+border: 2px solid #e2e8f0;
+border-radius: 8px;
+font-size: 1rem;
+transition: all 0.3s ease;
+}
+
+.filter-input:focus {
+outline: none;
+border-color: var(--primary);
+box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.btn {
+padding: 0.75rem 1.5rem;
+border-radius: 8px;
+font-weight: 500;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+transition: all 0.3s ease;
+cursor: pointer;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+color: white;
+box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+}
+
+.btn-secondary {
+background: #f1f5f9;
+color: #475569;
+box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:hover {
+background: #e2e8f0;
+transform: translateY(-2px);
+}
+
+.patient-info {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+margin-bottom: 0.75rem;
+padding-bottom: 0.75rem;
+border-bottom: 1px solid #f1f5f9;
+}
+
+.patient-info:last-child {
+border-bottom: none;
+margin-bottom: 0;
+padding-bottom: 0;
+}
+
+.patient-info i {
+width: 24px;
+height: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+background: #f1f5f9;
+border-radius: 50%;
+color: #64748b;
+}
+
+.loading-container {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 3rem;
+}
+
+.loading-spinner {
+width: 60px;
+height: 60px;
+border: 5px solid #e2e8f0;
+border-top: 5px solid var(--primary);
+border-radius: 50%;
+animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 3rem;
+text-align: center;
+}
+
+.empty-state i {
+font-size: 4rem;
+color: #cbd5e1;
+margin-bottom: 1.5rem;
+}
+
+.header-container {
+background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+color: white;
+padding: 1rem 1.5rem;
+border-radius: 12px;
+box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.3);
+}
+
+.footer-section {
+background: #0f172a;
+color: #cbd5e1;
+padding: 3rem 0;
+}
+
+.footer-title {
+font-size: 1.25rem;
+font-weight: 600;
+margin-bottom: 1.5rem;
+color: white;
+}
+
+.footer-link {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+color: #94a3b8;
+transition: all 0.3s ease;
+margin-bottom: 0.75rem;
+text-decoration: none;
+}
+
+.footer-link:hover {
+color: white;
+transform: translateX(5px);
+}
+
+.social-icon {
+width: 40px;
+height: 40px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+background: rgba(255, 255, 255, 0.1);
+color: white;
+transition: all 0.3s ease;
+margin-right: 0.75rem;
+}
+
+.social-icon:hover {
+background: rgba(255, 255, 255, 0.2);
+transform: translateY(-3px);
+}
+
+.pulse {
+animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+0% {
+opacity: 1;
+}
+50% {
+opacity: 0.5;
+}
+100% {
+opacity: 1;
+}
+}
+
+/* إضافة تأثيرات حركة جديدة */
+.fade-in {
+animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.notification {
+position: fixed;
+top: 20px;
+right: 20px;
+padding: 15px 20px;
+border-radius: 8px;
+background: white;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+z-index: 1000;
+display: flex;
+align-items: center;
+gap: 12px;
+transform: translateX(120%);
+transition: transform 0.3s ease;
+}
+
+.notification.show {
+transform: translateX(0);
+}
+
+.notification.success {
+border-left: 4px solid var(--secondary);
+}
+
+.notification.error {
+border-left: 4px solid var(--danger);
+}
+
+.notification.warning {
+border-left: 4px solid var(--warning);
+}
+
+.notification.info {
+border-left: 4px solid var(--info);
+}
+
+.notification-icon {
+width: 24px;
+height: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+}
+
+.notification.success .notification-icon {
+background: rgba(16, 185, 129, 0.1);
+color: var(--secondary);
+}
+
+.notification.error .notification-icon {
+background: rgba(239, 68, 68, 0.1);
+color: var(--danger);
+}
+
+.notification.warning .notification-icon {
+background: rgba(245, 158, 11, 0.1);
+color: var(--warning);
+}
+
+.notification.info .notification-icon {
+background: rgba(59, 130, 246, 0.1);
+color: var(--info);
+}
+
+.dashboard-card {
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+padding: 1.5rem;
+transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* تنبيهات المرضى الحرجة */
+.patient-alert {
+position: fixed;
+top: 20px;
+right: 20px;
+padding: 15px 20px;
+border-radius: 8px;
+background: white;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+z-index: 1000;
+display: flex;
+align-items: center;
+gap: 12px;
+transform: translateX(120%);
+transition: transform 0.3s ease;
+max-width: 350px;
+}
+
+.patient-alert.show {
+transform: translateX(0);
+}
+
+.patient-alert.critical {
+border-left: 4px solid var(--danger);
+}
+
+.patient-alert.warning {
+border-left: 4px solid var(--warning);
+}
+
+.patient-alert .alert-icon {
+width: 40px;
+height: 40px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+.patient-alert.critical .alert-icon {
+background: rgba(239, 68, 68, 0.1);
+color: var(--danger);
+}
+
+.patient-alert.warning .alert-icon {
+background: rgba(245, 158, 11, 0.1);
+color: var(--warning);
+}
+
+.patient-alert .alert-content {
+flex-grow: 1;
+}
+
+.patient-alert .alert-title {
+font-weight: bold;
+margin-bottom: 4px;
+}
+
+.patient-alert.critical .alert-title {
+color: var(--danger);
+}
+
+.patient-alert.warning .alert-title {
+color: var(--warning);
+}
+
+.patient-alert .alert-message {
+font-size: 0.9rem;
+color: #4b5563;
+}
+
+.patient-alert .alert-close {
+color: #9ca3af;
+cursor: pointer;
+transition: color 0.2s;
+}
+
+.patient-alert .alert-close:hover {
+color: #6b7280;
+}
+
+.pulse-alert {
+animation: pulse-alert 2s infinite;
+}
+
+@keyframes pulse-alert {
+0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+</style>
+</head>
+<body>
+<!-- Header Section -->
+<header class="container mx-auto px-4 py-6">
+<div class="header-container flex justify-between items-center">
+<div class="flex items-center space-x-4 space-x-reverse">
+<img
+src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
+alt="شعار المستشفى"
+class="h-14 w-auto rounded-full bg-white border-2 border-blue-700 p-1"
+/>
+<div>
+<h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+<p class="text-sm text-blue-100">رعاية طبية متكاملة باستخدام أحدث التقنيات</p>
+</div>
+</div>
+<nav>
+<ul class="flex space-x-6 space-x-reverse">
+<li>
+<a href="index.html" class="text-white hover:text-blue-200 font-medium flex items-center gap-2"
+><i class="fas fa-home"></i> الرئيسية</a
+>
+</li>
+<li>
+<a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
+><i class="fas fa-hospital"></i> الأقسام</a
+>
+</li>
+<li>
+<a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
+><i class="fas fa-chart-bar"></i> الإحصائيات</a
+>
+</li>
+</ul>
+</nav>
+</div>
+</header>
+
+<!-- Main Content -->
+<main class="container mx-auto px-4 py-8">
+<!-- لوحة المعلومات -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div class="dashboard-card">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm text-gray-500">إجمالي المرضى</p>
+<h2 class="text-3xl font-bold text-gray-800" id="totalPatients">0</h2>
+</div>
+<div class="bg-blue-100 p-3 rounded-full">
+<i class="fas fa-users text-blue-600"></i>
+</div>
+</div>
+<div class="mt-4">
+<span class="text-green-500 text-sm font-medium flex items-center">
+<i class="fas fa-arrow-up mr-1"></i> +5% من الأمس
+</span>
+</div>
+</div>
+
+<div class="dashboard-card">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm text-gray-500">حالات حرجة</p>
+<h2 class="text-3xl font-bold text-gray-800" id="criticalPatients">0</h2>
+</div>
+<div class="bg-red-100 p-3 rounded-full">
+<i class="fas fa-heartbeat text-red-600"></i>
+</div>
+</div>
+<div class="mt-4">
+<span class="text-red-500 text-sm font-medium flex items-center">
+<i class="fas fa-exclamation-circle mr-1"></i> يتطلب اهتماماً فورياً
+</span>
+</div>
+</div>
+
+<div class="dashboard-card">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm text-gray-500">في تحسن</p>
+<h2 class="text-3xl font-bold text-gray-800" id="improvingPatients">0</h2>
+</div>
+<div class="bg-yellow-100 p-3 rounded-full">
+<i class="fas fa-arrow-trend-up text-yellow-600"></i>
+</div>
+</div>
+<div class="mt-4">
+<span class="text-green-500 text-sm font-medium flex items-center">
+<i class="fas fa-arrow-up mr-1"></i> +3 حالات اليوم
+</span>
+</div>
+</div>
+
+<div class="dashboard-card">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm text-gray-500">حالات مستقرة</p>
+<h2 class="text-3xl font-bold text-gray-800" id="stablePatients">0</h2>
+</div>
+<div class="bg-green-100 p-3 rounded-full">
+<i class="fas fa-check-circle text-green-600"></i>
+</div>
+</div>
+<div class="mt-4">
+<span class="text-gray-500 text-sm font-medium flex items-center">
+<i class="fas fa-minus mr-1"></i> لا يوجد تغيير
+</span>
+</div>
+</div>
+</div>
+
+<!-- تنبيهات المرضى الحرجة -->
+<div id="patientAlerts"></div>
+
+<!-- قسم الطوارئ -->
+<div class="emergency-header mb-8">
+<div class="flex justify-between items-center">
+<div>
+<h1 class="text-3xl font-bold flex items-center">
+<i class="fas fa-ambulance mr-3"></i>
+قسم الطوارئ
+</h1>
+<p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
+</div>
+<button
+class="btn btn-primary"
+onclick="window.location.href='add_patient.html'"
+>
+<i class="fas fa-plus"></i>
+إضافة مريض جديد
+</button>
+</div>
+</div>
+
+<!-- الفلاتر -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+<div class="lg:col-span-1">
+<div class="search-container">
+<div class="filter-label">البحث عن مريض</div>
+<div class="relative">
+<i class="fas fa-search search-icon"></i>
+<input
+id="searchInput"
+type="text"
+placeholder="ابحث باسم المريض أو الرقم القومي..."
+class="search-input"
+/>
+<button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500">
+<i class="fas fa-microphone"></i>
+</button>
+</div>
+</div>
+</div>
+<div>
+<div class="filter-container">
+<div class="filter-label">التاريخ</div>
+<input
+id="dateFilter"
+type="date"
+class="filter-input"
+/>
+</div>
+</div>
+<div>
+<div class="filter-container">
+<div class="filter-label">الحالة</div>
+<select id="statusFilter" class="filter-input">
+<option value="">جميع الحالات</option>
+<option value="critical">حالات حرجة</option>
+<option value="stable">حالات مستقرة</option>
+<option value="improving">في تحسن</option>
+<option value="deteriorating">في تدهور</option>
+</select>
+</div>
+</div>
+<div>
+<div class="filter-container">
+<div class="filter-label">ترتيب حسب</div>
+<select id="sortFilter" class="filter-input">
+<option value="newest">الأحدث أولاً</option>
+<option value="oldest">الأقدم أولاً</option>
+<option value="critical">الأكثر أهمية</option>
+</select>
+</div>
+</div>
+</div>
+
+<!-- قائمة المرضى -->
+<div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- بطاقات المرضى سيتم إدراجها هنا ديناميكيًا -->
+<div class="col-span-full">
+<div class="loading-container">
+<div class="loading-spinner"></div>
+<h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
+<p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+</div>
+</div>
+</div>
+</main>
+
+<!-- Footer Section -->
+<footer class="footer-section">
+<div class="container mx-auto px-4">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+<div>
+<h3 class="footer-title">مستشفى الحياة الذكية</h3>
+<p class="text-gray-400 mb-4">
+نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية
+والكوادر الطبية المتخصصة.
+</p>
+<div class="flex space-x-3">
+<a href="#" class="social-icon">
+<i class="fab fa-facebook-f"></i>
+</a>
+<a href="#" class="social-icon">
+<i class="fab fa-twitter"></i>
+</a>
+<a href="#" class="social-icon">
+<i class="fab fa-instagram"></i>
+</a>
+<a href="#" class="social-icon">
+<i class="fab fa-linkedin-in"></i>
+</a>
+</div>
+</div>
+<div>
+<h3 class="footer-title">روابط سريعة</h3>
+<a href="#" class="footer-link">
+<i class="fas fa-calendar-alt"></i>
+<span>المواعيد</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-user-md"></i>
+<span>الأطباء</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-hand-holding-usd"></i>
+<span>الأسعار</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-info-circle"></i>
+<span>عن المستشفى</span>
+</a>
+</div>
+<div>
+<h3 class="footer-title">اتصل بنا</h3>
+<a href="#" class="footer-link">
+<i class="fas fa-phone-alt"></i>
+<span>1234</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-envelope"></i>
+<span>info@alhayah-smart.com</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-map-marker-alt"></i>
+<span>شارع الطبيعة، الرياض</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-clock"></i>
+<span>24 ساعة طوال أيام الأسبوع</span>
+</a>
+</div>
+<div>
+<h3 class="footer-title">خدماتنا</h3>
+<a href="#" class="footer-link">
+<i class="fas fa-procedures"></i>
+<span>الطوارئ</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-stethoscope"></i>
+<span>العيادات الخارجية</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-x-ray"></i>
+<span>الأشعة والتصوير</span>
+</a>
+<a href="#" class="footer-link">
+<i class="fas fa-flask"></i>
+<span>المختبرات الطبية</span>
+</a>
+</div>
+</div>
+<div class="border-t border-gray-700 pt-6 text-center">
+<p class="text-gray-400">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
+</div>
+</div>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+authDomain: "hospital-project-e4b59.firebaseapp.com",
+databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+projectId: "hospital-project-e4b59",
+storageBucket: "hospital-project-e4b59.appspot.com",
+messagingSenderId: "974610606258",
+appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+let allPatients = {};
+let currentAlert = null;
+
+window.addEventListener("DOMContentLoaded", () => {
+const emergencyRef = ref(db, "patients/emergency");
+const container = document.getElementById("patientsList");
+const searchInput = document.getElementById("searchInput");
+const dateFilter = document.getElementById("dateFilter");
+const statusFilter = document.getElementById("statusFilter");
+const sortFilter = document.getElementById("sortFilter");
+
+// إحصائيات لوحة المعلومات
+const totalPatientsEl = document.getElementById("totalPatients");
+const criticalPatientsEl = document.getElementById("criticalPatients");
+const improvingPatientsEl = document.getElementById("improvingPatients");
+const stablePatientsEl = document.getElementById("stablePatients");
+
+onValue(emergencyRef, (snapshot) => {
+container.innerHTML = "";
+
+if (snapshot.exists()) {
+allPatients = snapshot.val();
+renderPatients(allPatients);
+updateDashboardStats(allPatients);
+checkForCriticalPatients();
+} else {
+container.innerHTML = `
+<div class="col-span-full">
+<div class="empty-state">
+<i class="fas fa-user-injured text-5xl"></i>
+<h3 class="text-xl font-bold text-gray-700 mb-2">لا يوجد مرضى حالياً</h3>
+<p class="text-gray-500">لا توجد حالات مسجلة في قسم الطوارئ في الوقت الحالي.</p>
+</div>
+</div>
+`;
+}
+});
+
+searchInput.addEventListener("input", () => {
+applyFilters();
+});
+
+dateFilter.addEventListener("change", () => {
+applyFilters();
+});
+
+statusFilter.addEventListener("change", () => {
+applyFilters();
+});
+
+sortFilter.addEventListener("change", () => {
+applyFilters();
+});
+
+function applyFilters() {
+const term = searchInput.value.toLowerCase();
+const selectedDate = dateFilter.value;
+const selectedStatus = statusFilter.value;
+const sortOption = sortFilter.value;
+
+let filtered = Object.fromEntries(
+Object.entries(allPatients).filter(([id, patient]) => {
+const matchSearch =
+patient.name.toLowerCase().includes(term) ||
+id.toLowerCase().includes(term) ||
+patient.nid.toLowerCase().includes(term);
+
+const matchDate = selectedDate
+? new Date(patient.timestamp).toISOString().split("T")[0] === selectedDate
+: true;
+
+const matchStatus = selectedStatus
+? patient.status === selectedStatus
+: true;
+
+return matchSearch && matchDate && matchStatus;
+})
+);
+
+// ترتيب النتائج
+if (sortOption === 'newest') {
+filtered = Object.fromEntries(
+Object.entries(filtered).sort(([, a], [, b]) => b.timestamp - a.timestamp)
+);
+} else if (sortOption === 'oldest') {
+filtered = Object.fromEntries(
+Object.entries(filtered).sort(([, a], [, b]) => a.timestamp - b.timestamp)
+);
+} else if (sortOption === 'critical') {
+filtered = Object.fromEntries(
+Object.entries(filtered).sort(([, a], [, b]) => {
+const statusOrder = { critical: 0, deteriorating: 1, improving: 2, stable: 3 };
+return statusOrder[a.status] - statusOrder[b.status];
+})
+);
+}
+
+renderPatients(filtered);
+}
+
+function renderPatients(data) {
+container.innerHTML = "";
+
+if (Object.keys(data).length === 0) {
+container.innerHTML = `
+<div class="col-span-full">
+<div class="empty-state">
+<i class="fas fa-search text-5xl"></i>
+<h3 class="text-xl font-bold text-gray-700 mb-2">لا توجد نتائج مطابقة</h3>
+<p class="text-gray-500">لم نتمكن من العثور على مرضى يطابقون معايير البحث.</p>
+</div>
+</div>
+`;
+return;
+}
+
+Object.entries(data).forEach(([id, patient]) => {
+const card = document.createElement("div");
+card.className = `patient-card ${patient.status} fade-in`;
+
+const statusText = {
+critical: "حالة حرجة",
+stable: "حالة مستقرة",
+improving: "في تحسن",
+deteriorating: "في تدهور"
+};
+
+const statusIcon = {
+critical: "fa-heartbeat",
+stable: "fa-check-circle",
+improving: "fa-arrow-trend-up",
+deteriorating: "fa-arrow-trend-down"
+};
+
+card.innerHTML = `
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h2 class="text-xl font-bold text-gray-800">${patient.name}</h2>
+<p class="text-sm text-gray-500">الرقم القومي: ${patient.nid}</p>
+</div>
+<span class="status-badge ${patient.status}">
+<i class="fas ${statusIcon[patient.status]}"></i>
+${statusText[patient.status]}
+</span>
+</div>
+
+<div class="space-y-3 text-gray-600 mb-4">
+<div class="patient-info">
+<i class="fas fa-birthday-cake"></i>
+<span>العمر: ${patient.age} سنة</span>
+</div>
+<div class="patient-info">
+<i class="fas fa-calendar-day"></i>
+<span>تاريخ التسجيل: ${new Date(patient.timestamp).toLocaleDateString("ar-EG")}</span>
+</div>
+<div class="patient-info">
+<i class="fas fa-clock"></i>
+<span>الوقت: ${new Date(patient.timestamp).toLocaleTimeString("ar-EG")}</span>
+</div>
+</div>
+
+<div class="mt-4 flex justify-end space-x-3 space-x-reverse">
+<button onclick="viewPatient('${id}')" class="btn btn-primary">
+<i class="fas fa-eye"></i>
+عرض التفاصيل
+</button>
+<button onclick="printCard('${id}')" class="btn btn-secondary">
+<i class="fas fa-print"></i>
+طباعة
+</button>
+</div>
+</div>
+`;
+
+container.appendChild(card);
+});
+}
+
+function updateDashboardStats(data) {
+let total = Object.keys(data).length;
+let critical = 0;
+let improving = 0;
+let stable = 0;
+
+Object.values(data).forEach(patient => {
+if (patient.status === 'critical') critical++;
+else if (patient.status === 'improving') improving++;
+else if (patient.status === 'stable') stable++;
+});
+
+totalPatientsEl.textContent = total;
+criticalPatientsEl.textContent = critical;
+improvingPatientsEl.textContent = improving;
+stablePatientsEl.textContent = stable;
+}
+});
 </script>
 </body>
 </html>
