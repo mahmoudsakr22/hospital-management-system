@@ -829,36 +829,32 @@
         </div>
     </footer>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-        
-        // استبدل هذا المفتاح بالمفتاح الصحيح من Firebase Console
-        const firebaseConfig = {
-          apiKey: "YOUR_API_KEY_HERE",
-          authDomain: "hospital-project-e4b59.firebaseapp.com",
-          databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "hospital-project-e4b59",
-          storageBucket: "hospital-project-e4b59.appspot.com",
-          messagingSenderId: "974610606258",
-          appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
-          measurementId: "G-0GV30LL28T"
-        };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        let allPatients = {};
-        
-        window.addEventListener("DOMContentLoaded", () => {
-            const emergencyRef = ref(db, "patients/emergency");
-            const container = document.getElementById("patientsList");
-            const searchInput = document.getElementById("searchInput");
-            const dateFilter = document.getElementById("dateFilter");
-            const statusFilter = document.getElementById("statusFilter");
-            const sortFilter = document.getElementById("sortFilter");
-            const clearFiltersBtn = document.getElementById("clearFilters");
-            const activeFiltersContainer = document.getElementById("activeFilters");
+   <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
+authDomain: "hospital-project-e4b59.firebaseapp.com",
+databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
+projectId: "hospital-project-e4b59",
+storageBucket: "hospital-project-e4b59.appspot.com",
+messagingSenderId: "974610606258",
+appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+let allPatients = {};
+let currentAlert = null;
+
+window.addEventListener("DOMContentLoaded", () => {
+const emergencyRef = ref(db, "patients/emergency");
+const container = document.getElementById("patientsList");
+const searchInput = document.getElementById("searchInput");
+const dateFilter = document.getElementById("dateFilter");
+const statusFilter = document.getElementById("statusFilter");
+const sortFilter = document.getElementById("sortFilter");
             
             // إحصائيات لوحة المعلومات
             const totalPatientsEl = document.getElementById("totalPatients");
