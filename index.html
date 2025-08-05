@@ -4,440 +4,887 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>مستشفى الحياة الذكية</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-    
-    // إعدادات Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-      authDomain: "hospital-project-e4b59.firebaseapp.com",
-      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hospital-project-e4b59",
-      storageBucket: "hospital-project-e4b59.appspot.com",
-      messagingSenderId: "974610606258",
-      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab"
-    };
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    
-    // تحميل الأخبار عند تحميل الصفحة
-    window.addEventListener("DOMContentLoaded", () => {
-      loadNewsFromFirebase();
-    });
-    
-    // دالة لتحميل الأخبار من Firebase
-    function loadNewsFromFirebase() {
-      const newsRef = ref(db, "news");
-      const newsContainer = document.getElementById("newsContainer");
-      
-      onValue(newsRef, (snapshot) => {
-        const news = snapshot.val();
-        newsContainer.innerHTML = "";
-        
-        if (!news) {
-          newsContainer.innerHTML = '<div class="text-center text-gray-500 py-4">لا توجد أخبار حالياً</div>';
-          return;
-        }
-        
-        // تحويل الأخبار إلى مصفوفة وترتيبها حسب التاريخ (الأحدث أولاً)
-        const newsArray = Object.entries(news).map(([id, item]) => ({ id, ...item }));
-        newsArray.sort((a, b) => b.timestamp - a.timestamp);
-        
-        // عرض آخر 3 أخبار
-        const recentNews = newsArray.slice(0, 3);
-        
-        recentNews.forEach((newsItem) => {
-          const newsCard = document.createElement("div");
-          newsCard.className = "swiper-slide overflow-hidden rounded-lg shadow-md";
-          
-          const imageHtml = newsItem.imageUrl 
-            ? `<img src="${newsItem.imageUrl}" alt="${newsItem.title}" class="w-full h-48 object-cover">` 
-            : `<div class="w-full h-48 bg-gray-200 flex items-center justify-center"><i class="fas fa-newspaper text-4xl text-gray-400"></i></div>`;
-          
-          newsCard.innerHTML = `
-            ${imageHtml}
-            <div class="p-4">
-              <h3 class="font-bold text-center mb-2">${newsItem.title}</h3>
-              <p class="text-gray-600 text-sm text-center mb-3">${newsItem.content.substring(0, 100)}${newsItem.content.length > 100 ? '...' : ''}</p>
-              <div class="text-center">
-                <span class="text-xs text-gray-500">${new Date(newsItem.timestamp).toLocaleDateString("ar-EG")}</span>
-              </div>
-            </div>
-          `;
-          
-          newsContainer.appendChild(newsCard);
-        });
-        
-        // إعادة تهيئة السلايدر بعد تحميل الأخبار
-        initNewsSlider();
-      });
-    }
-    
-    // تهيئة سلايدر الأخبار
-    function initNewsSlider() {
-      if (window.newsSwiper) {
-        window.newsSwiper.destroy();
-      }
-      
-      window.newsSwiper = new Swiper(".newsSwiper", {
-        slidesPerView: 1,
-        spaceBetween: 20,
-        loop: true,
-        autoplay: {
-          delay: 3000,
-          disableOnInteraction: false
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        fontFamily: { 
+          sans: ['Cairo', 'Tajawal', 'sans-serif'] 
         },
-        breakpoints: {
-          640: { slidesPerView: 1 },
-          768: { slidesPerView: 2 },
-          1024: { slidesPerView: 3 }
+        extend: {
+          colors: {
+            primary: "#0077b6",
+            secondary: "#28a745",
+            accent: "#ff6b35",
+            light: "#f9fafb",
+            dark: "#1a202c",
+            gold: "#f59e0b"
+          },
+          animation: {
+            'float': 'float 3s ease-in-out infinite',
+            'pulse-slow': 'pulse 3s infinite',
+            'bounce-slow': 'bounce 2s infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
         }
-      });
+      }
     }
   </script>
+  
   <style>
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #0077b6 #e2e8f0;
+    }
+    
+    *::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    *::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 4px;
+    }
+    
+    *::-webkit-scrollbar-thumb {
+      background-color: #0077b6;
+      border-radius: 4px;
+      border: 2px solid #e2e8f0;
+    }
+    
     body {
-      font-family: 'Tajawal', sans-serif;
-      background-color: #f9fafb;
-      transition: background 0.3s, color 0.3s;
+      font-family: 'Tajawal', 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-    /* حركة دوران الأيقونات */
-    .icon-rotate {
-      display: inline-block;
-      animation: swing 2s ease-in-out infinite;
+    
+    /* خلفية متحركة */
+    .animated-bg {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      z-index: -1;
     }
-    @keyframes swing {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(10deg); }
-      50% { transform: rotate(0deg); }
-      75% { transform: rotate(-10deg); }
-      100% { transform: rotate(0deg); }
+    
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-    .tab-active {
-      border-bottom: 3px solid #2563eb;
-      color: #2563eb;
-      font-weight: bold;
+    
+    /* تأثير الزجاج */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
     }
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-weight: 500;
+    
+    .glass-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 30px rgba(255, 255, 255, 0.2);
     }
-    .star {
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: gray;
-      transition: color 0.2s;
+    
+    /* تأثير النيون */
+    .neon-text {
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 
+                   0 0 20px rgba(255, 255, 255, 0.6),
+                   0 0 30px rgba(255, 255, 255, 0.4);
     }
-    .star:hover, .star.selected {
-      color: gold;
-    }
-    /* Timeline */
-    .timeline-container {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
+    
+    /* أزرار متطورة */
+    .btn-modern {
       position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      z-index: 1;
     }
-    .timeline-step {
-      flex: 1;
-      text-align: center;
+    
+    .btn-modern::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+      z-index: -1;
+    }
+    
+    .btn-modern:hover::before {
+      left: 100%;
+    }
+    
+    /* بطاقات الأقسام */
+    .department-card {
       position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-radius: 20px;
     }
-    .timeline-circle {
-      width: 30px;
-      height: 30px;
-      background: #2563eb;
-      color: #fff;
+    
+    .department-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    
+    .department-card:hover::before {
+      transform: translateX(100%);
+    }
+    
+    .department-card:hover {
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* تأثيرات النماذج */
+    .form-input {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+    }
+    
+    /* تأثيرات البانر */
+    .banner-overlay {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3));
+    }
+    
+    /* تأثيرات السلايدر */
+    .swiper-slide {
+      transition: all 0.3s ease;
+    }
+    
+    .swiper-slide:hover {
+      transform: scale(1.05);
+    }
+    
+    /* زر العودة للأعلى */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      z-index: 9999;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
       border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 8px auto;
-      font-size: 1.2rem;
-      border: 3px solid #e5e7eb;
     }
-    .timeline-step:not(:last-child)::after {
-      content: '';
+    
+    .scroll-top-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* تأثيرات الفوتر */
+    .footer-wave {
       position: absolute;
-      top: 15px;
-      left: 50%;
-      right: -50%;
-      height: 3px;
-      background: #2563eb;
-      z-index: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100px;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%230077b6" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+      background-size: cover;
+      background-position: bottom;
     }
-    .timeline-label {
-      font-size: 0.95rem;
-      color: #2563eb;
-      font-weight: 500;
+    
+    /* تأثيرات النص */
+    .text-gradient {
+      background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-    /* تعديل الأزرار في الموبايل */
-    @media (max-width: 640px) {
-      .header-buttons {
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: center;
+    
+    /* تأثيرات الأيقونات */
+    .icon-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    /* تأثيرات الظل */
+    .shadow-glow {
+      box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+    }
+    
+    /* تأثيرات الحركة */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
       }
-      .header-buttons a,
-      .header-buttons button {
-        font-size: 0.8rem;
-        padding: 6px 10px;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-fade-in-up {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    
+    /* تأثيرات البارتيكل */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particleFloat 10s infinite linear;
+    }
+    
+    @keyframes particleFloat {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(720deg);
+        opacity: 0;
       }
     }
   </style>
 </head>
 <body class="min-h-screen">
-<!-- الهيدر -->
-<header class="flex flex-col sm:flex-row justify-between items-center p-4 bg-white shadow-md border-b border-gray-200 gap-3">
-  <!-- شعار المستشفى -->
-  <div class="flex items-center gap-3">
-    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
-         class="w-14 h-14 rounded-full border-2 border-blue-700 p-1"
-         alt="شعار مستشفى الحياة الذكية">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-      <p class="text-sm text-blue-900 font-medium">SMART HAYAT HOSPITAL</p>
+  <!-- خلفية متحركة -->
+  <div class="animated-bg"></div>
+  
+  <!-- بارتيكلز -->
+  <div class="particles" id="particles"></div>
+  
+  <!-- الهيدر -->
+  <header class="glass-card p-6 m-4 rounded-3xl shadow-2xl relative z-10 animate-fade-in-up">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+      <!-- شعار المستشفى -->
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
+               class="w-16 h-16 rounded-full border-4 border-white shadow-lg icon-float"
+               alt="شعار مستشفى الحياة الذكية">
+          <div class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+        </div>
+        <div>
+          <h1 class="text-3xl font-black text-white neon-text">مستشفى الحياة الذكية</h1>
+          <p class="text-sm text-blue-100 font-medium">SMART HAYAT HOSPITAL</p>
+        </div>
+      </div>
+      
+      <!-- الأزرار -->
+      <div class="flex flex-wrap gap-3 justify-center">
+        <button class="btn-modern bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-2 backdrop-blur-sm border border-white/30">
+          <i class="fa-solid fa-globe icon-float"></i> ترجمة
+        </button>
+        <button class="btn-modern bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-2 backdrop-blur-sm border border-white/30">
+          <i class="fa-solid fa-phone icon-float"></i> 12345
+        </button>
+        <a href="search.html" target="_blank"
+           class="btn-modern bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-2 shadow-lg">
+          <i class="fa-solid fa-user icon-float"></i> بوابة المريض
+        </a>
+      </div>
     </div>
-  </div>
-  <!-- الأزرار -->
-  <div class="flex header-buttons gap-3 w-full sm:w-auto justify-center sm:justify-end">
-    <button class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
-      <i class="fa-solid fa-globe icon-rotate"></i> ترجمة
-    </button>
-    <button class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
-      <i class="fa-solid fa-phone icon-rotate"></i> 12345
-    </button>
-    <a href="search.html" target="_blank"
-       class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
-      <i class="fa-solid fa-user icon-rotate"></i> بوابة المريض
-    </a>
-  </div>
-</header>
-
-<div class="banner bg-cover bg-center text-white text-center py-20 px-8 relative" 
-     style="background-image: url('https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp')">
-  <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-  <div class="relative z-10">
-      <h2 class="banner-text text-2xl md:text-3xl font-bold bg-black bg-opacity-40 inline-block px-8 py-4 rounded-lg">
-          أهلاً بك في مستشفى الحياة الذكية
+  </header>
+  
+  <!-- البانر -->
+  <div class="relative mx-4 mb-8 rounded-3xl overflow-hidden shadow-2xl animate-fade-in-up" style="animation-delay: 0.1s;">
+    <div class="banner-overlay absolute inset-0 z-10"></div>
+    <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" 
+         alt="مستشفى الحياة الذكية" class="w-full h-96 object-cover">
+    <div class="absolute inset-0 z-20 flex flex-col items-center justify-center text-white p-8">
+      <h2 class="text-4xl md:text-5xl font-black mb-4 text-center neon-text animate-pulse-slow">
+        أهلاً بك في مستشفى الحياة الذكية
       </h2>
-      <p class="banner-text text-xl md:text-2xl mt-4 bg-black bg-opacity-40 inline-block px-8 py-4 rounded-lg">
-          نقدم لك بيئة طبية ذكية لتحسين الرعاية الصحية
+      <p class="text-xl md:text-2xl text-center max-w-2xl neon-text">
+        نقدم لك بيئة طبية ذكية لتحسين الرعاية الصحية
       </p>
-  </div>
-</div>
-
-<!-- 🔘 زر "احجز الآن" الثابت على اليمين -->
-<div id="bookNowBtn" style="position: fixed; top: 50%; right: 20px; transform: translateY(-50%); z-index: 9999;">
-  <button onclick="alert('جاري التحويل إلى صفحة الحجز...')" 
-          style="background-color: #0077b6; color: white; padding: 12px 22px; font-size: 16px; border: none; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer;">
-     احجز الآن
-  </button>
-</div>
-
-<!-- زر الرجوع لأعلى (SVG احترافي) -->
-<style>
-  .scroll-top-btn {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    z-index: 9999;
-    background-color: rgba(0, 119, 182, 0.8);
-    border: none;
-    border-radius: 50%;
-    padding: 12px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    transition: background-color 0.3s ease;
-  }
-  .scroll-top-btn:hover {
-    background-color: rgba(0, 119, 182, 1);
-  }
-  .scroll-top-btn svg {
-    width: 24px;
-    height: 24px;
-    fill: white;
-  }
-</style>
-<button class="scroll-top-btn" onclick="scrollToTop()" aria-label="رجوع إلى الأعلى">
-  <svg viewBox="0 0 24 24">
-    <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
-  </svg>
-</button>
-<script>
-  function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-</script>
-
-<!-- ✅ مكتبة Swiper -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
-
-<!-- ✅ قسم أحدث الأخبار بصور متحركة -->
-<section class="bg-white rounded-lg shadow-md p-6 mb-6">
-  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">📰 أحدث الأخبار</h2>
-  <div class="swiper newsSwiper">
-    <div class="swiper-wrapper" id="newsContainer">
-      <!-- سيتم تحميل الأخبار من Firebase هنا -->
     </div>
   </div>
-  <div class="mt-4 text-center">
-    <button class="bg-primary text-white px-6 py-2 rounded-md font-bold hover:bg-blue-600 transition">
-      المزيد من الأخبار
+  
+  <!-- 🔘 زر "احجز الآن" الثابت -->
+  <div id="bookNowBtn" style="position: fixed; top: 50%; right: 30px; transform: translateY(-50%); z-index: 9999;">
+    <button onclick="alert('جاري التحويل إلى صفحة الحجز...')" 
+            class="btn-modern bg-gradient-to-r from-gold to-yellow-500 hover:from-yellow-500 hover:to-gold text-white px-8 py-4 rounded-full font-bold text-lg shadow-2xl animate-bounce-slow">
+       <i class="fas fa-calendar-check ml-2"></i> احجز الآن
     </button>
   </div>
-</section>
-
-<section class="bg-white rounded-lg shadow-md p-6 mb-6">
-    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">🏥 الأقسام الطبية</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+  
+  <!-- زر الرجوع لأعلى -->
+  <button class="scroll-top-btn" onclick="scrollToTop()" aria-label="رجوع إلى الأعلى">
+    <i class="fas fa-arrow-up text-white text-xl"></i>
+  </button>
+  
+  <!-- المحتوى الرئيسي -->
+  <main class="container mx-auto px-4 py-8 relative z-10">
+    <!-- قسم تسجيل الدخول -->
+    <section class="w-full max-w-md mx-auto mb-16 animate-fade-in-up" style="animation-delay: 0.2s;">
+      <div class="glass-card rounded-3xl p-8 shadow-2xl">
+        <!-- Logo Section -->
+        <div class="text-center mb-8">
+          <div class="hospital-logo mb-4 flex justify-center items-center gap-3">
+            <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" 
+                 alt="شعار المستشفى" class="w-20 h-20 rounded-2xl shadow-lg">
+            <h1 class="text-4xl font-black text-gradient">مستشفى الحياة الذكية</h1>
+          </div>
+          <p class="text-white/90 text-lg">مرحبًا بك في نظام المستشفى الذكي</p>
+        </div>
         
-<!-- قسم الاستقبال بخلفية زرقاء شفافة -->
-<div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-  <img src="https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.webp?a=1&b=1&s=612x612&w=0&k=20&c=p_BnNwDwa9rcwE90AxDVbqx0CMkz3hN_DN31FzE-seM=" alt="الاستقبال" class="w-full h-24 object-cover">
-  <span class="block p-2 font-bold">الاستقبال</span>
-</div>
+        <!-- Login Form -->
+        <div class="space-y-5">
+          <div class="relative">
+            <span class="form-icon absolute right-4 top-1/2 transform -translate-y-1/2 text-white/70 text-xl">
+              <i class="fas fa-user"></i>
+            </span>
+            <input type="text" id="username" placeholder="اسم المستخدم"
+              class="form-input w-full pr-12 py-4 px-6 rounded-2xl text-white placeholder-white/50 focus:outline-none text-lg">
+          </div>
+          <div class="relative">
+            <span class="form-icon absolute right-4 top-1/2 transform -translate-y-1/2 text-white/70 text-xl">
+              <i class="fas fa-lock"></i>
+            </span>
+            <input type="password" id="password" placeholder="كلمة المرور"
+              class="form-input w-full pr-12 py-4 px-6 rounded-2xl text-white placeholder-white/50 focus:outline-none text-lg">
+          </div>
+          <button onclick="login()"
+            class="btn-modern w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-4 rounded-2xl font-bold text-lg shadow-xl">
+            <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
+          </button>
+          <div class="text-center mt-4">
+            <a href="#" class="text-white/80 hover:text-white transition text-sm">
+              <i class="fas fa-question-circle ml-1"></i> نسيت كلمة المرور؟
+            </a>
+          </div>
+        </div>
+        <div class="mt-8 pt-6 border-t border-white/20 text-center">
+          <p class="text-white/80">ليس لديك حساب؟ 
+            <a href="#" class="text-gold hover:text-yellow-400 font-bold transition">
+              <i class="fas fa-headset ml-1"></i> تواصل مع الإدارة
+            </a>
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- قسم أحدث الأخبار -->
+    <section class="glass-card rounded-3xl p-8 mb-12 shadow-2xl animate-fade-in-up" style="animation-delay: 0.3s;">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-black text-white flex items-center gap-3">
+          <i class="fas fa-newspaper text-gold"></i> أحدث الأخبار
+        </h2>
+        <div class="flex gap-2">
+          <div class="w-3 h-3 bg-gold rounded-full animate-pulse"></div>
+          <div class="w-3 h-3 bg-gold rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+          <div class="w-3 h-3 bg-gold rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+        </div>
+      </div>
+      <div class="swiper newsSwiper">
+        <div class="swiper-wrapper">
+          <!-- شريحة خبر 1 -->
+          <div class="swiper-slide">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl">
+              <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
+                   alt="خبر 1" class="w-full h-64 object-cover">
+              <div class="p-6">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="bg-gold/20 text-gold px-3 py-1 rounded-full text-xs font-bold">جديد</span>
+                  <span class="text-white/60 text-sm">منذ يومين</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">توسعة وحدة العناية المركزة</h3>
+                <p class="text-white/80 text-sm">تمت إضافة 10 أسرة جديدة مجهزة بأحدث التقنيات الطبية</p>
+              </div>
+            </div>
+          </div>
+          <!-- شريحة خبر 2 -->
+          <div class="swiper-slide">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl">
+              <img src="https://media.istockphoto.com/id/1468742408/photo/doctor-work-at-operating-room.webp?a=1&s=612x612&w=0&k=20&c=z68Sq5dYmat_ZHDKFn_ktjOf9N2-bsKyBLsOQBOO4zA=" 
+                   alt="خبر 2" class="w-full h-64 object-cover">
+              <div class="p-6">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-bold">تحديث</span>
+                  <span class="text-white/60 text-sm">منذ أسبوع</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">إضافة أجهزة أشعة حديثة</h3>
+                <p class="text-white/80 text-sm">تجهيز القسم بأحدث أجهزة الرنين المغناطيسي والطبقي المحوري</p>
+              </div>
+            </div>
+          </div>
+          <!-- شريحة خبر 3 -->
+          <div class="swiper-slide">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl">
+              <img src="https://i.pinimg.com/736x/5e/0e/6a/5e0e6a4a8c1336af7ec34b4c9d4cee79.jpg" 
+                   alt="خبر 3" class="w-full h-64 object-cover">
+              <div class="p-6">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-bold">افتتاح</span>
+                  <span class="text-white/60 text-sm">منذ شهر</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">افتتاح وحدة الطوارئ الجديدة</h3>
+                <p class="text-white/80 text-sm">وحدة طوارئ متكاملة بسعة 50 سريراً مجهزة بأحدث الأجهزة</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 text-center">
+        <button class="btn-modern bg-gradient-to-r from-gold to-yellow-500 hover:from-yellow-500 hover:to-gold text-white px-8 py-3 rounded-full font-bold shadow-xl">
+          <i class="fas fa-arrow-left ml-2"></i> المزيد من الأخبار
+        </button>
+      </div>
+    </section>
+    
+    <!-- قسم الأقسام الطبية -->
+    <section class="glass-card rounded-3xl p-8 mb-12 shadow-2xl animate-fade-in-up" style="animation-delay: 0.4s;">
+      <h2 class="text-3xl font-black text-white mb-8 flex items-center gap-3">
+        <i class="fas fa-hospital text-gold"></i> الأقسام الطبية
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <!-- قسم الاستقبال -->
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.webp?a=1&b=1&s=612x612&w=0&k=20&c=p_BnNwDwa9rcwE90AxDVbqx0CMkz3hN_DN31FzE-seM=" 
+                 alt="الاستقبال" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">الاستقبال</span>
+        </div>
         <!-- قسم الرعاية -->
-        <div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-            <img src="https://i.pinimg.com/736x/f7/2f/be/f72fbed2f5a0a8812329a3b5878cea0e.jpg" alt="الرعاية" class="w-full h-24 object-cover">
-            <span class="block p-2 font-bold">الرعاية</span>
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://i.pinimg.com/736x/f7/2f/be/f72fbed2f5a0a8812329a3b5878cea0e.jpg" 
+                 alt="الرعاية" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">الرعاية</span>
         </div>
         <!-- قسم العمليات -->
-        <div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-            <img src="https://i.pinimg.com/736x/d5/5e/84/d55e84801da45b86853616b144ed0fab.jpg" alt="العمليات" class="w-full h-24 object-cover">
-            <span class="block p-2 font-bold">العمليات</span>
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://i.pinimg.com/736x/d5/5e/84/d55e84801da45b86853616b144ed0fab.jpg" 
+                 alt="العمليات" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">العمليات</span>
         </div>
         <!-- قسم العناية المركزة -->
-        <div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-            <img src="https://media.istockphoto.com/id/1737833729/photo/hospital-monitor-displaying-vital-signs-heart-rate-blood-pressure-temperature-and-pulse.webp?a=1&b=1&s=612x612&w=0&k=20&c=NUBBHz3Klh6XcX8M1CjeDLDbXD2f7L6CoqFHEWFZtrw=" alt="العناية المركزة" class="w-full h-24 object-cover">
-            <span class="block p-2 font-bold">العناية المركزة</span>
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://media.istockphoto.com/id/1737833729/photo/hospital-monitor-displaying-vital-signs-heart-rate-blood-pressure-temperature-and-pulse.webp?a=1&b=1&s=612x612&w=0&k=20&c=NUBBHz3Klh6XcX8M1CjeDLDbXD2f7L6CoqFHEWFZtrw=" 
+                 alt="العناية المركزة" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">العناية المركزة</span>
         </div>
         <!-- قسم الإدارة -->
-        <div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-            <img src="https://i.pinimg.com/736x/e7/03/d2/e703d28f9165df0600997fbe7fdb809f.jpg" alt="الإدارة" class="w-full h-24 object-cover">
-            <span class="block p-2 font-bold">الإدارة</span>
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://i.pinimg.com/736x/e7/03/d2/e703d28f9165df0600997fbe7fdb809f.jpg" 
+                 alt="الإدارة" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">الإدارة</span>
         </div>
         <!-- قسم التحاليل -->
-        <div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-            <img src="https://plus.unsplash.com/premium_photo-1661374871994-ed7edc184864?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDZ8fHxlbnwwfHx8fHw%3D" alt="التحاليل" class="w-full h-24 object-cover">
-            <span class="block p-2 font-bold">التحاليل</span>
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://plus.unsplash.com/premium_photo-1661374871994-ed7edc184864?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDZ8fHxlbnwwfHx8fHw%3D" 
+                 alt="التحاليل" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">التحاليل</span>
         </div>
         <!-- قسم الصيدلة -->
-        <div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-            <img src="https://i.pinimg.com/736x/32/ee/a3/32eea3357defd3e09e1097ec19fb29eb.jpg" alt="الصيدلة" class="w-full h-24 object-cover">
-            <span class="block p-2 font-bold">الصيدلة</span>
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://i.pinimg.com/736x/32/ee/a3/32eea3357defd3e09e1097ec19fb29eb.jpg" 
+                 alt="الصيدلة" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">الصيدلة</span>
         </div>
-        
         <!-- قسم الحضانة -->
-        <div style="background-color: rgba(0, 119, 182, 0.9); color: white;" class="rounded-lg text-center overflow-hidden shadow">
-      <img src="https://i.pinimg.com/736x/51/b8/9b/51b89bd840e87841931880fd62378766.jpg" alt="الحضانة" class="w-full h-24 object-cover">
-      <div class="block p-2 font-bold">الحضانة</div>
-    </div>
-    </div>
-</section>
-
-        <section class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">⭐ مميزات النظام</h2>
-            <div class="swiper mySwiper">
-                <div class="swiper-wrapper">
-                    <div class="swiper-slide bg-white rounded-lg overflow-hidden shadow">
-                        <img src="https://media.istockphoto.com/id/2200499379/photo/medical-technology-concept-electronic-medical-record-digital-healthcare-and-network.jpg?s=612x612&w=0&k=20&c=PsvvI1ev1PoZmI3jFFcZvTh6U_Fzu3qzxU88pQPUeUo=" alt="تتبع حالة المريض" 
-                             class="w-full h-40 object-cover" loading="lazy">
-                        <span class="block p-3 font-bold">تتبع حالة المريض</span>
-                    </div>
-                    <div class="swiper-slide bg-white rounded-lg overflow-hidden shadow">
-                        <img src="https://plus.unsplash.com/premium_photo-1742710726634-18e31a278fc2?q=80&w=469&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="قاعدة بيانات موحدة" 
-                             class="w-full h-40 object-cover" loading="lazy">
-                        <span class="block p-3 font-bold">قاعدة بيانات موحدة</span>
-                    </div>
-                    <div class="swiper-slide bg-white rounded-lg overflow-hidden shadow">
-                        <img src="https://images.unsplash.com/photo-1577368211130-4bbd0181ddf0?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="إدارة الأدوية" 
-                             class="w-full h-40 object-cover" loading="lazy">
-                        <span class="block p-3 font-bold">إدارة الأدوية</span>
-                    </div>
-                    <div class="swiper-slide bg-white rounded-lg overflow-hidden shadow">
-                        <img src="https://media.istockphoto.com/id/1256143470/photo/genetic-research-laboratory-interior-female-doctor-using-computer.jpg?s=612x612&w=0&k=20&c=Ah-aDMVT92qViVngiy0SnbJnN47GJjZ-uUsDW7ff8EA=" alt="نتائج تحاليل فورية" 
-                             class="w-full h-40 object-cover" loading="lazy">
-                        <span class="block p-3 font-bold">نتائج تحاليل فورية</span>
-                    </div>
+        <div class="department-card glass-card p-4 text-center cursor-pointer">
+          <div class="relative mb-3">
+            <img src="https://i.pinimg.com/736x/51/b8/9b/51b89bd840e87841931880fd62378766.jpg" 
+                 alt="الحضانة" class="w-full h-24 object-cover rounded-xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
+          </div>
+          <span class="block text-white font-bold">الحضانة</span>
+        </div>
+      </div>
+    </section>
+    
+    <!-- قسم مميزات النظام -->
+    <section class="glass-card rounded-3xl p-8 mb-12 shadow-2xl animate-fade-in-up" style="animation-delay: 0.5s;">
+      <h2 class="text-3xl font-black text-white mb-8 flex items-center gap-3">
+        <i class="fas fa-star text-gold"></i> مميزات النظام
+      </h2>
+      <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl h-full">
+              <div class="relative">
+                <img src="https://media.istockphoto.com/id/2200499379/photo/medical-technology-concept-electronic-medical-record-digital-healthcare-and-network.jpg?s=612x612&w=0&k=20&c=PsvvI1ev1PoZmI3jFFcZvTh6U_Fzu3qzxU88pQPUeUo=" 
+                     alt="تتبع حالة المريض" class="w-full h-48 object-cover">
+                <div class="absolute top-4 right-4 bg-gold text-white px-3 py-1 rounded-full text-xs font-bold">
+                  <i class="fas fa-check ml-1"></i> مميز
                 </div>
+              </div>
+              <div class="p-6">
+                <h3 class="text-xl font-bold text-white mb-2">تتبع حالة المريض</h3>
+                <p class="text-white/80">نظام ذكي لمتابعة حالة المرضى بشكل فوري ودقيق</p>
+              </div>
             </div>
-        </section>
-
-<section class="rounded-2xl backdrop-blur-md bg-white/30 shadow-xl p-8 mb-10 border border-white/40">
-  <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-primary">📘 دليل المستخدم</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- كرت ملف المريض -->
-    <div class="glass-card p-6 rounded-xl text-center shadow-md hover:scale-105 transition-all duration-300">
-      <h3 class="text-xl font-bold mb-2 flex justify-center items-center gap-2 text-primary">👤 ملف المريض</h3>
-      <p class="mb-4 text-gray-700">عرض حالة المريض والفحوصات.</p>
-      <button style="background-color: rgba(0, 119, 182, 0.9); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.backgroundColor='rgba(0, 119, 182, 1)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(0, 119, 182, 0.9)'; this.style.transform='scale(1)'">
-        عرض الملف
-      </button>
+          </div>
+          <div class="swiper-slide">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl h-full">
+              <div class="relative">
+                <img src="https://plus.unsplash.com/premium_photo-1742710726634-18e31a278fc2?q=80&w=469&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                     alt="قاعدة بيانات موحدة" class="w-full h-48 object-cover">
+                <div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                  <i class="fas fa-database ml-1"></i> متكامل
+                </div>
+              </div>
+              <div class="p-6">
+                <h3 class="text-xl font-bold text-white mb-2">قاعدة بيانات موحدة</h3>
+                <p class="text-white/80">تخزين آمن ومركزي لجميع البيانات الطبية</p>
+              </div>
+            </div>
+          </div>
+          <div class="swiper-slide">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl h-full">
+              <div class="relative">
+                <img src="https://images.unsplash.com/photo-1577368211130-4bbd0181ddf0?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fHw%3D" 
+                     alt="إدارة الأدوية" class="w-full h-48 object-cover">
+                <div class="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                  <i class="fas fa-pills ml-1"></i> ذكي
+                </div>
+              </div>
+              <div class="p-6">
+                <h3 class="text-xl font-bold text-white mb-2">إدارة الأدوية</h3>
+                <p class="text-white/80">نظام متطور لإدارة وتتبع الأدوية والوصفات الطبية</p>
+              </div>
+            </div>
+          </div>
+          <div class="swiper-slide">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-xl h-full">
+              <div class="relative">
+                <img src="https://media.istockphoto.com/id/1256143470/photo/genetic-research-laboratory-interior-female-doctor-using-computer.jpg?s=612x612&w=0&k=20&c=Ah-aDMVT92qViVngiy0SnbJnN47GJjZ-uUsDW7ff8EA=" 
+                     alt="نتائج تحاليل فورية" class="w-full h-48 object-cover">
+                <div class="absolute top-4 right-4 bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                  <i class="fas fa-flask ml-1"></i> سريع
+                </div>
+              </div>
+              <div class="p-6">
+                <h3 class="text-xl font-bold text-white mb-2">نتائج تحاليل فورية</h3>
+                <p class="text-white/80">الحصول على النتائج بشكل فوري ودقيق</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- قسم دليل المستخدم -->
+    <section class="glass-card rounded-3xl p-8 mb-12 shadow-2xl animate-fade-in-up" style="animation-delay: 0.6s;">
+      <h2 class="text-3xl font-black text-white mb-8 flex items-center gap-3">
+        <i class="fas fa-book text-gold"></i> دليل المستخدم
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- كرت ملف المريض -->
+        <div class="glass-card rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-300 group">
+          <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <i class="fas fa-user-injured text-white text-3xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-3">ملف المريض</h3>
+          <p class="text-white/80 mb-6">عرض حالة المريض والفحوصات والتاريخ الطبي الكامل</p>
+          <button class="btn-modern bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-full font-bold w-full">
+            <i class="fas fa-eye ml-2"></i> عرض الملف
+          </button>
+        </div>
+        <!-- كرت تطبيق الهاتف -->
+        <div class="glass-card rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-300 group">
+          <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <i class="fas fa-mobile-alt text-white text-3xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-3">تطبيق الهاتف</h3>
+          <p class="text-white/80 mb-6">تابع الحالة من موبايلك واحصل على إشعارات فورية</p>
+          <button class="btn-modern bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-6 py-3 rounded-full font-bold w-full">
+            <i class="fas fa-download ml-2"></i> تحميل
+          </button>
+        </div>
+        <!-- كرت تواصل معنا -->
+        <div class="glass-card rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-300 group">
+          <div class="w-20 h-20 bg-gradient-to-br from-gold to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <i class="fas fa-headset text-white text-3xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-3">تواصل معنا</h3>
+          <p class="text-white/80 mb-6">نحن معك دائماً للإجابة على استفساراتك</p>
+          <button class="btn-modern bg-gradient-to-r from-gold to-yellow-600 hover:from-yellow-600 hover:to-gold text-white px-6 py-3 rounded-full font-bold w-full">
+            <i class="fas fa-phone ml-2"></i> اتصل بنا
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <!-- الفوتر -->
+  <footer class="relative bg-gradient-to-r from-primary to-blue-800 text-white py-12 mt-16 overflow-hidden">
+    <div class="footer-wave"></div>
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="text-center">
+        <div class="flex justify-center mb-6">
+          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
+               class="w-20 h-20 rounded-full border-4 border-white shadow-lg" alt="شعار المستشفى">
+        </div>
+        <h3 class="text-2xl font-bold mb-4 neon-text">مستشفى الحياة الذكية</h3>
+        <p class="text-lg mb-2">© 2025 جميع الحقوق محفوظة</p>
+        <p class="text-sm opacity-80 max-w-2xl mx-auto">
+          <i class="fas fa-tools ml-2"></i> تم تطوير النظام وفق منهجية هندسية متكاملة بواسطة المهندس محمود صقر – هندسة اتصالات وشبكات
+        </p>
+        <div class="flex justify-center gap-6 mt-6">
+          <a href="#" class="text-white hover:text-gold transition text-2xl">
+            <i class="fab fa-facebook"></i>
+          </a>
+          <a href="#" class="text-white hover:text-gold transition text-2xl">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="#" class="text-white hover:text-gold transition text-2xl">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="#" class="text-white hover:text-gold transition text-2xl">
+            <i class="fab fa-linkedin"></i>
+          </a>
+        </div>
+      </div>
     </div>
-    <!-- كرت تطبيق الهاتف -->
-    <div class="glass-card p-6 rounded-xl text-center shadow-md hover:scale-105 transition-all duration-300">
-      <h3 class="text-xl font-bold mb-2 flex justify-center items-center gap-2 text-primary">📱 تطبيق الهاتف</h3>
-      <p class="mb-4 text-gray-700">تابع الحالة من موبايلك.</p>
-      <button style="background-color: rgba(0, 119, 182, 0.9); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.backgroundColor='rgba(0, 119, 182, 1)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(0, 119, 182, 0.9)'; this.style.transform='scale(1)'">
-        تحميل
-      </button>
-    </div>
-    <!-- كرت تواصل معنا -->
-    <div class="glass-card p-6 rounded-xl text-center shadow-md hover:scale-105 transition-all duration-300">
-      <h3 class="text-xl font-bold mb-2 flex justify-center items-center gap-2 text-primary">☎️ تواصل معنا</h3>
-      <p class="mb-4 text-gray-700">نحن معك دائماً.</p>
-      <button style="background-color: rgba(0, 119, 182, 0.9); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.backgroundColor='rgba(0, 119, 182, 1)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(0, 119, 182, 0.9)'; this.style.transform='scale(1)'">
-        اتصل بنا
-      </button>
-    </div>
-  </div>
-</section>
-
-   <footer class="bg-primary text-white text-center p-4 mt-8">
-  <p>© 2025 مستشفى الحياة الذكية</p>
-  <p>🔧 تم تطوير النظام وفق منهجية هندسية متكاملة بواسطة المهندس محمود صقر – هندسة اتصالات وشبكات</p>
-</footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
-    <script>
-        const swiper = new Swiper(".mySwiper", {
-            slidesPerView: 1,
-            spaceBetween: 20,
-            loop: true,
-            autoplay: {
-                delay: 3000,
-            },
-            breakpoints: {
-                640: { slidesPerView: 2 },
-                1024: { slidesPerView: 3 }
-            }
+  </footer>
+  
+  <script>
+    // إنشاء بارتيكلز
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 50;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        const size = Math.random() * 5 + 2;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 10 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        
+        particlesContainer.appendChild(particle);
+      }
+    }
+    
+    createParticles();
+    
+    // تهيئة السلايدر الأخبار
+    const newsSwiper = new Swiper(".newsSwiper", {
+      slidesPerView: 1,
+      spaceBetween: 20,
+      loop: true,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false
+      },
+      breakpoints: {
+        640: { slidesPerView: 1 },
+        768: { slidesPerView: 2 },
+        1024: { slidesPerView: 3 }
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+    });
+    
+    // تهيئة سلايدر مميزات النظام
+    const swiper = new Swiper(".mySwiper", {
+      slidesPerView: 1,
+      spaceBetween: 20,
+      loop: true,
+      autoplay: {
+        delay: 3000,
+      },
+      breakpoints: {
+        640: { slidesPerView: 2 },
+        1024: { slidesPerView: 3 }
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+    });
+    
+    // دالة تسجيل الدخول
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      
+      if (!username || !password) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'تنبيه',
+          text: 'الرجاء إدخال اسم المستخدم وكلمة المرور',
+          confirmButtonText: 'حسنًا',
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: '#fff',
+          confirmButtonColor: '#0077b6'
         });
-        function login() {
-            const username = document.getElementById("username").value.trim();
-            const password = document.getElementById("password").value.trim();
-   if (username === "emergency" && password === "123456") {
-  window.location.href = "emergency.html";
-} else if (username === "reception" && password === "123456") {
-  window.location.href = "reception.html";
-} else {
-  alert("❌ اسم المستخدم أو كلمة المرور غير صحيحة");
-}
+        return;
+      }
+      
+      if (username === "emergency" && password === "123456") {
+        localStorage.setItem("user", username);
+        localStorage.setItem("role", "emergency");
+        Swal.fire({
+          icon: 'success',
+          title: 'مرحبًا بك في قسم الطوارئ 🏥',
+          timer: 2000,
+          showConfirmButton: false,
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: '#fff'
+        }).then(() => {
+          window.location.href = "emergency.html";
+        });
+      } else if (username === "reception" && password === "123456") {
+        localStorage.setItem("user", username);
+        localStorage.setItem("role", "reception");
+        Swal.fire({
+          icon: 'success',
+          title: 'مرحبًا بك في قسم الاستقبال 📋',
+          timer: 2000,
+          showConfirmButton: false,
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: '#fff'
+        }).then(() => {
+          window.location.href = "reception.html";
+        });
+      } else if (username === "admin" && password === "123456") {
+        localStorage.setItem("user", username);
+        localStorage.setItem("role", "admin");
+        Swal.fire({
+          icon: 'success',
+          title: 'مرحبًا بك في قسم الإدارة 🧑‍💼',
+          timer: 2000,
+          showConfirmButton: false,
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: '#fff'
+        }).then(() => {
+          window.location.href = "admin.html";
+        });
+      } else if (username === "radiology" && password === "123456") {
+        localStorage.setItem("user", username);
+        localStorage.setItem("role", "radiology");
+        Swal.fire({
+          icon: "success",
+          title: "مرحبًا بك في قسم الأشعة",
+          showConfirmButton: false,
+          timer: 2000,
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: '#fff'
+        }).then(() => {
+          window.location.href = "radiology.html";
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'بيانات غير صحيحة!',
+          text: 'الرجاء المحاولة مرة أخرى',
+          confirmButtonText: 'حسنًا',
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: '#fff',
+          confirmButtonColor: '#0077b6'
+        });
+        document.getElementById("password").value = "";
+      }
+    }
+    
+    // دالة الرجوع لأعلى
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // التركيز على حقل اسم المستخدم عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById("username").focus();
+    });
+    
+    // إضافة تأثير التمرير للعناصر
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-fade-in-up');
         }
-    </script>
- 
+      });
+    }, observerOptions);
+    
+    document.querySelectorAll('section').forEach(section => {
+      observer.observe(section);
+    });
+  </script>
 </body>
 </html>
