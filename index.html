@@ -3,1168 +3,1209 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مستشفى الحياة الذكية - رعاية صحية عالمية</title>
+  <title>مستشفى الحياة الذكية - SMART HAYAT HOSPITAL</title>
   <link rel="icon" href="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" type="image/png">
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
-  
   <style>
-    :root {
-      --primary: #0052CC;
-      --secondary: #0065FF;
-      --accent: #FF5630;
-      --light: #F4F5F7;
-      --dark: #172B4D;
-      --gold: #FF991F;
-      --success: #36B37E;
-      --info: #00B8D9;
-    }
-
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: var(--primary) #e2e8f0;
-    }
-    
-    *::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    *::-webkit-scrollbar-track {
-      background: #e2e8f0;
-      border-radius: 4px;
-    }
-    
-    *::-webkit-scrollbar-thumb {
-      background-color: var(--primary);
-      border-radius: 4px;
-      border: 2px solid #e2e8f0;
-    }
-
     body {
-      font-family: 'Tajawal', 'Cairo', sans-serif;
-      background-color: #FFFFFF;
-      color: var(--dark);
-      overflow-x: hidden;
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f9fafb;
+      transition: background 0.3s, color 0.3s;
     }
-
-    /* Navigation */
-    .navbar {
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      transition: all 0.3s ease;
+    
+    /* حركة دوران الأيقونات */
+    .icon-rotate {
+      display: inline-block;
+      animation: swing 2s ease-in-out infinite;
     }
-
-    .navbar.scrolled {
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    @keyframes swing {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(10deg); }
+      50% { transform: rotate(0deg); }
+      75% { transform: rotate(-10deg); }
+      100% { transform: rotate(0deg); }
     }
-
-    .nav-link {
-      position: relative;
-      transition: color 0.3s ease;
+    
+    .tab-active {
+      border-bottom: 3px solid #2563eb;
+      color: #2563eb;
+      font-weight: bold;
     }
-
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      right: 0;
-      width: 0;
-      height: 2px;
-      background: var(--primary);
-      transition: width 0.3s ease;
-    }
-
-    .nav-link:hover::after {
-      width: 100%;
-    }
-
-    /* Hero Section */
-    .hero-section {
-      background: linear-gradient(135deg, #F4F5F7 0%, #EBECF0 100%);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-pattern {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230052CC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      opacity: 0.5;
-    }
-
-    /* Cards */
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      overflow: hidden;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
-
-    .card-header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 1.5rem;
-      position: relative;
-    }
-
-    .card-body {
-      padding: 1.5rem;
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: all 0.3s ease;
+    
+    .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
     }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--secondary);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
-    }
-
-    .btn-secondary {
-      background: white;
-      color: var(--primary);
-      border: 2px solid var(--primary);
-    }
-
-    .btn-secondary:hover {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #2d9d6d;
-    }
-
-    /* Forms */
-    .form-control {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 2px solid #DFE1E6;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      background: white;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
-    }
-
-    /* Doctor Cards */
-    .doctor-card {
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-
-    .doctor-card:hover {
-      transform: translateY(-10px);
-    }
-
-    .doctor-image {
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 auto 1rem;
-      border: 4px solid white;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .doctor-card:hover .doctor-image {
-      transform: scale(1.05);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Services */
-    .service-icon {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1.5rem;
-      color: white;
-      font-size: 2rem;
-      transition: all 0.3s ease;
-    }
-
-    .service-card:hover .service-icon {
-      transform: rotate(10deg) scale(1.1);
-    }
-
-    /* Stats */
-    .stat-card {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 2rem;
-      border-radius: 16px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 32px rgba(0, 82, 204, 0.3);
-    }
-
-    .stat-number {
-      font-size: 3rem;
-      font-weight: 900;
-      margin-bottom: 0.5rem;
-    }
-
-    /* Footer */
-    .footer {
-      background: var(--dark);
-      color: white;
-      padding: 4rem 0 2rem;
-    }
-
-    .footer-links a {
-      color: #DFE1E6;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    .footer-links a:hover {
-      color: white;
-    }
-
-    /* Animations */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate-fade-in-up {
-      animation: fadeInUp 0.8s ease-out;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .hero-section {
-        padding: 4rem 0;
-      }
-      
-      .stat-number {
-        font-size: 2rem;
-      }
-    }
-
-    /* Loading Animation */
-    .loader {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid var(--primary);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Floating Action Button */
-    .fab {
-      position: fixed;
-      bottom: 30px;
-      left: 30px;
-      width: 60px;
-      height: 60px;
-      background: var(--accent);
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    
+    .star {
       font-size: 1.5rem;
-      box-shadow: 0 4px 12px rgba(255, 86, 48, 0.4);
       cursor: pointer;
-      transition: all 0.3s ease;
-      z-index: 1000;
+      color: gray;
+      transition: color 0.2s;
     }
-
-    .fab:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 20px rgba(255, 86, 48, 0.6);
+    .star:hover, .star.selected {
+      color: gold;
     }
-
-    /* Testimonials */
-    .testimonial-card {
-      background: white;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    
+    /* Timeline */
+    .timeline-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
       position: relative;
     }
-
-    .testimonial-card::before {
-      content: '"';
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 4rem;
-      color: var(--primary);
-      opacity: 0.1;
-    }
-
-    /* Departments */
-    .dept-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .dept-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-    }
-
-    .dept-image {
-      height: 200px;
-      object-fit: cover;
-      width: 100%;
-    }
-
-    .dept-content {
-      padding: 1.5rem;
-    }
-
-    /* Emergency Banner */
-    .emergency-banner {
-      background: linear-gradient(135deg, var(--accent), #FF8F73);
-      color: white;
-      padding: 1rem;
+    .timeline-step {
+      flex: 1;
       text-align: center;
-      font-weight: 600;
+      position: relative;
     }
-
-    .emergency-banner a {
-      color: white;
-      text-decoration: none;
+    .timeline-circle {
+      width: 30px;
+      height: 30px;
+      background: #2563eb;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px auto;
+      font-size: 1.2rem;
+      border: 3px solid #e5e7eb;
+    }
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      right: -50%;
+      height: 3px;
+      background: #2563eb;
+      z-index: 0;
+    }
+    .timeline-label {
+      font-size: 0.95rem;
+      color: #2563eb;
+      font-weight: 500;
+    }
+    
+    /* تعديل الأزرار في الموبايل */
+    @media (max-width: 640px) {
+      .header-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .header-buttons a,
+      .header-buttons button {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+      }
+    }
+    
+    /* Animated background */
+    .animated-bg {
+      position: fixed;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(-45deg, #cbe8ff, #e0fff4, #f1faff, #d1f7ff);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      z-index: -1;
+    }
+    
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+    
+    .form-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 1rem;
+      color: #0077b6;
+    }
+    
+    input::placeholder {
+      color: #666;
+      opacity: 0.8;
+    }
+    
+    input:focus {
+      background-color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .hospital-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+    
+    .hospital-logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+    }
+    
+    /* زر الرجوع لأعلى */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 9999;
+      background-color: rgba(0, 119, 182, 0.8);
+      border: none;
+      border-radius: 50%;
+      padding: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      transition: background-color 0.3s ease;
+    }
+    .scroll-top-btn:hover {
+      background-color: rgba(0, 119, 182, 1);
+    }
+    .scroll-top-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
     }
   </style>
 </head>
-<body>
-  <!-- Emergency Banner -->
-  <div class="emergency-banner">
-    <div class="container mx-auto px-4">
-      <i class="fas fa-phone-alt ml-2"></i>
-      للطوارئ: <a href="tel:937">937</a> | 
-      <i class="fas fa-calendar-check ml-2 mr-2"></i>
-      <a href="#">احجز موعدك الآن</a>
+<body class="min-h-screen">
+  <!-- Animated background -->
+  <div class="animated-bg"></div>
+  
+  <!-- الهيدر -->
+  <header class="flex flex-col sm:flex-row justify-between items-center p-4 bg-white shadow-lg border-b-4 border-blue-700 gap-3">
+    <!-- شعار المستشفى -->
+    <div class="flex items-center gap-3">
+      <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
+           class="w-16 h-16 rounded-full border-3 border-blue-700 p-1 shadow-lg"
+           alt="شعار مستشفى الحياة الذكية">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+        <p class="text-sm text-blue-900 font-medium">SMART HAYAT HOSPITAL</p>
+      </div>
+    </div>
+    
+    <!-- قائمة التنقل -->
+    <nav class="hidden md:flex space-x-reverse space-x-6">
+      <a href="#" class="text-blue-900 hover:text-blue-700 font-medium transition">الرئيسية</a>
+      <a href="#" class="text-blue-900 hover:text-blue-700 font-medium transition">الأقسام</a>
+      <a href="#" class="text-blue-900 hover:text-blue-700 font-medium transition">الأطباء</a>
+      <a href="#" class="text-blue-900 hover:text-blue-700 font-medium transition">الخدمات</a>
+      <a href="#" class="text-blue-900 hover:text-blue-700 font-medium transition">حجز مواعيد</a>
+      <a href="#" class="text-blue-900 hover:text-blue-700 font-medium transition">تواصل معنا</a>
+    </nav>
+    
+    <!-- الأزرار -->
+    <div class="flex header-buttons gap-3 w-full sm:w-auto justify-center sm:justify-end">
+      <button class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-globe icon-rotate"></i> EN
+      </button>
+      <button class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-phone icon-rotate"></i> 12345
+      </button>
+      <a href="search.html" target="_blank"
+         class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-user icon-rotate"></i> بوابة المريض
+      </a>
+    </div>
+  </header>
+  
+  <!-- البانر -->
+  <div class="banner bg-cover bg-center text-white text-center py-20 px-8 relative" 
+       style="background-image: url('https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp')">
+    <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+    <div class="relative z-10">
+      <h2 class="banner-text text-2xl md:text-3xl font-bold bg-black bg-opacity-40 inline-block px-8 py-4 rounded-lg">
+        أهلاً بك في مستشفى الحياة الذكية
+      </h2>
+      <p class="banner-text text-xl md:text-2xl mt-4 bg-black bg-opacity-40 inline-block px-8 py-4 rounded-lg">
+        نقدم لك بيئة طبية ذكية لتحسين الرعاية الصحية
+      </p>
     </div>
   </div>
-
-  <!-- Navigation -->
-  <nav class="navbar sticky top-0 z-50" id="navbar">
+  
+  <!-- 🔘 زر "احجز الآن" الثابت على اليمين -->
+  <div id="bookNowBtn" style="position: fixed; top: 50%; right: 20px; transform: translateY(-50%); z-index: 9999;">
+    <button onclick="showBookingForm()" 
+            style="background: linear-gradient(135deg, #0077b6, #00a8cc); color: white; padding: 15px 25px; font-size: 16px; border: none; border-radius: 50px; box-shadow: 0 6px 15px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
+       <i class="fas fa-calendar-check"></i> احجز الآن
+    </button>
+  </div>
+  
+  <!-- زر الرجوع لأعلى -->
+  <button class="scroll-top-btn" onclick="scrollToTop()" aria-label="رجوع إلى الأعلى">
+    <svg viewBox="0 0 24 24">
+      <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/>
+    </svg>
+  </button>
+  
+  <!-- قسم البارزات الطبية -->
+  <section class="py-12 bg-gradient-to-r from-blue-50 to-cyan-50">
     <div class="container mx-auto px-4">
-      <div class="flex justify-between items-center py-4">
-        <!-- Logo -->
-        <div class="flex items-center space-x-4 space-x-reverse">
-          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" 
-               alt="مستشفى الحياة الذكية" class="w-12 h-12">
-          <div>
-            <h1 class="text-xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-            <p class="text-xs text-gray-600">SMART HAYAT HOSPITAL</p>
+      <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">البارزات الطبية</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- بطاقة 1 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
+          <div class="p-1 bg-gradient-to-r from-blue-500 to-cyan-500">
+            <img src="https://media.istockphoto.com/id/1737833729/photo/hospital-monitor-displaying-vital-signs-heart-rate-blood-pressure-temperature-and-pulse.webp?a=1&b=1&s=612x612&w=0&k=20&c=NUBBHz3Klh6XcX8M1CjeDLDbXD2f7L6CoqFHEWFZtrw=" 
+                 alt="العناية المركزة" class="w-full h-48 object-cover">
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2 text-blue-800">وحدة العناية المركزة</h3>
+            <p class="text-gray-600 mb-4">أحدث الأجهزة الطبية وفريق متخصص لتقديم أفضل رعاية للحالات الحرجة</p>
+            <a href="#" class="text-blue-600 font-medium hover:text-blue-800">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
           </div>
         </div>
-
-        <!-- Desktop Menu -->
-        <div class="hidden md:flex items-center space-x-6 space-x-reverse">
-          <a href="#home" class="nav-link text-gray-700 hover:text-primary">الرئيسية</a>
-          <a href="#about" class="nav-link text-gray-700 hover:text-primary">عن المستشفى</a>
-          <a href="#departments" class="nav-link text-gray-700 hover:text-primary">الأقسام</a>
-          <a href="#doctors" class="nav-link text-gray-700 hover:text-primary">الأطباء</a>
-          <a href="#services" class="nav-link text-gray-700 hover:text-primary">الخدمات</a>
-          <a href="#contact" class="nav-link text-gray-700 hover:text-primary">اتصل بنا</a>
-          <button onclick="showLoginModal()" class="btn btn-primary">
-            <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
-          </button>
+        
+        <!-- بطاقة 2 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
+          <div class="p-1 bg-gradient-to-r from-blue-500 to-cyan-500">
+            <img src="https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.webp?a=1&b=1&s=612x612&w=0&k=20&c=p_BnNwDwa9rcwE90AxDVbqx0CMkz3hN_DN31FzE-seM=" 
+                 alt="الاستقبال" class="w-full h-48 object-cover">
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2 text-blue-800">قسم الاستقبال الطبي</h3>
+            <p class="text-gray-600 mb-4">خدمات استقبال سريعة وفعالة لتسهيل إجراءات الدخول للمستشفى</p>
+            <a href="#" class="text-blue-600 font-medium hover:text-blue-800">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
         </div>
-
-        <!-- Mobile Menu Button -->
-        <button class="md:hidden text-gray-700" onclick="toggleMobileMenu()">
-          <i class="fas fa-bars text-2xl"></i>
+        
+        <!-- بطاقة 3 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
+          <div class="p-1 bg-gradient-to-r from-blue-500 to-cyan-500">
+            <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
+                 alt="الرعاية" class="w-full h-48 object-cover">
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold mb-2 text-blue-800">الرعاية التخصصية</h3>
+            <p class="text-gray-600 mb-4">فرق طبية متخصصة في جميع المجالات الطبية لتقديم رعاية شاملة</p>
+            <a href="#" class="text-blue-600 font-medium hover:text-blue-800">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم الأطباء المتخصصين -->
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-4 text-blue-900">فريقنا الطبي</h2>
+      <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">نفتخر بوجود كفاءات طبية عالية من أفضل الأطباء والاستشاريين في مختلف التخصصات</p>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- طبيب 1 -->
+        <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
+          <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="د. أحمد محمد" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-bold text-blue-800">د. أحمد محمد</h3>
+            <p class="text-gray-600 text-sm">استشاري جراحة القلب</p>
+            <div class="flex justify-center mt-3">
+              <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-full text-sm transition">
+                حجز موعد
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- طبيب 2 -->
+        <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
+          <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="د. سارة أحمد" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-bold text-blue-800">د. سارة أحمد</h3>
+            <p class="text-gray-600 text-sm">استشارية طب الأطفال</p>
+            <div class="flex justify-center mt-3">
+              <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-full text-sm transition">
+                حجز موعد
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- طبيب 3 -->
+        <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
+          <img src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="د. محمد علي" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-bold text-blue-800">د. محمد علي</h3>
+            <p class="text-gray-600 text-sm">استشاري جراحة العظام</p>
+            <div class="flex justify-center mt-3">
+              <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-full text-sm transition">
+                حجز موعد
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- طبيب 4 -->
+        <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
+          <img src="https://images.unsplash.com/photo-1594824903013-2b210b8c5ca2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="د. فاطمة خالد" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-bold text-blue-800">د. فاطمة خالد</h3>
+            <p class="text-gray-600 text-sm">استشارية النساء والولادة</p>
+            <div class="flex justify-center mt-3">
+              <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-full text-sm transition">
+                حجز موعد
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-10">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold transition">
+          عرض جميع الأطباء
         </button>
       </div>
-
-      <!-- Mobile Menu -->
-      <div id="mobileMenu" class="hidden md:hidden pb-4">
-        <a href="#home" class="block py-2 text-gray-700 hover:text-primary">الرئيسية</a>
-        <a href="#about" class="block py-2 text-gray-700 hover:text-primary">عن المستشفى</a>
-        <a href="#departments" class="block py-2 text-gray-700 hover:text-primary">الأقسام</a>
-        <a href="#doctors" class="block py-2 text-gray-700 hover:text-primary">الأطباء</a>
-        <a href="#services" class="block py-2 text-gray-700 hover:text-primary">الخدمات</a>
-        <a href="#contact" class="block py-2 text-gray-700 hover:text-primary">اتصل بنا</a>
-        <button onclick="showLoginModal()" class="btn btn-primary w-full mt-2">
-          <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
-        </button>
-      </div>
     </div>
-  </nav>
-
-  <!-- Hero Section -->
-  <section id="home" class="hero-section py-20">
-    <div class="hero-pattern"></div>
-    <div class="container mx-auto px-4 relative z-10">
-      <div class="grid md:grid-cols-2 gap-12 items-center">
-        <div class="animate-fade-in-up">
-          <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
-            رعاية صحية عالمية بمعايير الجودة الألمانية
-          </h1>
-          <p class="text-xl text-gray-600 mb-8 leading-relaxed">
-            مستشفى الحياة الذكية يقدم أفضل الخدمات الطبية بأحدث التقنيات وبكفاءة عالمية
-          </p>
-          <div class="flex flex-wrap gap-4">
-            <button class="btn btn-primary text-lg">
-              <i class="fas fa-calendar-check ml-2"></i> احجز موعد
-            </button>
-            <button class="btn btn-secondary text-lg">
-              <i class="fas fa-phone ml-2"></i> اتصل بنا
-            </button>
+  </section>
+  
+  <!-- قسم الأقسام الطبية -->
+  <section class="py-12 bg-gradient-to-br from-blue-50 to-cyan-100">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">الأقسام الطبية</h2>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <!-- قسم الاستقبال -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.webp?a=1&b=1&s=612x612&w=0&k=20&c=p_BnNwDwa9rcwE90AxDVbqx0CMkz3hN_DN31FzE-seM=" 
+                 alt="الاستقبال" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">الاستقبال</span>
           </div>
         </div>
-        <div class="relative">
-          <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-               alt="مستشفى" class="rounded-2xl shadow-2xl">
-          <div class="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
-            <div class="flex items-center space-x-4 space-x-reverse">
-              <div class="text-center">
-                <div class="text-2xl font-bold text-primary">24/7</div>
-                <div class="text-sm text-gray-600">خدمة طوارئ</div>
-              </div>
-              <div class="w-px h-12 bg-gray-300"></div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-primary">500+</div>
-                <div class="text-sm text-gray-600">طبيب متخصص</div>
-              </div>
-            </div>
+        
+        <!-- قسم الرعاية -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://i.pinimg.com/736x/f7/2f/be/f72fbed2f5a0a8812329a3b5878cea0e.jpg" 
+                 alt="الرعاية" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">الرعاية</span>
+          </div>
+        </div>
+        
+        <!-- قسم العمليات -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://i.pinimg.com/736x/d5/5e/84/d55e84801da45b86853616b144ed0fab.jpg" 
+                 alt="العمليات" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">العمليات</span>
+          </div>
+        </div>
+        
+        <!-- قسم العناية المركزة -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://media.istockphoto.com/id/1737833729/photo/hospital-monitor-displaying-vital-signs-heart-rate-blood-pressure-temperature-and-pulse.webp?a=1&b=1&s=612x612&w=0&k=20&c=NUBBHz3Klh6XcX8M1CjeDLDbXD2f7L6CoqFHEWFZtrw=" 
+                 alt="العناية المركزة" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">العناية المركزة</span>
+          </div>
+        </div>
+        
+        <!-- قسم الإدارة -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://i.pinimg.com/736x/e7/03/d2/e703d28f9165df0600997fbe7fdb809f.jpg" 
+                 alt="الإدارة" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">الإدارة</span>
+          </div>
+        </div>
+        
+        <!-- قسم التحاليل -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://plus.unsplash.com/premium_photo-1661374871994-ed7edc184864?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDZ8fHxlbnwwfHx8fHw%3D" 
+                 alt="التحاليل" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">التحاليل</span>
+          </div>
+        </div>
+        
+        <!-- قسم الصيدلة -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://i.pinimg.com/736x/32/ee/a3/32eea3357defd3e09e1097ec19fb29eb.jpg" 
+                 alt="الصيدلة" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">الصيدلة</span>
+          </div>
+        </div>
+        
+        <!-- قسم الحضانة -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group">
+          <div class="h-32 overflow-hidden">
+            <img src="https://i.pinimg.com/736x/51/b8/9b/51b89bd840e87841931880fd62378766.jpg" 
+                 alt="الحضانة" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+          </div>
+          <div class="p-3 text-center bg-gradient-to-r from-blue-600 to-cyan-600">
+            <span class="block font-bold text-white">الحضانة</span>
           </div>
         </div>
       </div>
     </div>
   </section>
-
-  <!-- Stats Section -->
-  <section class="py-16 bg-gray-50">
+  
+  <!-- قسم الأخبار -->
+  <section class="py-12 bg-white">
     <div class="container mx-auto px-4">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div class="stat-card animate-fade-in-up">
-          <div class="stat-number">50+</div>
-          <div class="text-lg">قسم طبي</div>
-        </div>
-        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.1s">
-          <div class="stat-number">1000+</div>
-          <div class="text-lg">سرير</div>
-        </div>
-        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.2s">
-          <div class="stat-number">500K+</div>
-          <div class="text-lg">مريض سنوياً</div>
-        </div>
-        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.3s">
-          <div class="stat-number">25+</div>
-          <div class="text-lg">سنة خبرة</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section id="about" class="py-20">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">عن مستشفى الحياة الذكية</h2>
-        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-          نحن نقدم رعاية صحية شاملة بأحدث التقنيات الطبية وبكفاءة عالمية
-        </p>
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold text-blue-900">أحدث الأخبار</h2>
+        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+          جميع الأخبار <i class="fas fa-arrow-left"></i>
+        </a>
       </div>
       
-      <div class="grid md:grid-cols-2 gap-12 items-center">
-        <div>
-          <img src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-               alt="عن المستشفى" class="rounded-2xl shadow-xl">
-        </div>
-        <div>
-          <h3 class="text-2xl font-bold text-gray-800 mb-6">رؤيتنا ورسالتنا</h3>
-          <p class="text-gray-600 mb-6 leading-relaxed">
-            نسعى لتكون مؤسسة رائدة في تقديم الرعاية الصحية عالية الجودة، مع الالتزام بأعلى معايير الجودة والسلامة.
-          </p>
-          <div class="space-y-4">
-            <div class="flex items-start space-x-4 space-x-reverse">
-              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-check text-primary"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-800">جودة عالمية</h4>
-                <p class="text-gray-600">معتمدون من الهيئات الدولية</p>
-              </div>
-            </div>
-            <div class="flex items-start space-x-4 space-x-reverse">
-              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-check text-primary"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-800">فريق طبي متميز</h4>
-                <p class="text-gray-600">أفضل الأطباء والاستشاريين</p>
-              </div>
-            </div>
-            <div class="flex items-start space-x-4 space-x-reverse">
-              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-check text-primary"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-800">تقنية متطورة</h4>
-                <p class="text-gray-600">أحدث الأجهزة الطبية</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Departments Section -->
-  <section id="departments" class="py-20 bg-gray-50">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">الأقسام الطبية</h2>
-        <p class="text-xl text-gray-600">تخصصات طبية شاملة لتلبية جميع احتياجاتكم</p>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Cardiology -->
-        <div class="dept-card">
-          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="أمراض القلب" class="dept-image">
-          <div class="dept-content">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">أمراض القلب</h3>
-            <p class="text-gray-600 mb-4">علاج جميع أمراض القلب والأوعية الدموية</p>
-            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
-          </div>
-        </div>
-
-        <!-- Neurology -->
-        <div class="dept-card">
-          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="الأعصاب" class="dept-image">
-          <div class="dept-content">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">طب الأعصاب</h3>
-            <p class="text-gray-600 mb-4">تشخيص وعلاج الأمراض العصبية</p>
-            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
-          </div>
-        </div>
-
-        <!-- Orthopedics -->
-        <div class="dept-card">
-          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="العظام" class="dept-image">
-          <div class="dept-content">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">جراحة العظام</h3>
-            <p class="text-gray-600 mb-4">علاج إصابات وكسور العظام والمفاصل</p>
-            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
-          </div>
-        </div>
-
-        <!-- Pediatrics -->
-        <div class="dept-card">
-          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="الأطفال" class="dept-image">
-          <div class="dept-content">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">طب الأطفال</h3>
-            <p class="text-gray-600 mb-4">رعاية شاملة للأطفال منذ الولادة</p>
-            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
-          </div>
-        </div>
-
-        <!-- Radiology -->
-        <div class="dept-card">
-          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="الأشعة" class="dept-image">
-          <div class="dept-content">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">الأشعة التشخيصية</h3>
-            <p class="text-gray-600 mb-4">أجهزة أشعة حديثة لتشخيص دقيق</p>
-            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
-          </div>
-        </div>
-
-        <!-- Emergency -->
-        <div class="dept-card">
-          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="الطوارئ" class="dept-image">
-          <div class="dept-content">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">الطوارئ</h3>
-            <p class="text-gray-600 mb-4">خدمة طوارئ على مدار الساعة</p>
-            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Doctors Section -->
-  <section id="doctors" class="py-20">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">فريقنا الطبي</h2>
-        <p class="text-xl text-gray-600">أفضل الأطباء والاستشاريين في تخصصاتهم</p>
-      </div>
-      
-      <div class="swiper doctorsSwiper">
+      <div class="swiper newsSwiper">
         <div class="swiper-wrapper">
-          <!-- Doctor 1 -->
+          <!-- شريحة خبر 1 -->
           <div class="swiper-slide">
-            <div class="doctor-card">
-              <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-                   alt="د. أحمد محمد" class="doctor-image">
-              <h3 class="text-xl font-bold text-gray-800 mb-1">د. أحمد محمد</h3>
-              <p class="text-primary font-semibold mb-3">استشاري أمراض القلب</p>
-              <p class="text-gray-600 text-sm mb-4">خبرة 20 عام في جراحة القلب المفتوح</p>
-              <div class="flex justify-center space-x-2 space-x-reverse">
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fab fa-linkedin-in"></i>
-                </a>
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fas fa-envelope"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Doctor 2 -->
-          <div class="swiper-slide">
-            <div class="doctor-card">
-              <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-                   alt="د. فاطمة علي" class="doctor-image">
-              <h3 class="text-xl font-bold text-gray-800 mb-1">د. فاطمة علي</h3>
-              <p class="text-primary font-semibold mb-3">استشارية طب الأطفال</p>
-              <p class="text-gray-600 text-sm mb-4">متخصصة في أمراض الأطفال حديثي الولادة</p>
-              <div class="flex justify-center space-x-2 space-x-reverse">
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fab fa-linkedin-in"></i>
-                </a>
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fas fa-envelope"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Doctor 3 -->
-          <div class="swiper-slide">
-            <div class="doctor-card">
-              <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-                   alt="د. محمد خالد" class="doctor-image">
-              <h3 class="text-xl font-bold text-gray-800 mb-1">د. محمد خالد</h3>
-              <p class="text-primary font-semibold mb-3">استشاري جراحة العظام</p>
-              <p class="text-gray-600 text-sm mb-4">خبير في جراحة المناظير والمفاصل</p>
-              <div class="flex justify-center space-x-2 space-x-reverse">
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fab fa-linkedin-in"></i>
-                </a>
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fas fa-envelope"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Doctor 4 -->
-          <div class="swiper-slide">
-            <div class="doctor-card">
-              <img src="https://images.unsplash.com/photo-1594824907136-bd0a309a8c7c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-                   alt="د. سارة أحمد" class="doctor-image">
-              <h3 class="text-xl font-bold text-gray-800 mb-1">د. سارة أحمد</h3>
-              <p class="text-primary font-semibold mb-3">استشارية طب النساء</p>
-              <p class="text-gray-600 text-sm mb-4">متخصصة في طب الأمومة والجنين</p>
-              <div class="flex justify-center space-x-2 space-x-reverse">
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fab fa-linkedin-in"></i>
-                </a>
-                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
-                  <i class="fas fa-envelope"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="swiper-pagination mt-8"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Services Section -->
-  <section id="services" class="py-20 bg-gray-50">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">خدماتنا</h2>
-        <p class="text-xl text-gray-600">خدمات طبية شاملة بأحدث التقنيات</p>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Service 1 -->
-        <div class="card service-card">
-          <div class="service-icon">
-            <i class="fas fa-hospital"></i>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">العناية المركزة</h3>
-          <p class="text-gray-600 text-center mb-4">وحدات عناية مركزة مجهزة بأحدث الأجهزة</p>
-          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
-        </div>
-
-        <!-- Service 2 -->
-        <div class="card service-card">
-          <div class="service-icon">
-            <i class="fas fa-procedures"></i>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">العمليات الجراحية</h3>
-          <p class="text-gray-600 text-center mb-4">غرف عمليات مجهزة بأحدث التقنيات</p>
-          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
-        </div>
-
-        <!-- Service 3 -->
-        <div class="card service-card">
-          <div class="service-icon">
-            <i class="fas fa-x-ray"></i>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">الأشعة والتصوير</h3>
-          <p class="text-gray-600 text-center mb-4">أجهزة تصوير حديثة لتشخيص دقيق</p>
-          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
-        </div>
-
-        <!-- Service 4 -->
-        <div class="card service-card">
-          <div class="service-icon">
-            <i class="fas fa-vial"></i>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">المختبرات الطبية</h3>
-          <p class="text-gray-600 text-center mb-4">مختبرات مجهزة لإجراء جميع التحاليل</p>
-          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
-        </div>
-
-        <!-- Service 5 -->
-        <div class="card service-card">
-          <div class="service-icon">
-            <i class="fas fa-pills"></i>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">الصيدلية</h3>
-          <p class="text-gray-600 text-center mb-4">صيدلية مجهزة بجميع الأدوية</p>
-          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
-        </div>
-
-        <!-- Service 6 -->
-        <div class="card service-card">
-          <div class="service-icon">
-            <i class="fas fa-ambulance"></i>
-          </div>
-          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">الإسعاف والطوارئ</h3>
-          <p class="text-gray-600 text-center mb-4">خدمة إسعاف على مدار الساعة</p>
-          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Testimonials Section -->
-  <section class="py-20">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">آراء مرضانا</h2>
-        <p class="text-xl text-gray-600">تجارب حقيقية من مرضى سعداء</p>
-      </div>
-      
-      <div class="swiper testimonialsSwiper">
-        <div class="swiper-wrapper">
-          <!-- Testimonial 1 -->
-          <div class="swiper-slide">
-            <div class="testimonial-card">
-              <div class="flex items-center mb-4">
-                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
-                     alt="مريضة" class="w-16 h-16 rounded-full ml-4">
-                <div>
-                  <h4 class="font-bold text-gray-800">نورة أحمد</h4>
-                  <div class="text-yellow-400">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                  </div>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full">
+              <div class="relative">
+                <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
+                     alt="خبر 1" class="w-full h-56 object-cover">
+                <div class="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
+                  جديد
                 </div>
               </div>
-              <p class="text-gray-600 leading-relaxed">
-                "تجربة رائعة في مستشفى الحياة الذكية. الطاقم الطبي محترف جداً والخدمة ممتازة. أنصح الجميع بالتعامل معهم."
-              </p>
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-2 text-blue-800">توسعة وحدة العناية المركزة</h3>
+                <p class="text-gray-600 mb-4">تم تدشين توسعة جديدة لوحدة العناية المركزة بأحدث الأجهزة الطبية لزيادة الطاقة الاستيعابية</p>
+                <a href="#" class="text-blue-600 font-medium hover:text-blue-800">
+                  قراءة المزيد <i class="fas fa-arrow-left mr-1"></i>
+                </a>
+              </div>
             </div>
           </div>
-
-          <!-- Testimonial 2 -->
+          
+          <!-- شريحة خبر 2 -->
           <div class="swiper-slide">
-            <div class="testimonial-card">
-              <div class="flex items-center mb-4">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
-                     alt="مريض" class="w-16 h-16 rounded-full ml-4">
-                <div>
-                  <h4 class="font-bold text-gray-800">خالد محمد</h4>
-                  <div class="text-yellow-400">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                  </div>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full">
+              <div class="relative">
+                <img src="https://media.istockphoto.com/id/1468742408/photo/doctor-work-at-operating-room.webp?a=1&s=612x612&w=0&k=20&c=z68Sq5dYmat_ZHDKFn_ktjOf9N2-bsKyBLsOQBOO4zA=" 
+                     alt="خبر 2" class="w-full h-56 object-cover">
+                <div class="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm">
+                  تقنية
                 </div>
               </div>
-              <p class="text-gray-600 leading-relaxed">
-                "أفضل مستشفى تعاملت معه. الأطباء متخصصون والأجهزة حديثة. شكراً لفريق العمل على الرعاية الممتازة."
-              </p>
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-2 text-blue-800">إضافة أجهزة أشعة حديثة</h3>
+                <p class="text-gray-600 mb-4">استيراد أحدث أجهزة الأشعة التشخيصية لتقديم خدمات طبية دقيقة وسريعة</p>
+                <a href="#" class="text-blue-600 font-medium hover:text-blue-800">
+                  قراءة المزيد <i class="fas fa-arrow-left mr-1"></i>
+                </a>
+              </div>
             </div>
           </div>
-
-          <!-- Testimonial 3 -->
+          
+          <!-- شريحة خبر 3 -->
           <div class="swiper-slide">
-            <div class="testimonial-card">
-              <div class="flex items-center mb-4">
-                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
-                     alt="مريضة" class="w-16 h-16 rounded-full ml-4">
-                <div>
-                  <h4 class="font-bold text-gray-800">سارة عبدالله</h4>
-                  <div class="text-yellow-400">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                  </div>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full">
+              <div class="relative">
+                <img src="https://i.pinimg.com/736x/5e/0e/6a/5e0e6a4a8c1336af7ec34b4c9d4cee79.jpg" 
+                     alt="خبر 3" class="w-full h-56 object-cover">
+                <div class="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
+                  طارئ
                 </div>
               </div>
-              <p class="text-gray-600 leading-relaxed">
-                "المستشفى نظيف جداً والخدمة سريعة. أنصح به بشدة للجميع. تجربة إيجابية من البداية للنهاية."
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="swiper-pagination mt-8"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Contact Section -->
-  <section id="contact" class="py-20 bg-gray-50">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">اتصل بنا</h2>
-        <p class="text-xl text-gray-600">نحن هنا لمساعدتك على مدار الساعة</p>
-      </div>
-      
-      <div class="grid md:grid-cols-2 gap-12">
-        <div>
-          <h3 class="text-2xl font-bold text-gray-800 mb-6">معلومات التواصل</h3>
-          <div class="space-y-4">
-            <div class="flex items-start space-x-4 space-x-reverse">
-              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-map-marker-alt text-primary"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-800">العنوان</h4>
-                <p class="text-gray-600">شارع الملك فهد، الرياض، المملكة العربية السعودية</p>
-              </div>
-            </div>
-            <div class="flex items-start space-x-4 space-x-reverse">
-              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-phone text-primary"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-800">الهاتف</h4>
-                <p class="text-gray-600">+966 11 234 5678</p>
-              </div>
-            </div>
-            <div class="flex items-start space-x-4 space-x-reverse">
-              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-envelope text-primary"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-800">البريد الإلكتروني</h4>
-                <p class="text-gray-600">info@smarthayat.com</p>
-              </div>
-            </div>
-            <div class="flex items-start space-x-4 space-x-reverse">
-              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-clock text-primary"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-800">ساعات العمل</h4>
-                <p class="text-gray-600">24/7 للطوارئ<br>8:00 ص - 10:00 م للعيادات</p>
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-2 text-blue-800">افتتاح وحدة الطوارئ الجديدة</h3>
+                <p class="text-gray-600 mb-4">تم افتتاح وحدة الطوارئ الجديدة المجهزة بأحدث التقنيات الطبية لاستقبال الحالات الحرجة</p>
+                <a href="#" class="text-blue-600 font-medium hover:text-blue-800">
+                  قراءة المزيد <i class="fas fa-arrow-left mr-1"></i>
+                </a>
               </div>
             </div>
           </div>
         </div>
         
+        <div class="swiper-pagination mt-6"></div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم مميزات النظام -->
+  <section class="py-12 bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-4 text-blue-900">مميزات النظام الطبي</h2>
+      <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">نظام متكامل يوفر أفضل الخدمات الطبية باستخدام أحدث التقنيات</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- ميزة 1 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-user-md text-blue-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-2 text-blue-800">تتبع حالة المريض</h3>
+          <p class="text-gray-600">نظام متكامل لمتابعة حالة المرضى وتوفير الرعاية الطبية المستمرة</p>
+        </div>
+        
+        <!-- ميزة 2 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-database text-blue-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-2 text-blue-800">قاعدة بيانات موحدة</h3>
+          <p class="text-gray-600">قاعدة بيانات مركزية تضمن تكامل المعلومات الطبية وسهولة الوصول إليها</p>
+        </div>
+        
+        <!-- ميزة 3 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-pills text-blue-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-2 text-blue-800">إدارة الأدوية</h3>
+          <p class="text-gray-600">نظام متطور لإدارة الأدوية وضمان سلامة العلاج للمرضى</p>
+        </div>
+        
+        <!-- ميزة 4 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-microscope text-blue-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-2 text-blue-800">نتائج تحاليل فورية</h3>
+          <p class="text-gray-600">الحصول على نتائج التحاليل الطبية بشكل فوري ودقيق عبر النظام</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم دليل المستخدم -->
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">دليل المستخدم</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- كرت ملف المريض -->
+        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-lg p-8 text-center transition-all duration-300 hover:shadow-xl">
+          <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-file-medical text-blue-600 text-3xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4 text-blue-800">ملف المريض</h3>
+          <p class="text-gray-600 mb-6">عرض حالة المريض والفحوصات والتقارير الطبية بشكل آمن وسهل</p>
+          <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold transition">
+            عرض الملف
+          </button>
+        </div>
+        
+        <!-- كرت تطبيق الهاتف -->
+        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-lg p-8 text-center transition-all duration-300 hover:shadow-xl">
+          <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-mobile-alt text-blue-600 text-3xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4 text-blue-800">تطبيق الهاتف</h3>
+          <p class="text-gray-600 mb-6">تابع حالتك الصحية واحجز مواعيدك من خلال تطبيق الموبايل</p>
+          <div class="flex justify-center gap-4">
+            <button class="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+              <i class="fab fa-apple"></i> App Store
+            </button>
+            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+              <i class="fab fa-google-play"></i> Google Play
+            </button>
+          </div>
+        </div>
+        
+        <!-- كرت تواصل معنا -->
+        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-lg p-8 text-center transition-all duration-300 hover:shadow-xl">
+          <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-headset text-blue-600 text-3xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4 text-blue-800">تواصل معنا</h3>
+          <p class="text-gray-600 mb-6">فريق الدعم متاح على مدار الساعة للإجابة على استفساراتكم</p>
+          <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold transition">
+            اتصل بنا
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم الشهادات والتقديرات -->
+  <section class="py-12 bg-gradient-to-r from-blue-900 to-blue-800 text-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-12">شهادات التقدير والاعتمادات</h2>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <!-- شهادة 1 -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center transition-all duration-300 hover:bg-white/20">
+          <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-award text-yellow-400 text-3xl"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2">ISO 9001</h3>
+          <p class="text-blue-200 text-sm">شهادة الجودة الدولية</p>
+        </div>
+        
+        <!-- شهادة 2 -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center transition-all duration-300 hover:bg-white/20">
+          <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-certificate text-yellow-400 text-3xl"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2">JCI</h3>
+          <p class="text-blue-200 text-sm">اعتماد المشفى العالمي</p>
+        </div>
+        
+        <!-- شهادة 3 -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center transition-all duration-300 hover:bg-white/20">
+          <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-medal text-yellow-400 text-3xl"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2">CCHI</h3>
+          <p class="text-blue-200 text-sm">المجلس الصحي السعودي</p>
+        </div>
+        
+        <!-- شهادة 4 -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center transition-all duration-300 hover:bg-white/20">
+          <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-star text-yellow-400 text-3xl"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2">أفضل مستشفى</h3>
+          <p class="text-blue-200 text-sm">جائزة التميز الطبي</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم التقييمات -->
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-4 text-blue-900">آراء المرضى</h2>
+      <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">نشارككم بعض آراء ومراجعات المرضى الذين تلقوا الرعاية في مستشفى الحياة الذكية</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- تقييم 1 -->
+        <div class="bg-blue-50 rounded-xl shadow-lg p-6">
+          <div class="flex items-center mb-4">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="مريض" class="w-12 h-12 rounded-full ml-3">
+            <div>
+              <h4 class="font-bold text-blue-800">أحمد محمد</h4>
+              <div class="text-yellow-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-600 mb-4">"خدمة ممتازة وطاقم طبي محترف، أنصح الجميع بالتعامل مع مستشفى الحياة الذكية"</p>
+          <p class="text-gray-500 text-sm">15 مايو 2023</p>
+        </div>
+        
+        <!-- تقييم 2 -->
+        <div class="bg-blue-50 rounded-xl shadow-lg p-6">
+          <div class="flex items-center mb-4">
+            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="مريضة" class="w-12 h-12 rounded-full ml-3">
+            <div>
+              <h4 class="font-bold text-blue-800">فاطمة عبدالله</h4>
+              <div class="text-yellow-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-600 mb-4">"تجربة رائعة في قسم النساء والولادة، الأطباء متخصصون والرعاية كانت ممتازة"</p>
+          <p class="text-gray-500 text-sm">2 يونيو 2023</p>
+        </div>
+        
+        <!-- تقييم 3 -->
+        <div class="bg-blue-50 rounded-xl shadow-lg p-6">
+          <div class="flex items-center mb-4">
+            <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="مريض" class="w-12 h-12 rounded-full ml-3">
+            <div>
+              <h4 class="font-bold text-blue-800">خالد سالم</h4>
+              <div class="text-yellow-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="far fa-star"></i>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-600 mb-4">"المستشفى مجهز بأحدث التقنيات والخدمات سريعة، أنا سعيد بالتعامل معهم"</p>
+          <p class="text-gray-500 text-sm">20 يوليو 2023</p>
+        </div>
+      </div>
+      
+      <div class="text-center mt-10">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold transition">
+          المزيد من التقييمات
+        </button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم الأسئلة الشائعة -->
+  <section class="py-12 bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">الأسئلة الشائعة</h2>
+      
+      <div class="max-w-3xl mx-auto">
+        <!-- سؤال 1 -->
+        <div class="bg-white rounded-xl shadow-md mb-4 overflow-hidden">
+          <button class="w-full p-5 text-right font-bold text-blue-800 flex justify-between items-center" onclick="toggleFAQ(this)">
+            كيف يمكنني حجز موعد في المستشفى؟
+            <i class="fas fa-chevron-down text-blue-600"></i>
+          </button>
+          <div class="faq-content hidden p-5 text-gray-600 border-t">
+            يمكنك حجز موعد من خلال موقعنا الإلكتروني أو تطبيق الموبايل أو بالاتصال على رقم الاستقبال 12345. كما يمكنك زيارة المستشفى مباشرة لحجز موعد.
+          </div>
+        </div>
+        
+        <!-- سؤال 2 -->
+        <div class="bg-white rounded-xl shadow-md mb-4 overflow-hidden">
+          <button class="w-full p-5 text-right font-bold text-blue-800 flex justify-between items-center" onclick="toggleFAQ(this)">
+            ما هي ساعات عمل المستشفى؟
+            <i class="fas fa-chevron-down text-blue-600"></i>
+          </button>
+          <div class="faq-content hidden p-5 text-gray-600 border-t">
+            تعمل العيادات الخارجية من الساعة 8 صباحاً حتى 10 مساءً. أما قسم الطوارئ فيعمل على مدار الساعة طوال أيام الأسبوع.
+          </div>
+        </div>
+        
+        <!-- سؤال 3 -->
+        <div class="bg-white rounded-xl shadow-md mb-4 overflow-hidden">
+          <button class="w-full p-5 text-right font-bold text-blue-800 flex justify-between items-center" onclick="toggleFAQ(this)">
+            هل المستشفى يوفر خدمات التأمين الصحي؟
+            <i class="fas fa-chevron-down text-blue-600"></i>
+          </button>
+          <div class="faq-content hidden p-5 text-gray-600 border-t">
+            نعم، نتعامل مع معظم شركات التأمين الصحي المعتمدة في المملكة. يمكنك التواصل مع قسم التأمين للاستفسار عن شركتك.
+          </div>
+        </div>
+        
+        <!-- سؤال 4 -->
+        <div class="bg-white rounded-xl shadow-md mb-4 overflow-hidden">
+          <button class="w-full p-5 text-right font-bold text-blue-800 flex justify-between items-center" onclick="toggleFAQ(this)">
+            كيف يمكنني الحصول على نتائج الفحوصات؟
+            <i class="fas fa-chevron-down text-blue-600"></i>
+          </button>
+          <div class="faq-content hidden p-5 text-gray-600 border-t">
+            يمكنك الحصول على نتائج الفحوصات من خلال بوابة المريض على موقعنا الإلكتروني أو تطبيق الموبايل. كما يمكنك استلامها من قسم الاستقبال.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم الاتصال بنا -->
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-4 text-blue-900">تواصل معنا</h2>
+      <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">يسعدنا التواصل معكم والإجابة عن استفساراتكم واقتراحاتكم</p>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- نموذج الاتصال -->
         <div>
-          <h3 class="text-2xl font-bold text-gray-800 mb-6">ارسل لنا رسالة</h3>
-          <form class="space-y-4">
-            <div>
-              <input type="text" placeholder="الاسم الكامل" class="form-control">
+          <form class="bg-blue-50 rounded-xl shadow-lg p-8">
+            <div class="mb-6">
+              <label class="block text-gray-700 mb-2" for="name">الاسم الكامل</label>
+              <input type="text" id="name" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            <div>
-              <input type="email" placeholder="البريد الإلكتروني" class="form-control">
+            
+            <div class="mb-6">
+              <label class="block text-gray-700 mb-2" for="email">البريد الإلكتروني</label>
+              <input type="email" id="email" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            <div>
-              <input type="tel" placeholder="رقم الهاتف" class="form-control">
+            
+            <div class="mb-6">
+              <label class="block text-gray-700 mb-2" for="phone">رقم الهاتف</label>
+              <input type="tel" id="phone" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            <div>
-              <textarea placeholder="رسالتك" rows="4" class="form-control"></textarea>
+            
+            <div class="mb-6">
+              <label class="block text-gray-700 mb-2" for="subject">الموضوع</label>
+              <select id="subject" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">اختر الموضوع</option>
+                <option value="appointment">حجز موعد</option>
+                <option value="inquiry">استفسار طبي</option>
+                <option value="complaint">شكوى</option>
+                <option value="suggestion">اقتراح</option>
+                <option value="other">أخرى</option>
+              </select>
             </div>
-            <button type="submit" class="btn btn-primary w-full">
-              <i class="fas fa-paper-plane ml-2"></i> إرسال الرسالة
+            
+            <div class="mb-6">
+              <label class="block text-gray-700 mb-2" for="message">الرسالة</label>
+              <textarea id="message" rows="4" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold w-full transition">
+              إرسال الرسالة
             </button>
           </form>
         </div>
+        
+        <!-- معلومات الاتصال -->
+        <div>
+          <div class="bg-gradient-to-br from-blue-900 to-blue-800 text-white rounded-xl shadow-lg p-8 h-full">
+            <h3 class="text-2xl font-bold mb-6">معلومات الاتصال</h3>
+            
+            <div class="space-y-6">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-map-marker-alt text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-lg mb-1">العنوان</h4>
+                  <p class="text-blue-200">شارع الملك فهد، حي النخيل، الرياض، المملكة العربية السعودية</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-phone text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-lg mb-1">الهاتف</h4>
+                  <p class="text-blue-200">+966 12 345 6789</p>
+                  <p class="text-blue-200">الطوارئ: +966 12 345 6780</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-envelope text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-lg mb-1">البريد الإلكتروني</h4>
+                  <p class="text-blue-200">info@smarthayat.com</p>
+                  <p class="text-blue-200">appointments@smarthayat.com</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-clock text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-lg mb-1">ساعات العمل</h4>
+                  <p class="text-blue-200">العيادات: 8 صباحاً - 10 مساءً</p>
+                  <p class="text-blue-200">الطوارئ: 24 ساعة</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-8">
+              <h4 class="font-bold text-lg mb-4">تابعنا على</h4>
+              <div class="flex space-x-reverse space-x-4">
+                <a href="#" class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition">
+                  <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition">
+                  <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition">
+                  <i class="fab fa-instagram"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition">
+                  <i class="fab fa-youtube"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition">
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
-
-  <!-- Footer -->
-  <footer class="footer">
+  
+  <!-- خريطة الموقع -->
+  <section class="py-12 bg-gray-100">
     <div class="container mx-auto px-4">
-      <div class="grid md:grid-cols-4 gap-8 mb-8">
+      <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">موقع المستشفى</h2>
+      
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="h-96">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3632.123456789!2d46.675319!3d24.713646!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjTCsDQyJzQ5LjEiTiA0NsKwNDAnMzEuMSJF!5e0!3m2!1sen!2ssa!4v1234567890" 
+            width="100%" 
+            height="100%" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy">
+          </iframe>
+        </div>
+        
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 rounded-lg p-4 text-center">
+              <i class="fas fa-directions text-blue-600 text-2xl mb-2"></i>
+              <h3 class="font-bold text-blue-800">الحصول على الاتجاهات</h3>
+              <p class="text-gray-600 text-sm">احصل على الاتجاهات إلى المستشفى من موقعك الحالي</p>
+            </div>
+            
+            <div class="bg-blue-50 rounded-lg p-4 text-center">
+              <i class="fas fa-parking text-blue-600 text-2xl mb-2"></i>
+              <h3 class="font-bold text-blue-800">مواقف السيارات</h3>
+              <p class="text-gray-600 text-sm">متوفر مواقف مجانية لزوار المستشفى</p>
+            </div>
+            
+            <div class="bg-blue-50 rounded-lg p-4 text-center">
+              <i class="fas fa-wheelchair text-blue-600 text-2xl mb-2"></i>
+              <h3 class="font-bold text-blue-800">وصول سهل</h3>
+              <p class="text-gray-600 text-sm">مصاعد ومرافق مخصصة لذوي الاحتياجات الخاصة</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- قسم الاشتراك في النشرة البريدية -->
+  <section class="py-12 bg-gradient-to-r from-blue-900 to-blue-800 text-white">
+    <div class="container mx-auto px-4">
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-3xl font-bold mb-4">اشترك في نشرتنا البريدية</h2>
+        <p class="text-blue-200 mb-8">احصل على آخر الأخبار والعروض والمعلومات الطبية من مستشفى الحياة الذكية</p>
+        
+        <form class="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
+          <input type="email" placeholder="أدخل بريدك الإلكتروني" 
+                 class="flex-grow px-4 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+          <button type="submit" class="bg-white text-blue-900 hover:bg-blue-100 px-6 py-3 rounded-lg font-bold transition">
+            اشتراك
+          </button>
+        </form>
+        
+        <p class="text-blue-300 text-sm mt-4">نحن نحترم خصوصيتك ولن نشارك معلوماتك مع أي طرف ثالث</p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- الفوتر -->
+  <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white pt-12 pb-6">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- قسم عن المستشفى -->
         <div>
-          <div class="flex items-center space-x-3 space-x-reverse mb-4">
-            <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" 
-                 alt="Logo" class="w-10 h-10">
+          <div class="flex items-center gap-3 mb-4">
+            <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
+                 class="w-12 h-12 rounded-full border-2 border-white p-1"
+                 alt="شعار مستشفى الحياة الذكية">
             <h3 class="text-xl font-bold">مستشفى الحياة الذكية</h3>
           </div>
-          <p class="text-gray-400">
-            نقدم رعاية صحية عالية الجودة بأحدث التقنيات الطبية
-          </p>
-        </div>
-        
-        <div>
-          <h4 class="text-lg font-semibold mb-4">روابط سريعة</h4>
-          <div class="footer-links space-y-2">
-            <a href="#home">الرئيسية</a>
-            <a href="#about">عن المستشفى</a>
-            <a href="#departments">الأقسام</a>
-            <a href="#doctors">الأطباء</a>
+          <p class="text-blue-200 mb-4">نقدم رعاية صحية شاملة ومتطورة باستخدام أحدث التقنيات الطبية وكفاءات عالية.</p>
+          <div class="flex space-x-reverse space-x-4">
+            <a href="#" class="text-white hover:text-blue-300 transition"><i class="fab fa-facebook-f text-xl"></i></a>
+            <a href="#" class="text-white hover:text-blue-300 transition"><i class="fab fa-twitter text-xl"></i></a>
+            <a href="#" class="text-white hover:text-blue-300 transition"><i class="fab fa-instagram text-xl"></i></a>
+            <a href="#" class="text-white hover:text-blue-300 transition"><i class="fab fa-youtube text-xl"></i></a>
           </div>
         </div>
         
+        <!-- قسم الروابط السريعة -->
         <div>
-          <h4 class="text-lg font-semibold mb-4">الخدمات</h4>
-          <div class="footer-links space-y-2">
-            <a href="#">حجز موعد</a>
-            <a href="#">الاستشارات الطبية</a>
-            <a href="#">النتائج الطبية</a>
-            <a href="#">التأمين الصحي</a>
-          </div>
+          <h3 class="text-xl font-bold mb-4">روابط سريعة</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الرئيسية</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">عن المستشفى</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الأقسام الطبية</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الأطباء</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الخدمات</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">حجز مواعيد</a></li>
+          </ul>
         </div>
         
+        <!-- قسم الخدمات -->
         <div>
-          <h4 class="text-lg font-semibold mb-4">تابعنا</h4>
-          <div class="flex space-x-4 space-x-reverse mb-4">
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
-              <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
-              <i class="fab fa-twitter"></i>
-            </a>
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
-              <i class="fab fa-instagram"></i>
-            </a>
-            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
-              <i class="fab fa-linkedin-in"></i>
-            </a>
-          </div>
-          <p class="text-gray-400 text-sm">
-            اشترك في نشرتنا البريدية للحصول على آخر الأخبار
-          </p>
+          <h3 class="text-xl font-bold mb-4">خدماتنا</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الاستشارات الطبية</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">العمليات الجراحية</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الرعاية الحرجة</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">التحاليل الطبية</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الأشعة التشخيصية</a></li>
+            <li><a href="#" class="text-blue-200 hover:text-white transition">الصيدلة</a></li>
+          </ul>
+        </div>
+        
+        <!-- قسم معلومات الاتصال -->
+        <div>
+          <h3 class="text-xl font-bold mb-4">اتصل بنا</h3>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <i class="fas fa-map-marker-alt mt-1 text-blue-300"></i>
+              <span class="text-blue-200">شارع الملك فهد، حي النخيل، الرياض</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <i class="fas fa-phone text-blue-300"></i>
+              <span class="text-blue-200">+966 12 345 6789</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <i class="fas fa-envelope text-blue-300"></i>
+              <span class="text-blue-200">info@smarthayat.com</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <i class="fas fa-clock text-blue-300"></i>
+              <span class="text-blue-200">24/7 خدمة طارئة</span>
+            </li>
+          </ul>
         </div>
       </div>
       
-      <div class="border-t border-gray-700 pt-8 text-center">
-        <p class="text-gray-400">
-          © 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.
-        </p>
-        <p class="text-gray-500 text-sm mt-2">
-          تم التطوير بواسطة المهندس محمود صقر - هندسة اتصالات وشبكات
-        </p>
+      <div class="border-t border-blue-700 mt-8 pt-6 text-center">
+        <p class="text-blue-300">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
+        <p class="text-blue-400 text-sm mt-2">تم تطوير النظام وفق منهجية هندسية متكاملة بواسطة المهندس محمود صقر – هندسة اتصالات وشبكات</p>
       </div>
     </div>
   </footer>
-
-  <!-- Floating Action Button -->
-  <div class="fab" onclick="window.location.href='tel:937'">
-    <i class="fas fa-phone-alt"></i>
-  </div>
-
-  <!-- Login Modal -->
-  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800">تسجيل الدخول</h3>
-        <button onclick="closeLoginModal()" class="text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times text-xl"></i>
-        </button>
-      </div>
-      
-      <form onsubmit="handleLogin(event)">
-        <div class="mb-4">
-          <label class="block text-gray-700 mb-2">اسم المستخدم</label>
-          <input type="text" id="modalUsername" class="form-control" required>
-        </div>
-        <div class="mb-6">
-          <label class="block text-gray-700 mb-2">كلمة المرور</label>
-          <input type="password" id="modalPassword" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-full">
-          <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
-        </button>
-      </form>
-      
-      <div class="mt-6 text-center">
-        <a href="#" class="text-primary hover:underline">نسيت كلمة المرور؟</a>
-      </div>
-    </div>
-  </div>
-
+  
   <script>
-    // Initialize Swipers
-    const doctorsSwiper = new Swiper('.doctorsSwiper', {
+    // تهيئة السلايدر
+    const newsSwiper = new Swiper(".newsSwiper", {
       slidesPerView: 1,
-      spaceBetween: 30,
+      spaceBetween: 20,
       loop: true,
       autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
+        delay: 3000,
+        disableOnInteraction: false
       },
       pagination: {
-        el: '.swiper-pagination',
+        el: ".swiper-pagination",
         clickable: true,
       },
       breakpoints: {
-        640: {
-          slidesPerView: 2,
-        },
-        1024: {
-          slidesPerView: 3,
-        },
-      },
-    });
-
-    const testimonialsSwiper = new Swiper('.testimonialsSwiper', {
-      slidesPerView: 1,
-      spaceBetween: 30,
-      loop: true,
-      autoplay: {
-        delay: 6000,
-        disableOnInteraction: false,
-      },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-      },
-      breakpoints: {
-        768: {
-          slidesPerView: 2,
-        },
-      },
-    });
-
-    // Navbar scroll effect
-    window.addEventListener('scroll', function() {
-      const navbar = document.getElementById('navbar');
-      if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-      } else {
-        navbar.classList.remove('scrolled');
+        640: { slidesPerView: 1 },
+        768: { slidesPerView: 2 },
+        1024: { slidesPerView: 3 }
       }
     });
-
-    // Mobile menu toggle
-    function toggleMobileMenu() {
-      const mobileMenu = document.getElementById('mobileMenu');
-      mobileMenu.classList.toggle('hidden');
+    
+    // دالة التمرير للأعلى
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
-    // Login modal functions
-    function showLoginModal() {
-      document.getElementById('loginModal').classList.remove('hidden');
+    
+    // دالة عرض نموذج الحجز
+    function showBookingForm() {
+      Swal.fire({
+        title: 'حجز موعد',
+        html: `
+          <form id="bookingForm">
+            <div class="mb-4 text-right">
+              <label class="block text-gray-700 mb-2">الاسم الكامل</label>
+              <input type="text" id="fullName" class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-4 text-right">
+              <label class="block text-gray-700 mb-2">رقم الهاتف</label>
+              <input type="tel" id="phone" class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-4 text-right">
+              <label class="block text-gray-700 mb-2">القسم الطبي</label>
+              <select id="department" class="w-full px-3 py-2 border rounded-lg" required>
+                <option value="">اختر القسم</option>
+                <option value="general">طب عام</option>
+                <option value="cardiology">قلب وأوعية دموية</option>
+                <option value="orthopedics">عظام</option>
+                <option value="pediatrics">أطفال</option>
+                <option value="gynecology">نساء وولادة</option>
+              </select>
+            </div>
+            <div class="mb-4 text-right">
+              <label class="block text-gray-700 mb-2">التاريخ المفضل</label>
+              <input type="date" id="date" class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+          </form>
+        `,
+        confirmButtonText: 'تأكيد الحجز',
+        confirmButtonColor: '#0077b6',
+        preConfirm: () => {
+          const fullName = document.getElementById('fullName').value;
+          const phone = document.getElementById('phone').value;
+          const department = document.getElementById('department').value;
+          const date = document.getElementById('date').value;
+          
+          if (!fullName || !phone || !department || !date) {
+            Swal.showValidationMessage('يرجى ملء جميع الحقول');
+            return false;
+          }
+          
+          return { fullName, phone, department, date };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'تم تأكيد الحجز!',
+            text: `شكراً ${result.value.fullName}، تم حجز موعدك في قسم ${result.value.department} بتاريخ ${result.value.date}`,
+            icon: 'success',
+            confirmButtonColor: '#0077b6'
+          });
+        }
+      });
     }
-
-    function closeLoginModal() {
-      document.getElementById('loginModal').classList.add('hidden');
-    }
-
-    // Handle login
-    function handleLogin(event) {
-      event.preventDefault();
+    
+    // دالة تبديل الأسئلة الشائعة
+    function toggleFAQ(button) {
+      const content = button.nextElementSibling;
+      const icon = button.querySelector('i');
       
-      const username = document.getElementById('modalUsername').value.trim();
-      const password = document.getElementById('modalPassword').value.trim();
+      content.classList.toggle('hidden');
+      
+      if (content.classList.contains('hidden')) {
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+      } else {
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+      }
+    }
+    
+    // دالة تسجيل الدخول
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
       
       if (!username || !password) {
         Swal.fire({
           icon: 'warning',
           title: 'تنبيه',
           text: 'الرجاء إدخال اسم المستخدم وكلمة المرور',
-          confirmButtonText: 'حسنًا',
-          confirmButtonColor: '#0052CC'
+          confirmButtonText: 'حسنًا'
         });
         return;
       }
       
-      // Check credentials
       if (username === "emergency" && password === "123456") {
         localStorage.setItem("user", username);
         localStorage.setItem("role", "emergency");
@@ -1172,7 +1213,7 @@
           icon: 'success',
           title: 'مرحبًا بك في قسم الطوارئ 🏥',
           timer: 2000,
-          showConfirmButton: false,
+          showConfirmButton: false
         }).then(() => {
           window.location.href = "emergency.html";
         });
@@ -1183,7 +1224,7 @@
           icon: 'success',
           title: 'مرحبًا بك في قسم الاستقبال 📋',
           timer: 2000,
-          showConfirmButton: false,
+          showConfirmButton: false
         }).then(() => {
           window.location.href = "reception.html";
         });
@@ -1194,7 +1235,7 @@
           icon: 'success',
           title: 'مرحبًا بك في قسم الإدارة 🧑‍💼',
           timer: 2000,
-          showConfirmButton: false,
+          showConfirmButton: false
         }).then(() => {
           window.location.href = "admin.html";
         });
@@ -1205,7 +1246,7 @@
           icon: "success",
           title: "مرحبًا بك في قسم الأشعة",
           showConfirmButton: false,
-          timer: 2000,
+          timer: 2000
         }).then(() => {
           window.location.href = "radiology.html";
         });
@@ -1214,58 +1255,15 @@
           icon: 'error',
           title: 'بيانات غير صحيحة!',
           text: 'الرجاء المحاولة مرة أخرى',
-          confirmButtonText: 'حسنًا',
-          confirmButtonColor: '#0052CC'
+          confirmButtonText: 'حسنًا'
         });
-        document.getElementById('modalPassword').value = "";
+        document.getElementById("password").value = "";
       }
     }
-
-    // Smooth scrolling for navigation links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-          // Close mobile menu if open
-          document.getElementById('mobileMenu').classList.add('hidden');
-        }
-      });
-    });
-
-    // Form submission handler
-    document.querySelector('form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      Swal.fire({
-        icon: 'success',
-        title: 'تم الإرسال بنجاح!',
-        text: 'سنقوم بالرد عليك في أقرب وقت ممكن',
-        confirmButtonText: 'حسنًا',
-        confirmButtonColor: '#0052CC'
-      });
-      this.reset();
-    });
-
-    // Add animation on scroll
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -100px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-fade-in-up');
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('section').forEach(section => {
-      observer.observe(section);
+    
+    // عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById("username").focus();
     });
   </script>
 </body>
