@@ -216,6 +216,115 @@
     .animate-pulse {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
+    
+    /* تنسيقات صفحة تسجيل الدخول */
+    .login-body {
+      margin: 0;
+      font-family: 'Cairo', sans-serif;
+      overflow-x: hidden;
+      position: relative;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .login-animated-bg {
+      position: fixed;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(-45deg, #cbe8ff, #e0fff4, #f1faff, #d1f7ff);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      z-index: -1;
+    }
+    
+    .login-glass-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-form-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 1rem;
+      color: #667eea;
+    }
+    
+    .login-hospital-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+    
+    .login-hospital-logo img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .role-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    .role-card:hover {
+      transform: translateY(-5px);
+      border-color: #667eea;
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .role-card.selected {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .floating {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      animation: particleFloat 15s linear infinite;
+    }
+    
+    @keyframes particleFloat {
+      0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -247,6 +356,9 @@
     
     <!-- الأزرار -->
     <div class="flex header-buttons gap-3 w-full sm:w-auto justify-center sm:justify-end">
+      <button onclick="showLoginPage()" class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-sign-in-alt"></i> تسجيل الدخول
+      </button>
       <button class="bg-[#0077B6] hover:bg-[#005f8d] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2">
         <i class="fa-solid fa-globe icon-rotate"></i> EN
       </button>
@@ -332,10 +444,16 @@
                 <p class="text-blue-200 mb-6">أحدث الأجهزة الطبية وفريق متخصص لتقديم أفضل رعاية للحالات الحرجة مع مراقبة مستمرة على مدار الساعة</p>
                 <div class="flex items-center justify-between">
                   <div class="flex -space-x-2">
-                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <img src="https://randomuser.me/api/portraits/men/67.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-xs">
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      ط
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      د
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      م
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
                       +15
                     </div>
                   </div>
@@ -374,10 +492,16 @@
                 <p class="text-blue-200 mb-6">خدمات استقبال سريعة وفعالة لتسهيل إجراءات الدخول للمستشفى مع نظام حجز إلكتروني متطور</p>
                 <div class="flex items-center justify-between">
                   <div class="flex -space-x-2">
-                    <img src="https://randomuser.me/api/portraits/women/28.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <img src="https://randomuser.me/api/portraits/men/36.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <img src="https://randomuser.me/api/portraits/women/65.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-xs">
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      م
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      س
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      أ
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
                       +12
                     </div>
                   </div>
@@ -416,10 +540,16 @@
                 <p class="text-blue-200 mb-6">فرق طبية متخصصة في جميع المجالات الطبية لتقديم رعاية شاملة ومتكاملة للمرضى</p>
                 <div class="flex items-center justify-between">
                   <div class="flex -space-x-2">
-                    <img src="https://randomuser.me/api/portraits/men/75.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <img src="https://randomuser.me/api/portraits/women/50.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <img src="https://randomuser.me/api/portraits/men/29.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
-                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-xs">
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      د
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      ط
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
+                      أ
+                    </div>
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-white text-xs">
                       +18
                     </div>
                   </div>
@@ -464,8 +594,14 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- طبيب 1 -->
         <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
-          <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="د. أحمد محمد" class="w-full h-64 object-cover">
+          <div class="h-64 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+            <div class="text-center">
+              <div class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-md text-white text-4xl"></i>
+              </div>
+              <span class="text-blue-800 font-bold">د. أحمد محمد</span>
+            </div>
+          </div>
           <div class="p-4">
             <h3 class="text-lg font-bold text-blue-800">د. أحمد محمد</h3>
             <p class="text-gray-600 text-sm">استشاري جراحة القلب</p>
@@ -477,10 +613,16 @@
           </div>
         </div>
         
-        <!-- طبيب 2 -->
+        <!-- طبيبة 1 -->
         <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
-          <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="د. سارة أحمد" class="w-full h-64 object-cover">
+          <div class="h-64 bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center">
+            <div class="text-center">
+              <div class="w-24 h-24 rounded-full bg-pink-500 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-md text-white text-4xl"></i>
+              </div>
+              <span class="text-pink-800 font-bold">د. سارة أحمد</span>
+            </div>
+          </div>
           <div class="p-4">
             <h3 class="text-lg font-bold text-blue-800">د. سارة أحمد</h3>
             <p class="text-gray-600 text-sm">استشارية طب الأطفال</p>
@@ -492,10 +634,16 @@
           </div>
         </div>
         
-        <!-- طبيب 3 -->
+        <!-- طبيب 2 -->
         <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
-          <img src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="د. محمد علي" class="w-full h-64 object-cover">
+          <div class="h-64 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+            <div class="text-center">
+              <div class="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-md text-white text-4xl"></i>
+              </div>
+              <span class="text-green-800 font-bold">د. محمد علي</span>
+            </div>
+          </div>
           <div class="p-4">
             <h3 class="text-lg font-bold text-blue-800">د. محمد علي</h3>
             <p class="text-gray-600 text-sm">استشاري جراحة العظام</p>
@@ -507,10 +655,16 @@
           </div>
         </div>
         
-        <!-- طبيب 4 -->
+        <!-- طبيبة 2 -->
         <div class="bg-gray-50 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
-          <img src="https://images.unsplash.com/photo-1594824903013-2b210b8c5ca2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-               alt="د. فاطمة خالد" class="w-full h-64 object-cover">
+          <div class="h-64 bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+            <div class="text-center">
+              <div class="w-24 h-24 rounded-full bg-purple-500 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-md text-white text-4xl"></i>
+              </div>
+              <span class="text-purple-800 font-bold">د. فاطمة خالد</span>
+            </div>
+          </div>
           <div class="p-4">
             <h3 class="text-lg font-bold text-blue-800">د. فاطمة خالد</h3>
             <p class="text-gray-600 text-sm">استشارية النساء والولادة</p>
@@ -901,7 +1055,9 @@
         <!-- تقييم 1 -->
         <div class="bg-blue-50 rounded-xl shadow-lg p-6">
           <div class="flex items-center mb-4">
-            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="مريض" class="w-12 h-12 rounded-full ml-3">
+            <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold ml-3">
+              أ
+            </div>
             <div>
               <h4 class="font-bold text-blue-800">أحمد محمد</h4>
               <div class="text-yellow-400">
@@ -920,7 +1076,9 @@
         <!-- تقييم 2 -->
         <div class="bg-blue-50 rounded-xl shadow-lg p-6">
           <div class="flex items-center mb-4">
-            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="مريضة" class="w-12 h-12 rounded-full ml-3">
+            <div class="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center text-white font-bold ml-3">
+              ف
+            </div>
             <div>
               <h4 class="font-bold text-blue-800">فاطمة عبدالله</h4>
               <div class="text-yellow-400">
@@ -939,7 +1097,9 @@
         <!-- تقييم 3 -->
         <div class="bg-blue-50 rounded-xl shadow-lg p-6">
           <div class="flex items-center mb-4">
-            <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="مريض" class="w-12 h-12 rounded-full ml-3">
+            <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold ml-3">
+              خ
+            </div>
             <div>
               <h4 class="font-bold text-blue-800">خالد سالم</h4>
               <div class="text-yellow-400">
@@ -1281,6 +1441,140 @@
     </div>
   </footer>
   
+  <!-- صفحة تسجيل الدخول -->
+  <div id="loginPage" class="hidden fixed inset-0 z-50 overflow-y-auto login-body">
+    <!-- Animated background -->
+    <div class="login-animated-bg"></div>
+    
+    <!-- Particles -->
+    <div class="particles">
+      <div class="particle" style="width: 10px; height: 10px; left: 10%; animation-delay: 0s;"></div>
+      <div class="particle" style="width: 15px; height: 15px; left: 20%; animation-delay: 2s;"></div>
+      <div class="particle" style="width: 8px; height: 8px; left: 30%; animation-delay: 4s;"></div>
+      <div class="particle" style="width: 12px; height: 12px; left: 40%; animation-delay: 6s;"></div>
+      <div class="particle" style="width: 9px; height: 9px; left: 50%; animation-delay: 8s;"></div>
+      <div class="particle" style="width: 14px; height: 14px; left: 60%; animation-delay: 10s;"></div>
+      <div class="particle" style="width: 11px; height: 11px; left: 70%; animation-delay: 12s;"></div>
+      <div class="particle" style="width: 13px; height: 13px; left: 80%; animation-delay: 14s;"></div>
+      <div class="particle" style="width: 10px; height: 10px; left: 90%; animation-delay: 16s;"></div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-12">
+          <div class="login-hospital-logo mb-6 justify-center">
+            <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" alt="شعار المستشفى">
+            <div>
+              <h1 class="text-4xl font-bold text-white">مستشفى الحياة الذكية</h1>
+              <p class="text-xl text-blue-100">SMART HAYAT HOSPITAL</p>
+            </div>
+          </div>
+          <h2 class="text-3xl font-bold text-white mb-4">نظام إدارة المستشفى</h2>
+          <p class="text-lg text-blue-100">يرجى تسجيل الدخول للوصول إلى نظام المستشفى</p>
+        </div>
+        
+        <!-- Role Selection -->
+        <div class="mb-8">
+          <h3 class="text-xl font-bold text-white mb-6 text-center">اختر دورك</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="role-card login-glass-card rounded-xl p-6 text-center" onclick="selectRole('emergency')">
+              <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-ambulance text-white text-2xl"></i>
+              </div>
+              <h4 class="text-white font-bold">الطوارئ</h4>
+            </div>
+            
+            <div class="role-card login-glass-card rounded-xl p-6 text-center" onclick="selectRole('reception')">
+              <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-clipboard-list text-white text-2xl"></i>
+              </div>
+              <h4 class="text-white font-bold">الاستقبال</h4>
+            </div>
+            
+            <div class="role-card login-glass-card rounded-xl p-6 text-center" onclick="selectRole('radiology')">
+              <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-x-ray text-white text-2xl"></i>
+              </div>
+              <h4 class="text-white font-bold">الأشعة</h4>
+            </div>
+            
+            <div class="role-card login-glass-card rounded-xl p-6 text-center" onclick="selectRole('admin')">
+              <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-user-shield text-white text-2xl"></i>
+              </div>
+              <h4 class="text-white font-bold">الإدارة</h4>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Login Form -->
+        <div class="login-glass-card rounded-2xl p-8 md:p-12 floating">
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="mb-6">
+              <label class="block text-white mb-2 font-medium">اسم المستخدم</label>
+              <div class="relative">
+                <span class="login-form-icon">
+                  <i class="fas fa-user"></i>
+                </span>
+                <input type="text" id="username" placeholder="أدخل اسم المستخدم" 
+                       class="w-full pr-12 py-4 px-4 rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/60 focus:outline-none transition">
+              </div>
+            </div>
+            
+            <div class="mb-8">
+              <label class="block text-white mb-2 font-medium">كلمة المرور</label>
+              <div class="relative">
+                <span class="login-form-icon">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input type="password" id="password" placeholder="أدخل كلمة المرور" 
+                       class="w-full pr-12 py-4 px-4 rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/60 focus:outline-none transition">
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between mb-8">
+              <label class="flex items-center text-white">
+                <input type="checkbox" class="ml-2 rounded">
+                <span class="text-sm">تذكرني</span>
+              </label>
+              <a href="#" class="text-white hover:text-blue-200 text-sm transition">نسيت كلمة المرور؟</a>
+            </div>
+            
+            <div class="flex gap-4">
+              <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
+                تسجيل الدخول
+              </button>
+              <button type="button" onclick="hideLoginPage()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
+                إلغاء
+              </button>
+            </div>
+          </form>
+          
+          <div class="mt-8 pt-8 border-t border-white/20 text-center">
+            <p class="text-white/80">ليس لديك حساب؟ 
+              <a href="#" class="text-white hover:text-blue-200 font-medium transition">تواصل مع الإدارة</a>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="mt-12 text-center">
+          <p class="text-white/80 mb-4">تحتاج إلى مساعدة؟</p>
+          <div class="flex justify-center gap-4">
+            <a href="#" class="text-white hover:text-blue-200 transition">
+              <i class="fas fa-phone-alt ml-2"></i> 12345
+            </a>
+            <a href="#" class="text-white hover:text-blue-200 transition">
+              <i class="fas fa-envelope ml-2"></i> support@smarthayat.com
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <script>
     // تهيئة السلايدر
     const newsSwiper = new Swiper(".newsSwiper", {
@@ -1381,8 +1675,51 @@
       }
     }
     
-    // دالة تسجيل الدخول
-    function login() {
+    // دوال صفحة تسجيل الدخول
+    let selectedRole = '';
+    
+    function showLoginPage() {
+      document.getElementById('loginPage').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function hideLoginPage() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+    
+    function selectRole(role) {
+      selectedRole = role;
+      
+      // Remove selected class from all cards
+      document.querySelectorAll('.role-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked card
+      event.currentTarget.classList.add('selected');
+      
+      // Update form placeholder based on role
+      const usernameInput = document.getElementById('username');
+      
+      if (role === 'emergency') {
+        usernameInput.value = 'emergency';
+        document.getElementById('password').value = '';
+      } else if (role === 'reception') {
+        usernameInput.value = 'reception';
+        document.getElementById('password').value = '';
+      } else if (role === 'radiology') {
+        usernameInput.value = 'radiology';
+        document.getElementById('password').value = '';
+      } else if (role === 'admin') {
+        usernameInput.value = 'admin';
+        document.getElementById('password').value = '';
+      }
+    }
+    
+    function handleLogin(event) {
+      event.preventDefault();
+      
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
       
@@ -1391,68 +1728,120 @@
           icon: 'warning',
           title: 'تنبيه',
           text: 'الرجاء إدخال اسم المستخدم وكلمة المرور',
-          confirmButtonText: 'حسنًا'
+          confirmButtonText: 'حسنًا',
+          confirmButtonColor: '#667eea',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
         });
         return;
       }
       
+      if (!selectedRole) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'تنبيه',
+          text: 'الرجاء اختيار الدور أولاً',
+          confirmButtonText: 'حسنًا',
+          confirmButtonColor: '#667eea',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
+        });
+        return;
+      }
+      
+      // Check credentials
       if (username === "emergency" && password === "123456") {
         localStorage.setItem("user", username);
-        localStorage.setItem("role", "emergency");
+        localStorage.setItem("role", selectedRole);
+        
         Swal.fire({
           icon: 'success',
           title: 'مرحبًا بك في قسم الطوارئ 🏥',
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
         }).then(() => {
           window.location.href = "emergency.html";
         });
       } else if (username === "reception" && password === "123456") {
         localStorage.setItem("user", username);
-        localStorage.setItem("role", "reception");
+        localStorage.setItem("role", selectedRole);
+        
         Swal.fire({
           icon: 'success',
           title: 'مرحبًا بك في قسم الاستقبال 📋',
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
         }).then(() => {
           window.location.href = "reception.html";
         });
+      } else if (username === "radiology" && password === "123456") {
+        localStorage.setItem("user", username);
+        localStorage.setItem("role", selectedRole);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'مرحبًا بك في قسم الأشعة',
+          timer: 2000,
+          showConfirmButton: false,
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
+        }).then(() => {
+          window.location.href = "radiology.html";
+        });
       } else if (username === "admin" && password === "123456") {
         localStorage.setItem("user", username);
-        localStorage.setItem("role", "admin");
+        localStorage.setItem("role", selectedRole);
+        
         Swal.fire({
           icon: 'success',
           title: 'مرحبًا بك في قسم الإدارة 🧑‍💼',
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
         }).then(() => {
           window.location.href = "admin.html";
-        });
-      } else if (username === "radiology" && password === "123456") {
-        localStorage.setItem("user", username);
-        localStorage.setItem("role", "radiology");
-        Swal.fire({
-          icon: "success",
-          title: "مرحبًا بك في قسم الأشعة",
-          showConfirmButton: false,
-          timer: 2000
-        }).then(() => {
-          window.location.href = "radiology.html";
         });
       } else {
         Swal.fire({
           icon: 'error',
           title: 'بيانات غير صحيحة!',
           text: 'الرجاء المحاولة مرة أخرى',
-          confirmButtonText: 'حسنًا'
+          confirmButtonText: 'حسنًا',
+          confirmButtonColor: '#667eea',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
         });
         document.getElementById("password").value = "";
       }
     }
     
-    // عند تحميل الصفحة
+    // Add particles dynamically
     document.addEventListener('DOMContentLoaded', () => {
+      const particlesContainer = document.querySelector('.particles');
+      
+      // Create more particles
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        const size = Math.random() * 10 + 5;
+        const left = Math.random() * 100;
+        const delay = Math.random() * 20;
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${left}%`;
+        particle.style.animationDelay = `${delay}s`;
+        
+        particlesContainer.appendChild(particle);
+      }
+      
+      // Focus on username input
       document.getElementById("username").focus();
     });
   </script>
