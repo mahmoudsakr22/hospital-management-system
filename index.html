@@ -3,56 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مستشفى الحياة الذكية</title>
+  <title>مستشفى الحياة الذكية - رعاية صحية عالمية</title>
   <link rel="icon" href="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" type="image/png">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
   
-  <script>
-    tailwind.config = {
-      theme: {
-        fontFamily: { 
-          sans: ['Cairo', 'Tajawal', 'sans-serif'] 
-        },
-        extend: {
-          colors: {
-            primary: "#1e40af",
-            secondary: "#059669",
-            accent: "#dc2626",
-            light: "#f8fafc",
-            dark: "#1e293b",
-            gold: "#d97706"
-          },
-          animation: {
-            'float': 'float 6s ease-in-out infinite',
-            'pulse-slow': 'pulse 4s infinite',
-            'fade-in': 'fadeIn 1s ease-out',
-          },
-          keyframes: {
-            float: {
-              '0%, 100%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-8px)' },
-            },
-            fadeIn: {
-              '0%': { opacity: '0', transform: 'translateY(20px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' },
-            }
-          }
-        }
-      }
-    }
-  </script>
-  
   <style>
+    :root {
+      --primary: #0052CC;
+      --secondary: #0065FF;
+      --accent: #FF5630;
+      --light: #F4F5F7;
+      --dark: #172B4D;
+      --gold: #FF991F;
+      --success: #36B37E;
+      --info: #00B8D9;
+    }
+
     * {
       scrollbar-width: thin;
-      scrollbar-color: #1e40af #e2e8f0;
+      scrollbar-color: var(--primary) #e2e8f0;
     }
     
     *::-webkit-scrollbar {
@@ -65,143 +39,238 @@
     }
     
     *::-webkit-scrollbar-thumb {
-      background-color: #1e40af;
+      background-color: var(--primary);
       border-radius: 4px;
       border: 2px solid #e2e8f0;
     }
-    
+
     body {
       font-family: 'Tajawal', 'Cairo', sans-serif;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      min-height: 100vh;
+      background-color: #FFFFFF;
+      color: var(--dark);
       overflow-x: hidden;
-      color: #1e293b;
     }
-    
-    /* خلفية متحركة ناعمة */
-    .animated-bg {
-      position: fixed;
+
+    /* Navigation */
+    .navbar {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+    }
+
+    .navbar.scrolled {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-link {
+      position: relative;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      right: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      background: linear-gradient(135deg, #F4F5F7 0%, #EBECF0 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(45deg, #f0f9ff, #e0f2fe, #dbeafe, #eff6ff);
-      background-size: 400% 400%;
-      animation: gradientMove 20s ease infinite;
-      z-index: -1;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230052CC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.5;
     }
-    
-    @keyframes gradientMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    /* تأثير الزجاج الناعم */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    
-    .glass-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
-    }
-    
-    /* أزرار ناعمة */
-    .btn-soft {
-      position: relative;
+
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
       transition: all 0.3s ease;
-      z-index: 1;
-      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
       color: white;
     }
-    
-    .btn-soft:hover {
+
+    .btn-primary:hover {
+      background: var(--secondary);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
     }
-    
-    /* بطاقات الأقسام */
-    .department-card {
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    }
-    
-    .department-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* تأثيرات النماذج */
-    .form-input {
-      background: rgba(255, 255, 255, 0.9);
-      border: 2px solid #e2e8f0;
-      transition: all 0.3s ease;
-      border-radius: 12px;
-    }
-    
-    .form-input:focus {
+
+    .btn-secondary {
       background: white;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      color: var(--primary);
+      border: 2px solid var(--primary);
     }
-    
-    /* تأثيرات البانر */
-    .banner-overlay {
-      background: linear-gradient(135deg, rgba(30, 64, 175, 0.8), rgba(59, 130, 246, 0.6));
+
+    .btn-secondary:hover {
+      background: var(--primary);
+      color: white;
     }
-    
-    /* زر العودة للأعلى */
-    .scroll-top-btn {
-      position: fixed;
-      bottom: 30px;
-      left: 30px;
-      z-index: 9999;
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, #1e40af, #3b82f6);
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 5px 20px rgba(30, 64, 175, 0.3);
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #2d9d6d;
+    }
+
+    /* Forms */
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #DFE1E6;
+      border-radius: 8px;
+      font-size: 1rem;
       transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+    }
+
+    /* Doctor Cards */
+    .doctor-card {
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .doctor-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .doctor-image {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1rem;
+      border: 4px solid white;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .doctor-card:hover .doctor-image {
+      transform: scale(1.05);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Services */
+    .service-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    
-    .scroll-top-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(30, 64, 175, 0.4);
-    }
-    
-    /* تأثيرات النص */
-    .text-gradient {
-      background: linear-gradient(135deg, #1e40af, #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    /* تأثيرات الأيقونات */
-    .icon-soft {
+      margin: 0 auto 1.5rem;
+      color: white;
+      font-size: 2rem;
       transition: all 0.3s ease;
     }
-    
-    .icon-soft:hover {
-      transform: scale(1.1);
-      color: #3b82f6;
+
+    .service-card:hover .service-icon {
+      transform: rotate(10deg) scale(1.1);
     }
-    
-    /* تأثيرات الحركة */
+
+    /* Stats */
+    .stat-card {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(0, 82, 204, 0.3);
+    }
+
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--dark);
+      color: white;
+      padding: 4rem 0 2rem;
+    }
+
+    .footer-links a {
+      color: #DFE1E6;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    /* Animations */
     @keyframes fadeInUp {
       from {
         opacity: 0;
@@ -212,557 +281,877 @@
         transform: translateY(0);
       }
     }
-    
+
     .animate-fade-in-up {
       animation: fadeInUp 0.8s ease-out;
     }
-    
-    /* تأثيرات البارتيكل الناعمة */
-    .particles {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-section {
+        padding: 4rem 0;
+      }
+      
+      .stat-number {
+        font-size: 2rem;
+      }
     }
-    
-    .particle {
-      position: absolute;
-      background: rgba(59, 130, 246, 0.1);
+
+    /* Loading Animation */
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--primary);
       border-radius: 50%;
-      pointer-events: none;
-      animation: particleFloat 15s infinite linear;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
     }
-    
-    @keyframes particleFloat {
-      0% {
-        transform: translateY(100vh) rotate(0deg);
-        opacity: 0;
-      }
-      10% {
-        opacity: 0.5;
-      }
-      90% {
-        opacity: 0.5;
-      }
-      100% {
-        transform: translateY(-100vh) rotate(720deg);
-        opacity: 0;
-      }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    
-    /* تأثيرات الظل الناعم */
-    .shadow-soft {
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+
+    /* Floating Action Button */
+    .fab {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      width: 60px;
+      height: 60px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 12px rgba(255, 86, 48, 0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
     }
-    
-    /* تأثيرات الفوتر */
-    .footer-wave {
+
+    .fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 86, 48, 0.6);
+    }
+
+    /* Testimonials */
+    .testimonial-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    .testimonial-card::before {
+      content: '"';
       position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 80px;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%231e40af" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
-      background-size: cover;
-      background-position: bottom;
+      top: 10px;
+      right: 20px;
+      font-size: 4rem;
+      color: var(--primary);
       opacity: 0.1;
     }
-    
-    /* تأثيرات التحميل */
-    .loading-dots {
-      display: inline-flex;
-      gap: 4px;
+
+    /* Departments */
+    .dept-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      cursor: pointer;
     }
-    
-    .loading-dots span {
-      width: 8px;
-      height: 8px;
-      background: #3b82f6;
-      border-radius: 50%;
-      animation: loading 1.4s infinite ease-in-out both;
+
+    .dept-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
     }
-    
-    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
-    
-    @keyframes loading {
-      0%, 80%, 100% {
-        transform: scale(0);
-        opacity: 0.5;
-      }
-      40% {
-        transform: scale(1);
-        opacity: 1;
-      }
+
+    .dept-image {
+      height: 200px;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    .dept-content {
+      padding: 1.5rem;
+    }
+
+    /* Emergency Banner */
+    .emergency-banner {
+      background: linear-gradient(135deg, var(--accent), #FF8F73);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .emergency-banner a {
+      color: white;
+      text-decoration: none;
     }
   </style>
 </head>
-<body class="min-h-screen">
-  <!-- خلفية متحركة -->
-  <div class="animated-bg"></div>
-  
-  <!-- بارتيكلز -->
-  <div class="particles" id="particles"></div>
-  
-  <!-- الهيدر -->
-  <header class="glass-card p-6 m-4 rounded-2xl shadow-soft relative z-10 animate-fade-in-up">
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-      <!-- شعار المستشفى -->
-      <div class="flex items-center gap-4">
-        <div class="relative">
-          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
-               class="w-14 h-14 rounded-full border-3 border-white shadow-md icon-soft"
-               alt="شعار مستشفى الحياة الذكية">
-          <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-          <p class="text-sm text-blue-600 font-medium">SMART HAYAT HOSPITAL</p>
-        </div>
-      </div>
-      
-      <!-- الأزرار -->
-      <div class="flex flex-wrap gap-3 justify-center">
-        <button class="btn-soft px-5 py-2 rounded-full font-medium text-sm flex items-center gap-2">
-          <i class="fas fa-language"></i> ترجمة
-        </button>
-        <button class="btn-soft px-5 py-2 rounded-full font-medium text-sm flex items-center gap-2">
-          <i class="fas fa-phone"></i> 12345
-        </button>
-        <a href="search.html" target="_blank"
-           class="btn-soft px-5 py-2 rounded-full font-medium text-sm flex items-center gap-2">
-          <i class="fas fa-user"></i> بوابة المريض
-        </a>
-      </div>
-    </div>
-  </header>
-  
-  <!-- البانر -->
-  <div class="relative mx-4 mb-8 rounded-2xl overflow-hidden shadow-soft animate-fade-in-up" style="animation-delay: 0.1s;">
-    <div class="banner-overlay absolute inset-0 z-10"></div>
-    <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" 
-         alt="مستشفى الحياة الذكية" class="w-full h-80 object-cover">
-    <div class="absolute inset-0 z-20 flex flex-col items-center justify-center text-white p-8">
-      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-center">
-        أهلاً بك في مستشفى الحياة الذكية
-      </h2>
-      <p class="text-lg md:text-xl text-center max-w-2xl">
-        نقدم لك بيئة طبية ذكية لتحسين الرعاية الصحية
-      </p>
+<body>
+  <!-- Emergency Banner -->
+  <div class="emergency-banner">
+    <div class="container mx-auto px-4">
+      <i class="fas fa-phone-alt ml-2"></i>
+      للطوارئ: <a href="tel:937">937</a> | 
+      <i class="fas fa-calendar-check ml-2 mr-2"></i>
+      <a href="#">احجز موعدك الآن</a>
     </div>
   </div>
-  
-  <!-- 🔘 زر "احجز الآن" الثابت -->
-  <div id="bookNowBtn" style="position: fixed; top: 50%; right: 30px; transform: translateY(-50%); z-index: 9999;">
-    <button onclick="alert('جاري التحويل إلى صفحة الحجز...')" 
-            class="btn-soft px-6 py-3 rounded-full font-medium shadow-lg">
-       <i class="fas fa-calendar-check ml-2"></i> احجز الآن
-    </button>
-  </div>
-  
-  <!-- زر الرجوع لأعلى -->
-  <button class="scroll-top-btn" onclick="scrollToTop()" aria-label="رجوع إلى الأعلى">
-    <i class="fas fa-arrow-up text-white"></i>
-  </button>
-  
-  <!-- المحتوى الرئيسي -->
-  <main class="container mx-auto px-4 py-8 relative z-10">
-    <!-- قسم تسجيل الدخول -->
-    <section class="w-full max-w-md mx-auto mb-16 animate-fade-in-up" style="animation-delay: 0.2s;">
-      <div class="glass-card rounded-2xl p-8 shadow-soft">
-        <!-- Logo Section -->
-        <div class="text-center mb-6">
-          <div class="hospital-logo mb-4 flex justify-center items-center gap-3">
-            <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" 
-                 alt="شعار المستشفى" class="w-16 h-16 rounded-xl shadow-md">
+
+  <!-- Navigation -->
+  <nav class="navbar sticky top-0 z-50" id="navbar">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center py-4">
+        <!-- Logo -->
+        <div class="flex items-center space-x-4 space-x-reverse">
+          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" 
+               alt="مستشفى الحياة الذكية" class="w-12 h-12">
+          <div>
+            <h1 class="text-xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+            <p class="text-xs text-gray-600">SMART HAYAT HOSPITAL</p>
           </div>
-          <h1 class="text-2xl font-bold text-gradient mb-2">تسجيل الدخول</h1>
-          <p class="text-gray-600">مرحبًا بك في نظام المستشفى الذكي</p>
         </div>
-        
-        <!-- Login Form -->
-        <div class="space-y-4">
-          <div class="relative">
-            <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <i class="fas fa-user"></i>
-            </span>
-            <input type="text" id="username" placeholder="اسم المستخدم"
-              class="form-input w-full pr-12 py-3 px-4 text-gray-700 placeholder-gray-400 focus:outline-none">
-          </div>
-          <div class="relative">
-            <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <i class="fas fa-lock"></i>
-            </span>
-            <input type="password" id="password" placeholder="كلمة المرور"
-              class="form-input w-full pr-12 py-3 px-4 text-gray-700 placeholder-gray-400 focus:outline-none">
-          </div>
-          <button onclick="login()"
-            class="btn-soft w-full py-3 rounded-xl font-medium">
+
+        <!-- Desktop Menu -->
+        <div class="hidden md:flex items-center space-x-6 space-x-reverse">
+          <a href="#home" class="nav-link text-gray-700 hover:text-primary">الرئيسية</a>
+          <a href="#about" class="nav-link text-gray-700 hover:text-primary">عن المستشفى</a>
+          <a href="#departments" class="nav-link text-gray-700 hover:text-primary">الأقسام</a>
+          <a href="#doctors" class="nav-link text-gray-700 hover:text-primary">الأطباء</a>
+          <a href="#services" class="nav-link text-gray-700 hover:text-primary">الخدمات</a>
+          <a href="#contact" class="nav-link text-gray-700 hover:text-primary">اتصل بنا</a>
+          <button onclick="showLoginModal()" class="btn btn-primary">
             <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
           </button>
-          <div class="text-center mt-4">
-            <a href="#" class="text-gray-600 hover:text-blue-600 transition text-sm">
-              نسيت كلمة المرور؟
-            </a>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button class="md:hidden text-gray-700" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars text-2xl"></i>
+        </button>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="mobileMenu" class="hidden md:hidden pb-4">
+        <a href="#home" class="block py-2 text-gray-700 hover:text-primary">الرئيسية</a>
+        <a href="#about" class="block py-2 text-gray-700 hover:text-primary">عن المستشفى</a>
+        <a href="#departments" class="block py-2 text-gray-700 hover:text-primary">الأقسام</a>
+        <a href="#doctors" class="block py-2 text-gray-700 hover:text-primary">الأطباء</a>
+        <a href="#services" class="block py-2 text-gray-700 hover:text-primary">الخدمات</a>
+        <a href="#contact" class="block py-2 text-gray-700 hover:text-primary">اتصل بنا</a>
+        <button onclick="showLoginModal()" class="btn btn-primary w-full mt-2">
+          <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero-section py-20">
+    <div class="hero-pattern"></div>
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div class="animate-fade-in-up">
+          <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
+            رعاية صحية عالمية بمعايير الجودة الألمانية
+          </h1>
+          <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+            مستشفى الحياة الذكية يقدم أفضل الخدمات الطبية بأحدث التقنيات وبكفاءة عالمية
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <button class="btn btn-primary text-lg">
+              <i class="fas fa-calendar-check ml-2"></i> احجز موعد
+            </button>
+            <button class="btn btn-secondary text-lg">
+              <i class="fas fa-phone ml-2"></i> اتصل بنا
+            </button>
           </div>
         </div>
-        <div class="mt-6 pt-4 border-t border-gray-200 text-center">
-          <p class="text-gray-600">ليس لديك حساب؟ 
-            <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">
-              تواصل مع الإدارة
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+               alt="مستشفى" class="rounded-2xl shadow-2xl">
+          <div class="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
+            <div class="flex items-center space-x-4 space-x-reverse">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-primary">24/7</div>
+                <div class="text-sm text-gray-600">خدمة طوارئ</div>
+              </div>
+              <div class="w-px h-12 bg-gray-300"></div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-primary">500+</div>
+                <div class="text-sm text-gray-600">طبيب متخصص</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="stat-card animate-fade-in-up">
+          <div class="stat-number">50+</div>
+          <div class="text-lg">قسم طبي</div>
+        </div>
+        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.1s">
+          <div class="stat-number">1000+</div>
+          <div class="text-lg">سرير</div>
+        </div>
+        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.2s">
+          <div class="stat-number">500K+</div>
+          <div class="text-lg">مريض سنوياً</div>
+        </div>
+        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.3s">
+          <div class="stat-number">25+</div>
+          <div class="text-lg">سنة خبرة</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-20">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">عن مستشفى الحياة الذكية</h2>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          نحن نقدم رعاية صحية شاملة بأحدث التقنيات الطبية وبكفاءة عالمية
+        </p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <img src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+               alt="عن المستشفى" class="rounded-2xl shadow-xl">
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">رؤيتنا ورسالتنا</h3>
+          <p class="text-gray-600 mb-6 leading-relaxed">
+            نسعى لتكون مؤسسة رائدة في تقديم الرعاية الصحية عالية الجودة، مع الالتزام بأعلى معايير الجودة والسلامة.
+          </p>
+          <div class="space-y-4">
+            <div class="flex items-start space-x-4 space-x-reverse">
+              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-check text-primary"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">جودة عالمية</h4>
+                <p class="text-gray-600">معتمدون من الهيئات الدولية</p>
+              </div>
+            </div>
+            <div class="flex items-start space-x-4 space-x-reverse">
+              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-check text-primary"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">فريق طبي متميز</h4>
+                <p class="text-gray-600">أفضل الأطباء والاستشاريين</p>
+              </div>
+            </div>
+            <div class="flex items-start space-x-4 space-x-reverse">
+              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-check text-primary"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">تقنية متطورة</h4>
+                <p class="text-gray-600">أحدث الأجهزة الطبية</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Departments Section -->
+  <section id="departments" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">الأقسام الطبية</h2>
+        <p class="text-xl text-gray-600">تخصصات طبية شاملة لتلبية جميع احتياجاتكم</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Cardiology -->
+        <div class="dept-card">
+          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="أمراض القلب" class="dept-image">
+          <div class="dept-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">أمراض القلب</h3>
+            <p class="text-gray-600 mb-4">علاج جميع أمراض القلب والأوعية الدموية</p>
+            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
+        </div>
+
+        <!-- Neurology -->
+        <div class="dept-card">
+          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="الأعصاب" class="dept-image">
+          <div class="dept-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">طب الأعصاب</h3>
+            <p class="text-gray-600 mb-4">تشخيص وعلاج الأمراض العصبية</p>
+            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
+        </div>
+
+        <!-- Orthopedics -->
+        <div class="dept-card">
+          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="العظام" class="dept-image">
+          <div class="dept-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">جراحة العظام</h3>
+            <p class="text-gray-600 mb-4">علاج إصابات وكسور العظام والمفاصل</p>
+            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
+        </div>
+
+        <!-- Pediatrics -->
+        <div class="dept-card">
+          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="الأطفال" class="dept-image">
+          <div class="dept-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">طب الأطفال</h3>
+            <p class="text-gray-600 mb-4">رعاية شاملة للأطفال منذ الولادة</p>
+            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
+        </div>
+
+        <!-- Radiology -->
+        <div class="dept-card">
+          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="الأشعة" class="dept-image">
+          <div class="dept-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">الأشعة التشخيصية</h3>
+            <p class="text-gray-600 mb-4">أجهزة أشعة حديثة لتشخيص دقيق</p>
+            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
+        </div>
+
+        <!-- Emergency -->
+        <div class="dept-card">
+          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+               alt="الطوارئ" class="dept-image">
+          <div class="dept-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">الطوارئ</h3>
+            <p class="text-gray-600 mb-4">خدمة طوارئ على مدار الساعة</p>
+            <a href="#" class="text-primary font-semibold hover:underline">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Doctors Section -->
+  <section id="doctors" class="py-20">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">فريقنا الطبي</h2>
+        <p class="text-xl text-gray-600">أفضل الأطباء والاستشاريين في تخصصاتهم</p>
+      </div>
+      
+      <div class="swiper doctorsSwiper">
+        <div class="swiper-wrapper">
+          <!-- Doctor 1 -->
+          <div class="swiper-slide">
+            <div class="doctor-card">
+              <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                   alt="د. أحمد محمد" class="doctor-image">
+              <h3 class="text-xl font-bold text-gray-800 mb-1">د. أحمد محمد</h3>
+              <p class="text-primary font-semibold mb-3">استشاري أمراض القلب</p>
+              <p class="text-gray-600 text-sm mb-4">خبرة 20 عام في جراحة القلب المفتوح</p>
+              <div class="flex justify-center space-x-2 space-x-reverse">
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fas fa-envelope"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Doctor 2 -->
+          <div class="swiper-slide">
+            <div class="doctor-card">
+              <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                   alt="د. فاطمة علي" class="doctor-image">
+              <h3 class="text-xl font-bold text-gray-800 mb-1">د. فاطمة علي</h3>
+              <p class="text-primary font-semibold mb-3">استشارية طب الأطفال</p>
+              <p class="text-gray-600 text-sm mb-4">متخصصة في أمراض الأطفال حديثي الولادة</p>
+              <div class="flex justify-center space-x-2 space-x-reverse">
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fas fa-envelope"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Doctor 3 -->
+          <div class="swiper-slide">
+            <div class="doctor-card">
+              <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                   alt="د. محمد خالد" class="doctor-image">
+              <h3 class="text-xl font-bold text-gray-800 mb-1">د. محمد خالد</h3>
+              <p class="text-primary font-semibold mb-3">استشاري جراحة العظام</p>
+              <p class="text-gray-600 text-sm mb-4">خبير في جراحة المناظير والمفاصل</p>
+              <div class="flex justify-center space-x-2 space-x-reverse">
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fas fa-envelope"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Doctor 4 -->
+          <div class="swiper-slide">
+            <div class="doctor-card">
+              <img src="https://images.unsplash.com/photo-1594824907136-bd0a309a8c7c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                   alt="د. سارة أحمد" class="doctor-image">
+              <h3 class="text-xl font-bold text-gray-800 mb-1">د. سارة أحمد</h3>
+              <p class="text-primary font-semibold mb-3">استشارية طب النساء</p>
+              <p class="text-gray-600 text-sm mb-4">متخصصة في طب الأمومة والجنين</p>
+              <div class="flex justify-center space-x-2 space-x-reverse">
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition">
+                  <i class="fas fa-envelope"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="swiper-pagination mt-8"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">خدماتنا</h2>
+        <p class="text-xl text-gray-600">خدمات طبية شاملة بأحدث التقنيات</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Service 1 -->
+        <div class="card service-card">
+          <div class="service-icon">
+            <i class="fas fa-hospital"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">العناية المركزة</h3>
+          <p class="text-gray-600 text-center mb-4">وحدات عناية مركزة مجهزة بأحدث الأجهزة</p>
+          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="card service-card">
+          <div class="service-icon">
+            <i class="fas fa-procedures"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">العمليات الجراحية</h3>
+          <p class="text-gray-600 text-center mb-4">غرف عمليات مجهزة بأحدث التقنيات</p>
+          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="card service-card">
+          <div class="service-icon">
+            <i class="fas fa-x-ray"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">الأشعة والتصوير</h3>
+          <p class="text-gray-600 text-center mb-4">أجهزة تصوير حديثة لتشخيص دقيق</p>
+          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
+        </div>
+
+        <!-- Service 4 -->
+        <div class="card service-card">
+          <div class="service-icon">
+            <i class="fas fa-vial"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">المختبرات الطبية</h3>
+          <p class="text-gray-600 text-center mb-4">مختبرات مجهزة لإجراء جميع التحاليل</p>
+          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
+        </div>
+
+        <!-- Service 5 -->
+        <div class="card service-card">
+          <div class="service-icon">
+            <i class="fas fa-pills"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">الصيدلية</h3>
+          <p class="text-gray-600 text-center mb-4">صيدلية مجهزة بجميع الأدوية</p>
+          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
+        </div>
+
+        <!-- Service 6 -->
+        <div class="card service-card">
+          <div class="service-icon">
+            <i class="fas fa-ambulance"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">الإسعاف والطوارئ</h3>
+          <p class="text-gray-600 text-center mb-4">خدمة إسعاف على مدار الساعة</p>
+          <a href="#" class="text-primary font-semibold text-center block">اقرأ المزيد</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="py-20">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">آراء مرضانا</h2>
+        <p class="text-xl text-gray-600">تجارب حقيقية من مرضى سعداء</p>
+      </div>
+      
+      <div class="swiper testimonialsSwiper">
+        <div class="swiper-wrapper">
+          <!-- Testimonial 1 -->
+          <div class="swiper-slide">
+            <div class="testimonial-card">
+              <div class="flex items-center mb-4">
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
+                     alt="مريضة" class="w-16 h-16 rounded-full ml-4">
+                <div>
+                  <h4 class="font-bold text-gray-800">نورة أحمد</h4>
+                  <div class="text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-600 leading-relaxed">
+                "تجربة رائعة في مستشفى الحياة الذكية. الطاقم الطبي محترف جداً والخدمة ممتازة. أنصح الجميع بالتعامل معهم."
+              </p>
+            </div>
+          </div>
+
+          <!-- Testimonial 2 -->
+          <div class="swiper-slide">
+            <div class="testimonial-card">
+              <div class="flex items-center mb-4">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
+                     alt="مريض" class="w-16 h-16 rounded-full ml-4">
+                <div>
+                  <h4 class="font-bold text-gray-800">خالد محمد</h4>
+                  <div class="text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-600 leading-relaxed">
+                "أفضل مستشفى تعاملت معه. الأطباء متخصصون والأجهزة حديثة. شكراً لفريق العمل على الرعاية الممتازة."
+              </p>
+            </div>
+          </div>
+
+          <!-- Testimonial 3 -->
+          <div class="swiper-slide">
+            <div class="testimonial-card">
+              <div class="flex items-center mb-4">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
+                     alt="مريضة" class="w-16 h-16 rounded-full ml-4">
+                <div>
+                  <h4 class="font-bold text-gray-800">سارة عبدالله</h4>
+                  <div class="text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-600 leading-relaxed">
+                "المستشفى نظيف جداً والخدمة سريعة. أنصح به بشدة للجميع. تجربة إيجابية من البداية للنهاية."
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="swiper-pagination mt-8"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">اتصل بنا</h2>
+        <p class="text-xl text-gray-600">نحن هنا لمساعدتك على مدار الساعة</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-12">
+        <div>
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">معلومات التواصل</h3>
+          <div class="space-y-4">
+            <div class="flex items-start space-x-4 space-x-reverse">
+              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-map-marker-alt text-primary"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">العنوان</h4>
+                <p class="text-gray-600">شارع الملك فهد، الرياض، المملكة العربية السعودية</p>
+              </div>
+            </div>
+            <div class="flex items-start space-x-4 space-x-reverse">
+              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-phone text-primary"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">الهاتف</h4>
+                <p class="text-gray-600">+966 11 234 5678</p>
+              </div>
+            </div>
+            <div class="flex items-start space-x-4 space-x-reverse">
+              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-envelope text-primary"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">البريد الإلكتروني</h4>
+                <p class="text-gray-600">info@smarthayat.com</p>
+              </div>
+            </div>
+            <div class="flex items-start space-x-4 space-x-reverse">
+              <div class="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-clock text-primary"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">ساعات العمل</h4>
+                <p class="text-gray-600">24/7 للطوارئ<br>8:00 ص - 10:00 م للعيادات</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">ارسل لنا رسالة</h3>
+          <form class="space-y-4">
+            <div>
+              <input type="text" placeholder="الاسم الكامل" class="form-control">
+            </div>
+            <div>
+              <input type="email" placeholder="البريد الإلكتروني" class="form-control">
+            </div>
+            <div>
+              <input type="tel" placeholder="رقم الهاتف" class="form-control">
+            </div>
+            <div>
+              <textarea placeholder="رسالتك" rows="4" class="form-control"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-full">
+              <i class="fas fa-paper-plane ml-2"></i> إرسال الرسالة
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container mx-auto px-4">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <div class="flex items-center space-x-3 space-x-reverse mb-4">
+            <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" 
+                 alt="Logo" class="w-10 h-10">
+            <h3 class="text-xl font-bold">مستشفى الحياة الذكية</h3>
+          </div>
+          <p class="text-gray-400">
+            نقدم رعاية صحية عالية الجودة بأحدث التقنيات الطبية
+          </p>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-4">روابط سريعة</h4>
+          <div class="footer-links space-y-2">
+            <a href="#home">الرئيسية</a>
+            <a href="#about">عن المستشفى</a>
+            <a href="#departments">الأقسام</a>
+            <a href="#doctors">الأطباء</a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-4">الخدمات</h4>
+          <div class="footer-links space-y-2">
+            <a href="#">حجز موعد</a>
+            <a href="#">الاستشارات الطبية</a>
+            <a href="#">النتائج الطبية</a>
+            <a href="#">التأمين الصحي</a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-4">تابعنا</h4>
+          <div class="flex space-x-4 space-x-reverse mb-4">
+            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-facebook-f"></i>
             </a>
+            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+          </div>
+          <p class="text-gray-400 text-sm">
+            اشترك في نشرتنا البريدية للحصول على آخر الأخبار
           </p>
         </div>
       </div>
-    </section>
-    
-    <!-- قسم أحدث الأخبار -->
-    <section class="glass-card rounded-2xl p-8 mb-12 shadow-soft animate-fade-in-up" style="animation-delay: 0.3s;">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-          <i class="fas fa-newspaper text-blue-600"></i> أحدث الأخبار
-        </h2>
-        <div class="loading-dots">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-      <div class="swiper newsSwiper">
-        <div class="swiper-wrapper">
-          <!-- شريحة خبر 1 -->
-          <div class="swiper-slide">
-            <div class="glass-card rounded-xl overflow-hidden shadow-soft">
-              <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
-                   alt="خبر 1" class="w-full h-48 object-cover">
-              <div class="p-5">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-medium">جديد</span>
-                  <span class="text-gray-500 text-sm">منذ يومين</span>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">توسعة وحدة العناية المركزة</h3>
-                <p class="text-gray-600 text-sm">تمت إضافة 10 أسرة جديدة مجهزة بأحدث التقنيات الطبية</p>
-              </div>
-            </div>
-          </div>
-          <!-- شريحة خبر 2 -->
-          <div class="swiper-slide">
-            <div class="glass-card rounded-xl overflow-hidden shadow-soft">
-              <img src="https://media.istockphoto.com/id/1468742408/photo/doctor-work-at-operating-room.webp?a=1&s=612x612&w=0&k=20&c=z68Sq5dYmat_ZHDKFn_ktjOf9N2-bsKyBLsOQBOO4zA=" 
-                   alt="خبر 2" class="w-full h-48 object-cover">
-              <div class="p-5">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-medium">تحديث</span>
-                  <span class="text-gray-500 text-sm">منذ أسبوع</span>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">إضافة أجهزة أشعة حديثة</h3>
-                <p class="text-gray-600 text-sm">تجهيز القسم بأحدث أجهزة الرنين المغناطيسي والطبقي المحوري</p>
-              </div>
-            </div>
-          </div>
-          <!-- شريحة خبر 3 -->
-          <div class="swiper-slide">
-            <div class="glass-card rounded-xl overflow-hidden shadow-soft">
-              <img src="https://i.pinimg.com/736x/5e/0e/6a/5e0e6a4a8c1336af7ec34b4c9d4cee79.jpg" 
-                   alt="خبر 3" class="w-full h-48 object-cover">
-              <div class="p-5">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-xs font-medium">افتتاح</span>
-                  <span class="text-gray-500 text-sm">منذ شهر</span>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">افتتاح وحدة الطوارئ الجديدة</h3>
-                <p class="text-gray-600 text-sm">وحدة طوارئ متكاملة بسعة 50 سريراً مجهزة بأحدث الأجهزة</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="mt-6 text-center">
-        <button class="btn-soft px-6 py-2 rounded-full font-medium">
-          <i class="fas fa-arrow-left ml-2"></i> المزيد من الأخبار
-        </button>
-      </div>
-    </section>
-    
-    <!-- قسم الأقسام الطبية -->
-    <section class="glass-card rounded-2xl p-8 mb-12 shadow-soft animate-fade-in-up" style="animation-delay: 0.4s;">
-      <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-        <i class="fas fa-hospital text-blue-600"></i> الأقسام الطبية
-      </h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <!-- قسم الاستقبال -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.webp?a=1&b=1&s=612x612&w=0&k=20&c=p_BnNwDwa9rcwE90AxDVbqx0CMkz3hN_DN31FzE-seM=" 
-                 alt="الاستقبال" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">الاستقبال</span>
-        </div>
-        <!-- قسم الرعاية -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://i.pinimg.com/736x/f7/2f/be/f72fbed2f5a0a8812329a3b5878cea0e.jpg" 
-                 alt="الرعاية" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">الرعاية</span>
-        </div>
-        <!-- قسم العمليات -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://i.pinimg.com/736x/d5/5e/84/d55e84801da45b86853616b144ed0fab.jpg" 
-                 alt="العمليات" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">العمليات</span>
-        </div>
-        <!-- قسم العناية المركزة -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://media.istockphoto.com/id/1737833729/photo/hospital-monitor-displaying-vital-signs-heart-rate-blood-pressure-temperature-and-pulse.webp?a=1&b=1&s=612x612&w=0&k=20&c=NUBBHz3Klh6XcX8M1CjeDLDbXD2f7L6CoqFHEWFZtrw=" 
-                 alt="العناية المركزة" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">العناية المركزة</span>
-        </div>
-        <!-- قسم الإدارة -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://i.pinimg.com/736x/e7/03/d2/e703d28f9165df0600997fbe7fdb809f.jpg" 
-                 alt="الإدارة" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">الإدارة</span>
-        </div>
-        <!-- قسم التحاليل -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://plus.unsplash.com/premium_photo-1661374871994-ed7edc184864?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDZ8fHxlbnwwfHx8fHw%3D" 
-                 alt="التحاليل" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">التحاليل</span>
-        </div>
-        <!-- قسم الصيدلة -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://i.pinimg.com/736x/32/ee/a3/32eea3357defd3e09e1097ec19fb29eb.jpg" 
-                 alt="الصيدلة" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">الصيدلة</span>
-        </div>
-        <!-- قسم الحضانة -->
-        <div class="department-card p-4 text-center cursor-pointer">
-          <div class="relative mb-3">
-            <img src="https://i.pinimg.com/736x/51/b8/9b/51b89bd840e87841931880fd62378766.jpg" 
-                 alt="الحضانة" class="w-full h-20 object-cover rounded-lg">
-          </div>
-          <span class="block text-gray-700 font-medium">الحضانة</span>
-        </div>
-      </div>
-    </section>
-    
-    <!-- قسم مميزات النظام -->
-    <section class="glass-card rounded-2xl p-8 mb-12 shadow-soft animate-fade-in-up" style="animation-delay: 0.5s;">
-      <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-        <i class="fas fa-star text-blue-600"></i> مميزات النظام
-      </h2>
-      <div class="swiper mySwiper">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide">
-            <div class="glass-card rounded-xl overflow-hidden shadow-soft h-full">
-              <div class="relative">
-                <img src="https://media.istockphoto.com/id/2200499379/photo/medical-technology-concept-electronic-medical-record-digital-healthcare-and-network.jpg?s=612x612&w=0&k=20&c=PsvvI1ev1PoZmI3jFFcZvTh6U_Fzu3qzxU88pQPUeUo=" 
-                     alt="تتبع حالة المريض" class="w-full h-40 object-cover">
-                <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                  <i class="fas fa-check ml-1"></i> مميز
-                </div>
-              </div>
-              <div class="p-5">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">تتبع حالة المريض</h3>
-                <p class="text-gray-600">نظام ذكي لمتابعة حالة المرضى بشكل فوري ودقيق</p>
-              </div>
-            </div>
-          </div>
-          <div class="swiper-slide">
-            <div class="glass-card rounded-xl overflow-hidden shadow-soft h-full">
-              <div class="relative">
-                <img src="https://plus.unsplash.com/premium_photo-1742710726634-18e31a278fc2?q=80&w=469&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                     alt="قاعدة بيانات موحدة" class="w-full h-40 object-cover">
-                <div class="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                  <i class="fas fa-database ml-1"></i> متكامل
-                </div>
-              </div>
-              <div class="p-5">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">قاعدة بيانات موحدة</h3>
-                <p class="text-gray-600">تخزين آمن ومركزي لجميع البيانات الطبية</p>
-              </div>
-            </div>
-          </div>
-          <div class="swiper-slide">
-            <div class="glass-card rounded-xl overflow-hidden shadow-soft h-full">
-              <div class="relative">
-                <img src="https://images.unsplash.com/photo-1577368211130-4bbd0181ddf0?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fHw%3D" 
-                     alt="إدارة الأدوية" class="w-full h-40 object-cover">
-                <div class="absolute top-3 right-3 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                  <i class="fas fa-pills ml-1"></i> ذكي
-                </div>
-              </div>
-              <div class="p-5">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">إدارة الأدوية</h3>
-                <p class="text-gray-600">نظام متطور لإدارة وتتبع الأدوية والوصفات الطبية</p>
-              </div>
-            </div>
-          </div>
-          <div class="swiper-slide">
-            <div class="glass-card rounded-xl overflow-hidden shadow-soft h-full">
-              <div class="relative">
-                <img src="https://media.istockphoto.com/id/1256143470/photo/genetic-research-laboratory-interior-female-doctor-using-computer.jpg?s=612x612&w=0&k=20&c=Ah-aDMVT92qViVngiy0SnbJnN47GJjZ-uUsDW7ff8EA=" 
-                     alt="نتائج تحاليل فورية" class="w-full h-40 object-cover">
-                <div class="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                  <i class="fas fa-flask ml-1"></i> سريع
-                </div>
-              </div>
-              <div class="p-5">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">نتائج تحاليل فورية</h3>
-                <p class="text-gray-600">الحصول على النتائج بشكل فوري ودقيق</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- قسم دليل المستخدم -->
-    <section class="glass-card rounded-2xl p-8 mb-12 shadow-soft animate-fade-in-up" style="animation-delay: 0.6s;">
-      <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-        <i class="fas fa-book text-blue-600"></i> دليل المستخدم
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- كرت ملف المريض -->
-        <div class="glass-card rounded-xl p-6 text-center shadow-soft hover:shadow-lg transition-all duration-300">
-          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-user-injured text-blue-600 text-2xl"></i>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-800 mb-3">ملف المريض</h3>
-          <p class="text-gray-600 mb-6">عرض حالة المريض والفحوصات والتاريخ الطبي الكامل</p>
-          <button class="btn-soft px-6 py-2 rounded-full font-medium w-full">
-            <i class="fas fa-eye ml-2"></i> عرض الملف
-          </button>
-        </div>
-        <!-- كرت تطبيق الهاتف -->
-        <div class="glass-card rounded-xl p-6 text-center shadow-soft hover:shadow-lg transition-all duration-300">
-          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-mobile-alt text-green-600 text-2xl"></i>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-800 mb-3">تطبيق الهاتف</h3>
-          <p class="text-gray-600 mb-6">تابع الحالة من موبايلك واحصل على إشعارات فورية</p>
-          <button class="btn-soft px-6 py-2 rounded-full font-medium w-full">
-            <i class="fas fa-download ml-2"></i> تحميل
-          </button>
-        </div>
-        <!-- كرت تواصل معنا -->
-        <div class="glass-card rounded-xl p-6 text-center shadow-soft hover:shadow-lg transition-all duration-300">
-          <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-headset text-yellow-600 text-2xl"></i>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-800 mb-3">تواصل معنا</h3>
-          <p class="text-gray-600 mb-6">نحن معك دائماً للإجابة على استفساراتك</p>
-          <button class="btn-soft px-6 py-2 rounded-full font-medium w-full">
-            <i class="fas fa-phone ml-2"></i> اتصل بنا
-          </button>
-        </div>
-      </div>
-    </section>
-  </main>
-  
-  <!-- الفوتر -->
-  <footer class="relative bg-gradient-to-r from-blue-800 to-blue-900 text-white py-10 mt-16">
-    <div class="footer-wave"></div>
-    <div class="container mx-auto px-4 relative z-10">
-      <div class="text-center">
-        <div class="flex justify-center mb-4">
-          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
-               class="w-16 h-16 rounded-full border-3 border-white shadow-md" alt="شعار المستشفى">
-        </div>
-        <h3 class="text-xl font-bold mb-3">مستشفى الحياة الذكية</h3>
-        <p class="text-sm mb-3 opacity-90">© 2025 جميع الحقوق محفوظة</p>
-        <p class="text-xs opacity-80 max-w-2xl mx-auto">
-          تم تطوير النظام وفق منهجية هندسية متكاملة بواسطة المهندس محمود صقر – هندسة اتصالات وشبكات
+      
+      <div class="border-t border-gray-700 pt-8 text-center">
+        <p class="text-gray-400">
+          © 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.
         </p>
-        <div class="flex justify-center gap-4 mt-4">
-          <a href="#" class="text-white hover:text-blue-300 transition text-xl">
-            <i class="fab fa-facebook"></i>
-          </a>
-          <a href="#" class="text-white hover:text-blue-300 transition text-xl">
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a href="#" class="text-white hover:text-blue-300 transition text-xl">
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a href="#" class="text-white hover:text-blue-300 transition text-xl">
-            <i class="fab fa-linkedin"></i>
-          </a>
-        </div>
+        <p class="text-gray-500 text-sm mt-2">
+          تم التطوير بواسطة المهندس محمود صقر - هندسة اتصالات وشبكات
+        </p>
       </div>
     </div>
   </footer>
-  
-  <script>
-    // إنشاء بارتيكلز ناعمة
-    function createParticles() {
-      const particlesContainer = document.getElementById('particles');
-      const particleCount = 30;
+
+  <!-- Floating Action Button -->
+  <div class="fab" onclick="window.location.href='tel:937'">
+    <i class="fas fa-phone-alt"></i>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold text-gray-800">تسجيل الدخول</h3>
+        <button onclick="closeLoginModal()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
       
-      for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        
-        const size = Math.random() * 4 + 2;
-        particle.style.width = size + 'px';
-        particle.style.height = size + 'px';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 15 + 's';
-        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
-        
-        particlesContainer.appendChild(particle);
+      <form onsubmit="handleLogin(event)">
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2">اسم المستخدم</label>
+          <input type="text" id="modalUsername" class="form-control" required>
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 mb-2">كلمة المرور</label>
+          <input type="password" id="modalPassword" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-full">
+          <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
+        </button>
+      </form>
+      
+      <div class="mt-6 text-center">
+        <a href="#" class="text-primary hover:underline">نسيت كلمة المرور؟</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Swipers
+    const doctorsSwiper = new Swiper('.doctorsSwiper', {
+      slidesPerView: 1,
+      spaceBetween: 30,
+      loop: true,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      breakpoints: {
+        640: {
+          slidesPerView: 2,
+        },
+        1024: {
+          slidesPerView: 3,
+        },
+      },
+    });
+
+    const testimonialsSwiper = new Swiper('.testimonialsSwiper', {
+      slidesPerView: 1,
+      spaceBetween: 30,
+      loop: true,
+      autoplay: {
+        delay: 6000,
+        disableOnInteraction: false,
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      breakpoints: {
+        768: {
+          slidesPerView: 2,
+        },
+      },
+    });
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
       }
+    });
+
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      mobileMenu.classList.toggle('hidden');
     }
-    
-    createParticles();
-    
-    // تهيئة السلايدر الأخبار
-    const newsSwiper = new Swiper(".newsSwiper", {
-      slidesPerView: 1,
-      spaceBetween: 20,
-      loop: true,
-      autoplay: {
-        delay: 4000,
-        disableOnInteraction: false
-      },
-      breakpoints: {
-        640: { slidesPerView: 1 },
-        768: { slidesPerView: 2 },
-        1024: { slidesPerView: 3 }
-      },
-    });
-    
-    // تهيئة سلايدر مميزات النظام
-    const swiper = new Swiper(".mySwiper", {
-      slidesPerView: 1,
-      spaceBetween: 20,
-      loop: true,
-      autoplay: {
-        delay: 4000,
-      },
-      breakpoints: {
-        640: { slidesPerView: 2 },
-        1024: { slidesPerView: 3 }
-      },
-    });
-    
-    // دالة تسجيل الدخول
-    function login() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
+
+    // Login modal functions
+    function showLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    // Handle login
+    function handleLogin(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('modalUsername').value.trim();
+      const password = document.getElementById('modalPassword').value.trim();
       
       if (!username || !password) {
         Swal.fire({
@@ -770,11 +1159,12 @@
           title: 'تنبيه',
           text: 'الرجاء إدخال اسم المستخدم وكلمة المرور',
           confirmButtonText: 'حسنًا',
-          confirmButtonColor: '#1e40af'
+          confirmButtonColor: '#0052CC'
         });
         return;
       }
       
+      // Check credentials
       if (username === "emergency" && password === "123456") {
         localStorage.setItem("user", username);
         localStorage.setItem("role", "emergency");
@@ -825,28 +1215,47 @@
           title: 'بيانات غير صحيحة!',
           text: 'الرجاء المحاولة مرة أخرى',
           confirmButtonText: 'حسنًا',
-          confirmButtonColor: '#1e40af'
+          confirmButtonColor: '#0052CC'
         });
-        document.getElementById("password").value = "";
+        document.getElementById('modalPassword').value = "";
       }
     }
-    
-    // دالة الرجوع لأعلى
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    // التركيز على حقل اسم المستخدم عند تحميل الصفحة
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById("username").focus();
+
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+          // Close mobile menu if open
+          document.getElementById('mobileMenu').classList.add('hidden');
+        }
+      });
     });
-    
-    // إضافة تأثير التمرير للعناصر
+
+    // Form submission handler
+    document.querySelector('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'success',
+        title: 'تم الإرسال بنجاح!',
+        text: 'سنقوم بالرد عليك في أقرب وقت ممكن',
+        confirmButtonText: 'حسنًا',
+        confirmButtonColor: '#0052CC'
+      });
+      this.reset();
+    });
+
+    // Add animation on scroll
     const observerOptions = {
       threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
+      rootMargin: '0px 0px -100px 0px'
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -854,7 +1263,7 @@
         }
       });
     }, observerOptions);
-    
+
     document.querySelectorAll('section').forEach(section => {
       observer.observe(section);
     });
