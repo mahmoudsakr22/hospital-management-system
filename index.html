@@ -188,6 +188,34 @@
       height: 24px;
       fill: white;
     }
+    
+    /* حركة الماركي */
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    
+    .animate-marquee {
+      animation: marquee 30s linear infinite;
+    }
+    
+    /* تأثير الخط المحدود */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* تأثير النبض للعلامات */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .animate-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -261,48 +289,166 @@
     </svg>
   </button>
   
-  <!-- قسم البارزات الطبية -->
-  <section class="py-12 bg-gradient-to-r from-blue-50 to-cyan-50">
-    <div class="container mx-auto px-4">
-      <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">البارزات الطبية</h2>
+  <!-- قسم البارزات الطبية المحسن -->
+  <section class="py-16 bg-gradient-to-br from-blue-900 via-blue-800 to-cyan-800 text-white overflow-hidden">
+    <div class="container mx-auto px-4 relative">
+      <!-- خلفية متحركة -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-blue-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-30 animate-pulse"></div>
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-soft-light filter blur-3xl opacity-30 animate-pulse"></div>
+      </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- بطاقة 1 -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
-          <div class="p-1 bg-gradient-to-r from-blue-500 to-cyan-500">
-            <img src="https://media.istockphoto.com/id/1737833729/photo/hospital-monitor-displaying-vital-signs-heart-rate-blood-pressure-temperature-and-pulse.webp?a=1&b=1&s=612x612&w=0&k=20&c=NUBBHz3Klh6XcX8M1CjeDLDbXD2f7L6CoqFHEWFZtrw=" 
-                 alt="العناية المركزة" class="w-full h-48 object-cover">
+      <div class="relative z-10">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl md:text-5xl font-bold mb-4">البارزات الطبية</h2>
+          <p class="text-xl text-blue-200 max-w-2xl mx-auto">أحدث التقنيات والخدمات الطبية المتميزة التي نقدمها في مستشفى الحياة الذكية</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- بطاقة 1 -->
+          <div class="group relative">
+            <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <div class="relative bg-blue-900/80 backdrop-blur-lg rounded-2xl overflow-hidden transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
+              <div class="relative h-56 overflow-hidden">
+                <img src="https://media.istockphoto.com/id/1737833729/photo/hospital-monitor-displaying-vital-signs-heart-rate-blood-pressure-temperature-and-pulse.webp?a=1&b=1&s=612x612&w=0&k=20&c=NUBBHz3Klh6XcX8M1CjeDLDbXD2f7L6CoqFHEWFZtrw=" 
+                     alt="العناية المركزة" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent"></div>
+                <div class="absolute top-6 right-6">
+                  <span class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-bold animate-pulse">مميز</span>
+                </div>
+                <div class="absolute bottom-6 left-6 right-6">
+                  <h3 class="text-2xl font-bold mb-2">وحدة العناية المركزة</h3>
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <span class="text-sm text-blue-200">(5.0)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="p-6">
+                <p class="text-blue-200 mb-6">أحدث الأجهزة الطبية وفريق متخصص لتقديم أفضل رعاية للحالات الحرجة مع مراقبة مستمرة على مدار الساعة</p>
+                <div class="flex items-center justify-between">
+                  <div class="flex -space-x-2">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <img src="https://randomuser.me/api/portraits/men/67.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-xs">
+                      +15
+                    </div>
+                  </div>
+                  <button class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-2 rounded-full font-bold transition-all duration-300 transform hover:scale-105">
+                    تفاصيل
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold mb-2 text-blue-800">وحدة العناية المركزة</h3>
-            <p class="text-gray-600 mb-4">أحدث الأجهزة الطبية وفريق متخصص لتقديم أفضل رعاية للحالات الحرجة</p>
-            <a href="#" class="text-blue-600 font-medium hover:text-blue-800">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          
+          <!-- بطاقة 2 -->
+          <div class="group relative">
+            <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <div class="relative bg-blue-900/80 backdrop-blur-lg rounded-2xl overflow-hidden transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
+              <div class="relative h-56 overflow-hidden">
+                <img src="https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.webp?a=1&b=1&s=612x612&w=0&k=20&c=p_BnNwDwa9rcwE90AxDVbqx0CMkz3hN_DN31FzE-seM=" 
+                     alt="الاستقبال" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent"></div>
+                <div class="absolute top-6 right-6">
+                  <span class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold">سريع</span>
+                </div>
+                <div class="absolute bottom-6 left-6 right-6">
+                  <h3 class="text-2xl font-bold mb-2">قسم الاستقبال الطبي</h3>
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star-half-alt text-yellow-400"></i>
+                    <span class="text-sm text-blue-200">(4.8)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="p-6">
+                <p class="text-blue-200 mb-6">خدمات استقبال سريعة وفعالة لتسهيل إجراءات الدخول للمستشفى مع نظام حجز إلكتروني متطور</p>
+                <div class="flex items-center justify-between">
+                  <div class="flex -space-x-2">
+                    <img src="https://randomuser.me/api/portraits/women/28.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <img src="https://randomuser.me/api/portraits/men/36.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <img src="https://randomuser.me/api/portraits/women/65.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-xs">
+                      +12
+                    </div>
+                  </div>
+                  <button class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-2 rounded-full font-bold transition-all duration-300 transform hover:scale-105">
+                    تفاصيل
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- بطاقة 3 -->
+          <div class="group relative">
+            <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <div class="relative bg-blue-900/80 backdrop-blur-lg rounded-2xl overflow-hidden transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
+              <div class="relative h-56 overflow-hidden">
+                <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
+                     alt="الرعاية" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent"></div>
+                <div class="absolute top-6 right-6">
+                  <span class="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-bold">متطور</span>
+                </div>
+                <div class="absolute bottom-6 left-6 right-6">
+                  <h3 class="text-2xl font-bold mb-2">الرعاية التخصصية</h3>
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <span class="text-sm text-blue-200">(4.9)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="p-6">
+                <p class="text-blue-200 mb-6">فرق طبية متخصصة في جميع المجالات الطبية لتقديم رعاية شاملة ومتكاملة للمرضى</p>
+                <div class="flex items-center justify-between">
+                  <div class="flex -space-x-2">
+                    <img src="https://randomuser.me/api/portraits/men/75.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <img src="https://randomuser.me/api/portraits/women/50.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <img src="https://randomuser.me/api/portraits/men/29.jpg" class="w-10 h-10 rounded-full border-2 border-blue-800">
+                    <div class="w-10 h-10 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-xs">
+                      +18
+                    </div>
+                  </div>
+                  <button class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-2 rounded-full font-bold transition-all duration-300 transform hover:scale-105">
+                    تفاصيل
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
-        <!-- بطاقة 2 -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
-          <div class="p-1 bg-gradient-to-r from-blue-500 to-cyan-500">
-            <img src="https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.webp?a=1&b=1&s=612x612&w=0&k=20&c=p_BnNwDwa9rcwE90AxDVbqx0CMkz3hN_DN31FzE-seM=" 
-                 alt="الاستقبال" class="w-full h-48 object-cover">
+        <!-- إحصائيات -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
+          <div class="text-center">
+            <div class="text-4xl font-bold mb-2 text-cyan-400">98%</div>
+            <div class="text-blue-200">رضا المرضى</div>
           </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold mb-2 text-blue-800">قسم الاستقبال الطبي</h3>
-            <p class="text-gray-600 mb-4">خدمات استقبال سريعة وفعالة لتسهيل إجراءات الدخول للمستشفى</p>
-            <a href="#" class="text-blue-600 font-medium hover:text-blue-800">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          <div class="text-center">
+            <div class="text-4xl font-bold mb-2 text-cyan-400">24/7</div>
+            <div class="text-blue-200">خدمة متاحة</div>
           </div>
-        </div>
-        
-        <!-- بطاقة 3 -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-500 hover:scale-105">
-          <div class="p-1 bg-gradient-to-r from-blue-500 to-cyan-500">
-            <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
-                 alt="الرعاية" class="w-full h-48 object-cover">
+          <div class="text-center">
+            <div class="text-4xl font-bold mb-2 text-cyan-400">500+</div>
+            <div class="text-blue-200">طبيب متخصص</div>
           </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold mb-2 text-blue-800">الرعاية التخصصية</h3>
-            <p class="text-gray-600 mb-4">فرق طبية متخصصة في جميع المجالات الطبية لتقديم رعاية شاملة</p>
-            <a href="#" class="text-blue-600 font-medium hover:text-blue-800">المزيد <i class="fas fa-arrow-left mr-1"></i></a>
+          <div class="text-center">
+            <div class="text-4xl font-bold mb-2 text-cyan-400">50K+</div>
+            <div class="text-blue-200">مريض سنوياً</div>
           </div>
         </div>
       </div>
@@ -482,80 +628,124 @@
     </div>
   </section>
   
-  <!-- قسم الأخبار -->
-  <section class="py-12 bg-white">
+  <!-- قسم الأخبار المحسن -->
+  <section class="py-16 bg-gray-900 text-white overflow-hidden">
     <div class="container mx-auto px-4">
-      <div class="flex justify-between items-center mb-8">
-        <h2 class="text-3xl font-bold text-blue-900">أحدث الأخبار</h2>
-        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-          جميع الأخبار <i class="fas fa-arrow-left"></i>
-        </a>
+      <div class="text-center mb-12">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">أحدث الأخبار</h2>
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto">تابع آخر التطورات والإنجازات في مستشفى الحياة الذكية</p>
       </div>
       
-      <div class="swiper newsSwiper">
-        <div class="swiper-wrapper">
-          <!-- شريحة خبر 1 -->
-          <div class="swiper-slide">
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full">
-              <div class="relative">
-                <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
-                     alt="خبر 1" class="w-full h-56 object-cover">
-                <div class="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-                  جديد
-                </div>
-              </div>
-              <div class="p-6">
-                <h3 class="text-xl font-bold mb-2 text-blue-800">توسعة وحدة العناية المركزة</h3>
-                <p class="text-gray-600 mb-4">تم تدشين توسعة جديدة لوحدة العناية المركزة بأحدث الأجهزة الطبية لزيادة الطاقة الاستيعابية</p>
-                <a href="#" class="text-blue-600 font-medium hover:text-blue-800">
-                  قراءة المزيد <i class="fas fa-arrow-left mr-1"></i>
-                </a>
-              </div>
+      <!-- شريط الأخبار المتحرك -->
+      <div class="relative mb-16">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+        <div class="overflow-hidden">
+          <div class="flex animate-marquee whitespace-nowrap">
+            <div class="flex items-center mx-8">
+              <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold ml-3">عاجل</span>
+              <span class="text-lg">افتتاح قسم الطوارئ الجديد المجهز بأحدث التقنيات الطبية</span>
+            </div>
+            <div class="flex items-center mx-8">
+              <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold ml-3">جديد</span>
+              <span class="text-lg">استيراد أحدث أجهزة الأشعة التشخيصية لتقديم خدمات دقيقة</span>
+            </div>
+            <div class="flex items-center mx-8">
+              <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold ml-3">إنجاز</span>
+              <span class="text-lg">حصول المستشفى على شهادة الجودة الدولية ISO 9001</span>
+            </div>
+            <div class="flex items-center mx-8">
+              <span class="bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-bold ml-3">حدث</span>
+              <span class="text-lg">انطلاق حملة التوعية الصحية المجانية للكشف المبكر</span>
             </div>
           </div>
-          
-          <!-- شريحة خبر 2 -->
-          <div class="swiper-slide">
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full">
-              <div class="relative">
-                <img src="https://media.istockphoto.com/id/1468742408/photo/doctor-work-at-operating-room.webp?a=1&s=612x612&w=0&k=20&c=z68Sq5dYmat_ZHDKFn_ktjOf9N2-bsKyBLsOQBOO4zA=" 
-                     alt="خبر 2" class="w-full h-56 object-cover">
-                <div class="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm">
-                  تقنية
+        </div>
+      </div>
+      
+      <!-- شبكة الأخبار -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- خبر رئيسي -->
+        <div class="md:col-span-2 group">
+          <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 group-hover:scale-[1.02]">
+            <div class="relative h-96 overflow-hidden">
+              <img src="https://plus.unsplash.com/premium_photo-1682089159103-d09b46d1cce8?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8SW50ZW5zaXZlJTIwY2FyZSUyMHVuaXR8ZW58MHx8MHx8fDA%3D" 
+                   alt="خبر رئيسي" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
+              <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent"></div>
+              <div class="absolute top-6 right-6">
+                <span class="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                  <i class="fas fa-fire"></i> الأكثر قراءة
+                </span>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 p-8">
+                <div class="flex items-center gap-4 mb-4">
+                  <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">تقنية طبية</span>
+                  <span class="text-gray-300 text-sm">15 مايو 2023</span>
                 </div>
-              </div>
-              <div class="p-6">
-                <h3 class="text-xl font-bold mb-2 text-blue-800">إضافة أجهزة أشعة حديثة</h3>
-                <p class="text-gray-600 mb-4">استيراد أحدث أجهزة الأشعة التشخيصية لتقديم خدمات طبية دقيقة وسريعة</p>
-                <a href="#" class="text-blue-600 font-medium hover:text-blue-800">
-                  قراءة المزيد <i class="fas fa-arrow-left mr-1"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          <!-- شريحة خبر 3 -->
-          <div class="swiper-slide">
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden h-full">
-              <div class="relative">
-                <img src="https://i.pinimg.com/736x/5e/0e/6a/5e0e6a4a8c1336af7ec34b4c9d4cee79.jpg" 
-                     alt="خبر 3" class="w-full h-56 object-cover">
-                <div class="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
-                  طارئ
-                </div>
-              </div>
-              <div class="p-6">
-                <h3 class="text-xl font-bold mb-2 text-blue-800">افتتاح وحدة الطوارئ الجديدة</h3>
-                <p class="text-gray-600 mb-4">تم افتتاح وحدة الطوارئ الجديدة المجهزة بأحدث التقنيات الطبية لاستقبال الحالات الحرجة</p>
-                <a href="#" class="text-blue-600 font-medium hover:text-blue-800">
-                  قراءة المزيد <i class="fas fa-arrow-left mr-1"></i>
-                </a>
+                <h3 class="text-3xl font-bold mb-4">توسعة وحدة العناية المركزة بأحدث الأجهزة الطبية</h3>
+                <p class="text-gray-300 mb-6 line-clamp-2">تم تدشين توسعة جديدة لوحدة العناية المركزة بأحدث الأجهزة الطبية لزيادة الطاقة الاستيعابية وتقديم أفضل رعاية للحالات الحرجة</p>
+                <button class="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:scale-105">
+                  قراءة المزيد
+                </button>
               </div>
             </div>
           </div>
         </div>
         
-        <div class="swiper-pagination mt-6"></div>
+        <!-- الأخبار الجانبية -->
+        <div class="space-y-6">
+          <!-- خبر 1 -->
+          <div class="group bg-gray-800 rounded-2xl overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://media.istockphoto.com/id/1468742408/photo/doctor-work-at-operating-room.webp?a=1&b=1&s=612x612&w=0&k=20&c=z68Sq5dYmat_ZHDKFn_ktjOf9N2-bsKyBLsOQBOO4zA=" 
+                   alt="خبر 1" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
+              <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
+              <div class="absolute top-4 right-4">
+                <span class="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">تقنية</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">إضافة أجهزة أشعة حديثة</h3>
+              <p class="text-gray-400 text-sm mb-4">استيراد أحدث أجهزة الأشعة التشخيصية</p>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-500 text-xs">2 يونيو 2023</span>
+                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                  قراءة <i class="fas fa-arrow-left mr-1"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- خبر 2 -->
+          <div class="group bg-gray-800 rounded-2xl overflow-hidden transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://i.pinimg.com/736x/5e/0e/6a/5e0e6a4a8c1336af7ec34b4c9d4cee79.jpg" 
+                   alt="خبر 2" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700">
+              <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
+              <div class="absolute top-4 right-4">
+                <span class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">طارئ</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">افتتاح وحدة الطوارئ</h3>
+              <p class="text-gray-400 text-sm mb-4">وحدة طوارئ جديدة مجهزة بأحدث التقنيات</p>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-500 text-xs">20 يوليو 2023</span>
+                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                  قراءة <i class="fas fa-arrow-left mr-1"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- أزرار التنقل -->
+      <div class="flex justify-center gap-4 mt-12">
+        <button class="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:scale-105">
+          <i class="fas fa-arrow-right ml-2"></i> الأخبار السابقة
+        </button>
+        <button class="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:scale-105">
+          الأخبار التالية <i class="fas fa-arrow-left mr-2"></i>
+        </button>
       </div>
     </div>
   </section>
