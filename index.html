@@ -473,8 +473,27 @@
         font-size: 1.2rem !important;
       }
       
+      /* تصغير زر الحجز الثابت على الموبايل */
       #bookNowBtn {
         bottom: 70px !important;
+        right: 10px !important;
+      }
+      
+      #bookNowBtn button {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        font-size: 0 !important;
+      }
+      
+      #bookNowBtn button i {
+        font-size: 18px !important;
+        margin: 0 !important;
+      }
+      
+      #bookNowBtn button span {
+        display: none !important;
       }
     }
     
@@ -855,6 +874,236 @@
       color: #334155;
       line-height: 1.6;
     }
+    
+    /* 🔘 زر "احجز الآن" الثابت على اليمين - مصغر */
+    #bookNowBtn {
+      position: fixed;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      z-index: 9999;
+      transition: all 0.3s ease;
+    }
+    
+    #bookNowBtn button {
+      background: linear-gradient(135deg, #0c4a6e, #0284c7);
+      color: white;
+      padding: 12px 15px;
+      font-size: 13px;
+      border: none;
+      border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    #bookNowBtn button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* تأثير الظل للزر */
+    #bookNowBtn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #0c4a6e, #0284c7);
+      border-radius: 50px;
+      filter: blur(10px);
+      opacity: 0.4;
+      z-index: -1;
+      transition: all 0.3s ease;
+    }
+    
+    #bookNowBtn:hover::before {
+      opacity: 0.6;
+      filter: blur(15px);
+    }
+    
+    /* الهيدر المصغر والمحسن */
+    header {
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      padding: 8px 0;
+    }
+    
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+    
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .header-logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--primary-color);
+      object-fit: cover;
+    }
+    
+    .header-logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0;
+      line-height: 1.2;
+    }
+    
+    .header-logo-text p {
+      font-size: 11px;
+      color: var(--secondary-color);
+      margin: 0;
+      font-weight: 500;
+    }
+    
+    .header-nav {
+      display: none;
+    }
+    
+    .header-nav.active {
+      display: flex;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      flex-direction: column;
+      padding: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      gap: 10px;
+    }
+    
+    .header-nav a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 15px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    
+    .header-nav a:hover {
+      background: var(--light-color);
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .header-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    
+    .header-btn:hover {
+      background: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+    
+    .header-btn i {
+      font-size: 12px;
+    }
+    
+    .header-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--primary-color);
+      cursor: pointer;
+      padding: 5px;
+    }
+    
+    /* تحسينات للشاشات المتوسطة */
+    @media (min-width: 768px) {
+      .header-nav {
+        display: flex;
+        gap: 15px;
+        position: static;
+        background: none;
+        box-shadow: none;
+        flex-direction: row;
+        padding: 0;
+      }
+      
+      .header-menu-toggle {
+        display: none;
+      }
+      
+      .header-actions {
+        gap: 10px;
+      }
+      
+      .header-btn {
+        padding: 8px 15px;
+        font-size: 13px;
+      }
+    }
+    
+    /* تحسينات للشاشات الكبيرة */
+    @media (min-width: 1024px) {
+      header {
+        padding: 10px 0;
+      }
+      
+      .header-logo img {
+        width: 45px;
+        height: 45px;
+      }
+      
+      .header-logo-text h1 {
+        font-size: 20px;
+      }
+      
+      .header-logo-text p {
+        font-size: 12px;
+      }
+      
+      .header-nav {
+        gap: 20px;
+      }
+      
+      .header-btn {
+        padding: 10px 18px;
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -866,47 +1115,54 @@
   <!-- Animated background -->
   <div class="animated-bg"></div>
   
-  <!-- الهيدر -->
-  <header class="sticky top-0 z-40 bg-white shadow-md border-b-4 border-blue-800">
-    <div class="container mx-auto px-4">
-      <div class="flex flex-col sm:flex-row justify-between items-center py-4 gap-3">
+  <!-- الهيدر المصغر والمحسن -->
+  <header>
+    <div class="header-container">
+      <div class="header-content">
         <!-- شعار المستشفى -->
-        <div class="flex items-center gap-3">
+        <div class="header-logo">
           <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open"
-               class="w-16 h-16 rounded-full border-3 border-blue-800 p-1 shadow-lg"
                alt="شعار مستشفى الحياة الذكية">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
-            <p class="text-sm text-blue-900 font-medium">SMART HAYAT HOSPITAL</p>
+          <div class="header-logo-text">
+            <h1>مستشفى الحياة الذكية</h1>
+            <p>SMART HAYAT HOSPITAL</p>
           </div>
         </div>
         
         <!-- قائمة التنقل -->
-        <nav class="hidden md:flex space-x-reverse space-x-6">
-          <a href="#home" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">الرئيسية</a>
-          <a href="#departments" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">الأقسام</a>
-          <a href="#doctors" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">الأطباء</a>
-          <a href="#services" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">الخدمات</a>
-          <a href="#booking" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">حجز مواعيد</a>
-          <a href="#reviews" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">آراء المرضى</a>
-          <a href="#contact" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">تواصل معنا</a>
+        <nav class="header-nav" id="headerNav">
+          <a href="#home">الرئيسية</a>
+          <a href="#departments">الأقسام</a>
+          <a href="#doctors">الأطباء</a>
+          <a href="#services">الخدمات</a>
+          <a href="#booking">حجز مواعيد</a>
+          <a href="#reviews">آراء المرضى</a>
+          <a href="#contact">تواصل معنا</a>
         </nav>
         
         <!-- الأزرار -->
-        <div class="flex header-buttons gap-3 w-full sm:w-auto justify-center sm:justify-end">
-          <button onclick="showLoginPage()" class="bg-[#0c4a6e] hover:bg-[#0a3855] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2 btn-hover">
-            <i class="fa-solid fa-sign-in-alt"></i> تسجيل الدخول
+        <div class="header-actions">
+          <button onclick="showLoginPage()" class="header-btn">
+            <i class="fa-solid fa-sign-in-alt"></i>
+            <span class="hidden sm:inline">تسجيل الدخول</span>
           </button>
-          <button class="bg-[#0c4a6e] hover:bg-[#0a3855] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2 btn-hover">
-            <i class="fa-solid fa-globe icon-rotate"></i> EN
+          <button class="header-btn">
+            <i class="fa-solid fa-globe"></i>
+            <span class="hidden sm:inline">EN</span>
           </button>
-          <button class="bg-[#0c4a6e] hover:bg-[#0a3855] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2 btn-hover">
-            <i class="fa-solid fa-phone icon-rotate"></i> 12345
+          <button class="header-btn">
+            <i class="fa-solid fa-phone"></i>
+            <span class="hidden sm:inline">12345</span>
           </button>
-          <a href="search.html" target="_blank"
-             class="bg-[#0c4a6e] hover:bg-[#0a3855] text-white px-4 py-2 rounded-full font-bold text-sm transition flex items-center gap-2 btn-hover">
-            <i class="fa-solid fa-user icon-rotate"></i> بوابة المريض
+          <a href="search.html" target="_blank" class="header-btn">
+            <i class="fa-solid fa-user"></i>
+            <span class="hidden sm:inline">بوابة المريض</span>
           </a>
+          
+          <!-- زر القائمة للموبايل -->
+          <button class="header-menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -931,11 +1187,11 @@
     </div>
   </div>
   
-  <!-- 🔘 زر "احجز الآن" الثابت على اليمين -->
-  <div id="bookNowBtn" style="position: fixed; top: 50%; right: 20px; transform: translateY(-50%); z-index: 9999;">
-    <button onclick="showBookingForm()" 
-            style="background: linear-gradient(135deg, #0c4a6e, #0284c7); color: white; padding: 15px 25px; font-size: 16px; border: none; border-radius: 50px; box-shadow: 0 6px 15px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
-       <i class="fas fa-calendar-check"></i> احجز الآن
+  <!-- 🔘 زر "احجز الآن" الثابت على اليمين - مصغر -->
+  <div id="bookNowBtn">
+    <button onclick="showBookingForm()">
+       <i class="fas fa-calendar-check"></i>
+       <span>احجز الآن</span>
     </button>
   </div>
   
@@ -2420,6 +2676,12 @@
           });
         }
       });
+    }
+    
+    // دالة تبديل القائمة للموبايل
+    function toggleMenu() {
+      const nav = document.getElementById('headerNav');
+      nav.classList.toggle('active');
     }
     
     // دالة تبديل الأسئلة الشائعة
