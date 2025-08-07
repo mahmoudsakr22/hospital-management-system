@@ -689,6 +689,172 @@
       background: rgba(255, 255, 255, 0.3);
       transform: translateY(-3px);
     }
+    
+    /* نموذج إضافة تقييم */
+    .add-review-form {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+    
+    .add-review-form h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    
+    .form-textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+    }
+    
+    /* زر إضافة التقييم */
+    .btn-add-review {
+      background: var(--success-color);
+      color: white;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-add-review:hover {
+      background: #047857;
+    }
+    
+    /* قسم تسجيل دخول المرضى بدون كلمة مرور */
+    .patient-login-container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .patient-login-container h3 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .patient-login-container p {
+      color: #64748b;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .patient-login-btn {
+      background: var(--secondary-color);
+      color: white;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .patient-login-btn:hover {
+      background: var(--primary-color);
+    }
+    
+    /* بطاقة التقييم الجديدة */
+    .new-review-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      border-right: 4px solid var(--success-color);
+      animation: slideIn 0.5s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .new-review-card .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .new-review-card .reviewer-name {
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    
+    .new-review-card .review-date {
+      font-size: 14px;
+      color: #64748b;
+    }
+    
+    .new-review-card .review-rating {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    
+    .new-review-card .review-rating .star {
+      color: #ffc107;
+      font-size: 16px;
+    }
+    
+    .new-review-card .review-text {
+      color: #334155;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -722,6 +888,7 @@
           <a href="#doctors" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">الأطباء</a>
           <a href="#services" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">الخدمات</a>
           <a href="#booking" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">حجز مواعيد</a>
+          <a href="#reviews" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">آراء المرضى</a>
           <a href="#contact" class="text-blue-900 hover:text-blue-700 font-medium transition link-hover">تواصل معنا</a>
         </nav>
         
@@ -1271,25 +1438,22 @@
         </div>
       </div>
       
-      <!-- قسم تسجيل الدخول للمرضى -->
+      <!-- قسم تسجيل دخول المرضى بدون كلمة مرور -->
       <div class="max-w-md mx-auto mt-12 fade-in">
-        <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="patient-login-container">
           <h3 class="text-xl font-bold mb-6 text-center text-blue-900">دخول المرضى</h3>
+          <p class="text-center mb-6 text-gray-600">يمكنك الدخول باستخدام رقم المريض أو رقم الهوية فقط</p>
           <form onsubmit="patientLogin(event)">
             <div class="mb-4">
               <label class="block text-gray-700 mb-2">رقم المريض أو الهوية</label>
               <input type="text" class="form-input" placeholder="أدخل رقم المريض أو الهوية" required>
             </div>
-            <div class="mb-6">
-              <label class="block text-gray-700 mb-2">كلمة المرور</label>
-              <input type="password" class="form-input" placeholder="أدخل كلمة المرور" required>
-            </div>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="patient-login-btn">
               <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
             </button>
           </form>
           <div class="text-center mt-4">
-            <a href="#" class="text-blue-600 hover:text-blue-800 transition">نسيت كلمة المرور؟</a>
+            <a href="#" class="text-blue-600 hover:text-blue-800 transition">مساعدة في الدخول؟</a>
           </div>
         </div>
       </div>
@@ -1673,6 +1837,50 @@
       <div class="text-center mb-12 fade-in">
         <h2 class="text-3xl font-bold mb-4 text-blue-900">آراء المرضى</h2>
         <p class="text-gray-600 max-w-2xl mx-auto">نشارككم بعض آراء ومراجعات المرضى الذين تلقوا الرعاية في مستشفى الحياة الذكية</p>
+      </div>
+      
+      <!-- نموذج إضافة تقييم جديد -->
+      <div class="max-w-3xl mx-auto mb-12 fade-in">
+        <div class="add-review-form">
+          <h3>شاركنا رأيك</h3>
+          <form id="addReviewForm" onsubmit="addReview(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">الاسم الكامل</label>
+                <input type="text" id="reviewerName" class="form-input" placeholder="أدخل اسمك" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">البريد الإلكتروني</label>
+                <input type="email" id="reviewerEmail" class="form-input" placeholder="أدخل بريدك الإلكتروني" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">التقييم</label>
+              <div class="rating">
+                <input type="radio" id="star5" name="rating" value="5">
+                <label for="star5">★</label>
+                <input type="radio" id="star4" name="rating" value="4">
+                <label for="star4">★</label>
+                <input type="radio" id="star3" name="rating" value="3">
+                <label for="star3">★</label>
+                <input type="radio" id="star2" name="rating" value="2">
+                <label for="star2">★</label>
+                <input type="radio" id="star1" name="rating" value="1">
+                <label for="star1">★</label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">رأيك وتجربتك</label>
+              <textarea id="reviewText" class="form-textarea" placeholder="اكتب رأيك وتجربتك مع المستشفى" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn-add-review">
+              <i class="fas fa-paper-plane ml-2"></i> إرسال التقييم
+            </button>
+          </form>
+        </div>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="patientReviews">
@@ -2272,14 +2480,13 @@
       event.target.reset();
     }
     
-    // دالة تسجيل دخول المرضى
+    // دالة تسجيل دخول المرضى بدون كلمة مرور
     function patientLogin(event) {
       event.preventDefault();
       
       const patientId = event.target.querySelector('input[type="text"]').value;
-      const password = event.target.querySelector('input[type="password"]').value;
       
-      // هنا يمكنك إضافة كود للتحقق من بيانات المريض
+      // هنا يمكنك إضافة كود للتحقق من رقم المريض
       
       Swal.fire({
         title: 'تم تسجيل الدخول بنجاح!',
@@ -2290,6 +2497,61 @@
       
       // إعادة تعيين النموذج
       event.target.reset();
+    }
+    
+    // دالة إضافة تقييم جديد
+    function addReview(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('reviewerName').value;
+      const email = document.getElementById('reviewerEmail').value;
+      const rating = document.querySelector('input[name="rating"]:checked')?.value || 0;
+      const text = document.getElementById('reviewText').value;
+      
+      if (!name || !email || !rating || !text) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'تنبيه',
+          text: 'يرجى ملء جميع الحقول',
+          confirmButtonText: 'حسنًا',
+          confirmButtonColor: '#0c4a6e'
+        });
+        return;
+      }
+      
+      // إنشاء بطاقة التقييم الجديدة
+      const reviewCard = document.createElement('div');
+      reviewCard.className = 'new-review-card';
+      
+      const stars = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
+      const currentDate = new Date().toLocaleDateString('ar-EG');
+      
+      reviewCard.innerHTML = `
+        <div class="review-header">
+          <div class="reviewer-name">${name}</div>
+          <div class="review-date">${currentDate}</div>
+        </div>
+        <div class="review-rating">
+          <span class="star">${stars}</span>
+        </div>
+        <div class="review-text">${text}</div>
+      `;
+      
+      // إضافة البطاقة في بداية قائمة التقييمات
+      const reviewsContainer = document.getElementById('patientReviews');
+      reviewsContainer.insertBefore(reviewCard, reviewsContainer.firstChild);
+      
+      // إعادة تعيين النموذج
+      event.target.reset();
+      
+      // إظهار رسالة نجاح
+      Swal.fire({
+        icon: 'success',
+        title: 'تم إضافة تقييمك بنجاح!',
+        text: 'نشكرك على مشاركتك رأيك معنا',
+        confirmButtonText: 'حسنًا',
+        confirmButtonColor: '#0c4a6e'
+      });
     }
     
     // دوال صفحة تسجيل الدخول
@@ -2449,7 +2711,63 @@
       lazyImages.forEach(img => {
         imageObserver.observe(img);
       });
+      
+      // Load sample reviews
+      loadSampleReviews();
     });
+    
+    // دالة تحميل نماذج التقييمات
+    function loadSampleReviews() {
+      const reviewsContainer = document.getElementById('patientReviews');
+      
+      const sampleReviews = [
+        {
+          name: "أحمد محمد",
+          date: "15/05/2023",
+          rating: 5,
+          text: "تجربة رائعة جداً في المستشفى، الطاقم الطبي محترف جداً والخدمات ممتازة. أنصح بالتعامل معهم بشدة."
+        },
+        {
+          name: "فاطمة علي",
+          date: "10/05/2023",
+          rating: 4,
+          text: "المستشفى جيد جداً والخدمات سريعة، لكن هناك بعض الزحام في أوقات الذروة. بشكل عام تجربة إيجابية."
+        },
+        {
+          name: "محمد خالد",
+          date: "05/05/2023",
+          rating: 5,
+          text: "أفضل مستشفى تعاملت معه، الأطباء متخصصون والخدمات منظمة جداً. شكراً لكم على الرعاية المتميزة."
+        }
+      ];
+      
+      sampleReviews.forEach(review => {
+        const reviewCard = document.createElement('div');
+        reviewCard.className = 'review-card card-hover fade-in';
+        
+        const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+        
+        reviewCard.innerHTML = `
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center ml-3">
+              <i class="fas fa-user text-blue-600 text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-blue-800">${review.name}</h3>
+              <p class="text-gray-500 text-sm">${review.date}</p>
+            </div>
+          </div>
+          <div class="flex items-center mb-3">
+            <div class="text-yellow-400">
+              ${stars}
+            </div>
+          </div>
+          <p class="text-gray-600">${review.text}</p>
+        `;
+        
+        reviewsContainer.appendChild(reviewCard);
+      });
+    }
   </script>
 </body>
 </html>
