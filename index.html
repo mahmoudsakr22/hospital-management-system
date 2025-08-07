@@ -40,6 +40,250 @@
       overflow-x: hidden;
     }
     
+    /* الهيدر المصمم من جديد */
+    header {
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    
+    /* الشعار واسم المستشفى */
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .header-logo img {
+      height: 40px;
+      width: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--primary-color);
+      object-fit: cover;
+    }
+    
+    .header-logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0;
+      line-height: 1.2;
+    }
+    
+    .header-logo-text p {
+      font-size: 11px;
+      color: var(--secondary-color);
+      margin: 0;
+      font-weight: 500;
+    }
+    
+    /* الأزرار الرئيسية - بنفس لون وشكل زر احجز الآن */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .header-btn {
+      background: linear-gradient(135deg, #0c4a6e, #0284c7);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .header-btn:hover::before {
+      transform: translateX(0);
+    }
+    
+    .header-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* تأثير الظل للأزرار */
+    .header-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #0c4a6e, #0284c7);
+      border-radius: 50px;
+      filter: blur(10px);
+      opacity: 0.4;
+      z-index: -1;
+      transition: all 0.3s ease;
+    }
+    
+    .header-btn:hover::after {
+      opacity: 0.6;
+      filter: blur(15px);
+    }
+    
+    .header-btn i {
+      font-size: 14px;
+    }
+    
+    /* قائمة الموبايل */
+    .header-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--primary-color);
+      cursor: pointer;
+      padding: 5px;
+    }
+    
+    .mobile-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 15px;
+    }
+    
+    .mobile-menu.active {
+      display: block;
+    }
+    
+    .mobile-menu a {
+      display: block;
+      padding: 10px 15px;
+      color: var(--primary-color);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    
+    .mobile-menu a:hover {
+      background: var(--light-color);
+    }
+    
+    /* تحسينات للموبايل */
+    @media (max-width: 640px) {
+      .header-content {
+        height: 56px;
+      }
+      
+      .header-logo img {
+        height: 32px !important;
+        width: 32px !important;
+      }
+      
+      .header-logo-text {
+        display: none;
+      }
+      
+      .header-btn {
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+      }
+      
+      .header-btn i {
+        font-size: 12px !important;
+      }
+      
+      .header-btn span {
+        display: none;
+      }
+      
+      .header-menu-toggle {
+        display: block;
+      }
+      
+      .mobile-menu {
+        display: none;
+      }
+    }
+    
+    /* تحسينات للشاشات المتوسطة */
+    @media (min-width: 768px) {
+      .header-btn {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
+      
+      .header-logo img {
+        height: 44px;
+        width: 44px;
+      }
+      
+      .header-logo-text h1 {
+        font-size: 20px;
+      }
+      
+      .header-logo-text p {
+        font-size: 12px;
+      }
+    }
+    
+    /* تحسينات للشاشات الكبيرة */
+    @media (min-width: 1024px) {
+      .header-btn {
+        padding: 12px 18px;
+        font-size: 15px;
+      }
+      
+      .header-logo img {
+        height: 48px;
+        width: 48px;
+      }
+      
+      .header-logo-text h1 {
+        font-size: 22px;
+      }
+      
+      .header-logo-text p {
+        font-size: 13px;
+      }
+    }
+    
     /* حركة دوران الأيقونات */
     .icon-rotate {
       display: inline-block;
@@ -451,48 +695,6 @@
     /* تحسينات للطباعة */
     @media print {
       .no-print {
-        display: none !important;
-      }
-    }
-    
-    /* تحسينات للأجهزة المحمولة */
-    @media (max-width: 640px) {
-      .header-buttons {
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: center;
-      }
-      
-      .header-buttons a,
-      .header-buttons button {
-        font-size: 0.8rem;
-        padding: 6px 10px;
-      }
-      
-      .banner-text {
-        font-size: 1.2rem !important;
-      }
-      
-      /* تصغير زر الحجز الثابت على الموبايل */
-      #bookNowBtn {
-        bottom: 70px !important;
-        right: 10px !important;
-      }
-      
-      #bookNowBtn button {
-        width: 50px !important;
-        height: 50px !important;
-        border-radius: 50% !important;
-        padding: 0 !important;
-        font-size: 0 !important;
-      }
-      
-      #bookNowBtn button i {
-        font-size: 18px !important;
-        margin: 0 !important;
-      }
-      
-      #bookNowBtn button span {
         display: none !important;
       }
     }
@@ -927,181 +1129,30 @@
       filter: blur(15px);
     }
     
-    /* الهيدر المصغر والمحسن */
-    header {
-      background: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      padding: 8px 0;
-    }
-    
-    .header-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 15px;
-    }
-    
-    .header-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-    }
-    
-    .header-logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .header-logo img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 2px solid var(--primary-color);
-      object-fit: cover;
-    }
-    
-    .header-logo-text h1 {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin: 0;
-      line-height: 1.2;
-    }
-    
-    .header-logo-text p {
-      font-size: 11px;
-      color: var(--secondary-color);
-      margin: 0;
-      font-weight: 500;
-    }
-    
-    .header-nav {
-      display: none;
-    }
-    
-    .header-nav.active {
-      display: flex;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      flex-direction: column;
-      padding: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      gap: 10px;
-    }
-    
-    .header-nav a {
-      color: var(--primary-color);
-      text-decoration: none;
-      font-weight: 500;
-      padding: 8px 15px;
-      border-radius: 6px;
-      transition: all 0.3s ease;
-    }
-    
-    .header-nav a:hover {
-      background: var(--light-color);
-    }
-    
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .header-btn {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-    }
-    
-    .header-btn:hover {
-      background: var(--secondary-color);
-      transform: translateY(-1px);
-    }
-    
-    .header-btn i {
-      font-size: 12px;
-    }
-    
-    .header-menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      font-size: 18px;
-      color: var(--primary-color);
-      cursor: pointer;
-      padding: 5px;
-    }
-    
-    /* تحسينات للشاشات المتوسطة */
-    @media (min-width: 768px) {
-      .header-nav {
-        display: flex;
-        gap: 15px;
-        position: static;
-        background: none;
-        box-shadow: none;
-        flex-direction: row;
-        padding: 0;
+    /* تحسينات للموبايل */
+    @media (max-width: 640px) {
+      #bookNowBtn {
+        bottom: 70px !important;
+        right: 10px !important;
+        top: auto !important;
+        transform: none !important;
       }
       
-      .header-menu-toggle {
-        display: none;
+      #bookNowBtn button {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        font-size: 0 !important;
       }
       
-      .header-actions {
-        gap: 10px;
+      #bookNowBtn button i {
+        font-size: 18px !important;
+        margin: 0 !important;
       }
       
-      .header-btn {
-        padding: 8px 15px;
-        font-size: 13px;
-      }
-    }
-    
-    /* تحسينات للشاشات الكبيرة */
-    @media (min-width: 1024px) {
-      header {
-        padding: 10px 0;
-      }
-      
-      .header-logo img {
-        width: 45px;
-        height: 45px;
-      }
-      
-      .header-logo-text h1 {
-        font-size: 20px;
-      }
-      
-      .header-logo-text p {
-        font-size: 12px;
-      }
-      
-      .header-nav {
-        gap: 20px;
-      }
-      
-      .header-btn {
-        padding: 10px 18px;
-        font-size: 14px;
+      #bookNowBtn button span {
+        display: none !important;
       }
     }
   </style>
@@ -1115,7 +1166,7 @@
   <!-- Animated background -->
   <div class="animated-bg"></div>
   
-  <!-- الهيدر المصغر والمحسن -->
+  <!-- الهيدر المصمم من جديد -->
   <header>
     <div class="header-container">
       <div class="header-content">
@@ -1129,41 +1180,48 @@
           </div>
         </div>
         
-        <!-- قائمة التنقل -->
-        <nav class="header-nav" id="headerNav">
-          <a href="#home">الرئيسية</a>
-          <a href="#departments">الأقسام</a>
-          <a href="#doctors">الأطباء</a>
-          <a href="#services">الخدمات</a>
-          <a href="#booking">حجز مواعيد</a>
-          <a href="#reviews">آراء المرضى</a>
-          <a href="#contact">تواصل معنا</a>
-        </nav>
-        
-        <!-- الأزرار -->
+        <!-- الأزرار الرئيسية -->
         <div class="header-actions">
-          <button onclick="showLoginPage()" class="header-btn">
-            <i class="fa-solid fa-sign-in-alt"></i>
-            <span class="hidden sm:inline">تسجيل الدخول</span>
-          </button>
-          <button class="header-btn">
-            <i class="fa-solid fa-globe"></i>
-            <span class="hidden sm:inline">EN</span>
-          </button>
-          <button class="header-btn">
-            <i class="fa-solid fa-phone"></i>
-            <span class="hidden sm:inline">12345</span>
-          </button>
+          <!-- زر بوابة المريض -->
           <a href="search.html" target="_blank" class="header-btn">
-            <i class="fa-solid fa-user"></i>
-            <span class="hidden sm:inline">بوابة المريض</span>
+            <i class="fas fa-user"></i>
+            <span>بوابة المريض</span>
           </a>
           
-          <!-- زر القائمة للموبايل -->
-          <button class="header-menu-toggle" onclick="toggleMenu()">
+          <!-- زر تسجيل الدخول -->
+          <button onclick="showLoginPage()" class="header-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>تسجيل الدخول</span>
+          </button>
+          
+          <!-- زر الترجمة -->
+          <button class="header-btn">
+            <i class="fas fa-globe"></i>
+            <span>EN</span>
+          </button>
+          
+          <!-- زر الهاتف -->
+          <button class="header-btn">
+            <i class="fas fa-phone"></i>
+            <span>12345</span>
+          </button>
+          
+          <!-- قائمة الجوال -->
+          <button class="header-menu-toggle" onclick="toggleMobileMenu()">
             <i class="fas fa-bars"></i>
           </button>
         </div>
+      </div>
+      
+      <!-- القائمة المنسدلة للموبايل -->
+      <div id="mobileMenu" class="mobile-menu">
+        <a href="#home">الرئيسية</a>
+        <a href="#departments">الأقسام</a>
+        <a href="#doctors">الأطباء</a>
+        <a href="#services">الخدمات</a>
+        <a href="#booking">حجز مواعيد</a>
+        <a href="#reviews">آراء المرضى</a>
+        <a href="#contact">تواصل معنا</a>
       </div>
     </div>
   </header>
@@ -2679,9 +2737,9 @@
     }
     
     // دالة تبديل القائمة للموبايل
-    function toggleMenu() {
-      const nav = document.getElementById('headerNav');
-      nav.classList.toggle('active');
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('active');
     }
     
     // دالة تبديل الأسئلة الشائعة
