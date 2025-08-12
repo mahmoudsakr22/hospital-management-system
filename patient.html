@@ -47,6 +47,12 @@
       border-color: #3B82F6;
       background-color: #EFF6FF;
     }
+    .patient-photo {
+      transition: all 0.3s ease;
+    }
+    .patient-photo:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -73,24 +79,24 @@
     </div>
   </div>
 
-  <!-- بيانات المريض (تصميم جديد) -->
+  <!-- بيانات المريض -->
   <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8 card-hover">
     <!-- Header with gradient and patient photo -->
     <div class="relative bg-gradient-to-r from-blue-700 to-indigo-800 p-6 text-white">
       <div class="absolute inset-0 bg-black opacity-10"></div>
       <div class="relative z-10 flex flex-col md:flex-row items-center gap-6">
         <div class="relative">
-          <img src="https://randomuser.me/api/portraits/men/32.jpg" 
-               class="w-24 h-24 rounded-full border-4 border-white shadow-lg" 
+          <img id="patientPhoto" 
+               class="w-24 h-24 rounded-full border-4 border-white shadow-lg patient-photo" 
                alt="صورة المريض">
           <span id="onlineStatus" class="absolute bottom-0 right-0 bg-green-500 w-6 h-6 rounded-full border-2 border-white"></span>
         </div>
         <div class="text-center md:text-right">
-          <h2 class="text-3xl font-bold mb-1" id="patientName">أحمد محمد علي</h2>
+          <h2 class="text-3xl font-bold mb-1" id="patientName">جاري التحميل...</h2>
           <p class="text-blue-100">رقم الملف: #<span id="patientFileNumber">----</span></p>
           <div class="flex items-center justify-center md:justify-start gap-4 mt-3">
             <span class="bg-white/20 px-3 py-1 rounded-full text-sm" id="patientAge">-- سنة</span>
-            <span class="bg-white/20 px-3 py-1 rounded-full text-sm">رجال</span>
+            <span class="bg-white/20 px-3 py-1 rounded-full text-sm" id="patientGender">--</span>
           </div>
         </div>
         <div class="md:mr-auto">
@@ -504,6 +510,23 @@ async function loadPatientData() {
       document.getElementById('patientDoctor').textContent = patient.doctors || '----';
       document.getElementById('patientAdmissionDate').textContent = patient.timestamp ? 
         new Date(patient.timestamp).toLocaleDateString('ar-EG') : '--/--/----';
+      
+      // تحديث الجنس والصورة
+      const gender = patient.gender || 'male';
+      document.getElementById('patientGender').textContent = gender === 'male' ? 'رجل' : 'أنثى';
+      
+      // تعيين صورة المريض بناءً على الجنس
+      const patientPhoto = document.getElementById('patientPhoto');
+      if (gender === 'female') {
+        patientPhoto.src = `https://randomuser.me/api/portraits/women/${patientId % 100}.jpg`;
+      } else {
+        patientPhoto.src = `https://randomuser.me/api/portraits/men/${patientId % 100}.jpg`;
+      }
+      
+      // إذا كان هناك صورة مخصصة في قاعدة البيانات
+      if (patient.photoUrl) {
+        patientPhoto.src = patient.photoUrl;
+      }
       
       updateStatusUI(patient.status || "stable");
       
