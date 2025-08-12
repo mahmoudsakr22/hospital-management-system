@@ -21,6 +21,13 @@
       border-left: 4px solid #3B82F6;
       background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
     }
+    .vital-sign {
+      transition: all 0.3s ease;
+    }
+    .vital-sign:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
   </style>
 </head>
 <body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
@@ -105,7 +112,7 @@
     <ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
   </div>
 
-  <!-- سجل الكشوفات الطبية (جديد) -->
+  <!-- سجل الكشوفات الطبية -->
   <div class="bg-white p-4 rounded shadow">
     <h2 class="text-lg font-semibold mb-2">سجل الكشوفات الطبية</h2>
     <div id="checkupsList" class="space-y-3">
@@ -114,9 +121,78 @@
   </div>
 </div>
 
+<!-- نموذج الكشف الطبي (مخفي في البداية) -->
+<div id="checkupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+  <div class="bg-white shadow-lg rounded-xl p-6 max-w-3xl mx-auto w-full max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-blue-800">📋 الكشف الطبي</h2>
+      <button onclick="closeCheckupModal()" class="text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    
+    <!-- اختيار نوع الكشف -->
+    <label class="block mb-2 font-semibold">نوع الكشف</label>
+    <select id="visitType" class="w-full p-2 border rounded mb-4">
+      <option value="">اختر نوع الكشف</option>
+      <option value="كشف أولي">كشف أولي</option>
+      <option value="متابعة">متابعة</option>
+      <option value="استشارة">استشارة</option>
+    </select>
+    
+    <!-- الأعراض -->
+    <label class="block mb-2 font-semibold">الأعراض</label>
+    <textarea id="symptoms" class="w-full p-2 border rounded mb-4" placeholder="اكتب الأعراض التي يشتكي منها المريض..."></textarea>
+    
+    <!-- العلامات الحيوية -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block mb-2 font-semibold">ضغط الدم</label>
+        <input type="text" id="bp" class="vital-sign w-full p-2 border rounded" placeholder="مثال: 120/80">
+      </div>
+      <div>
+        <label class="block mb-2 font-semibold">معدل النبض</label>
+        <input type="number" id="pulse" class="vital-sign w-full p-2 border rounded" placeholder="مثال: 75">
+      </div>
+      <div>
+        <label class="block mb-2 font-semibold">درجة الحرارة</label>
+        <input type="number" id="temp" class="vital-sign w-full p-2 border rounded" placeholder="°C">
+      </div>
+      <div>
+        <label class="block mb-2 font-semibold">نسبة الأكسجين</label>
+        <input type="number" id="oxygen" class="vital-sign w-full p-2 border rounded" placeholder="%">
+      </div>
+    </div>
+    
+    <!-- التشخيص -->
+    <label class="block mb-2 font-semibold">التشخيص</label>
+    <textarea id="diagnosis" class="w-full p-2 border rounded mb-4" placeholder="اكتب التشخيص الطبي للحالة..."></textarea>
+    
+    <!-- الخطة العلاجية -->
+    <label class="block mb-2 font-semibold">الخطة العلاجية</label>
+    <textarea id="treatmentPlan" class="w-full p-2 border rounded mb-4" placeholder="حدد العلاج أو الخطوات القادمة..."></textarea>
+    
+    <!-- رفع مرفقات -->
+    <label class="block mb-2 font-semibold">مرفقات (تحاليل / أشعة)</label>
+    <input type="file" id="attachments" class="w-full p-2 border rounded mb-4" multiple>
+    <div id="filePreview" class="mb-4"></div>
+    
+    <!-- زر الحفظ -->
+    <div class="flex justify-end gap-3">
+      <button onclick="closeCheckupModal()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400">
+        إلغاء
+      </button>
+      <button onclick="saveVisit()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+        💾 تسجيل الكشف
+      </button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getDatabase, ref, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
@@ -130,6 +206,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const storage = getStorage(app);
 const urlParams = new URLSearchParams(window.location.search);
 const patientId = urlParams.get("id");
 
@@ -252,106 +329,139 @@ async function loadPatientData() {
   }
 }
 
-// نموذج الكشف الذكي (مطور)
-window.doctorCheckup = async function() {
+// فتح نموذج الكشف الطبي
+window.doctorCheckup = function() {
   if (!validatePatientId()) return;
   
-  try {
-    // جلب بيانات المريض أولًا
-    const snapshot = await get(ref(db, `patients/emergency/${patientId}`));
-    const patient = snapshot.val();
-    const allergies = patient.allergies || [];
-    
-    // عرض النموذج المتقدم
-    const { value: formValues } = await Swal.fire({
-      title: 'كشف الطبيب',
-      html: `
-        <div class="text-right">
-          <label class="block mb-2">الأعراض الرئيسية:</label>
-          <input id="symptoms" class="swal2-input" placeholder="مثال: صداع، غثيان">
-          
-          <label class="block mb-2 mt-4">التشخيص:</label>
-          <select id="diagnosis" class="swal2-select">
-            <option value="">اختر أو اكتب تشخيصًا</option>
-            <option value="إنفلونزا">إنفلونزا</option>
-            <option value="التهاب رئة">التهاب رئة</option>
-            <option value="ارتفاع ضغط">ارتفاع ضغط دم</option>
-            <option value="حساسية">حساسية</option>
-          </select>
-          
-          <label class="block mb-2 mt-4">العلاج:</label>
-          <div id="treatmentSuggestions" class="mb-2 text-sm text-gray-600"></div>
-          <textarea id="treatment" class="swal2-textarea" placeholder="اكتب العلاج المقترح"></textarea>
-          
-          <label class="block mb-2 mt-4">ملاحظات إضافية:</label>
-          <textarea id="notes" class="swal2-textarea"></textarea>
-        </div>
-      `,
-      focusConfirm: false,
-      preConfirm: () => {
-        return {
-          symptoms: document.getElementById('symptoms').value,
-          diagnosis: document.getElementById('diagnosis').value,
-          treatment: document.getElementById('treatment').value,
-          notes: document.getElementById('notes').value
-        };
-      },
-      didOpen: () => {
-        // إضافة مستمع لتغيير التشخيص
-        document.getElementById('diagnosis').addEventListener('change', function() {
-          const diagnosis = this.value;
-          const suggestionsDiv = document.getElementById('treatmentSuggestions');
-          
-          const suggestions = {
-            'إنفلونزا': ['باراسيتامول', 'راحة', 'سوائل'],
-            'التهاب رئة': ['مضاد حيوي', 'راحة', 'أشعة صدر'],
-            'ارتفاع ضغط': ['أدوية خافضة للضغط', 'نظام غذائي'],
-            'حساسية': ['مضاد هيستامين', 'تجنب المسبب']
-          };
-          
-          const safeMedicines = suggestions[diagnosis]?.filter(med => 
-            !allergies.some(allergy => allergy.includes(med))
-          ) || [];
-          
-          suggestionsDiv.innerHTML = `
-            <p class="font-semibold">اقتراحات:</p>
-            <ul class="list-disc pr-5">
-              ${safeMedicines.map(med => `<li>${med}</li>`).join('')}
-            </ul>
-            ${safeMedicines.length === 0 ? '<p class="text-red-500">لا توجد اقتراحات آمنة (تحقق من الحساسية)</p>' : ''}
-          `;
-        });
-      }
-    });
-
-    // حفظ النموذج
-    if (formValues) {
-      showLoading("جاري حفظ الكشف...");
-      await saveCheckup(formValues);
-      showResult("تم!", "تم حفظ الكشف بنجاح");
-    }
-  } catch (error) {
-    Swal.fire("خطأ", "فشل إتمام الكشف: " + error.message, "error");
-  }
+  // إعادة تعيين النموذج
+  document.getElementById('visitType').value = '';
+  document.getElementById('symptoms').value = '';
+  document.getElementById('bp').value = '';
+  document.getElementById('pulse').value = '';
+  document.getElementById('temp').value = '';
+  document.getElementById('oxygen').value = '';
+  document.getElementById('diagnosis').value = '';
+  document.getElementById('treatmentPlan').value = '';
+  document.getElementById('attachments').value = '';
+  document.getElementById('filePreview').innerHTML = '';
+  
+  // عرض النموذج
+  document.getElementById('checkupModal').classList.remove('hidden');
 };
 
-// حفظ الكشف في Firebase
-async function saveCheckup(checkupData) {
-  const newCheckup = {
-    ...checkupData,
-    doctorId: "currentDoctorId", // في نظام حقيقي: استخدم auth.uid
-    date: new Date().toISOString(),
-    status: "مكتمل"
-  };
+// إغلاق نموذج الكشف الطبي
+window.closeCheckupModal = function() {
+  document.getElementById('checkupModal').classList.add('hidden');
+};
+
+// معاينة الملفات المرفوعة
+document.getElementById('attachments').addEventListener('change', function() {
+  const files = this.files;
+  const preview = document.getElementById('filePreview');
+  preview.innerHTML = '';
   
-  await push(ref(db, `patients/emergency/${patientId}/checkups`), newCheckup);
+  if (files.length > 0) {
+    preview.innerHTML = '<p class="font-semibold mb-2">الملفات المحددة:</p>';
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileItem = document.createElement('div');
+      fileItem.className = 'flex items-center gap-2 mb-1';
+      
+      // تحديد الأيقونة حسب نوع الملف
+      let icon = 'fa-file';
+      if (file.type.startsWith('image/')) icon = 'fa-file-image';
+      else if (file.type === 'application/pdf') icon = 'fa-file-pdf';
+      else if (file.type.includes('word')) icon = 'fa-file-word';
+      
+      fileItem.innerHTML = `
+        <i class="fas ${icon} text-blue-600"></i>
+        <span>${file.name}</span>
+        <span class="text-sm text-gray-500">(${(file.size / 1024).toFixed(1)} KB)</span>
+      `;
+      
+      preview.appendChild(fileItem);
+    }
+  }
+});
+
+// حفظ بيانات الكشف الطبي
+window.saveVisit = async function() {
+  if (!validatePatientId()) return;
   
-  // تحديث حالة المريض
-  await update(ref(db, `patients/emergency/${patientId}`), {
-    lastCheckup: new Date().toISOString(),
-    serviceType: "كشف"
-  });
-}
+  // جمع البيانات من النموذج
+  const visitType = document.getElementById('visitType').value;
+  const symptoms = document.getElementById('symptoms').value;
+  const bp = document.getElementById('bp').value;
+  const pulse = document.getElementById('pulse').value;
+  const temp = document.getElementById('temp').value;
+  const oxygen = document.getElementById('oxygen').value;
+  const diagnosis = document.getElementById('diagnosis').value;
+  const treatmentPlan = document.getElementById('treatmentPlan').value;
+  const attachments = document.getElementById('attachments').files;
+  
+  // التحقق من الحقول المطلوبة
+  if (!visitType || !symptoms || !diagnosis) {
+    Swal.fire("تنبيه", "يرجى ملء الحقول المطلوبة (نوع الكشف، الأعراض، التشخيص)", "warning");
+    return;
+  }
+  
+  try {
+    showLoading("جاري حفظ الكشف...");
+    
+    // تجهيز بيانات الكشف
+    const checkupData = {
+      visitType,
+      symptoms,
+      vitalSigns: {
+        bp,
+        pulse,
+        temp,
+        oxygen
+      },
+      diagnosis,
+      treatmentPlan,
+      doctorId: "currentDoctorId", // في نظام حقيقي: استخدم auth.uid
+      date: new Date().toISOString(),
+      status: "مكتمل",
+      attachments: [] // سيتم ملؤها لاحقًا
+    };
+    
+    // رفع الملفات إذا وجدت
+    if (attachments.length > 0) {
+      for (let i = 0; i < attachments.length; i++) {
+        const file = attachments[i];
+        const fileRef = storageRef(storage, `patients/${patientId}/checkups/${Date.now()}_${file.name}`);
+        
+        await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(fileRef);
+        
+        checkupData.attachments.push({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          url: downloadURL
+        });
+      }
+    }
+    
+    // حفظ البيانات في Firebase
+    await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
+    
+    // تحديث حالة المريض
+    await update(ref(db, `patients/emergency/${patientId}`), {
+      lastCheckup: new Date().toISOString(),
+      serviceType: visitType
+    });
+    
+    // إغلاق النموذج
+    closeCheckupModal();
+    
+    showResult("تم!", "تم حفظ الكشف بنجاح");
+  } catch (error) {
+    Swal.fire("خطأ", "فشل حفظ الكشف: " + error.message, "error");
+  }
+};
 
 // إظهار اختيار الجهاز عند اختيار الأشعة
 document.getElementById("transferDepartment").addEventListener("change", function() {
@@ -457,7 +567,7 @@ function loadTransfers() {
         if (t.status === "تم التنفيذ") {
           actionBtns += `<button onclick='showRadiologyReport(${JSON.stringify(t)})' class="bg-green-600 text-white px-2 py-1 rounded ml-2">عرض النتيجة</button>`;
         }
-        actionBtns += `<button onclick='deleteTransfer("${key}")' class="bg-red-600 text-white px-2 py-1 rounded ml-2">حذف</button>`;
+        actionBtns += `<button onclick='deleteTransfer("${key}")' class="bg-red-600 text-white px-2 py-2 rounded ml-2">حذف</button>`;
       }
       
       const item = document.createElement("li");
@@ -467,7 +577,7 @@ function loadTransfers() {
   });
 }
 
-// عرض سجل الكشوفات الطبية (جديد)
+// عرض سجل الكشوفات الطبية
 function loadCheckups() {
   if (!validatePatientId()) return;
   
@@ -487,24 +597,65 @@ function loadCheckups() {
       const checkupEl = document.createElement("div");
       checkupEl.className = "checkup-item p-4 rounded-lg";
       
+      // عرض العلامات الحيوية
+      let vitalSignsHtml = '';
+      if (checkup.vitalSigns) {
+        const { bp, pulse, temp, oxygen } = checkup.vitalSigns;
+        vitalSignsHtml = `
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 my-2 text-sm">
+            ${bp ? `<div class="bg-blue-50 p-2 rounded">ضغط الدم: ${bp}</div>` : ''}
+            ${pulse ? `<div class="bg-green-50 p-2 rounded">النبض: ${pulse}</div>` : ''}
+            ${temp ? `<div class="bg-yellow-50 p-2 rounded">الحرارة: ${temp}°C</div>` : ''}
+            ${oxygen ? `<div class="bg-purple-50 p-2 rounded">الأكسجين: ${oxygen}%</div>` : ''}
+          </div>
+        `;
+      }
+      
+      // عرض المرفقات
+      let attachmentsHtml = '';
+      if (checkup.attachments && checkup.attachments.length > 0) {
+        attachmentsHtml = `
+          <div class="mt-2">
+            <p class="font-medium text-sm">المرفقات:</p>
+            <div class="flex flex-wrap gap-2 mt-1">
+              ${checkup.attachments.map(att => `
+                <a href="${att.url}" target="_blank" class="text-blue-600 text-sm flex items-center gap-1">
+                  <i class="fas ${att.type.includes('image') ? 'fa-image' : 'fa-file'}"></i>
+                  ${att.name}
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
       checkupEl.innerHTML = `
         <div class="flex justify-between items-start">
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-2">
               <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                ${checkup.diagnosis || 'بدون تشخيص'}
+                ${checkup.visitType || 'كشف'}
               </span>
               <span class="text-xs text-gray-500">
                 ${new Date(checkup.date).toLocaleDateString('ar-EG')}
               </span>
             </div>
+            
             <p class="text-sm text-gray-700 mb-1">
               <span class="font-medium">الأعراض:</span> ${checkup.symptoms || '-'}
             </p>
+            
+            ${vitalSignsHtml}
+            
             <p class="text-sm text-gray-700 mb-1">
-              <span class="font-medium">العلاج:</span> ${checkup.treatment || '-'}
+              <span class="font-medium">التشخيص:</span> ${checkup.diagnosis || '-'}
             </p>
-            ${checkup.notes ? `<p class="text-sm text-gray-600"><span class="font-medium">ملاحظات:</span> ${checkup.notes}</p>` : ''}
+            
+            <p class="text-sm text-gray-700 mb-1">
+              <span class="font-medium">الخطة العلاجية:</span> ${checkup.treatmentPlan || '-'}
+            </p>
+            
+            ${attachmentsHtml}
           </div>
           <div class="text-xs text-gray-500">
             <i class="fas fa-user-md"></i> ${checkup.doctorId || 'طبيب'}
@@ -555,7 +706,7 @@ window.showRadiologyReport = function(transfer) {
 if (patientId) {
   loadPatientData();
   loadTransfers();
-  loadCheckups(); // تحميل سجل الكشوفات
+  loadCheckups();
 }
 </script>
 </body>
