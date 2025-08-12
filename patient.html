@@ -28,214 +28,99 @@
       transform: scale(1.02);
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
-    .card-hover {
-      transition: all 0.3s ease;
-    }
-    .card-hover:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-    .gradient-text {
-      background: linear-gradient(45deg, #3B82F6, #8B5CF6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .file-drop-area {
-      transition: all 0.3s ease;
-    }
-    .file-drop-area:hover {
-      border-color: #3B82F6;
-      background-color: #EFF6FF;
-    }
-    .patient-photo {
-      transition: all 0.3s ease;
-    }
-    .patient-photo:hover {
-      transform: scale(1.05);
-    }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+<body class="bg-gradient-to-b from-blue-50 to-gray-100 min-h-screen">
 <div class="container mx-auto px-4 py-8">
   <!-- Header -->
   <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
     <div class="flex items-center gap-3">
       <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
       <div>
-        <h1 class="text-2xl font-bold gradient-text">مستشفى الحياة الذكية</h1>
+        <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
         <p class="text-gray-600">نظام إدارة ملفات المرضى</p>
       </div>
     </div>
     <div class="flex flex-wrap gap-3">
-      <button onclick="window.print()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2">
-        <i class="fas fa-print"></i> طباعة الملف
-      </button>
-      <button onclick="window.location.href='emergency.html'" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
-        <i class="fas fa-ambulance"></i> قسم الطوارئ
-      </button>
-      <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2">
-        <i class="fas fa-home"></i> الرئيسية
-      </button>
+      <button onclick="window.print()" class="bg-blue-800 text-white px-4 py-2 rounded-lg">طباعة الملف</button>
+      <button onclick="window.location.href='emergency.html'" class="bg-gray-600 text-white px-4 py-2 rounded-lg">قسم الطوارئ</button>
+      <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
     </div>
   </div>
 
   <!-- بيانات المريض -->
-  <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8 card-hover">
-    <!-- Header with gradient and patient photo -->
-    <div class="relative bg-gradient-to-r from-blue-700 to-indigo-800 p-6 text-white">
-      <div class="absolute inset-0 bg-black opacity-10"></div>
-      <div class="relative z-10 flex flex-col md:flex-row items-center gap-6">
-        <div class="relative">
-          <img id="patientPhoto" 
-               class="w-24 h-24 rounded-full border-4 border-white shadow-lg patient-photo" 
-               alt="صورة المريض">
-          <span id="onlineStatus" class="absolute bottom-0 right-0 bg-green-500 w-6 h-6 rounded-full border-2 border-white"></span>
-        </div>
-        <div class="text-center md:text-right">
-          <h2 class="text-3xl font-bold mb-1" id="patientName">جاري التحميل...</h2>
-          <p class="text-blue-100">رقم الملف: #<span id="patientFileNumber">----</span></p>
-          <div class="flex items-center justify-center md:justify-start gap-4 mt-3">
-            <span class="bg-white/20 px-3 py-1 rounded-full text-sm" id="patientAge">-- سنة</span>
-            <span class="bg-white/20 px-3 py-1 rounded-full text-sm" id="patientGender">--</span>
-          </div>
-        </div>
-        <div class="md:mr-auto">
-          <div id="patientStatus" class="bg-white text-blue-800 px-4 py-2 rounded-full font-bold shadow-lg">
-            مستقر
-          </div>
-        </div>
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
+      <div>
+        <h2 class="text-2xl font-bold">ملف المريض</h2>
+        <p class="opacity-90">تفاصيل المريض وسجلاته الطبية</p>
       </div>
+      <div id="patientStatus" class="status-badge bg-white text-blue-800"></div>
     </div>
-    
-    <!-- Patient Info Cards -->
     <div class="p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <!-- Info Card -->
-        <div class="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500 card-hover">
-          <div class="flex items-center gap-3">
-            <div class="bg-blue-100 p-3 rounded-lg">
-              <i class="fas fa-id-card text-blue-600 text-xl"></i>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">الرقم القومي</p>
-              <p class="font-bold" id="patientNationalId">------</p>
-            </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div class="md:col-span-2">
+          <h3 class="text-xl font-semibold mb-4 text-blue-800">المعلومات الأساسية</h3>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <table class="table-auto w-full" id="infoTable"></table>
+          </div>
+          <!-- أزرار الإجراءات -->
+          <div class="flex flex-wrap gap-3 mt-4">
+            <button onclick="changePatientStatus()" class="bg-purple-700 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-exchange-alt mr-2"></i> تغيير الحالة
+            </button>
+            <button onclick="doctorCheckup()" class="bg-purple-700 text-white px-4 py-2 rounded-lg">
+              <i class="fas fa-stethoscope mr-2"></i> كشف الطبيب
+            </button>
           </div>
         </div>
-        
-        <!-- Department Card -->
-        <div class="bg-green-50 rounded-xl p-4 border-l-4 border-green-500 card-hover">
-          <div class="flex items-center gap-3">
-            <div class="bg-green-100 p-3 rounded-lg">
-              <i class="fas fa-hospital text-green-600 text-xl"></i>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">القسم الحالي</p>
-              <p class="font-bold" id="patientDepartment">----</p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Doctor Card -->
-        <div class="bg-purple-50 rounded-xl p-4 border-l-4 border-purple-500 card-hover">
-          <div class="flex items-center gap-3">
-            <div class="bg-purple-100 p-3 rounded-lg">
-              <i class="fas fa-user-md text-purple-600 text-xl"></i>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">الطبيب المعالج</p>
-              <p class="font-bold" id="patientDoctor">----</p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Date Card -->
-        <div class="bg-orange-50 rounded-xl p-4 border-l-4 border-orange-500 card-hover">
-          <div class="flex items-center gap-3">
-            <div class="bg-orange-100 p-3 rounded-lg">
-              <i class="fas fa-calendar text-orange-600 text-xl"></i>
-            </div>
-            <div>
-              <p class="text-gray-500 text-sm">تاريخ الدخول</p>
-              <p class="font-bold" id="patientAdmissionDate">--/--/----</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Action Buttons -->
-      <div class="flex flex-wrap gap-3 justify-center md:justify-start">
-        <button onclick="changePatientStatus()" class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all flex items-center gap-2">
-          <i class="fas fa-exchange-alt"></i>
-          <span>تغيير الحالة</span>
-        </button>
-        <button onclick="doctorCheckup()" class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all flex items-center gap-2">
-          <i class="fas fa-stethoscope"></i>
-          <span>كشف الطبيب</span>
-        </button>
         <div class="text-center">
-          <canvas id="qrCode" class="w-32 h-32 mx-auto"></canvas>
-          <p class="text-xs text-gray-500 mt-1">رمز المريض</p>
+          <h3 class="text-xl font-semibold mb-2 text-blue-800">رمز الاستجابة السريع</h3>
+          <canvas id="qrCode" class="w-40 h-40 mx-auto"></canvas>
         </div>
       </div>
     </div>
   </div>
 
   <!-- نموذج تسجيل تحويل -->
-  <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 card-hover">
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-      <i class="fas fa-exchange-alt text-blue-600"></i>
-      تسجيل تحويل جديد
-    </h2>
+  <div class="bg-white p-4 rounded shadow mb-6">
+    <h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <select id="transferDepartment" class="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <select id="transferDepartment" class="border p-2 rounded">
         <option value="">اختر القسم</option>
         <option value="radiology">الأشعة</option>
         <option value="التحاليل">التحاليل</option>
         <option value="العناية المركزة">العناية المركزة</option>
         <option value="العمليات">العمليات</option>
       </select>
-      <select id="radiologyDevice" class="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent hidden">
+      <select id="radiologyDevice" class="border p-2 rounded hidden">
         <option value="">اختر جهاز الأشعة</option>
         <option value="أشعة عادية">أشعة عادية</option>
         <option value="أشعة مقطعية">أشعة مقطعية</option>
         <option value="رنين مغناطيسي">رنين مغناطيسي</option>
         <option value="موجات صوتية">موجات صوتية</option>
       </select>
-      <input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-      <textarea id="transferNotes" placeholder="ملاحظات" class="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent col-span-2"></textarea>
-      <button onclick="addTransfer()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all col-span-2 flex items-center justify-center gap-2">
-        <i class="fas fa-save"></i>
-        <span>تسجيل التحويل</span>
-      </button>
+      <input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-2 rounded" />
+      <textarea id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded col-span-2"></textarea>
+      <button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
     </div>
   </div>
 
   <!-- سجل التحويلات -->
-  <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 card-hover">
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-      <i class="fas fa-history text-green-600"></i>
-      سجل التحويلات
-    </h2>
+  <div class="bg-white p-4 rounded shadow mb-6" id="transfersContainer">
+    <h2 class="text-lg font-semibold mb-2">سجل التحويلات</h2>
     <ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
   </div>
 
   <!-- سجل الكشوفات الطبية -->
-  <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
-    <div class="bg-gradient-to-r from-green-600 to-teal-600 p-5 text-white">
-      <h2 class="text-xl font-bold flex items-center gap-3">
-        <i class="fas fa-history"></i>
-        سجل الكشوفات الطبية
-      </h2>
-    </div>
-    
-    <div class="p-5">
-      <div id="checkupsList" class="space-y-4">
-        <!-- سيتم ملؤه تلقائيًا -->
-      </div>
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">سجل الكشوفات الطبية</h2>
+    <div id="checkupsList" class="space-y-3">
+      <!-- سيتم ملؤه تلقائيًا -->
     </div>
   </div>
 </div>
+
 
 <!-- نموذج الكشف الطبي (مخفي في البداية) -->
 <div id="checkupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
@@ -388,7 +273,7 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "http
 const firebaseConfig = {
   apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
   authDomain: "hospital-project-e4b59.firebaseapp.com",
-  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.com",
+  databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "hospital-project-e4b59",
   storageBucket: "hospital-project-e4b59.appspot.com",
   messagingSenderId: "974610606258",
@@ -432,29 +317,19 @@ function showResult(title, message, icon = "success") {
 // دالة تحديث واجهة حالة المريض
 function updateStatusUI(status) {
   const statusEl = document.getElementById("patientStatus");
-  statusEl.textContent = getStatusText(status);
+  statusEl.textContent = status;
   
   const statusConfig = {
-    critical: { bg: "bg-red-500", icon: "fa-exclamation-triangle", text: "حرجة" },
-    stable: { bg: "bg-green-500", icon: "fa-check-circle", text: "مستقرة" },
-    improving: { bg: "bg-blue-500", icon: "fa-arrow-up", text: "في تحسن" },
-    deteriorating: { bg: "bg-orange-500", icon: "fa-arrow-down", text: "في تدهور" }
+    critical: { bg: "bg-red-500", icon: "fa-exclamation-triangle" },
+    stable: { bg: "bg-green-500", icon: "fa-check-circle" },
+    improving: { bg: "bg-blue-500", icon: "fa-arrow-up" },
+    deteriorating: { bg: "bg-orange-500", icon: "fa-arrow-down" }
   };
   
   if (statusConfig[status]) {
     statusEl.className = `status-badge ${statusConfig[status].bg} text-white`;
-    statusEl.innerHTML = `<i class="fas ${statusConfig[status].icon} mr-2"></i>${statusConfig[status].text}`;
+    statusEl.innerHTML = `<i class="fas ${statusConfig[status].icon} mr-2"></i>${status}`;
   }
-}
-
-function getStatusText(status) {
-  const statusMap = {
-    'critical': 'حرجة',
-    'stable': 'مستقرة',
-    'improving': 'في تحسن',
-    'deteriorating': 'في تدهور'
-  };
-  return statusMap[status] || status;
 }
 
 // دالة تغيير حالة المريض
@@ -495,47 +370,35 @@ window.changePatientStatus = async function() {
 async function loadPatientData() {
   if (!validatePatientId()) return;
   
+  const infoTable = document.getElementById("infoTable");
+  const patientStatus = document.getElementById("patientStatus");
+  const qrCanvas = document.getElementById("qrCode");
+  
   try {
     const snapshot = await get(ref(db, `patients/emergency/${patientId}`));
     
     if (snapshot.exists()) {
       const patient = snapshot.val();
+      infoTable.innerHTML = `
+        <tr><td class="font-semibold py-1">الاسم:</td><td class="py-1">${patient.name || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">العمر:</td><td class="py-1">${patient.age || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">الرقم القومي:</td><td class="py-1">${patient.nid || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">ID:</td><td class="py-1">${patientId}</td></tr>
+        <tr><td class="font-semibold py-1">تاريخ الدخول:</td><td class="py-1">${patient.timestamp ? new Date(patient.timestamp).toLocaleString('ar-EG') : '-'}</td></tr>
+        <tr><td class="font-semibold py-1">القسم الحالي:</td><td class="py-1">${patient.department || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">الطبيب المعالج:</td><td class="py-1">${patient.doctors || '-'}</td></tr>
+        <tr><td class="font-semibold py-1">نوع الخدمة:</td><td class="py-1" id="serviceType">${patient.serviceType || 'غير محدد'}</td></tr>
+        <tr><td class="font-semibold py-1">الحالة:</td><td class="py-1" id="patientStatusInTable">${patient.status || 'غير محدد'}</td></tr>
+      `;
       
-      // تحديث العناصر بالبيانات
-      document.getElementById('patientName').textContent = patient.name || 'غير معروف';
-      document.getElementById('patientFileNumber').textContent = patientId;
-      document.getElementById('patientAge').textContent = (patient.age || '--') + ' سنة';
-      document.getElementById('patientNationalId').textContent = patient.nid || '------';
-      document.getElementById('patientDepartment').textContent = patient.department || '----';
-      document.getElementById('patientDoctor').textContent = patient.doctors || '----';
-      document.getElementById('patientAdmissionDate').textContent = patient.timestamp ? 
-        new Date(patient.timestamp).toLocaleDateString('ar-EG') : '--/--/----';
+      updateStatusUI(patient.status || "غير محدد");
       
-      // تحديث الجنس والصورة
-      const gender = patient.gender || 'male';
-      document.getElementById('patientGender').textContent = gender === 'male' ? 'رجل' : 'أنثى';
-      
-      // تعيين صورة المريض بناءً على الجنس
-      const patientPhoto = document.getElementById('patientPhoto');
-      if (gender === 'female') {
-        patientPhoto.src = `https://randomuser.me/api/portraits/women/${patientId % 100}.jpg`;
-      } else {
-        patientPhoto.src = `https://randomuser.me/api/portraits/men/${patientId % 100}.jpg`;
-      }
-      
-      // إذا كان هناك صورة مخصصة في قاعدة البيانات
-      if (patient.photoUrl) {
-        patientPhoto.src = patient.photoUrl;
-      }
-      
-      updateStatusUI(patient.status || "stable");
-      
-      // توليد QR Code
-      QRCode.toCanvas(document.getElementById('qrCode'), patientId, function (error) {
+      QRCode.toCanvas(qrCanvas, patientId, function (error) {
         if (error) console.error(error);
       });
     } else {
-      Swal.fire("خطأ", "لم يتم العثور على بيانات المريض", "error");
+      infoTable.innerHTML = "<tr><td colspan='2'>لم يتم العثور على بيانات المريض.</td></tr>";
+      patientStatus.textContent = "";
     }
   } catch (error) {
     Swal.fire("خطأ", "فشل تحميل بيانات المريض: " + error.message, "error");
@@ -579,7 +442,7 @@ document.getElementById('attachments').addEventListener('change', function() {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileItem = document.createElement('div');
-      fileItem.className = 'flex items-center gap-2 mb-1 p-2 bg-gray-100 rounded';
+      fileItem.className = 'flex items-center gap-2 mb-1';
       
       // تحديد الأيقونة حسب نوع الملف
       let icon = 'fa-file';
@@ -589,7 +452,7 @@ document.getElementById('attachments').addEventListener('change', function() {
       
       fileItem.innerHTML = `
         <i class="fas ${icon} text-blue-600"></i>
-        <span class="flex-1">${file.name}</span>
+        <span>${file.name}</span>
         <span class="text-sm text-gray-500">(${(file.size / 1024).toFixed(1)} KB)</span>
       `;
       
@@ -801,31 +664,25 @@ function loadCheckups() {
     checkupsList.innerHTML = "";
     
     if (!snapshot.exists()) {
-      checkupsList.innerHTML = "<p class='text-gray-500 text-center py-8'>لا توجد كشوفات مسجلة</p>";
+      checkupsList.innerHTML = "<p class='text-gray-500'>لا توجد كشوفات مسجلة</p>";
       return;
     }
     
     snapshot.forEach((child) => {
       const checkup = child.val();
       const checkupEl = document.createElement("div");
-      checkupEl.className = "border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow";
+      checkupEl.className = "checkup-item p-4 rounded-lg";
       
       // عرض العلامات الحيوية
       let vitalSignsHtml = '';
       if (checkup.vitalSigns) {
         const { bp, pulse, temp, oxygen } = checkup.vitalSigns;
         vitalSignsHtml = `
-          <div class="mb-4">
-            <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <i class="fas fa-heartbeat text-pink-500"></i>
-              العلامات الحيوية
-            </h4>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              ${bp ? `<div class="bg-blue-50 p-3 rounded-lg text-center"><p class="text-sm text-gray-600">ضغط الدم</p><p class="font-bold text-blue-700">${bp}</p></div>` : ''}
-              ${pulse ? `<div class="bg-pink-50 p-3 rounded-lg text-center"><p class="text-sm text-gray-600">النبض</p><p class="font-bold text-pink-700">${pulse}</p></div>` : ''}
-              ${temp ? `<div class="bg-orange-50 p-3 rounded-lg text-center"><p class="text-sm text-gray-600">الحرارة</p><p class="font-bold text-orange-700">${temp}°C</p></div>` : ''}
-              ${oxygen ? `<div class="bg-indigo-50 p-3 rounded-lg text-center"><p class="text-sm text-gray-600">الأكسجين</p><p class="font-bold text-indigo-700">${oxygen}%</p></div>` : ''}
-            </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 my-2 text-sm">
+            ${bp ? `<div class="bg-blue-50 p-2 rounded">ضغط الدم: ${bp}</div>` : ''}
+            ${pulse ? `<div class="bg-green-50 p-2 rounded">النبض: ${pulse}</div>` : ''}
+            ${temp ? `<div class="bg-yellow-50 p-2 rounded">الحرارة: ${temp}°C</div>` : ''}
+            ${oxygen ? `<div class="bg-purple-50 p-2 rounded">الأكسجين: ${oxygen}%</div>` : ''}
           </div>
         `;
       }
@@ -834,11 +691,11 @@ function loadCheckups() {
       let attachmentsHtml = '';
       if (checkup.attachments && checkup.attachments.length > 0) {
         attachmentsHtml = `
-          <div class="mt-3">
-            <p class="font-medium text-sm text-gray-700 mb-2">المرفقات:</p>
-            <div class="flex flex-wrap gap-2">
+          <div class="mt-2">
+            <p class="font-medium text-sm">المرفقات:</p>
+            <div class="flex flex-wrap gap-2 mt-1">
               ${checkup.attachments.map(att => `
-                <a href="${att.url}" target="_blank" class="text-blue-600 text-sm flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">
+                <a href="${att.url}" target="_blank" class="text-blue-600 text-sm flex items-center gap-1">
                   <i class="fas ${att.type.includes('image') ? 'fa-image' : 'fa-file'}"></i>
                   ${att.name}
                 </a>
@@ -849,55 +706,36 @@ function loadCheckups() {
       }
       
       checkupEl.innerHTML = `
-        <div class="bg-gray-50 p-4 border-b">
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3">
-              <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
+        <div class="flex justify-between items-start">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
                 ${checkup.visitType || 'كشف'}
               </span>
-              <span class="text-sm text-gray-600">
-                <i class="fas fa-calendar-alt ml-1"></i>
+              <span class="text-xs text-gray-500">
                 ${new Date(checkup.date).toLocaleDateString('ar-EG')}
               </span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-600">
-                <i class="fas fa-user-md ml-1"></i>
-                ${checkup.doctorId || 'طبيب'}
-              </span>
-            </div>
+            
+            <p class="text-sm text-gray-700 mb-1">
+              <span class="font-medium">الأعراض:</span> ${checkup.symptoms || '-'}
+            </p>
+            
+            ${vitalSignsHtml}
+            
+            <p class="text-sm text-gray-700 mb-1">
+              <span class="font-medium">التشخيص:</span> ${checkup.diagnosis || '-'}
+            </p>
+            
+            <p class="text-sm text-gray-700 mb-1">
+              <span class="font-medium">الخطة العلاجية:</span> ${checkup.treatmentPlan || '-'}
+            </p>
+            
+            ${attachmentsHtml}
           </div>
-        </div>
-        
-        <div class="p-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <i class="fas fa-notes-medical text-red-500"></i>
-                الأعراض
-              </h4>
-              <p class="text-gray-600 bg-red-50 p-3 rounded-lg">${checkup.symptoms || '-'}</p>
-            </div>
-            <div>
-              <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <i class="fas fa-diagnoses text-purple-500"></i>
-                التشخيص
-              </h4>
-              <p class="text-gray-600 bg-purple-50 p-3 rounded-lg">${checkup.diagnosis || '-'}</p>
-            </div>
+          <div class="text-xs text-gray-500">
+            <i class="fas fa-user-md"></i> ${checkup.doctorId || 'طبيب'}
           </div>
-          
-          ${vitalSignsHtml}
-          
-          <div>
-            <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <i class="fas fa-pills text-green-500"></i>
-              الخطة العلاجية
-            </h4>
-            <p class="text-gray-600 bg-green-50 p-3 rounded-lg">${checkup.treatmentPlan || '-'}</p>
-          </div>
-          
-          ${attachmentsHtml}
         </div>
       `;
       
