@@ -44,7 +44,6 @@
       </div>
     </div>
   </header>
-
   <!-- Main -->
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
     <!-- Patient strip -->
@@ -69,7 +68,6 @@
         </div>
       </div>
     </section>
-
     <!-- Metrics -->
     <section class="grid md:grid-cols-5 gap-4">
       <div class="card">
@@ -98,7 +96,6 @@
         <div id="tempState" class="text-xs mt-1"></div>
       </div>
     </section>
-
     <!-- ECG -->
     <section class="card">
       <div class="flex items-center justify-between">
@@ -107,22 +104,36 @@
       </div>
       <canvas id="ecg" class="w-full h-40 bg-black rounded-xl mt-3"></canvas>
     </section>
-
+    <!-- AI Diagnosis Section -->
+    <section id="diagnosis-container" class="card">
+      <div class="font-bold mb-2">التشخيص الذكي</div>
+      <div class="text-green-600">لا توجد حالات تستدعي القلق</div>
+    </section>
+    <!-- AI Predictions Section -->
+    <section id="trends-container" class="card">
+      <div class="font-bold mb-2">التنبؤات</div>
+      <div class="text-gray-500">بيانات غير كافية للتنبؤ</div>
+    </section>
+    <!-- AI Recommendations Section -->
+    <section id="ml-container" class="card">
+      <div class="font-bold mb-2">توصيات الذكاء الاصطناعي</div>
+      <div>يتم تحميل التحليل...</div>
+    </section>
     <!-- Controls & Thresholds -->
     <section class="grid lg:grid-cols-3 gap-4">
       <div class="card space-y-3">
         <div class="font-bold">التحكم</div>
         <div class="flex flex-wrap gap-2">
-          <button id="startBtn" class="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700">بدء المحاكاة</button>
+          <button id="connectBtn" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700">اتصال بالجهاز</button>
+          <button id="startBtn" class="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700">بدء المراقبة</button>
           <button id="stopBtn" class="px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700">إيقاف</button>
           <button id="snapBtn" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">حفظ قراءة الآن</button>
           <label class="inline-flex items-center gap-2 text-sm ml-auto">
-            <input id="autoAlerts" type="checkbox" class="w-4 h-4"> تفعيل التنبيه الذكي
+            <input id="autoAlerts" type="checkbox" class="w-4 h-4" checked> تفعيل التنبيه الذكي
           </label>
         </div>
         <p class="text-xs text-slate-500">عند تفعيل التنبيه الذكي سيتم إصدار تنبيه صوتي/مرئي عند تجاوز الحدود أو ارتفاع مؤشر الخطر.</p>
       </div>
-
       <div class="card lg:col-span-2">
         <div class="font-bold mb-3">حدود الأمان (قابلة للتعديل)</div>
         <div class="grid md:grid-cols-5 gap-3 text-sm">
@@ -150,7 +161,6 @@
         </div>
       </div>
     </section>
-
     <!-- Alerts log -->
     <section class="card">
       <div class="flex items-center justify-between mb-2">
@@ -160,12 +170,10 @@
       <div id="log" class="text-sm space-y-1 max-h-44 overflow-auto"></div>
     </section>
   </main>
-
   <!-- Footer -->
   <footer class="max-w-7xl mx-auto px-4 pb-10 text-xs text-slate-400">
     نسخة محاكاة تعليمية – للعرض داخل مشروع مستشفى الحياة الذكية. ليست للاستخدام الطبي الحقيقي.
   </footer>
-
   <script>
     // =============== إعداد Firebase ===============
     // ضع إعدادات مشروعك هنا (أو اتركها فارغة للتشغيل المحلي دون حفظ)
@@ -178,7 +186,6 @@
       messagingSenderId: "",
       appId: ""
     };
-
     let fb = { enabled: false, app: null, db: null };
     try {
       if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.databaseURL) {
@@ -191,21 +198,17 @@
     } catch (e) {
       console.warn('Firebase init failed, running local only.', e);
     }
-
     // =============== أدوات مساعدة ===============
     const $ = (id) => document.getElementById(id);
     const fmt = (n, d=0) => Number(n).toFixed(d);
     const nowIso = () => new Date().toISOString();
-
     function getQueryParam(key) {
       const u = new URL(window.location.href);
       return u.searchParams.get(key);
     }
-
     const patientId = getQueryParam('id') || 'DEMO-1001';
     $('patientIdBadge').textContent = 'ID: ' + patientId;
     $('backLink').href = `patient.html?id=${encodeURIComponent(patientId)}`;
-
     // محاولة جلب اسم المريض والقسم من قاعدة البيانات
     async function loadPatientHeader() {
       if (!fb.enabled) return;
@@ -217,7 +220,6 @@
       }
     }
     loadPatientHeader();
-
     // =============== حدود الأمان (قابلة للتعديل) ===============
     const limits = {
       hr: { min: 50, max: 120 },
@@ -227,7 +229,6 @@
       rr: { min: 10, max: 24 },
       temp: { min: 36.0, max: 37.8 }
     };
-
     function readLimits() {
       limits.hr.min = +$('hrMin').value; limits.hr.max = +$('hrMax').value;
       limits.sys.min = +$('sysMin').value; limits.sys.max = +$('sysMax').value;
@@ -236,11 +237,9 @@
       limits.rr.min = +$('rrMin').value; limits.rr.max = +$('rrMax').value;
       limits.temp.min = +$('tempMin').value; limits.temp.max = +$('tempMax').value;
     }
-
     // =============== محاكاة قياسات لحظية ===============
     let timer = null;
     let t = 0; // زمن محاكاة للـ ECG
-
     function randn(mean, sd) {
       // Box–Muller
       let u = 1 - Math.random();
@@ -248,7 +247,6 @@
       let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
       return mean + z * sd;
     }
-
     function simulateVitals() {
       // توليد قراءات حول النطاق الطبيعي مع تحكم بسيط في الضوضاء
       const hr = Math.max(30, Math.round(randn(82, 6)));
@@ -259,7 +257,6 @@
       const temp = Math.max(34.5, Math.min(40, randn(36.9, 0.2)));
       return { hr, sys, dia, spo2, rr, temp: +temp.toFixed(1) };
     }
-
     // =============== ECG رسم ===============
     const ecgCanvas = $('ecg');
     const ecgCtx = ecgCanvas.getContext('2d');
@@ -269,7 +266,6 @@
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-
     const ecg = { x: 0 };
     function drawECG(hr) {
       const w = ecgCanvas.width, h = ecgCanvas.height;
@@ -282,7 +278,6 @@
       ctx.lineWidth = 1;
       for (let gx = 0; gx < w; gx += 20) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); }
       for (let gy = 0; gy < h; gy += 20) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
-
       // waveform
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 2;
@@ -308,11 +303,9 @@
       ctx.stroke();
       t += 1/60; // advance time ~60 FPS
     }
-
     // =============== ذكاء اصطناعي مبسّط (مؤشر خطر + حالة) ===============
     const history = [];
     const MAX_HIST = 120; // آخر دقيقتين (بافتراض 1 قراءة/ث)
-
     function riskScoreFrom(v) {
       readLimits();
       // حساب انحراف كل مؤشر عن النطاق + ترند بسيط
@@ -336,7 +329,6 @@
       }
       return Math.max(0, Math.min(100, Math.round(s)));
     }
-
     function setStatus(score, v) {
       const badge = $('aiStatusBadge');
       let label = 'مستقرة', cls = 'badge badge-ok';
@@ -344,7 +336,6 @@
       else if (score >= 35) { label = 'خطر متوسط'; cls = 'badge badge-warn'; }
       badge.textContent = label; badge.className = cls + ' inline-block';
       $('riskScore').textContent = String(score);
-
       // عرض حالة مختصرة لكل مؤشر
       const within = (v, lim) => (v >= lim.min && v <= lim.max);
       $('hrState').textContent   = within(v.hr, limits.hr)   ? 'سليم' : 'خارج النطاق';
@@ -353,7 +344,364 @@
       $('rrState').textContent   = within(v.rr, limits.rr)   ? 'سليم' : 'خارج النطاق';
       $('tempState').textContent = within(v.temp, limits.temp) ? 'سليم' : 'خارج النطاق';
     }
+    // =============== الاتصال بجهاز المونيتور الحقيقي ===============
+    // استبدال محاكاة البيانات بقراءة من جهاز حقيقي
+    let deviceConnected = false;
+    let dataStream = null;
+    let currentVitals = null;
 
+    // معالجة بيانات معدل ضربات القلب
+    function handleHeartRate(event) {
+      const value = event.target.value;
+      const heartRate = value.getUint8(1); // قراءة معدل ضربات القلب
+      
+      // تحديث البيانات في النظام
+      if (!currentVitals) currentVitals = {};
+      currentVitals.hr = heartRate;
+      
+      // إذا كانت جميع البيانات متاحة، قم بتحديث العرض
+      if (currentVitals.hr && currentVitals.sys && currentVitals.spo2) {
+        render(currentVitals);
+        pushToFirebase(currentVitals);
+      }
+    }
+
+    // معالجة بيانات ضغط الدم
+    function handleBloodPressure(event) {
+      const value = event.target.value;
+      const flags = value.getUint8(0);
+      let offset = 1;
+      
+      // قراءة ضغط الدم الانقباضي (SYS)
+      const sys = value.getUint16(offset, true);
+      offset += 2;
+      
+      // قراءة ضغط الدم الانبساطي (DIA)
+      const dia = value.getUint16(offset, true);
+      
+      // تحديث البيانات في النظام
+      if (!currentVitals) currentVitals = {};
+      currentVitals.sys = sys;
+      currentVitals.dia = dia;
+      
+      // إذا كانت جميع البيانات متاحة، قم بتحديث العرض
+      if (currentVitals.hr && currentVitals.sys && currentVitals.spo2) {
+        render(currentVitals);
+        pushToFirebase(currentVitals);
+      }
+    }
+
+    // دالة للاتصال بالجهاز (تحاول البلوتوث أولاً، ثم التسلسلي)
+    async function connectToMonitor() {
+      // محاولة الاتصال عبر البلوتوث أولاً
+      if ('bluetooth' in navigator) {
+        const connected = await connectToDevice();
+        if (connected) return true;
+      }
+      
+      // إذا فشل البلوتوث، جرب الاتصال التسلسلي
+      if ('serial' in navigator) {
+        const connected = await connectToSerialDevice();
+        if (connected) return true;
+      }
+      
+      // إذا فشل كل شيء، أظهر رسالة خطأ
+      Swal.fire({
+        title: 'غير مدعوم',
+        text: 'المتصفح لا يدعم الاتصال بأجهزة المونيتور. يرجى استخدام متصفح حديث يدعم Web Bluetooth أو Web Serial API.',
+        icon: 'error',
+        confirmButtonText: 'حسناً'
+      });
+      
+      return false;
+    }
+
+    // دالة للاتصال بجهاز بلوتوث
+    async function connectToDevice() {
+      try {
+        logEvent('البحث عن أجهزة المونيتور المتاحة...');
+        
+        // طلب الاتصال بجهاز بلوتوث (يدعم معايير BLE)
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ services: ['heart_rate', 'blood_pressure'] }],
+          optionalServices: ['battery_service']
+        });
+        
+        logEvent(`تم العثور على جهاز: ${device.name}`);
+        
+        // الاتصال بالجهاز
+        const server = await device.gatt.connect();
+        logEvent('تم الاتصال بالجهاز بنجاح');
+        
+        // الحصول على خدمة معدل ضربات القلب
+        const heartRateService = await server.getPrimaryService('heart_rate');
+        const heartRateCharacteristic = await heartRateService.getCharacteristic('heart_rate_measurement');
+        
+        // الاشتراك في قراءات معدل ضربات القلب
+        await heartRateCharacteristic.startNotifications();
+        heartRateCharacteristic.addEventListener('characteristicvaluechanged', handleHeartRate);
+        
+        // الحصول على خدمة ضغط الدم (إن وجدت)
+        try {
+          const bpService = await server.getPrimaryService('blood_pressure');
+          const bpCharacteristic = await bpService.getCharacteristic('blood_pressure_measurement');
+          await bpCharacteristic.startNotifications();
+          bpCharacteristic.addEventListener('characteristicvaluechanged', handleBloodPressure);
+        } catch (e) {
+          console.warn('جهاز ضغط الدم غير متاح', e);
+        }
+        
+        deviceConnected = true;
+        document.getElementById('connBadge').textContent = 'جهاز بلوتوث';
+        document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
+        
+        return true;
+      } catch (error) {
+        console.error('فشل الاتصال بالجهاز:', error);
+        logEvent('فشل الاتصال بالجهاز', 'danger');
+        return false;
+      }
+    }
+
+    // دالة بديلة للاتصال عبر USB/Serial (للأجهزة التي تدعم ذلك)
+    async function connectToSerialDevice() {
+      try {
+        // طلب منفذ تسلسلي
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+        
+        logEvent('تم الاتصال بالجهاز عبر منفذ تسلسلي');
+        
+        const reader = port.readable.getReader();
+        deviceConnected = true;
+        document.getElementById('connBadge').textContent = 'جهاز تسلسلي';
+        document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
+        
+        // قراءة البيانات بشكل مستمر
+        const readData = async () => {
+          const { value, done } = await reader.read();
+          if (done) {
+            reader.releaseLock();
+            return;
+          }
+          
+          // تحليل البيانات المستلمة (يعتمد على تنسيق جهازك)
+          const data = new TextDecoder().decode(value);
+          parseSerialData(data);
+          
+          readData();
+        };
+        
+        readData();
+        return true;
+      } catch (error) {
+        console.error('فشل الاتصال التسلسلي:', error);
+        logEvent('فشل الاتصال بالجهاز', 'danger');
+        return false;
+      }
+    }
+
+    // تحليل البيانات التسلسلية
+    function parseSerialData(data) {
+      // هذا مثال بسيط، يجب تعديله حسب تنسيق بيانات جهازك
+      // مثال: "HR:75,SYS:120,DIA:80,SPO2:98,RR:16,TEMP:36.5"
+      const lines = data.trim().split('\n');
+      const lastLine = lines[lines.length - 1];
+      
+      const parts = lastLine.split(',');
+      const vitals = {};
+      
+      parts.forEach(part => {
+        const [key, value] = part.split(':');
+        if (key && value) {
+          vitals[key.toLowerCase()] = parseFloat(value);
+        }
+      });
+      
+      // تحديث البيانات الحالية
+      if (!currentVitals) currentVitals = {};
+      Object.assign(currentVitals, vitals);
+      
+      // تحديث العرض إذا كانت جميع البيانات متاحة
+      if (currentVitals.hr && currentVitals.sys && currentVitals.spo2) {
+        render(currentVitals);
+        pushToFirebase(currentVitals);
+      }
+    }
+
+    // دالة لبدء وضع المحاكاة كخيار احتياطي
+    function startSimulationMode() {
+      timer = setInterval(async () => {
+        const v = simulateVitals();
+        render(v);
+        pushToFirebase(v);
+      }, 1000);
+      
+      // رسم ECG بمعدل أعلى لنعومة الخط
+      if (!window.__ecgAnim) {
+        const step = () => { 
+          if (timer) drawECG(history.at(-1)?.hr || 80); 
+          window.__ecgAnim = requestAnimationFrame(step); 
+        };
+        step();
+      }
+      
+      document.getElementById('connBadge').textContent = 'محاكاة';
+      document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
+    }
+    
+    // =============== وظائف الذكاء الاصطناعي ===============
+    // إضافة نموذج تنبؤي بسيط للتنبؤ بالاتجاهات المستقبلية
+    function predictTrends() {
+      if (history.length < 10) return null;
+      
+      // تحليل الاتجاهات الأخيرة
+      const recentData = history.slice(-10);
+      const hrTrend = calculateTrend(recentData.map(d => d.hr));
+      const spo2Trend = calculateTrend(recentData.map(d => d.spo2));
+      
+      // التنبؤ بالحالة خلال الـ 5 دقائق القادمة
+      return {
+        hrPrediction: recentData[recentData.length - 1].hr + (hrTrend * 5),
+        spo2Prediction: recentData[recentData.length - 1].spo2 + (spo2Trend * 5),
+        deteriorationRisk: hrTrend > 2 || spo2Trend < -1
+      };
+    }
+
+    function calculateTrend(values) {
+      // حساب متوسط التغير بين القيم المتتالية
+      let changes = 0;
+      for (let i = 1; i < values.length; i++) {
+        changes += values[i] - values[i-1];
+      }
+      return changes / (values.length - 1);
+    }
+
+    // إضافة نظام تشخيص يعتمد على قواعد طبية
+    function diagnoseCondition(vitals) {
+      const { hr, sys, dia, spo2, rr, temp } = vitals;
+      const diagnosis = [];
+      
+      // تشخيص حالات القلب
+      if (hr > 120) {
+        diagnosis.push({
+          condition: "تسارع ضربات القلب",
+          severity: sys > 140 ? "عالي" : "متوسط",
+          recommendation: "مراقبة ضغط الدم واستشارة طبيب"
+        });
+      } else if (hr < 50) {
+        diagnosis.push({
+          condition: "بطء ضربات القلب",
+          severity: "متوسط",
+          recommendation: "فحص وظائف القلب"
+        });
+      }
+      
+      // تشخيص مشاكل التنفس
+      if (spo2 < 92) {
+        diagnosis.push({
+          condition: "انخفاض تشبع الأكسجين",
+          severity: spo2 < 88 ? "عالي" : "متوسط",
+          recommendation: rr > 24 ? "التحقق من مشاكل التنفس" : "تزويد الأكسجين"
+        });
+      }
+      
+      // تشخيص الحمى
+      if (temp > 37.8) {
+        diagnosis.push({
+          condition: "ارتفاع درجة الحرارة",
+          severity: temp > 39 ? "عالي" : "منخفض",
+          recommendation: "تخفيض الحرارة والتحقق من العدوى"
+        });
+      }
+      
+      return diagnosis;
+    }
+
+    // دمج نموذج تعلم الآلة (يمكن استبداله بنموذج حقيقي مدرب)
+    async function analyzeWithML(vitals) {
+      // محاكاة استدعاء API لتحليل البيانات
+      // في تطبيق حقيقي، يمكنك إرسال البيانات إلى واجهة برمجة تطبيقات تعلم الآلة
+      
+      // محاكاة نتيجة النموذج
+      const mlResult = {
+        riskLevel: Math.random() > 0.7 ? "high" : Math.random() > 0.4 ? "medium" : "low",
+        possibleConditions: [
+          { name: "ارتفاع ضغط الدم", probability: vitals.sys > 140 ? 0.85 : 0.45 },
+          { name: "قلة الأكسجين", probability: vitals.spo2 < 95 ? 0.75 : 0.25 },
+          { name: "تسارع ضربات القلب", probability: vitals.hr > 100 ? 0.80 : 0.30 }
+        ],
+        recommendations: [
+          "مراقبة مستمرة للضغط",
+          "قياس مستوى الأكسجين كل 30 دقيقة",
+          "فحص وظائف القلب إذا استمرت الحالة"
+        ]
+      };
+      
+      return mlResult;
+    }
+
+    // وظائف جديدة لعرض نتائج التحليل
+    function displayDiagnosis(diagnosis) {
+      const diagnosisContainer = document.getElementById('diagnosis-container');
+      diagnosisContainer.innerHTML = '';
+      
+      if (diagnosis.length === 0) {
+        diagnosisContainer.innerHTML = '<div class="text-green-600">لا توجد حالات تستدعي القلق</div>';
+        return;
+      }
+      
+      diagnosis.forEach(item => {
+        const div = document.createElement('div');
+        div.className = `p-3 mb-2 rounded-lg ${item.severity === 'عالي' ? 'bg-red-100' : 'bg-yellow-100'}`;
+        div.innerHTML = `
+          <div class="font-bold">${item.condition}</div>
+          <div class="text-sm">الشدة: ${item.severity}</div>
+          <div class="text-sm">التوصية: ${item.recommendation}</div>
+        `;
+        diagnosisContainer.appendChild(div);
+      });
+    }
+
+    function displayTrends(trends) {
+      const trendsContainer = document.getElementById('trends-container');
+      
+      if (!trends) {
+        trendsContainer.innerHTML = '<div class="text-gray-500">بيانات غير كافية للتنبؤ</div>';
+        return;
+      }
+      
+      trendsContainer.innerHTML = `
+        <div class="mb-2">
+          <div class="font-bold">التنبؤات خلال 5 دقائق:</div>
+          <div>معدل ضربات القلب المتوقع: ${Math.round(trends.hrPrediction)} bpm</div>
+          <div>مستوى الأكسجين المتوقع: ${Math.round(trends.spo2Prediction)}%</div>
+          ${trends.deteriorationRisk ? '<div class="text-red-600 font-bold">تحذير: هناك احتمال لتدهور الحالة!</div>' : ''}
+        </div>
+      `;
+    }
+
+    function displayMLRecommendations(mlAnalysis) {
+      const mlContainer = document.getElementById('ml-container');
+      
+      mlContainer.innerHTML = `
+        <div class="mb-2">
+          <div class="font-bold">تحليل الذكاء الاصطناعي:</div>
+          <div>مستوى الخطورة: ${mlAnalysis.riskLevel === 'high' ? 'عالي' : mlAnalysis.riskLevel === 'medium' ? 'متوسط' : 'منخفض'}</div>
+          <div class="mt-2">الحالات المحتملة:</div>
+          <ul>
+            ${mlAnalysis.possibleConditions.map(cond => 
+              `<li>${cond.name} (${Math.round(cond.probability * 100)}%)</li>`
+            ).join('')}
+          </ul>
+          <div class="mt-2">توصيات:</div>
+          <ul>
+            ${mlAnalysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+    
     // =============== سجل التنبيهات ===============
     function logEvent(txt, level='info') {
       const row = document.createElement('div');
@@ -364,7 +712,6 @@
       row.appendChild(dot); row.appendChild(msg);
       $('log').prepend(row);
     }
-
     function alertIfNeeded(score, v) {
       if (!$('autoAlerts').checked) return;
       if (score < 35) return;
@@ -376,7 +723,6 @@
       // صوت بسيط
       try { const be = new AudioContext(); const o = be.createOscillator(); const g = be.createGain(); o.type='square'; o.frequency.value = score>=70? 880: 660; o.connect(g); g.connect(be.destination); g.gain.setValueAtTime(0.001, be.currentTime); g.gain.exponentialRampToValueAtTime(0.15, be.currentTime+0.02); o.start(); o.stop(be.currentTime+0.2);} catch(e){}
     }
-
     // =============== عرض القياسات + حفظ إلى Firebase ===============
     async function pushToFirebase(v) {
       if (!fb.enabled) return;
@@ -386,54 +732,212 @@
       await fb.db.ref(`${base}/vitalsStream/${ts}`).set(rec);
       await fb.db.ref(`${base}/latestVitals`).set(rec);
     }
-
-    function render(v) {
+    // تعديل وظيفة العرض لتشمل نتائج التحليل الذكي
+    async function render(v) {
       $('hrVal').textContent   = v.hr + ' bpm';
       $('bpVal').textContent   = `${v.sys}/${v.dia}`;
       $('spo2Val').textContent = v.spo2 + ' %';
       $('rrVal').textContent   = v.rr + ' rpm';
       $('tempVal').textContent = v.temp + ' °C';
       drawECG(v.hr);
-
-      history.push(v); if (history.length > MAX_HIST) history.shift();
+      
+      history.push(v); 
+      if (history.length > MAX_HIST) history.shift();
+      
       const score = riskScoreFrom(v);
       setStatus(score, v);
+      
+      // إضافة التحليل الذكي
+      const diagnosis = diagnoseCondition(v);
+      const trends = predictTrends();
+      const mlAnalysis = await analyzeWithML(v);
+      
+      // عرض نتائج التشخيص
+      displayDiagnosis(diagnosis);
+      
+      // عرض الاتجاهات المتوقعة
+      displayTrends(trends);
+      
+      // عرض توصيات تعلم الآلة
+      displayMLRecommendations(mlAnalysis);
+      
       alertIfNeeded(score, v);
     }
-
     // =============== أزرار التحكم ===============
+    // إضافة معالج حدث لزر الاتصال
+    $('connectBtn').addEventListener('click', async () => {
+      // التحقق من دعم المتصفح لـ Web Bluetooth API
+      if (!navigator.bluetooth) {
+        Swal.fire({
+          title: 'المتصفح غير مدعوم',
+          text: 'متصفحك لا يدعم Web Bluetooth. يرجى استخدام متصفح Chrome أو Edge.',
+          icon: 'error',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      }
+      
+      // فتح نافذة اختيار أجهزة البلوتوث
+      try {
+        logEvent('جاري فتح نافذة اختيار أجهزة البلوتوث...');
+        
+        // طلب الاتصال بجهاز بلوتوث يدعم خدمات القلب وضغط الدم
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [
+            { services: ['heart_rate'] },
+            { services: ['blood_pressure'] }
+          ],
+          optionalServices: ['battery_service']
+        });
+        
+        logEvent(`تم اختيار جهاز: ${device.name}`);
+        
+        // الاتصال بالجهاز
+        const server = await device.gatt.connect();
+        logEvent('تم الاتصال بالجهاز بنجاح');
+        
+        // الحصول على خدمة معدل ضربات القلب
+        try {
+          const heartRateService = await server.getPrimaryService('heart_rate');
+          const heartRateCharacteristic = await heartRateService.getCharacteristic('heart_rate_measurement');
+          
+          // الاشتراك في قراءات معدل ضربات القلب
+          await heartRateCharacteristic.startNotifications();
+          heartRateCharacteristic.addEventListener('characteristicvaluechanged', handleHeartRate);
+          logEvent('تم تفعيل قراءات معدل ضربات القلب');
+        } catch (error) {
+          console.error('فشل في الوصول لخدمة معدل ضربات القلب:', error);
+          logEvent('الجهاز لا يدعم قراءة معدل ضربات القلب', 'warn');
+        }
+        
+        // الحصول على خدمة ضغط الدم
+        try {
+          const bpService = await server.getPrimaryService('blood_pressure');
+          const bpCharacteristic = await bpService.getCharacteristic('blood_pressure_measurement');
+          
+          // الاشتراك في قراءات ضغط الدم
+          await bpCharacteristic.startNotifications();
+          bpCharacteristic.addEventListener('characteristicvaluechanged', handleBloodPressure);
+          logEvent('تم تفعيل قراءات ضغط الدم');
+        } catch (error) {
+          console.error('فشل في الوصول لخدمة ضغط الدم:', error);
+          logEvent('الجهاز لا يدعم قراءة ضغط الدم', 'warn');
+        }
+        
+        deviceConnected = true;
+        document.getElementById('connBadge').textContent = 'جهاز بلوتوث';
+        document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
+        
+        // إظهار رسالة نجاح
+        Swal.fire({
+          title: 'تم الاتصال بنجاح',
+          text: `تم الاتصال بجهاز ${device.name}`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        
+      } catch (error) {
+        console.error('فشل الاتصال بالجهاز:', error);
+        logEvent('فشل الاتصال بالجهاز', 'danger');
+        
+        // إظهار رسالة خطأ
+        Swal.fire({
+          title: 'فشل الاتصال',
+          text: 'تعذر الاتصال بجهاز المونيتور. يرجى التحقق من أن الجهاز قريب ومفعّل.',
+          icon: 'error',
+          confirmButtonText: 'حسناً'
+        });
+        
+        // العودة إلى وضع المحاكاة
+        logEvent('الرجوع إلى وضع المحاكاة');
+        deviceConnected = false;
+        document.getElementById('connBadge').textContent = 'محلي';
+        document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
+      }
+    });
+
+    // تعديل زر بدء المراقبة
     $('startBtn').addEventListener('click', () => {
       if (timer) return;
-      logEvent('تم بدء المحاكاة');
-      timer = setInterval(async () => {
-        const v = simulateVitals();
-        render(v);
-        pushToFirebase(v);
-      }, 1000);
-      // رسم ECG بمعدل أعلى لنعومة الخط
-      if (!window.__ecgAnim) {
-        const step = () => { if (timer) drawECG(history.at(-1)?.hr || 80); window.__ecgAnim = requestAnimationFrame(step); };
-        step();
+      
+      if (!deviceConnected) {
+        // إذا لم يكن الجهاز متصلاً، ابدأ وضع المحاكاة
+        logEvent('تم بدء وضع المحاكاة');
+        startSimulationMode();
+      } else {
+        // إذا كان الجهاز متصلاً، ابدأ المراقبة الحقيقية
+        logEvent('تم بدء المراقبة الحقيقية');
+        
+        timer = setInterval(() => {
+          if (currentVitals) {
+            drawECG(currentVitals.hr || 80);
+          }
+        }, 1000);
+        
+        // رسم ECG بمعدل أعلى لنعومة الخط
+        if (!window.__ecgAnim) {
+          const step = () => { 
+            if (timer) drawECG(currentVitals?.hr || 80); 
+            window.__ecgAnim = requestAnimationFrame(step); 
+          };
+          step();
+        }
       }
     });
 
     $('stopBtn').addEventListener('click', () => {
-      if (timer) { clearInterval(timer); timer = null; logEvent('تم إيقاف المحاكاة', 'warn'); }
-      if (window.__ecgAnim) { cancelAnimationFrame(window.__ecgAnim); window.__ecgAnim = null; }
+      if (timer) { 
+        clearInterval(timer); 
+        timer = null; 
+        logEvent('تم إيقاف المراقبة', 'warn'); 
+      }
+      if (window.__ecgAnim) { 
+        cancelAnimationFrame(window.__ecgAnim); 
+        window.__ecgAnim = null; 
+      }
+      
+      // يمكن إضافة فصل الاتصال بالجهاز هنا إذا لزم الأمر
     });
-
+    
     $('snapBtn').addEventListener('click', async () => {
-      const v = simulateVitals();
-      render(v);
-      await pushToFirebase(v);
-      Swal.fire({ title: 'تم الحفظ', text: 'تم حفظ قراءة لحظية في ملف المريض', icon: 'success', timer: 1800, showConfirmButton: false });
-      logEvent(`تم حفظ قراءة HR:${v.hr} BP:${v.sys}/${v.dia} SpO₂:${v.spo2}%`);
+      if (!currentVitals && !deviceConnected) {
+        const v = simulateVitals();
+        render(v);
+        await pushToFirebase(v);
+        Swal.fire({ 
+          title: 'تم الحفظ', 
+          text: 'تم حفظ قراءة لحظية في ملف المريض', 
+          icon: 'success', 
+          timer: 1800, 
+          showConfirmButton: false 
+        });
+        logEvent(`تم حفظ قراءة HR:${v.hr} BP:${v.sys}/${v.dia} SpO₂:${v.spo2}%`);
+      } else if (currentVitals) {
+        render(currentVitals);
+        await pushToFirebase(currentVitals);
+        Swal.fire({ 
+          title: 'تم الحفظ', 
+          text: 'تم حفظ قراءة لحظية في ملف المريض', 
+          icon: 'success', 
+          timer: 1800, 
+          showConfirmButton: false 
+        });
+        logEvent(`تم حفظ قراءة HR:${currentVitals.hr} BP:${currentVitals.sys}/${currentVitals.dia} SpO₂:${currentVitals.spo2}%`);
+      } else {
+        Swal.fire({
+          title: 'لا توجد بيانات',
+          text: 'لا توجد بيانات حالية لحفظها. يرجى التأكد من اتصال الجهاز.',
+          icon: 'warning',
+          confirmButtonText: 'حسناً'
+        });
+      }
     });
-
+    
     $('clearLog').addEventListener('click', () => {
       $('log').innerHTML = '';
     });
-
+    
     // تشغيل تلقائي خفيف عند الفتح (مرة واحدة)
     setTimeout(()=> $('startBtn').click(), 400);
   </script>
