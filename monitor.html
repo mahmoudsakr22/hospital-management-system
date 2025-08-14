@@ -175,32 +175,32 @@
     نظام مراقبة المرضى الذكي - مستشفى الحياة الذكية
   </footer>
   <script>
-    // =============== إعداد Firebase ===============
-    // استخدام إعدادات Firebase الخاصة بك
-    const firebaseConfig = {
-      apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-      authDomain: "hospital-project-e4b59.firebaseapp.com",
-      databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "hospital-project-e4b59",
-      storageBucket: "hospital-project-e4b59.firebasestorage.app",
-      messagingSenderId: "974610606258",
-      appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
-      measurementId: "G-0GV30LL28T"
-    };
+   // إعداد Firebase
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "YOUR_DB_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_BUCKET",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    let fb = { enabled: false, app: null, db: null };
-    try {
-      if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.databaseURL) {
-        fb.app = firebase.initializeApp(firebaseConfig);
-        fb.db = firebase.database();
-        fb.enabled = true;
-        console.log("تم الاتصال بقاعدة بيانات Firebase بنجاح");
-      } else {
-        console.error("Firebase configuration incomplete");
+  // جلب patientId من الرابط
+  const params = new URLSearchParams(window.location.search);
+  const patientId = params.get('id');
+
+  if (patientId) {
+    const patientRef = db.ref(`patients/${patientId}`);
+
+    patientRef.on('value', snapshot => {
+      if (!snapshot.exists()) {
+        Swal.fire('❌', 'المريض غير موجود في قاعدة البيانات', 'error');
+        return;
       }
-    } catch (e) {
-      console.error('فشل الاتصال بـ Firebase:', e);
-    }
+      const data = snapshot.val();
     
     // =============== أدوات مساعدة ===============
     const $ = (id) => document.getElementById(id);
