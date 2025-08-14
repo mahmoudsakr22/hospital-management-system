@@ -636,140 +636,115 @@
         
         console.log(`Loading data for patient: ${patientId}`);
         
-        if (fb.enabled) {
-          // تحميل بيانات المريض الأساسية
-          const patientSnap = await fb.db.ref(`/patients/${patientId}/basic`).get();
-          const patientData = patientSnap.val();
+        // التحقق من اتصال Firebase
+        if (!fb.enabled) {
+          throw new Error('Firebase is not enabled');
+        }
+        
+        // تحميل بيانات المريض الأساسية
+        const patientSnap = await fb.db.ref(`/patients/${patientId}/basic`).get();
+        const patientData = patientSnap.val();
+        
+        console.log('Patient data:', patientData);
+        
+        if (!patientData) {
+          throw new Error(`Patient not found: ${patientId}`);
+        }
+        
+        // عرض اسم المريض
+        $('patientName').textContent = patientData.name || '—';
+        
+        // تحميل وعرض اسم القسم
+        if (patientData.department) {
+          const deptSnap = await fb.db.ref(`/departments/${patientData.department}`).get();
+          const deptData = deptSnap.val();
           
-          console.log('Patient data:', patientData);
-          
-          if (patientData) {
-            // عرض اسم المريض والقسمه
-            $('patientName').textContent = patientData.name || '—';
-            
-            // تحميل وعرض اسم القسم
-            if (patientData.department) {
-              const deptSnap = await fb.db.ref(`/departments/${patientData.department}`).get();
-              const deptData = deptSnap.val();
-              
-              if (deptData) {
-                console.log('Department data:', deptData);
-                $('patientDept').textContent = deptData.name || '—';
-              } else {
-                console.warn(`Department not found: ${patientData.department}`);
-                $('patientDept').textContent = '—';
-              }
-            } else {
-              console.warn('Patient has no department assigned');
-              $('patientDept').textContent = '—';
-            }
-            
-            // تخزين بيانات المريض للاستخدام لاحقاً
-            window.currentPatient = patientData;
-            
-            // تحميل آخر القراءات إذا وجدت
-            const latestVitalsSnap = await fb.db.ref(`/patients/${patientId}/latestVitals`).get();
-            const latestVitals = latestVitalsSnap.val();
-            
-            console.log('Latest vitals:', latestVitals);
-            
-            if (latestVitals) {
-              // عرض آخر القراءات
-              $('hrVal').textContent = latestVitals.hr + ' bpm';
-              $('bpVal').textContent = `${latestVitals.sys}/${latestVitals.dia}`;
-              $('spo2Val').textContent = latestVitals.spo2 + ' %';
-              $('rrVal').textContent = latestVitals.rr + ' rpm';
-              $('tempVal').textContent = latestVitals.temp + ' °C';
-              
-              // تحديث حالة المؤشرات
-              const score = riskScoreFrom(latestVitals);
-              setStatus(score, latestVitals);
-              
-              // تحديث حالة المريض
-              const badge = $('aiStatusBadge');
-              let label = 'مستقرة', cls = 'badge badge-ok';
-              if (score >= 70) { label = 'خطر مرتفع'; cls = 'badge badge-bad'; }
-              else if (score >= 35) { label = 'خطر متوسط'; cls = 'badge badge-warn'; }
-              badge.textContent = label; 
-              badge.className = cls + ' inline-block mt-1';
-              $('riskScore').textContent = String(score);
-              
-              // تحديث حالة الاتصال
-              document.getElementById('connBadge').textContent = 'Firebase';
-              document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
-              document.getElementById('patientIdBadge').className = 'badge badge-ok inline-block mt-1';
-            } else {
-              console.warn('No latest vitals found for patient');
-            }
+          if (deptData) {
+            console.log('Department data:', deptData);
+            $('patientDept').textContent = deptData.name || '—';
           } else {
-            console.warn(`Patient not found: ${patientId}`);
-            $('patientName').textContent = '—';
+            console.warn(`Department not found: ${patientData.department}`);
             $('patientDept').textContent = '—';
-            
-            Swal.fire({
-              title: 'المريض غير موجود',
-              text: 'لم يتم العثور على بيانات المريض المحدد. يرجى التحقق من معرف المريض.',
-              icon: 'warning',
-              confirmButtonText: 'حسناً'
-            });
-          }
-          
-          // تحميل جميع الأقسام
-          const deptsSnap = await fb.db.ref('/departments').get();
-          const departments = deptsSnap.val();
-          
-          if (departments) {
-            console.log('Departments loaded:', departments);
-            window.departments = departments;
-          } else {
-            console.warn('No departments found in database');
           }
         } else {
-          console.warn('Firebase not enabled, using mock data');
-          
-          // استخدام بيانات تجريبية
-          $('patientName').textContent = 'أحمد محمد';
-          $('patientDept').textContent = 'العناية المركزة';
-          
-          window.currentPatient = {
-            id: patientId,
-            name: 'أحمد محمد',
-            age: 45,
-            gender: 'ذكر',
-            department: 'dept1',
-            admissionDate: '2023-06-15',
-            condition: 'مستقر'
-          };
-          
-          // بيانات تجريبية للأقسام
-          window.departments = {
-            "dept1": {
-              "id": "dept1",
-              "name": "العناية المركزة",
-              "location": "الطابق الأول",
-              "capacity": 20,
-              "head": "د. أحمد محمد"
-            },
-            "dept2": {
-              "id": "dept2",
-              "name": "القلب",
-              "location": "الطابق الثاني",
-              "capacity": 15,
-              "head": "د. سارة أحمد"
-            }
-          };
+          console.warn('Patient has no department assigned');
+          $('patientDept').textContent = '—';
         }
+        
+        // تخزين بيانات المريض للاستخدام لاحقاً
+        window.currentPatient = patientData;
+        
+        // تحميل آخر القراءات إذا وجدت
+        const latestVitalsSnap = await fb.db.ref(`/patients/${patientId}/latestVitals`).get();
+        const latestVitals = latestVitalsSnap.val();
+        
+        console.log('Latest vitals:', latestVitals);
+        
+        if (latestVitals) {
+          // عرض آخر القراءات
+          $('hrVal').textContent = latestVitals.hr + ' bpm';
+          $('bpVal').textContent = `${latestVitals.sys}/${latestVitals.dia}`;
+          $('spo2Val').textContent = latestVitals.spo2 + ' %';
+          $('rrVal').textContent = latestVitals.rr + ' rpm';
+          $('tempVal').textContent = latestVitals.temp + ' °C';
+          
+          // تحديث حالة المؤشرات
+          const score = riskScoreFrom(latestVitals);
+          setStatus(score, latestVitals);
+          
+          // تحديث حالة المريض
+          const badge = $('aiStatusBadge');
+          let label = 'مستقرة', cls = 'badge badge-ok';
+          if (score >= 70) { label = 'خطر مرتفع'; cls = 'badge badge-bad'; }
+          else if (score >= 35) { label = 'خطر متوسط'; cls = 'badge badge-warn'; }
+          badge.textContent = label; 
+          badge.className = cls + ' inline-block mt-1';
+          $('riskScore').textContent = String(score);
+          
+          // تحديث حالة الاتصال
+          document.getElementById('connBadge').textContent = 'Firebase';
+          document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
+          document.getElementById('patientIdBadge').className = 'badge badge-ok inline-block mt-1';
+        } else {
+          console.warn('No latest vitals found for patient');
+        }
+        
+        // تحميل جميع الأقسام
+        const deptsSnap = await fb.db.ref('/departments').get();
+        const departments = deptsSnap.val();
+        
+        if (departments) {
+          console.log('Departments loaded:', departments);
+          window.departments = departments;
+        } else {
+          console.warn('No departments found in database');
+        }
+        
       } catch (error) {
         console.error('Error loading patient data:', error);
-        $('patientName').textContent = '—';
-        $('patientDept').textContent = '—';
         
+        // عرض رسالة خطأ للمستخدم
         Swal.fire({
           title: 'خطأ في تحميل البيانات',
-          text: 'حدث خطأ أثناء تحميل بيانات المريض. يرجى المحاولة مرة أخرى.',
+          text: error.message || 'حدث خطأ أثناء تحميل بيانات المريض. يرجى المحاولة مرة أخرى.',
           icon: 'error',
           confirmButtonText: 'حسناً'
         });
+        
+        // مسح البيانات المعروضة
+        $('patientName').textContent = '—';
+        $('patientDept').textContent = '—';
+        $('hrVal').textContent = '—';
+        $('bpVal').textContent = '—';
+        $('spo2Val').textContent = '—';
+        $('rrVal').textContent = '—';
+        $('tempVal').textContent = '—';
+        $('riskScore').textContent = '—';
+        
+        // تحديث حالة الاتصال
+        document.getElementById('connBadge').textContent = 'خطأ في الاتصال';
+        document.getElementById('connBadge').className = 'badge badge-bad inline-block mt-1';
+        document.getElementById('patientIdBadge').className = 'badge badge-bad inline-block mt-1';
       }
     }
 
@@ -992,91 +967,9 @@
       $('log').innerHTML = '';
     });
     
-    // =============== أدوات تصحيح الأخطاء ===============
-    // دالة لفحص اتصال Firebase
-    function checkFirebaseConnection() {
-      console.log('Firebase enabled:', fb.enabled);
-      console.log('Firebase app:', fb.app);
-      console.log('Firebase database:', fb.db);
-      
-      if (fb.enabled && fb.db) {
-        console.log('Firebase connection is working');
-        return true;
-      } else {
-        console.error('Firebase connection is not working');
-        return false;
-      }
-    }
-
-    // دالة لفحص بيانات المريض
-    async function checkPatientData() {
-      if (!patientId) {
-        console.error('Patient ID is missing');
-        return false;
-      }
-      
-      try {
-        const patientSnap = await fb.db.ref(`/patients/${patientId}`).get();
-        const patientData = patientSnap.val();
-        
-        console.log('Patient data check:', patientData);
-        
-        if (patientData) {
-          console.log('Patient data exists');
-          return true;
-        } else {
-          console.error('Patient data does not exist');
-          return false;
-        }
-      } catch (error) {
-        console.error('Error checking patient data:', error);
-        return false;
-      }
-    }
-
-    // دالة لفحص بيانات الأقسام
-    async function checkDepartmentsData() {
-      try {
-        const deptsSnap = await fb.db.ref('/departments').get();
-        const departments = deptsSnap.val();
-        
-        console.log('Departments data check:', departments);
-        
-        if (departments) {
-          console.log('Departments data exists');
-          return true;
-        } else {
-          console.error('Departments data does not exist');
-          return false;
-        }
-      } catch (error) {
-        console.error('Error checking departments data:', error);
-        return false;
-      }
-    }
-
-    // إضافة زر لتصحيح الأخطاء في الصفحة
-    function addDebugButton() {
-      const debugButton = document.createElement('button');
-      debugButton.textContent = 'تصحيح الأخطاء';
-      debugButton.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg z-50';
-      debugButton.addEventListener('click', async () => {
-        console.log('=== DEBUG INFO ===');
-        console.log('Patient ID:', patientId);
-        checkFirebaseConnection();
-        await checkPatientData();
-        await checkDepartmentsData();
-        console.log('=== END DEBUG ===');
-      });
-      document.body.appendChild(debugButton);
-    }
-
     // =============== تحميل البيانات عند بدء التشغيل ===============
     window.addEventListener('DOMContentLoaded', async () => {
       console.log('DOM loaded, initializing monitor...');
-      
-      // إضافة زر التصحيح
-      addDebugButton();
       
       // تحميل بيانات المريض
       await loadPatientData();
