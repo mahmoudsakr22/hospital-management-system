@@ -195,20 +195,39 @@
         fb.db = firebase.database();
         fb.enabled = true;
         console.log("تم الاتصال بقاعدة بيانات Firebase بنجاح");
+      } else {
+        console.error("Firebase configuration incomplete");
       }
     } catch (e) {
-      console.warn('فشل الاتصال بـ Firebase، سيتم العمل بدون حفظ في السحابة.', e);
+      console.error('فشل الاتصال بـ Firebase:', e);
     }
     
     // =============== أدوات مساعدة ===============
     const $ = (id) => document.getElementById(id);
     const fmt = (n, d=0) => Number(n).toFixed(d);
     const nowIso = () => new Date().toISOString();
+    
+    // دالة لاستخراج معلمات الرابط
     function getQueryParam(key) {
       const u = new URL(window.location.href);
       return u.searchParams.get(key);
     }
+    
+    // استخراج معرف المريض من الرابط
     const patientId = getQueryParam('id');
+    
+    // التحقق من وجود معرف المريض
+    if (!patientId) {
+      console.error('Patient ID is missing');
+    } else {
+      console.log('Patient ID:', patientId);
+      
+      // عرض معرف المريض في الشريط العلوي
+      $('patientIdBadge').textContent = 'ID: ' + patientId;
+      
+      // تحديث رابط العودة لصفحة المريض
+      $('backLink').href = `patient.html?id=${encodeURIComponent(patientId)}`;
+    }
     
     // =============== حدود الأمان (قابلة للتعديل) ===============
     const limits = {
@@ -615,23 +634,17 @@
           return;
         }
         
-        // عرض معرف المريض في الشريط العلوي
-        $('patientIdBadge').textContent = 'ID: ' + patientId;
-        
-        // تحديث رابط العودة لصفحة المريض
-        $('backLink').href = `patient.html?id=${encodeURIComponent(patientId)}`;
+        console.log(`Loading data for patient: ${patientId}`);
         
         if (fb.enabled) {
-          console.log(`Loading data for patient: ${patientId}`);
-          
           // تحميل بيانات المريض الأساسية
           const patientSnap = await fb.db.ref(`/patients/${patientId}/basic`).get();
           const patientData = patientSnap.val();
           
+          console.log('Patient data:', patientData);
+          
           if (patientData) {
-            console.log('Patient data found:', patientData);
-            
-            // عرض اسم المريض
+            // عرض اسم المريض والقسمه
             $('patientName').textContent = patientData.name || '—';
             
             // تحميل وعرض اسم القسم
@@ -640,7 +653,7 @@
               const deptData = deptSnap.val();
               
               if (deptData) {
-                console.log('Department data found:', deptData);
+                console.log('Department data:', deptData);
                 $('patientDept').textContent = deptData.name || '—';
               } else {
                 console.warn(`Department not found: ${patientData.department}`);
@@ -658,9 +671,9 @@
             const latestVitalsSnap = await fb.db.ref(`/patients/${patientId}/latestVitals`).get();
             const latestVitals = latestVitalsSnap.val();
             
+            console.log('Latest vitals:', latestVitals);
+            
             if (latestVitals) {
-              console.log('Latest vitals found:', latestVitals);
-              
               // عرض آخر القراءات
               $('hrVal').textContent = latestVitals.hr + ' bpm';
               $('bpVal').textContent = `${latestVitals.sys}/${latestVitals.dia}`;
@@ -685,6 +698,8 @@
               document.getElementById('connBadge').textContent = 'Firebase';
               document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
               document.getElementById('patientIdBadge').className = 'badge badge-ok inline-block mt-1';
+            } else {
+              console.warn('No latest vitals found for patient');
             }
           } else {
             console.warn(`Patient not found: ${patientId}`);
@@ -977,8 +992,92 @@
       $('log').innerHTML = '';
     });
     
+    // =============== أدوات تصحيح الأخطاء ===============
+    // دالة لفحص اتصال Firebase
+    function checkFirebaseConnection() {
+      console.log('Firebase enabled:', fb.enabled);
+      console.log('Firebase app:', fb.app);
+      console.log('Firebase database:', fb.db);
+      
+      if (fb.enabled && fb.db) {
+        console.log('Firebase connection is working');
+        return true;
+      } else {
+        console.error('Firebase connection is not working');
+        return false;
+      }
+    }
+
+    // دالة لفحص بيانات المريض
+    async function checkPatientData() {
+      if (!patientId) {
+        console.error('Patient ID is missing');
+        return false;
+      }
+      
+      try {
+        const patientSnap = await fb.db.ref(`/patients/${patientId}`).get();
+        const patientData = patientSnap.val();
+        
+        console.log('Patient data check:', patientData);
+        
+        if (patientData) {
+          console.log('Patient data exists');
+          return true;
+        } else {
+          console.error('Patient data does not exist');
+          return false;
+        }
+      } catch (error) {
+        console.error('Error checking patient data:', error);
+        return false;
+      }
+    }
+
+    // دالة لفحص بيانات الأقسام
+    async function checkDepartmentsData() {
+      try {
+        const deptsSnap = await fb.db.ref('/departments').get();
+        const departments = deptsSnap.val();
+        
+        console.log('Departments data check:', departments);
+        
+        if (departments) {
+          console.log('Departments data exists');
+          return true;
+        } else {
+          console.error('Departments data does not exist');
+          return false;
+        }
+      } catch (error) {
+        console.error('Error checking departments data:', error);
+        return false;
+      }
+    }
+
+    // إضافة زر لتصحيح الأخطاء في الصفحة
+    function addDebugButton() {
+      const debugButton = document.createElement('button');
+      debugButton.textContent = 'تصحيح الأخطاء';
+      debugButton.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg z-50';
+      debugButton.addEventListener('click', async () => {
+        console.log('=== DEBUG INFO ===');
+        console.log('Patient ID:', patientId);
+        checkFirebaseConnection();
+        await checkPatientData();
+        await checkDepartmentsData();
+        console.log('=== END DEBUG ===');
+      });
+      document.body.appendChild(debugButton);
+    }
+
     // =============== تحميل البيانات عند بدء التشغيل ===============
     window.addEventListener('DOMContentLoaded', async () => {
+      console.log('DOM loaded, initializing monitor...');
+      
+      // إضافة زر التصحيح
+      addDebugButton();
+      
       // تحميل بيانات المريض
       await loadPatientData();
       
