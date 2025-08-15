@@ -169,8 +169,8 @@
         const db = getDatabase(app);
         const patientId = new URLSearchParams(window.location.search).get('id') || '-OVjd_eZDCbyD2S14zfc';
 
-        const patientRef = ref(db, `emergency/${patientId}`);
-        const vitalSignsRef = ref(db, `emergency/${patientId}/vitalSigns`);
+        const patientRef = ref(db, `patients/emergency/${patientId}`);
+        const vitalSignsRef = ref(db, `patients/emergency/${patientId}/vitalSigns`);
         let simulationInterval;
         let isSimulationActive = false;
         let isConnected = false;
@@ -267,7 +267,7 @@
         
         // FIREBASE CONNECTION
         function startFirebaseConnection() {
-            onValue(ref(db, `patients/${patientId}/basic`), (snapshot) => {
+            onValue(ref(db, `patients/emergency/${patientId}`), (snapshot) => {
                 const patientData = snapshot.val();
                 if (patientData) {
                     document.getElementById('patientName').textContent = patientData.name;
