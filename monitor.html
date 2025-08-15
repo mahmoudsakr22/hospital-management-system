@@ -53,7 +53,7 @@
         <div class="flex items-center gap-2">
           <div class="text-2xl font-bold text-slate-800">
             <span id="patientName">—</span> 
-            <span class="text-lg font-normal">(<span id="patientAge">—</span> سنة)</span>
+            <span class="text-lg font-normal" style="display: none;">(<span id="patientAge">—</span> سنة)</span>
           </div>
           <span id="genderIcon" class="text-lg">👤</span>
           <span id="bloodTypeBadge" class="badge badge-ok">—</span>
@@ -64,6 +64,7 @@
           <div>أمراض مزمنة: <span id="patientDiseases">—</span></div>
           <div>وقت الاتصال: <span id="callTime">—</span></div>
           <div>آخر فحص: <span id="lastCheckup">—</span></div>
+          <div id="patientStatus"></div>
         </div>
       </div>
       <div class="grid grid-cols-3 gap-3">
@@ -211,6 +212,7 @@
     } catch (e) {
       console.warn('Firebase init failed, running local only.', e);
     }
+    
     // =============== أدوات مساعدة ===============
     const $ = (id) => document.getElementById(id);
     const fmt = (n, d=0) => Number(n).toFixed(d);
@@ -219,49 +221,132 @@
       const u = new URL(window.location.href);
       return u.searchParams.get(key);
     }
-    const patientId = getQueryParam('id') || 'ER-2024-001';
+    
+    // تعديل: استخدام معرف الطوارئ كمعرف افتراضي
+    const patientId = getQueryParam('id') || '-OVjd_eZDCbyD2S14zfc';
     $('patientIdBadge').textContent = 'ID: ' + patientId;
     $('backLink').href = `patient.html?id=${encodeURIComponent(patientId)}`;
-    // محاولة جلب بيانات المريض من قاعدة البيانات
+    
+    // =============== تحميل بيانات المريض (معدل) ===============
     async function loadPatientHeader() {
       if (!fb.enabled) return;
-      const snap = await fb.db.ref(`/patients/${patientId}/basic`).get();
-      const basic = snap.val();
-      if (basic) {
-        $('patientName').textContent = basic.name || '—';
-        $('patientAge').textContent = basic.age || '—';
-        $('patientAddress').textContent = basic.address || '—';
-        $('patientDept').textContent = basic.department || '—';
-        $('patientDiseases').textContent = basic.diseases || '—';
+      
+      console.log("محاولة تحميل بيانات المريض من الطوارئ...");
+      
+      try {
+        // تعديل المسار ليتوافق مع بنية البيانات الفعلية
+        const snap = await fb.db.ref(`/emergency/${patientId}`).get();
         
-        // أيقونة الجنس
-        if (basic.gender === 'male') {
-          $('genderIcon').textContent = '👨';
-        } else if (basic.gender === 'female') {
-          $('genderIcon').textContent = '👩';
+        if (!snap.exists()) {
+          console.warn("لا توجد بيانات للمريض في الطوارئ", patientId);
+          // محاولة بديلة للبحث في قسم المرضى العاديين
+          const regularSnap = await fb.db.ref(`/patients/${patientId}/basic`).get();
+          if (!regularSnap.exists()) {
+            console.error("لا توجد بيانات للمريض في أي قسم", patientId);
+            return;
+          }
+          const basic = regularSnap.val();
+          updatePatientDisplay(basic);
+          return;
         }
         
-        // فصيلة الدم
-        $('bloodTypeBadge').textContent = basic.bloodType || '—';
+        const basic = snap.val();
+        console.log("بيانات المريض من الطوارئ:", basic);
+        updatePatientDisplay(basic);
         
-        // تنسيق الطوابع الزمنية
-        if (basic.callTime) {
-          const callDate = new Date(basic.callTime);
-          $('callTime').textContent = callDate.toLocaleString('ar-EG');
-        }
-        
-        if (basic.lastCheckup) {
-          const checkupDate = new Date(basic.lastCheckup);
-          $('lastCheckup').textContent = checkupDate.toLocaleDateString('ar-EG');
-        }
-        
-        // إبراز الأمراض المزمنة
-        if (basic.diseases && basic.diseases !== "لا يوجد") {
-          $('patientDiseases').innerHTML = `<span class="text-red-600">⚠️ ${basic.diseases}</span>`;
-        }
+      } catch (error) {
+        console.error("خطأ في جلب بيانات المريض:", error);
       }
     }
+    
+    // دالة جديدة لتحديث واجهة المريض
+    function updatePatientDisplay(basic) {
+      // تحديث الحقول الأساسية
+      $('patientName').textContent = basic.name || '—';
+      
+      // العمر
+      if (basic.age) {
+        $('patientAge').textContent = basic.age;
+        document.querySelector('.text-2xl.font-bold .text-lg').style.display = 'inline';
+      } else {
+        document.querySelector('.text-2xl.font-bold .text-lg').style.display = 'none';
+      }
+      
+      // العنوان
+      $('patientAddress').textContent = basic.address || '—';
+      
+      // القسم/نوع الخدمة
+      $('patientDept').textContent = basic.serviceType || basic.department || '—';
+      
+      // الأمراض
+      $('patientDiseases').textContent = basic.diseases || '—';
+      if (basic.diseases && basic.diseases !== "لا يوجد") {
+        $('patientDiseases').innerHTML = `<span class="text-red-600">⚠️ ${basic.diseases}</span>`;
+      }
+      
+      // الجنس
+      if (basic.gender === 'male') {
+        $('genderIcon').textContent = '👨';
+      } else if (basic.gender === 'female') {
+        $('genderIcon').textContent = '👩';
+      } else {
+        $('genderIcon').textContent = '👤';
+      }
+      
+      // فصيلة الدم
+      $('bloodTypeBadge').textContent = basic.bloodType || '—';
+      
+      // وقت الاتصال
+      if (basic.callTime) {
+        const callDate = new Date(basic.callTime);
+        $('callTime').textContent = callDate.toLocaleString('ar-EG');
+      }
+      
+      // آخر فحص
+      if (basic.lastCheckup) {
+        const checkupDate = new Date(basic.lastCheckup);
+        $('lastCheckup').textContent = checkupDate.toLocaleDateString('ar-EG');
+      }
+      
+      // حالة الطوارئ
+      if (basic.status) {
+        // إضافة عنصر جديد للحالة إذا لم يكن موجودًا
+        if (!$('patientStatus')) {
+          const statusDiv = document.createElement('div');
+          statusDiv.id = 'patientStatus';
+          statusDiv.className = 'text-xs mt-1';
+          document.querySelector('.text-slate-500').appendChild(statusDiv);
+        }
+        
+        let statusClass = '';
+        let statusText = basic.status;
+        
+        switch(basic.status.toLowerCase()) {
+          case 'deteriorating':
+            statusClass = 'text-red-600 font-bold';
+            statusText = 'في تدهور ⚠️';
+            break;
+          case 'stable':
+            statusClass = 'text-green-600';
+            statusText = 'مستقر ✅';
+            break;
+          case 'critical':
+            statusClass = 'text-red-800 font-bold';
+            statusText = 'حرج 🚨';
+            break;
+          default:
+            statusClass = 'text-yellow-600';
+        }
+        
+        $('patientStatus').innerHTML = `<span class="${statusClass}">الحالة: ${statusText}</span>`;
+      }
+      
+      console.log("تم تحديث واجهة المريض بنجاح");
+    }
+    
+    // استدعاء دالة التحميل
     loadPatientHeader();
+    
     // =============== حدود الأمان (قابلة للتعديل) ===============
     const limits = {
       hr: { min: 50, max: 120 },
@@ -279,6 +364,7 @@
       limits.rr.min = +$('rrMin').value; limits.rr.max = +$('rrMax').value;
       limits.temp.min = +$('tempMin').value; limits.temp.max = +$('tempMax').value;
     }
+    
     // =============== محاكاة قياسات لحظية ===============
     let timer = null;
     let t = 0; // زمن محاكاة للـ ECG
@@ -299,6 +385,7 @@
       const temp = Math.max(34.5, Math.min(40, randn(36.9, 0.2)));
       return { hr, sys, dia, spo2, rr, temp: +temp.toFixed(1) };
     }
+    
     // =============== ECG رسم ===============
     const ecgCanvas = $('ecg');
     const ecgCtx = ecgCanvas.getContext('2d');
@@ -345,6 +432,7 @@
       ctx.stroke();
       t += 1/60; // advance time ~60 FPS
     }
+    
     // =============== ذكاء اصطناعي مبسّط (مؤشر خطر + حالة) ===============
     const history = [];
     const MAX_HIST = 120; // آخر دقيقتين (بافتراض 1 قراءة/ث)
@@ -386,6 +474,7 @@
       $('rrState').textContent   = within(v.rr, limits.rr)   ? 'سليم' : 'خارج النطاق';
       $('tempState').textContent = within(v.temp, limits.temp) ? 'سليم' : 'خارج النطاق';
     }
+    
     // =============== الاتصال بجهاز المونيتور الحقيقي ===============
     let deviceConnected = false;
     let currentVitals = null;
@@ -506,6 +595,7 @@
       document.getElementById('connBadge').textContent = 'محاكاة';
       document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
     }
+    
     // =============== وظائف الذكاء الاصطناعي ===============
     function predictTrends() {
       if (history.length < 10) return null;
@@ -625,6 +715,7 @@
         </div>
       `;
     }
+    
     // =============== سجل التنبيهات ===============
     function logEvent(txt, level='info') {
       const row = document.createElement('div');
@@ -645,10 +736,11 @@
       logEvent(`${title}: ${text}`, score>=70? 'danger':'warn');
       try { const be = new AudioContext(); const o = be.createOscillator(); const g = be.createGain(); o.type='square'; o.frequency.value = score>=70? 880: 660; o.connect(g); g.connect(be.destination); g.gain.setValueAtTime(0.001, be.currentTime); g.gain.exponentialRampToValueAtTime(0.15, be.currentTime+0.02); o.start(); o.stop(be.currentTime+0.2);} catch(e){}
     }
+    
     // =============== عرض القياسات + حفظ إلى Firebase ===============
     async function pushToFirebase(v) {
       if (!fb.enabled) return;
-      const base = `/patients/${patientId}`;
+      const base = `/emergency/${patientId}`;
       const ts = Date.now();
       const rec = { ...v, ts, iso: nowIso(), risk: riskScoreFrom(v) };
       await fb.db.ref(`${base}/vitalsStream/${ts}`).set(rec);
@@ -673,6 +765,7 @@
       displayMLRecommendations(mlAnalysis);
       alertIfNeeded(score, v);
     }
+    
     // =============== أزرار التحكم ===============
     $('connectBtn').addEventListener('click', async () => {
       if (!navigator.bluetooth) {
@@ -741,6 +834,7 @@
         document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
       }
     });
+    
     $('startBtn').addEventListener('click', () => {
       if (timer) return;
       if (!deviceConnected) {
@@ -762,6 +856,7 @@
         }
       }
     });
+    
     $('stopBtn').addEventListener('click', () => {
       if (timer) { 
         clearInterval(timer); 
@@ -773,6 +868,7 @@
         window.__ecgAnim = null; 
       }
     });
+    
     $('snapBtn').addEventListener('click', async () => {
       if (!currentVitals && !deviceConnected) {
         const v = simulateVitals();
@@ -806,9 +902,11 @@
         });
       }
     });
+    
     $('clearLog').addEventListener('click', () => {
       $('log').innerHTML = '';
     });
+    
     // تشغيل تلقائي خفيف عند الفتح (مرة واحدة)
     setTimeout(()=> $('startBtn').click(), 400);
   </script>
