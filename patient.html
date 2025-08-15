@@ -72,59 +72,18 @@
             <button onclick="doctorCheckup()" class="bg-purple-700 text-white px-4 py-2 rounded-lg">
               <i class="fas fa-stethoscope mr-2"></i> كشف الطبيب
             </button>
-   <!-- زر المونيتور -->
-    <a id="monitorBtn" class="btn btn-warning">مونيتور</a>
+            <!-- زر عرض المونيتور -->
+<a href="monitor.html" 
+   class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow inline-block mt-4">
+  عرض المونيتور
+</a>
 
-    <script type="module">
-        // استدعاء مكتبة Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
-
-        // بيانات الاتصال بفirebase
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // تشغيل Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // دالة لجلب باراميتر من الرابط
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-
-        const patientId = getQueryParam('id');
-
-        if (!patientId) {
-            alert("لا يوجد مريض محدد!");
-            window.location.href = "emergency.html";
-        }
-
-        // تحديث زر المونيتور بالـ ID
-        document.getElementById('monitorBtn').href = `monitor.html?id=${patientId}`;
-
-        // جلب بيانات المريض من Firebase
-        const patientRef = ref(db, `emergency/${patientId}`);
-        onValue(patientRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                document.getElementById('patientName').textContent = data.name || '';
-                document.getElementById('patientAge').textContent = data.age || '';
-                document.getElementById('patientNumber').textContent = data.medicalNumber || '';
-                document.getElementById('patientStatus').textContent = data.status || '';
-            } else {
-                alert("لم يتم العثور على بيانات هذا المريض.");
-            }
-        });
-    </script>
+          </div>
+        </div>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold mb-2 text-blue-800">رمز الاستجابة السريع</h3>
+          <canvas id="qrCode" class="w-40 h-40 mx-auto"></canvas>
+        </div>
       </div>
     </div>
   </div>
