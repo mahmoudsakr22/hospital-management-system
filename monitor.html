@@ -751,8 +751,8 @@
         function pushToFirebase(vitals) {
             if (!fb.enabled) return;
             const now = new Date();
-            const vitalSignsRef = fb.db.ref(`/emergency/${patientId}/vitalSigns`);
-            const readingsRef = fb.db.ref(`/emergency/${patientId}/readings/${nowIso().replace(/[\.\#\$\[\]]/g, '')}`);
+            const vitalSignsRef = fb.db.ref(`/patients/emergency/${patientId}/vitalSigns`);
+            const readingsRef = fb.db.ref(`/patients/emergency/${patientId}/readings/${nowIso().replace(/[\.\#\$\[\]]/g, '')}`);
             vitalSignsRef.set(vitals).catch(e => console.error("Firebase update failed", e));
             readingsRef.set({ ...vitals, timestamp: now.toISOString() }).catch(e => console.error("Firebase save failed", e));
         }
@@ -800,7 +800,7 @@
             if (history.length > 0) {
                 const latest = history[history.length - 1];
                 const now = nowIso();
-                const snapshotRef = fb.db.ref(`/emergency/${patientId}/snapshots/${now.replace(/[\.\#\$\[\]]/g, '')}`);
+                const snapshotRef = fb.db.ref(`/patients/emergency/${patientId}/snapshots/${now.replace(/[\.\#\$\[\]]/g, '')}`);
                 snapshotRef.set({ ...latest, timestamp: now })
                     .then(() => Swal.fire('تم الحفظ', 'تم حفظ القراءة الأخيرة بنجاح.', 'success'))
                     .catch(e => Swal.fire('خطأ', 'فشل الحفظ: ' + e.message, 'error'));
