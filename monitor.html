@@ -3,523 +3,385 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>المونيتور الذكي – Smart Patient Monitor</title>
+    <title>ICU Patient Monitor - Professional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Cairo for labels, Orbitron for the big numbers to give a digital feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    
     <style>
-        html, body { font-family: 'Cairo', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
-        .card { @apply rounded-2xl shadow-lg p-5 bg-white; }
-        .metric { @apply text-3xl font-extrabold tracking-tight; }
-        .label { @apply text-sm text-gray-500; }
-        .soft { box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        .badge { @apply px-3 py-1 rounded-full text-xs font-semibold; }
-        .badge-ok { @apply bg-green-100 text-green-700; }
-        .badge-warn { @apply bg-yellow-100 text-yellow-700; }
-        .badge-bad { @apply bg-red-100 text-red-700; }
-        .badge-critical { @apply bg-red-200 text-red-800 animate-pulse; }
-        canvas { image-rendering: pixelated; }
-        .ai-recommendation ul { @apply list-disc list-inside space-y-1 mt-2 text-slate-700; }
+        /* Base Styling */
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0d1117; /* GitHub Dark Dimmed */
+            color: #c9d1d9;
+            overflow: hidden; /* No scrolling */
+        }
+
+        /* Digital font for vital values */
+        .vital-value, .clock {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        /* Main grid layout for the monitor */
+        #monitor-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr; /* 75% for waveforms, 25% for vitals */
+            grid-template-rows: auto 1fr; /* Patient info row, main content row */
+            height: 100vh;
+            gap: 8px;
+            padding: 8px;
+        }
+
+        #patient-info-panel { grid-column: 1 / -1; } /* Span full width */
+        #waveform-panel { grid-column: 1 / 2; }
+        #vitals-panel { grid-column: 2 / 3; }
+
+        /* Styling for panels */
+        .panel {
+            background-color: #161b22; /* Slightly lighter than body */
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        /* Vital Box Styling */
+        .vital-box {
+            border-left: 5px solid;
+            padding: 8px 12px;
+            background-color: #0d1117;
+            border-radius: 6px;
+        }
+        .vital-label { font-size: 0.9rem; font-weight: 600; }
+        .vital-unit { font-size: 0.8rem; color: #8b949e; }
+        .vital-value { font-size: 2.75rem; line-height: 1; }
+
+        /* Color Coding for Vitals */
+        .hr-box { border-color: #3fb950; color: #3fb950; }
+        .spo2-box { border-color: #38bdf8; color: #38bdf8; }
+        .bp-box { border-color: #f0f6fc; color: #f0f6fc; }
+        .rr-box { border-color: #d29922; color: #d29922; }
+        .temp-box { border-color: #a371f7; color: #a371f7; }
+
+        /* Visual Alarm Animations */
+        @keyframes flash-yellow { 50% { background-color: rgba(210, 153, 34, 0.4); } }
+        @keyframes flash-red { 50% { background-color: rgba(248, 81, 73, 0.5); } }
+        .alarm-warn { animation: flash-yellow 1s infinite; }
+        .alarm-crit { animation: flash-red 0.5s infinite; }
+
+        /* Canvas styling */
+        canvas {
+            width: 100%;
+            height: 100%;
+            background-color: #010409;
+            border-radius: 6px;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database-compat.js"></script>
 </head>
-<body class="bg-gradient-to-b from-slate-50 to-slate-100 min-h-screen">
-    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-blue-600 text-white grid place-items-center soft">🫀</div>
+<body>
+    <div id="monitor-grid">
+        <!-- Patient Info Panel -->
+        <div id="patient-info-panel" class="panel flex justify-between items-center">
+            <div class="flex items-center gap-4">
                 <div>
-                    <h1 class="text-xl md:text-2xl font-extrabold text-slate-800">المونيتور الذكي – Smart Patient Monitor</h1>
-                    <p class="text-xs text-slate-500">مراقبة لحظية + تحليل ذكي + دعم قرار طبي</p>
+                    <div class="text-sm text-gray-400">المريض</div>
+                    <div class="text-xl font-bold"><span id="patientName">—</span>, <span id="patientAge">—</span> <span id="genderIcon"></span></div>
+                </div>
+                <div class="border-l border-gray-600 pl-4">
+                    <div class="text-sm text-gray-400">معرف</div>
+                    <div class="text-lg font-mono" id="patientIdBadge">—</div>
+                </div>
+                <div class="border-l border-gray-600 pl-4">
+                    <div class="text-sm text-gray-400">أمراض مزمنة</div>
+                    <div class="text-lg font-bold text-yellow-400" id="patientDiseases">—</div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 text-sm">
-                <span id="patientIdBadge" class="badge badge-ok">ID: —</span>
-                <a id="backLink" href="#" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition">رجوع لملف المريض</a>
+            <div class="text-left">
+                 <div class="clock text-3xl font-bold" id="clock">00:00:00</div>
+                 <div class="text-sm text-gray-400" id="date"></div>
             </div>
         </div>
-    </header>
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <!-- قسم بيانات المريض والحالة العامة -->
-        <section class="card grid md:grid-cols-4 gap-4 items-center">
-            <div class="md:col-span-2">
-                <div class="text-slate-500 text-sm">المريض</div>
-                <div class="flex items-center gap-2">
-                    <div class="text-2xl font-bold text-slate-800">
-                        <span id="patientName">—</span> 
-                        <span class="text-lg font-normal" style="display: none;">(<span id="patientAge">—</span> سنة)</span>
-                    </div>
-                    <span id="genderIcon" class="text-lg">👤</span>
-                    <span id="bloodTypeBadge" class="badge badge-ok">—</span>
-                </div>
-                <div class="text-xs text-slate-500 space-y-1 mt-1">
-                    <div>العنوان: <span id="patientAddress">—</span></div>
-                    <div>القسم الحالي: <span id="patientDept">—</span></div>
-                    <div>أمراض مزمنة: <span id="patientDiseases">—</span></div>
-                    <div>وقت الاتصال: <span id="callTime">—</span></div>
-                    <div>آخر فحص: <span id="lastCheckup">—</span></div>
-                    <div id="patientStatus"></div>
-                </div>
-            </div>
-            <div class="grid grid-cols-3 gap-3">
-                <div class="text-center bg-slate-50 rounded-xl p-3">
-                    <div class="label">الحالة</div>
-                    <div id="aiStatusBadge" class="badge badge-ok inline-block mt-1">مستقرة</div>
-                </div>
-                <div class="text-center bg-slate-50 rounded-xl p-3">
-                    <div class="label">مؤشر الخطر (0–100)</div>
-                    <div id="riskScore" class="metric">0</div>
-                </div>
-                <div class="text-center bg-slate-50 rounded-xl p-3">
-                    <div class="label">اتصال</div>
-                    <div id="connBadge" class="badge badge-warn inline-block mt-1">محلي</div>
-                </div>
-            </div>
-        </section>
-        <!-- قسم العلامات الحيوية -->
-        <section class="grid md:grid-cols-5 gap-4">
-            <div class="card">
-                <div class="label">معدل ضربات القلب (bpm)</div>
-                <div id="hrVal" class="metric">—</div>
-                <div id="hrState" class="text-xs mt-1"></div>
-            </div>
-            <div class="card">
-                <div class="label">الضغط (SYS/DIA mmHg)</div>
-                <div id="bpVal" class="metric">—</div>
-                <div id="bpState" class="text-xs mt-1"></div>
-            </div>
-            <div class="card">
-                <div class="label">الأكسجين SpO₂ (%)</div>
-                <div id="spo2Val" class="metric">—</div>
-                <div id="spo2State" class="text-xs mt-1"></div>
-            </div>
-            <div class="card">
-                <div class="label">معدل التنفس (rpm)</div>
-                <div id="rrVal" class="metric">—</div>
-                <div id="rrState" class="text-xs mt-1"></div>
-            </div>
-            <div class="card">
-                <div class="label">الحرارة (°C)</div>
-                <div id="tempVal" class="metric">—</div>
-                <div id="tempState" class="text-xs mt-1"></div>
-            </div>
-        </section>
-        <!-- ECG -->
-        <section class="card">
-            <div class="flex items-center justify-between">
-                <div class="label">ECG – مخطط القلب (محاكاة)</div>
-                <div class="text-xs text-slate-400">ليس للاستخدام الطبي</div>
-            </div>
-            <canvas id="ecg" class="w-full h-40 bg-black rounded-xl mt-3"></canvas>
-        </section>
 
-        <!-- =================================================================== -->
-        <!-- ============== الجزء المطور: التحليل الذكي المتقدم ============== -->
-        <!-- =================================================================== -->
-        <section id="ai-analysis-section" class="card bg-slate-800 text-white">
-            <h2 class="text-xl font-bold mb-3 text-cyan-300">🔬 تحليل الذكاء الاصطناعي الفوري</h2>
-            <div id="ai-analysis-content" class="space-y-4">
-                <!-- سيتم ملء هذا الجزء بواسطة JavaScript -->
-                <div class="text-slate-400">يتم تحليل البيانات الأولية...</div>
-            </div>
-        </section>
-        
-        <!-- قسم التحكم والإعدادات -->
-        <section class="grid lg:grid-cols-3 gap-4">
-            <div class="card space-y-3">
-                <div class="font-bold">التحكم</div>
-                <div class="flex flex-wrap gap-2">
-                    <button id="connectBtn" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700">اتصال بالجهاز</button>
-                    <button id="startBtn" class="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700">بدء المراقبة</button>
-                    <button id="stopBtn" class="px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700">إيقاف</button>
-                    <button id="snapBtn" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">حفظ قراءة الآن</button>
-                    <label class="inline-flex items-center gap-2 text-sm ml-auto">
-                        <input id="autoAlerts" type="checkbox" class="w-4 h-4" checked> تفعيل التنبيه الذكي
-                    </label>
+        <!-- Waveforms Panel -->
+        <div id="waveform-panel" class="panel flex flex-col gap-2">
+            <div class="flex-1"><canvas id="ecgCanvas"></canvas></div>
+            <div class="flex-1"><canvas id="plethCanvas"></canvas></div>
+            <div class="flex-1"><canvas id="respCanvas"></canvas></div>
+        </div>
+
+        <!-- Vitals & Alerts Panel -->
+        <div id="vitals-panel" class="panel flex flex-col gap-3">
+            <!-- Vitals Grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div id="hr-box" class="vital-box hr-box col-span-2">
+                    <div class="flex justify-between items-baseline">
+                        <span class="vital-label">HR</span>
+                        <span class="vital-unit">bpm</span>
+                    </div>
+                    <div class="vital-value text-center" id="hrVal">—</div>
                 </div>
-                <p class="text-xs text-slate-500">عند تفعيل التنبيه الذكي سيتم إصدار تنبيه صوتي/مرئي عند تجاوز الحدود أو ارتفاع مؤشر الخطر.</p>
-            </div>
-            <div class="card lg:col-span-2">
-                <div class="font-bold mb-3">حدود الأمان (قابلة للتعديل)</div>
-                <div class="grid md:grid-cols-5 gap-3 text-sm">
-                    <div>
-                        <div class="label">HR</div>
-                        <div class="flex gap-2"><input id="hrMin" class="w-full border rounded-xl px-3 py-2" value="50"><input id="hrMax" class="w-full border rounded-xl px-3 py-2" value="120"></div>
-                    </div>
-                    <div>
-                        <div class="label">SYS</div>
-                        <div class="flex gap-2"><input id="sysMin" class="w-full border rounded-xl px-3 py-2" value="90"><input id="sysMax" class="w-full border rounded-xl px-3 py-2" value="140"></div>
-                    </div>
-                    <div>
-                        <div class="label">DIA</div>
-                        <div class="flex gap-2"><input id="diaMin" class="w-full border rounded-xl px-3 py-2" value="55"><input id="diaMax" class="w-full border rounded-xl px-3 py-2" value="90"></div>
-                    </div>
-                    <div>
-                        <div class="label">SpO₂</div>
-                        <div class="flex gap-2"><input id="spo2Min" class="w-full border rounded-xl px-3 py-2" value="92"><input id="spo2Max" class="w-full border rounded-xl px-3 py-2" value="100"></div>
-                    </div>
-                    <div>
-                        <div class="label">RR / Temp</div>
-                        <div class="flex gap-2"><input id="rrMin" class="w-full border rounded-xl px-3 py-2" value="10"><input id="rrMax" class="w-full border rounded-xl px-3 py-2" value="24"></div>
-                        <div class="flex gap-2 mt-2"><input id="tempMin" class="w-full border rounded-xl px-3 py-2" value="36"><input id="tempMax" class="w-full border rounded-xl px-3 py-2" value="37.8"></div>
-                    </div>
+                <div id="spo2-box" class="vital-box spo2-box">
+                    <div class="vital-label">SpO₂ <span class="vital-unit">%</span></div>
+                    <div class="vital-value" id="spo2Val">—</div>
+                </div>
+                <div id="rr-box" class="vital-box rr-box">
+                    <div class="vital-label">RR <span class="vital-unit">/min</span></div>
+                    <div class="vital-value" id="rrVal">—</div>
                 </div>
             </div>
-        </section>
-        <!-- سجل التنبيهات -->
-        <section class="card">
-            <div class="flex items-center justify-between mb-2">
-                <div class="font-bold">سجل التنبيهات</div>
-                <button id="clearLog" class="text-sm px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200">مسح السجل</button>
+            <div id="bp-box" class="vital-box bp-box">
+                <div class="vital-label">NIBP <span class="vital-unit">mmHg</span></div>
+                <div class="vital-value text-2xl">
+                    <span id="sysVal">—</span> / <span id="diaVal">—</span>
+                </div>
             </div>
-            <div id="log" class="text-sm space-y-1 max-h-44 overflow-auto"></div>
-        </section>
-    </main>
-    <footer class="max-w-7xl mx-auto px-4 pb-10 text-xs text-slate-400">
-        نسخة محاكاة تعليمية – للعرض داخل مشروع مستشفى الحياة الذكية. ليست للاستخدام الطبي الحقيقي.
-    </footer>
+            <div id="temp-box" class="vital-box temp-box">
+                <div class="vital-label">Temp <span class="vital-unit">°C</span></div>
+                <div class="vital-value text-2xl" id="tempVal">—</div>
+            </div>
+
+            <!-- AI Alerts & System Messages -->
+            <div id="ai-alerts-panel" class="flex-1 flex flex-col bg-gray-900 rounded-lg p-3 mt-2">
+                <h3 class="font-bold text-cyan-400 mb-2">رسائل النظام والتنبيهات</h3>
+                <div id="ai-analysis-content" class="flex-1 space-y-2 text-sm overflow-y-auto">
+                    <p class="text-gray-400">في انتظار البيانات...</p>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-between gap-2 text-sm">
+                <button id="soundToggle" class="px-3 py-2 rounded-md bg-green-600 hover:bg-green-700 transition">تفعيل الصوت</button>
+                <div id="connBadge" class="px-3 py-1 rounded-full bg-yellow-800 text-yellow-200">...</div>
+                <a id="backLink" href="#" class="text-gray-400 hover:text-white">ملف المريض</a>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioBeep" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_307ae5843a.mp3" preload="auto"></audio>
+    <audio id="audioAlertWarn" src="https://cdn.pixabay.com/download/audio/2022/10/13/audio_a43e40e698.mp3" preload="auto" loop></audio>
+    <audio id="audioAlertCritical" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7252e0c144.mp3" preload="auto" loop></audio>
     
-    <script>
-    // =============== إعداد Firebase (لا تغيير هنا) ===============
-    const firebaseConfig = {
-        apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0",
-        authDomain: "hospital-project-e4b59.firebaseapp.com",
-        databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "hospital-project-e4b59",
-        storageBucket: "hospital-project-e4b59.firebasestorage.app",
-        messagingSenderId: "974610606258",
-        appId: "1:974610606258:web:71ce7d5d447bca4b4441ab",
-        measurementId: "G-0GV30LL28T"
-    };
-    let fb = { enabled: false, app: null, db: null };
+<script>
+// =============== إعداد Firebase وأدوات مساعدة ===============
+const firebaseConfig = { apiKey: "AIzaSyArPFi04c_vDP5Gi8bM4pem_LuvMx_eJG0", authDomain: "hospital-project-e4b59.firebaseapp.com", databaseURL: "https://hospital-project-e4b59-default-rtdb.europe-west1.firebasedatabase.app", projectId: "hospital-project-e4b59", storageBucket: "hospital-project-e4b59.firebasestorage.app", messagingSenderId: "974610606258", appId: "1:974610606258:web:71ce7d5d447bca4b4441ab" };
+let fb = { enabled: false, app: null, db: null };
+try {
+    fb.app = firebase.initializeApp(firebaseConfig);
+    fb.db = firebase.database();
+    fb.enabled = true;
+} catch (e) { console.warn("Firebase init failed", e); }
+
+const $ = (id) => document.getElementById(id);
+
+// =============== المتغيرات العامة والحالة ===============
+const patientId = new URL(window.location.href).searchParams.get('id') || "-OVjd_eZDCbyD2S14zfc";
+const history = []; const MAX_HIST = 200;
+const canvases = {
+    ecg: { ctx: $('ecgCanvas').getContext('2d'), t: 0, color: '#3fb950' },
+    pleth: { ctx: $('plethCanvas').getContext('2d'), t: 0, color: '#38bdf8' },
+    resp: { ctx: $('respCanvas').getContext('2d'), t: 0, color: '#d29922' },
+};
+const audio = {
+    beep: $('audioBeep'),
+    warn: $('audioAlertWarn'),
+    crit: $('audioAlertCritical'),
+};
+let soundActive = false, beepTimeout = null;
+const alarmLimits = { hr: { min: 50, max: 120 }, sys: { min: 90, max: 140 }, spo2: { min: 92, max: 100 }, rr: { min: 10, max: 24 } };
+
+// =============== تحميل وعرض بيانات المريض الثابتة ===============
+async function loadPatientHeader() {
+    if (!fb.enabled) return;
     try {
-        if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.databaseURL) {
-            fb.app = firebase.initializeApp(firebaseConfig);
-            fb.db = firebase.database();
-            fb.enabled = true;
-            document.getElementById('connBadge').textContent = 'Firebase';
-            document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
-        }
-    } catch (e) {
-        console.warn('Firebase init failed, running local only.', e);
-    }
-    
-    // =============== أدوات مساعدة (لا تغيير هنا) ===============
-    const $ = (id) => document.getElementById(id);
-    const fmt = (n, d=0) => Number(n).toFixed(d);
-    const nowIso = () => new Date().toISOString();
-    function getQueryParam(key) {
-        const u = new URL(window.location.href);
-        return u.searchParams.get(key);
-    }
-    const patientId = getQueryParam('id') || '-OVjd_eZDCbyD2S14zfc';
-    $('patientIdBadge').textContent = 'ID: ' + patientId;
-    $('backLink').href = `patient.html?id=${encodeURIComponent(patientId)}`;
-    
-    // =============== تحميل بيانات المريض (لا تغيير هنا) ===============
-    async function loadPatientHeader() {
-        if (!fb.enabled) return;
-        try {
-            const snap = await fb.db.ref(`/patients/emergency/${patientId}`).get();
-            if (!snap.exists()) {
-                console.warn("No patient data in emergency", patientId);
-                return;
-            }
-            const basic = snap.val();
-            updatePatientDisplay(basic);
-        } catch (error) {
-            console.error("Error fetching patient data:", error);
-        }
-    }
-    function updatePatientDisplay(basic) {
-        $('patientName').textContent = basic.name || '—';
-        if (basic.age) {
-            $('patientAge').textContent = basic.age;
-            document.querySelector('.text-2xl.font-bold .text-lg').style.display = 'inline';
-        }
-        $('patientAddress').textContent = basic.address || '—';
-        $('patientDept').textContent = basic.serviceType || basic.department || '—';
-        $('patientDiseases').textContent = basic.diseases || '—';
-        if (basic.diseases && basic.diseases !== "لا يوجد") {
-            $('patientDiseases').innerHTML = `<span class="text-red-600 font-bold">⚠️ ${basic.diseases}</span>`;
-        }
-        $('genderIcon').textContent = basic.gender === 'male' ? '👨' : (basic.gender === 'female' ? '👩' : '👤');
-        $('bloodTypeBadge').textContent = basic.bloodType || '—';
-        if (basic.callTime) $('callTime').textContent = new Date(basic.callTime).toLocaleString('ar-EG');
-        if (basic.lastCheckup) $('lastCheckup').textContent = new Date(basic.lastCheckup).toLocaleDateString('ar-EG');
-        if (basic.status) {
-            let statusClass = '', statusText = basic.status;
-            switch(basic.status.toLowerCase()) {
-                case 'deteriorating': statusClass = 'text-red-600 font-bold'; statusText = 'في تدهور ⚠️'; break;
-                case 'stable': statusClass = 'text-green-600'; statusText = 'مستقر ✅'; break;
-                case 'critical': statusClass = 'text-red-800 font-bold'; statusText = 'حرج 🚨'; break;
-                default: statusClass = 'text-yellow-600';
-            }
-            $('patientStatus').innerHTML = `<span class="${statusClass}">الحالة: ${statusText}</span>`;
-        }
-    }
-    loadPatientHeader();
-    
-    // =============== حدود الأمان (لا تغيير هنا) ===============
-    const limits = { hr: {}, sys: {}, dia: {}, spo2: {}, rr: {}, temp: {} };
-    function readLimits() {
-        limits.hr.min = +$('hrMin').value; limits.hr.max = +$('hrMax').value;
-        limits.sys.min = +$('sysMin').value; limits.sys.max = +$('sysMax').value;
-        limits.dia.min = +$('diaMin').value; limits.dia.max = +$('diaMax').value;
-        limits.spo2.min = +$('spo2Min').value; limits.spo2.max = +$('spo2Max').value;
-        limits.rr.min = +$('rrMin').value; limits.rr.max = +$('rrMax').value;
-        limits.temp.min = +$('tempMin').value; limits.temp.max = +$('tempMax').value;
-    }
-    
-    // =============== محاكاة و ECG (لا تغيير هنا) ===============
-    let timer = null, t = 0;
-    const history = [];
-    const MAX_HIST = 120;
-    function randn(mean, sd) { let u=1-Math.random(),v=1-Math.random(); let z=Math.sqrt(-2.0*Math.log(u))*Math.cos(2.0*Math.PI*v); return mean+z*sd; }
-    function simulateVitals() { return { hr: Math.max(30,Math.round(randn(82,6))), sys: Math.round(randn(118,8)), dia: Math.round(randn(76,6)), spo2: Math.min(100,Math.max(85,Math.round(randn(97,1.2)))), rr: Math.max(6,Math.round(randn(16,2))), temp: +randn(36.9,0.2).toFixed(1) }; }
-    const ecgCanvas = $('ecg'), ecgCtx = ecgCanvas.getContext('2d');
-    function resizeCanvas() { ecgCanvas.width=ecgCanvas.clientWidth; ecgCanvas.height=ecgCanvas.clientHeight; }
-    window.addEventListener('resize', resizeCanvas); resizeCanvas();
-    function drawECG(hr) { const w=ecgCanvas.width,h=ecgCanvas.height,ctx=ecgCtx; ctx.fillStyle='#000'; ctx.fillRect(0,0,w,h); ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1; for(let gx=0;gx<w;gx+=20){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,h);ctx.stroke();} for(let gy=0;gy<h;gy+=20){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(w,gy);ctx.stroke();} ctx.strokeStyle='#22c55e'; ctx.lineWidth=2; ctx.beginPath(); let bpm=hr||80; let period=Math.max(0.4,60/bpm); for(let i=0;i<w;i++){ let tt=(t+i/120); let phase=(tt%period)/period; let y=0.02*Math.sin(2*Math.PI*phase*5); if(phase>0.1&&phase<0.14)y+=-0.5; if(phase>=0.14&&phase<0.18)y+=1.4; if(phase>=0.18&&phase<0.22)y+=-0.3; if(phase>0.28&&phase<0.36)y+=0.25*Math.sin(Math.PI*(phase-0.28)/0.08); y+=(Math.random()-0.5)*0.02; let yy=h*(0.5-y*0.35); if(i===0)ctx.moveTo(i,yy);else ctx.lineTo(i,yy); } ctx.stroke(); t+=1/60; }
+        const snap = await fb.db.ref(`/patients/emergency/${patientId}`).get();
+        if (!snap.exists()) { console.warn("No patient data"); return; }
+        const p = snap.val();
+        $('patientName').textContent = p.name || '—';
+        $('patientAge').textContent = p.age || '—';
+        $('genderIcon').textContent = p.gender === 'male' ? '👨' : '👩';
+        $('patientIdBadge').textContent = patientId;
+        $('patientDiseases').textContent = p.diseases || 'لا يوجد';
+        $('backLink').href = `patient.html?id=${encodeURIComponent(patientId)}`;
+    } catch (error) { console.error("Error fetching patient data:", error); }
+}
 
-    // =============== تحديث: نظام الذكاء الاصطناعي المطور ===============
-    const medicalKnowledgeBase = {
-        sepsis: {
-            name: "اشتباه في إنتان الدم (Sepsis)",
-            priority: 10,
-            trigger: (v, p) => v.hr > 100 && v.temp > 38 && v.sys < 100 && v.rr > 22,
-            analysis: {
-                summary: "تتوافق العلامات الحيوية مع معايير متلازمة الاستجابة الالتهابية الجهازية (SIRS)، مع وجود انخفاض في ضغط الدم، مما يرفع من احتمالية وجود إنتان حاد.",
-                rationale: "اجتماع تسارع القلب والتنفس مع الحمى وانخفاض الضغط هو علامة تحذيرية كلاسيكية تتطلب تدخلاً عاجلاً لمنع تطور الحالة إلى صدمة إنتانية.",
-                recommendations: [
-                    "إبلاغ الطبيب المسؤول فوراً (Critical Alert).",
-                    "البدء ببروتوكول الإنتان المعتمد (Sepsis Bundle).",
-                    "سحب عينات للزرع الدموي وقياس مستوى اللاكتات.",
-                    "الاستعداد لبدء إنعاش السوائل الوريدية والمضادات الحيوية واسعة الطيف."
-                ]
-            }
-        },
-        hypertensiveCrisis: {
-            name: "أزمة ارتفاع ضغط الدم",
-            priority: 9,
-            trigger: (v, p) => v.sys > 180 || v.dia > 110,
-            analysis: {
-                summary: "ارتفاع حاد في ضغط الدم يتطلب تقييماً فورياً لوجود ضرر في الأعضاء الحيوية.",
-                rationale: "قراءات ضغط الدم تتجاوز العتبة الحرجة. يجب تقييم المريض لأعراض مثل ألم الصدر، الصداع الشديد، أو التغيرات العصبية.",
-                recommendations: [
-                    "إعادة قياس الضغط في كلا الذراعين للتأكيد.",
-                    "إبلاغ الطبيب المسؤول فوراً.",
-                    "تقييم حالة المريض العصبية والقلبية.",
-                    "مراجعة الأدوية الخافضة للضغط المتاحة للطوارئ (PRN)."
-                ]
-            }
-        },
-        hypoxia: {
-            name: "نقص الأكسجة (Hypoxia)",
-            priority: 8,
-            trigger: (v, p) => v.spo2 < 92,
-            analysis: {
-                summary: `انخفاض مستوى تشبع الأكسجين إلى ${v.spo2}%، مما يشير إلى قصور في الجهاز التنفسي.`,
-                rationale: "يجب تحديد سبب نقص الأكسجة. إذا كان المريض يعاني من أمراض مزمنة مثل (COPD)، فقد تكون هذه القراءة متوقعة ولكنها لا تزال تتطلب المراقبة.",
-                recommendations: [
-                    "التأكد من وضعية المريض (رفع رأس السرير).",
-                    "فحص مجرى الهواء والتأكد من عدم وجود عوائق.",
-                    "البدء أو زيادة إمداد الأكسجين حسب البروتوكول.",
-                    "تقييم وظائف الرئة (Auscultation) وإبلاغ الطبيب."
-                ]
-            }
-        },
-        bradycardia: {
-            name: "بطء ضربات القلب (Bradycardia)",
-            priority: 7,
-            trigger: (v, p) => v.hr < 50,
-            analysis: {
-                summary: "انخفاض معدل ضربات القلب عن المعدل الطبيعي.",
-                rationale: "يجب تقييم ما إذا كان بطء القلب مصحوباً بأعراض (Symptomatic) مثل الدوخة أو انخفاض الضغط. بعض المرضى الرياضيين قد يكون لديهم هذا المعدل بشكل طبيعي.",
-                recommendations: [
-                    "تقييم مستوى وعي المريض وسؤاله عن أي أعراض.",
-                    "فحص ضغط الدم بشكل متزامن.",
-                    "مراجعة قائمة أدوية المريض (مثل حاصرات بيتا).",
-                    "إعداد جهاز تنظيم ضربات القلب الخارجي كإجراء احترازي إذا كان المريض غير مستقر."
-                ]
-            }
-        },
-        stable: {
-            name: "حالة مستقرة",
-            priority: 0,
-            trigger: (v, p) => true, // Default case
-            analysis: {
-                summary: "العلامات الحيوية للمريض ضمن النطاقات المحددة الآمنة.",
-                rationale: "لا توجد انحرافات كبيرة أو اتجاهات سلبية مقلقة في البيانات الأخيرة. مؤشر الخطر منخفض.",
-                recommendations: [
-                    "الاستمرار في المراقبة الروتينية حسب الخطة العلاجية.",
-                    "ضمان راحة المريض وتلبية احتياجاته الأساسية."
-                ]
+// =============== نظام الذكاء الاصطناعي (قاعدة المعرفة) ===============
+const medicalKnowledgeBase = { /* ... نفس قاعدة المعرفة من الكود السابق ... */ sepsis:{name:"اشتباه إنتان الدم",trigger:v=>v.hr>100&&v.temp>38&&v.sys<100&&v.rr>22,summary:"مؤشرات التهاب جهازي مع انخفاض ضغط، احتمالية إنتان عالية.",recommendations:["إبلاغ الطبيب فوراً (إنذار حرج).","البدء ببروتوكول الإنتان (Sepsis Bundle).","سحب عينات زرع دم وقياس اللاكتات."]},hypertensiveCrisis:{name:"أزمة ضغط الدم",trigger:v=>v.sys>180||v.dia>110,summary:"ارتفاع حاد في ضغط الدم يتطلب تقييم فوري.",recommendations:["إعادة قياس الضغط وتأكيده.","تقييم الحالة العصبية والقلبية للمريض."]},hypoxia:{name:"نقص الأكسجة",trigger:v=>v.spo2<92,summary:`انخفاض تشبع الأكسجين (${v.spo2}%) يشير لقصور تنفسي.`,recommendations:["رفع رأس السرير وفحص مجرى الهواء.","البدء أو زيادة إمداد الأكسجين."]},stable:{name:"حالة مستقرة",trigger:v=>true,summary:"العلامات الحيوية ضمن النطاق الطبيعي.",recommendations:["الاستمرار بالمراقبة الروتينية."]}};
+async function runAIAnalysis(vitals) { for(const key in medicalKnowledgeBase){const c=medicalKnowledgeBase[key];if(c.trigger(vitals))return{condition:c.name,summary:c.summary,recommendations:c.recommendations}} }
+
+function displayAIAnalysis(analysis) {
+    if (!analysis) return;
+    let colorClass = analysis.condition === "حالة مستقرة" ? "text-green-400" : "text-yellow-400";
+    if (analysis.condition.includes("إنتان") || analysis.condition.includes("أزمة")) colorClass = "text-red-400";
+
+    $('ai-analysis-content').innerHTML = `
+        <div><strong class="font-bold ${colorClass}">التقييم: ${analysis.condition}</strong></div>
+        <p class="text-gray-300">${analysis.summary}</p>
+        <ul class="list-disc list-inside mt-1 text-gray-400">
+            ${analysis.recommendations.map(r => `<li>${r}</li>`).join('')}
+        </ul>`;
+}
+
+// =============== دوال الصوت والتنبيهات ===============
+function doBeep() {
+    if (!soundActive || history.length === 0) return;
+    audio.beep.currentTime = 0;
+    audio.beep.play().catch(e => {});
+    const delay = 60 / (history.at(-1)?.hr || 75) * 1000;
+    beepTimeout = setTimeout(doBeep, delay);
+}
+
+function handleAlarms(vitals) {
+    let crit = false, warn = false;
+    const checkAlarm = (val, limits, boxId) => {
+        const box = $(boxId);
+        box.classList.remove('alarm-warn', 'alarm-crit');
+        if (val < limits.min || val > limits.max) {
+            // Use a wider margin for critical alarms
+            if (val < limits.min * 0.8 || val > limits.max * 1.2) {
+                box.classList.add('alarm-crit');
+                crit = true;
+            } else {
+                box.classList.add('alarm-warn');
+                warn = true;
             }
         }
     };
-    async function runAIAnalysis(vitals) {
-        const patientInfo = {
-            diseases: ($('patientDiseases')?.textContent || '').toLowerCase()
-        };
-        for (const key in medicalKnowledgeBase) {
-            const condition = medicalKnowledgeBase[key];
-            if (condition.trigger(vitals, patientInfo)) {
-                return {
-                    condition: condition.name,
-                    ...condition.analysis
-                };
-            }
-        }
-    }
-    function displayAIAnalysis(analysis) {
-        const container = $('ai-analysis-content');
-        if (!analysis) {
-            container.innerHTML = '<div class="text-slate-400">لا توجد بيانات كافية للتحليل.</div>';
-            return;
-        }
-        let bgColor = 'bg-slate-700';
-        if (analysis.condition.includes('إنتان') || analysis.condition.includes('أزمة')) {
-            bgColor = 'bg-red-900/50';
-        } else if (analysis.condition.includes('نقص') || analysis.condition.includes('بطء')) {
-            bgColor = 'bg-yellow-900/50';
-        }
-        container.innerHTML = `
-            <div class="p-4 rounded-lg ${bgColor}">
-                <h3 class="font-bold text-lg text-white">التقييم: <span class="text-yellow-300">${analysis.condition}</span></h3>
-                <p class="text-sm text-slate-300 mt-1">${analysis.summary}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-slate-700">
-                <h4 class="font-bold text-cyan-300">الأساس المنطقي (Rationale)</h4>
-                <p class="text-sm text-slate-300 mt-1">${analysis.rationale}</p>
-            </div>
-            <div class="p-4 rounded-lg bg-slate-700 ai-recommendation">
-                <h4 class="font-bold text-cyan-300">التوصيات المقترحة (Next Actions)</h4>
-                <ul>
-                    ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    }
+    checkAlarm(vitals.hr, alarmLimits.hr, 'hr-box');
+    checkAlarm(vitals.spo2, alarmLimits.spo2, 'spo2-box');
+    checkAlarm(vitals.sys, alarmLimits.sys, 'bp-box');
+    checkAlarm(vitals.rr, alarmLimits.rr, 'rr-box');
     
-    // =============== حساب مؤشر الخطر وتحديث الحالة ===============
-    function riskScoreFrom(v) {
-        readLimits();
-        const dev = (val, {min, max}) => val < min ? (min - val) / (min || 1) : (val > max ? (val - max) / (max || 1) : 0);
-        let s = 0;
-        s += 35 * Math.min(2, dev(v.hr, limits.hr));
-        s += 18 * Math.min(2, dev(v.sys, limits.sys));
-        s += 12 * Math.min(2, dev(v.dia, limits.dia));
-        s += 25 * Math.min(2, dev(v.spo2, limits.spo2));
-        s += 5 * Math.min(2, dev(v.rr, limits.rr));
-        s += 5 * Math.min(2, dev(v.temp, limits.temp));
-        const n = history.length;
-        if (n >= 10) {
-            const trendSp = history.slice(-10).map(x=>x.spo2).reduce((a,b,i,arr) => a + (b - arr[0]), 0) / 10;
-            if (trendSp < -0.5) s += 15; // Add risk for dropping SpO2 trend
-        }
-        return Math.max(0, Math.min(100, Math.round(s)));
+    if (soundActive) {
+        crit ? (audio.warn.pause(), audio.crit.paused && audio.crit.play())
+             : warn ? (audio.crit.pause(), audio.warn.paused && audio.warn.play())
+             : (audio.warn.pause(), audio.crit.pause());
     }
-    function setStatus(score, v) {
-        const badge = $('aiStatusBadge');
-        let label = 'مستقرة', cls = 'badge badge-ok';
-        if (score >= 80) { label = 'حالة حرجة'; cls = 'badge badge-critical'; }
-        else if (score >= 60) { label = 'خطر مرتفع'; cls = 'badge badge-bad'; }
-        else if (score >= 30) { label = 'خطر متوسط'; cls = 'badge badge-warn'; }
-        badge.textContent = label; badge.className = cls + ' inline-block';
-        $('riskScore').textContent = String(score);
-        const within = (val, lim) => (val >= lim.min && val <= lim.max);
-        const updateState = (el, ok) => { el.textContent = ok ? 'طبيعي' : 'خارج النطاق'; el.className = ok ? 'text-green-600' : 'text-red-600 font-bold'; };
-        updateState($('hrState'), within(v.hr, limits.hr));
-        updateState($('bpState'), within(v.sys, limits.sys) && within(v.dia, limits.dia));
-        updateState($('spo2State'), within(v.spo2, limits.spo2));
-        updateState($('rrState'), within(v.rr, limits.rr));
-        updateState($('tempState'), within(v.temp, limits.temp));
-    }
-    
-    // =============== سجل وتنبيهات (لا تغيير هنا) ===============
-    function logEvent(txt, level='info') {
-        const row = document.createElement('div');
-        const t = new Date().toLocaleTimeString();
-        row.className = 'flex items-center gap-2';
-        const dot = document.createElement('span'); dot.className = 'w-2.5 h-2.5 rounded-full ' + (level==='danger'? 'bg-rose-500' : level==='warn'? 'bg-amber-500':'bg-slate-400');
-        const msg = document.createElement('span'); msg.textContent = `[${t}] ${txt}`;
-        row.appendChild(dot); row.appendChild(msg);
-        $('log').prepend(row);
-    }
-    function alertIfNeeded(score, v) {
-        if (!$('autoAlerts').checked || score < 30) return;
-        const title = score >= 60 ? 'خطر مرتفع' : 'تنبيه';
-        const icon = score >= 60 ? 'error' : 'warning';
-        const text = `HR:${v.hr} | BP:${v.sys}/${v.dia} | SpO₂:${v.spo2}%`;
-        Swal.fire({ title, text, icon, toast: true, position: 'top-end', timer: 3500, showConfirmButton: false });
-        logEvent(`${title}: ${text}`, score>=60? 'danger':'warn');
-        try { const be = new AudioContext(), o=be.createOscillator(), g=be.createGain(); o.type='square'; o.frequency.value=score>=60?880:660; o.connect(g); g.connect(be.destination); g.gain.setValueAtTime(0.001, be.currentTime); g.gain.exponentialRampToValueAtTime(0.15, be.currentTime+0.1); o.start(); o.stop(be.currentTime+0.4); } catch(e) {}
-    }
+}
 
-    // =============== عرض البيانات وتحديثها (مُطوّر) ===============
-    function render(vitals) {
-        $('hrVal').textContent = fmt(vitals.hr);
-        $('bpVal').textContent = `${fmt(vitals.sys)}/${fmt(vitals.dia)}`;
-        $('spo2Val').textContent = fmt(vitals.spo2);
-        $('rrVal').textContent = fmt(vitals.rr);
-        $('tempVal').textContent = fmt(vitals.temp, 1);
-        
-        history.push(vitals);
-        if (history.length > MAX_HIST) history.shift();
-        
-        const score = riskScoreFrom(vitals);
-        setStatus(score, vitals);
-        alertIfNeeded(score, vitals);
-        
-        // ** استدعاء التحليل الذكي الجديد **
-        runAIAnalysis(vitals).then(analysisResult => {
-            displayAIAnalysis(analysisResult);
+// =============== دوال رسم المخططات ===============
+function drawWaveform(canvasInfo, value, periodFactor, amplitude, waveFn) {
+    const { ctx, color } = canvasInfo;
+    const w = ctx.canvas.width, h = ctx.canvas.height;
+    ctx.fillStyle = '#010409'; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+    const period = Math.max(0.2, 60 / (value || 75) * periodFactor);
+    for (let i = 0; i < w; i++) {
+        const phase = ((canvasInfo.t + i / 100) % period) / period;
+        const y = waveFn(phase);
+        const yy = h * (0.5 - y * amplitude);
+        i === 0 ? ctx.moveTo(i, yy) : ctx.lineTo(i, yy);
+    }
+    ctx.stroke();
+    canvasInfo.t += 1 / 60;
+}
+
+const ecgWave = p => { // p is phase from 0 to 1
+    if (p>0.1&&p<0.14) return -0.5; if (p>=0.14&&p<0.18) return 1.4;
+    if (p>=0.18&&p<0.22) return -0.3; if (p>0.28&&p<0.36) return 0.25*Math.sin(Math.PI*(p-0.28)/0.08);
+    return 0.02 * Math.sin(2 * Math.PI * p * 5) + (Math.random()-0.5)*0.03;
+};
+const plethWave = p => Math.sin(p * Math.PI * 2) * Math.exp(-3 * p);
+const respWave = p => Math.sin(p * Math.PI * 2);
+
+function animateWaveforms() {
+    const latestVitals = history.at(-1) || {};
+    drawWaveform(canvases.ecg, latestVitals.hr, 1, 0.35, ecgWave);
+    drawWaveform(canvases.pleth, latestVitals.hr, 1, 0.4, plethWave);
+    drawWaveform(canvases.resp, latestVitals.rr, 1, 0.4, respWave);
+    requestAnimationFrame(animateWaveforms);
+}
+
+// =============== الدالة الرئيسية لتحديث الواجهة ===============
+function render(vitals) {
+    if(!vitals) return;
+    history.push(vitals);
+    if (history.length > MAX_HIST) history.shift();
+
+    $('hrVal').textContent = vitals.hr || '—';
+    $('spo2Val').textContent = vitals.spo2 || '—';
+    $('sysVal').textContent = vitals.sys || '—';
+    $('diaVal').textContent = vitals.dia || '—';
+    $('rrVal').textContent = vitals.rr || '—';
+    $('tempVal').textContent = (vitals.temp || 0).toFixed(1);
+
+    handleAlarms(vitals);
+    runAIAnalysis(vitals).then(displayAIAnalysis);
+}
+
+// =============== الاتصال بـ Firebase وبدء التشغيل ===============
+function startFirebaseListener() {
+    if (!fb.enabled) {
+        $('connBadge').textContent = 'Firebase Error'; return;
+    }
+    const vitalsRef = fb.db.ref(`/patients/emergency/${patientId}/vitalSigns`);
+    $('connBadge').textContent = 'Connecting...';
+    vitalsRef.on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            render(snapshot.val());
+            $('connBadge').textContent = '● Live';
+            $('connBadge').classList.replace('bg-yellow-800', 'bg-green-800');
+            $('connBadge').classList.replace('text-yellow-200', 'text-green-200');
+        } else {
+            $('connBadge').textContent = 'No Data';
+        }
+    }, (error) => {
+        console.error(error);
+        $('connBadge').textContent = 'Connection Error';
+        $('connBadge').classList.replace('bg-yellow-800', 'bg-red-800');
+        $('connBadge').classList.replace('text-yellow-200', 'text-red-200');
+    });
+}
+
+// =============== تحديث الساعة والتحكم بالأصوات ===============
+function updateClock() {
+    const now = new Date();
+    $('clock').textContent = now.toLocaleTimeString('en-GB');
+    $('date').textContent = now.toLocaleDateString('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+$('soundToggle').addEventListener('click', () => {
+    soundActive = !soundActive;
+    const btn = $('soundToggle');
+    btn.textContent = soundActive ? 'إيقاف الصوت' : 'تفعيل الصوت';
+    btn.classList.toggle('bg-green-600', !soundActive);
+    btn.classList.toggle('bg-red-600', soundActive);
+    if (soundActive) {
+        clearTimeout(beepTimeout);
+        doBeep();
+    } else {
+        clearTimeout(beepTimeout);
+        Object.values(audio).forEach(a => { a.pause(); a.currentTime = 0; });
+        document.querySelectorAll('.alarm-warn, .alarm-crit').forEach(el => el.classList.remove('alarm-warn', 'alarm-crit'));
+    }
+});
+
+
+// =============== بدء التشغيل عند تحميل الصفحة ===============
+window.addEventListener('load', () => {
+    // Resize canvases initially and on window resize
+    Object.values(canvases).forEach(c => {
+        c.ctx.canvas.width = c.ctx.canvas.clientWidth;
+        c.ctx.canvas.height = c.ctx.canvas.clientHeight;
+    });
+    window.addEventListener('resize', () => {
+        Object.values(canvases).forEach(c => {
+            c.ctx.canvas.width = c.ctx.canvas.clientWidth;
+            c.ctx.canvas.height = c.ctx.canvas.clientHeight;
         });
-    }
-
-    // =============== وظائف Firebase (لا تغيير هنا) ===============
-    function pushToFirebase(vitals) {
-        if (!fb.enabled) return;
-        const now = new Date();
-        const path = `/patients/emergency/${patientId}`;
-        fb.db.ref(`${path}/vitalSigns`).set(vitals).catch(e=>console.error("Firebase update failed", e));
-        fb.db.ref(`${path}/readings/${nowIso().replace(/[\.\#\$\[\]]/g, '')}`).set({ ...vitals, timestamp: now.toISOString() }).catch(e=>console.error("Firebase save failed", e));
-    }
-    
-    // =============== الاتصال بالأجهزة و بدء المحاكاة (لا تغيير هنا) ===============
-    async function connectToDevice(){ /* ... الكود الأصلي ... */ return false; }
-    function startSimulationMode() {
-        if (timer) return;
-        timer = setInterval(() => render(simulateVitals()), 1500); // إبطاء التحديث قليلاً لسهولة القراءة
-        if (!window.__ecgAnim) { const step = () => { if (timer) drawECG(history.at(-1)?.hr || 80); window.__ecgAnim = requestAnimationFrame(step); }; step(); }
-        $('connBadge').textContent = 'محاكاة'; $('connBadge').className = 'badge badge-warn inline-block mt-1';
-    }
-
-    // =============== أحداث الواجهة (لا تغيير هنا) ===============
-    $('connectBtn').addEventListener('click', () => { Swal.fire('غير متاح', 'الاتصال بأجهزة حقيقية يتطلب بيئة آمنة (HTTPS) وتجهيزات خاصة.', 'info'); });
-    $('startBtn').addEventListener('click', () => { if (!timer) { logEvent('بدء المراقبة في وضع المحاكاة'); startSimulationMode(); } });
-    $('stopBtn').addEventListener('click', () => { if (timer) { clearInterval(timer); timer = null; logEvent('تم إيقاف المراقبة'); $('connBadge').textContent='محلي'; $('connBadge').className='badge badge-warn inline-block mt-1'; } });
-    $('snapBtn').addEventListener('click', () => {
-        if (history.length > 0) {
-            const latest = history.at(-1);
-            const now = nowIso();
-            const ref = fb.db.ref(`/patients/emergency/${patientId}/snapshots/${now.replace(/[\.\#\$\[\]]/g, '')}`);
-            ref.set({ ...latest, timestamp: now })
-               .then(() => Swal.fire('تم الحفظ', 'تم حفظ القراءة الأخيرة بنجاح.', 'success'))
-               .catch(e => Swal.fire('خطأ', 'فشل الحفظ: ' + e.message, 'error'));
-        } else { Swal.fire('خطأ', 'لا توجد بيانات لحفظها.', 'error'); }
     });
-    $('clearLog').addEventListener('click', () => { $('log').innerHTML = ''; logEvent('تم مسح السجل'); });
-    
-    // بدء المراقبة تلقائيًا عند تحميل الصفحة
-    window.addEventListener('load', () => {
-        logEvent('الصفحة جاهزة، وضع المحاكاة يعمل تلقائياً.');
-        startSimulationMode();
-    });
-    </script>
+
+    loadPatientHeader();
+    startFirebaseListener();
+    animateWaveforms();
+    setInterval(updateClock, 1000);
+    updateClock();
+});
+</script>
 </body>
 </html>
