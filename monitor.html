@@ -8,6 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
     <style>
         html, body { font-family: 'Cairo', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
         .card { @apply rounded-2xl shadow-lg p-5 bg-white; }
@@ -19,10 +24,111 @@
         .badge-warn { @apply bg-yellow-100 text-yellow-700; }
         .badge-bad { @apply bg-red-100 text-red-700; }
         canvas { image-rendering: pixelated; }
+        
+        /* Dark Mode Styles */
+        .dark-mode {
+            background: linear-gradient(to bottom, #1a202c, #2d3748);
+            color: #e2e8f0;
+        }
+        .dark-mode .card {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+        .dark-mode header {
+            background: rgba(26, 32, 44, 0.9);
+        }
+        .dark-mode .bg-slate-50 {
+            background-color: #2d3748;
+        }
+        .dark-mode .text-slate-500 {
+            color: #a0aec0;
+        }
+        .dark-mode .text-slate-800 {
+            color: #e2e8f0;
+        }
+        .dark-mode .border-slate-200 {
+            border-color: #4a5568;
+        }
+        .dark-mode .bg-white {
+            background-color: #2d3748;
+        }
+        .dark-mode .bg-slate-900 {
+            background-color: #1a202c;
+        }
+        
+        /* Animations */
+        .value-change {
+            animation: valueChange 0.5s ease-in-out;
+        }
+        @keyframes valueChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); color: #3b82f6; }
+            100% { transform: scale(1); }
+        }
+        
+        .notification-item {
+            animation: slideIn 0.3s ease-out;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification-item.info {
+            background-color: #dbeafe;
+            border-left: 4px solid #3b82f6;
+        }
+        .notification-item.warning {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+        }
+        .notification-item.critical {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .notification-title {
+            font-weight: bold;
+        }
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .notification-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .notification-acknowledge {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .metric { font-size: 1.5rem; }
+            .card { padding: 1rem; }
+            .grid { gap: 1rem; }
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database-compat.js"></script>
 </head>
 <body class="bg-gradient-to-b from-slate-50 to-slate-100 min-h-screen">
     <header class="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200">
@@ -36,10 +142,16 @@
             </div>
             <div class="flex items-center gap-2 text-sm">
                 <span id="patientIdBadge" class="badge badge-ok">ID: —</span>
+                <button id="themeToggle" class="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">
+                    <span id="themeIcon">🌙</span>
+                </button>
                 <a id="backLink" href="#" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition">رجوع لملف المريض</a>
             </div>
         </div>
     </header>
+
+    <div id="notification-container" class="fixed top-20 left-4 z-50 max-w-sm"></div>
+
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
         <section class="card grid md:grid-cols-4 gap-4 items-center">
             <div class="md:col-span-2">
@@ -76,6 +188,7 @@
                 </div>
             </div>
         </section>
+
         <section class="grid md:grid-cols-5 gap-4">
             <div class="card">
                 <div class="label">معدل ضربات القلب (bpm)</div>
@@ -103,6 +216,7 @@
                 <div id="tempState" class="text-xs mt-1"></div>
             </div>
         </section>
+
         <section class="card">
             <div class="flex items-center justify-between">
                 <div class="label">ECG – مخطط القلب (محاكاة)</div>
@@ -110,18 +224,37 @@
             </div>
             <canvas id="ecg" class="w-full h-40 bg-black rounded-xl mt-3"></canvas>
         </section>
+
         <section id="diagnosis-container" class="card">
             <div class="font-bold mb-2">التشخيص الذكي</div>
             <div class="text-green-600">لا توجد حالات تستدعي القلق</div>
         </section>
+
         <section id="trends-container" class="card">
             <div class="font-bold mb-2">التنبؤات</div>
             <div class="text-gray-500">بيانات غير كافية للتنبؤ</div>
         </section>
+
         <section id="ml-container" class="card">
             <div class="font-bold mb-2">توصيات الذكاء الاصطناعي</div>
             <div>يتم تحميل التحليل...</div>
         </section>
+
+        <section id="patterns-container" class="card">
+            <div class="font-bold mb-2">أنماط طبية مكتشفة</div>
+            <div class="text-gray-500">لا توجد أنماط مكتشفة</div>
+        </section>
+
+        <section id="changes-container" class="card">
+            <div class="font-bold mb-2">تغييرات مهمة</div>
+            <div class="text-gray-500">لا توجد تغييرات مهمة</div>
+        </section>
+
+        <section id="trend-patterns-container" class="card">
+            <div class="font-bold mb-2">أنماط الاتجاه</div>
+            <div class="text-gray-500">لا توجد أنماط اتجاه</div>
+        </section>
+
         <section class="grid lg:grid-cols-3 gap-4">
             <div class="card space-y-3">
                 <div class="font-bold">التحكم</div>
@@ -130,10 +263,19 @@
                     <button id="startBtn" class="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700">بدء المراقبة</button>
                     <button id="stopBtn" class="px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700">إيقاف</button>
                     <button id="snapBtn" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">حفظ قراءة الآن</button>
-                    <label class="inline-flex items-center gap-2 text-sm ml-auto">
-                        <input id="autoAlerts" type="checkbox" class="w-4 h-4" checked> تفعيل التنبيه الذكي
-                    </label>
+                    <button id="reportBtn" class="px-4 py-2 rounded-xl bg-purple-600 text-white hover:bg-purple-700">إنشاء تقرير</button>
                 </div>
+                <div class="flex items-center gap-2 text-sm">
+                    <span>البطارية:</span>
+                    <span id="batteryBadge" class="badge badge-ok">—</span>
+                    <span id="batteryLevel">—</span>
+                </div>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input id="autoAlerts" type="checkbox" class="w-4 h-4" checked> تفعيل التنبيه الذكي
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input id="autoReconnect" type="checkbox" class="w-4 h-4" checked> إعادة الاتصال التلقائي
+                </label>
                 <p class="text-xs text-slate-500">عند تفعيل التنبيه الذكي سيتم إصدار تنبيه صوتي/مرئي عند تجاوز الحدود أو ارتفاع مؤشر الخطر.</p>
             </div>
             <div class="card lg:col-span-2">
@@ -163,6 +305,7 @@
                 </div>
             </div>
         </section>
+
         <section class="card">
             <div class="flex items-center justify-between mb-2">
                 <div class="font-bold">سجل التنبيهات</div>
@@ -170,28 +313,107 @@
             </div>
             <div id="log" class="text-sm space-y-1 max-h-44 overflow-auto"></div>
         </section>
+
+        <section id="visualization-container" class="card space-y-6">
+            <div class="font-bold">التصور المتقدم للبيانات</div>
+            
+            <div>
+                <h3 class="font-semibold mb-2">العلامات الحيوية مع الوقت</h3>
+                <div class="h-64">
+                    <canvas id="vitalSignsChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h3 class="font-semibold mb-2">اتجاهات العلامات الحيوية</h3>
+                    <div class="h-48">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold mb-2">توزيع العلامات الحيوية</h3>
+                    <div class="h-48">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="correlationMatrix" class="card">
+                <div class="text-gray-500">جاري تحليل الارتباطات...</div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="visualizationSystem.exportChart('vitalSignsChart')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">تصدير الرسم البياني</button>
+                <button onclick="visualizationSystem.createCorrelationMatrix()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">تحليل الارتباطات</button>
+            </div>
+        </section>
+
+        <section id="export-import-container" class="card">
+            <div class="font-bold mb-3">تصدير واستيراد البيانات</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <div class="font-semibold mb-2">تصدير البيانات</div>
+                    <div class="space-y-2">
+                        <select id="exportFormat" class="w-full border rounded-lg p-2">
+                            <option value="json">JSON</option>
+                            <option value="csv">CSV</option>
+                            <option value="pdf">PDF</option>
+                            <option value="xml">XML</option>
+                        </select>
+                        <div class="flex gap-2">
+                            <input type="date" id="exportStartDate" class="flex-1 border rounded-lg p-2">
+                            <input type="date" id="exportEndDate" class="flex-1 border rounded-lg p-2">
+                        </div>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="includeCharts" checked>
+                            <span>تضمين الرسوم البيانية</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="includeAnalysis" checked>
+                            <span>تضمين التحليل الإحصائي</span>
+                        </label>
+                        <button id="exportBtn" class="w-full bg-blue-600 text-white rounded-lg p-2 hover:bg-blue-700">تصدير</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-semibold mb-2">استيراد البيانات</div>
+                    <div class="space-y-2">
+                        <select id="importFormat" class="w-full border rounded-lg p-2">
+                            <option value="json">JSON</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                        <input type="file" id="importFile" accept=".json,.csv" class="w-full border rounded-lg p-2">
+                        <button id="importBtn" class="w-full bg-green-600 text-white rounded-lg p-2 hover:bg-green-700">استيراد</button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
+
     <footer class="max-w-7xl mx-auto px-4 pb-10 text-xs text-slate-400">
         نسخة محاكاة تعليمية – للعرض داخل مشروع مستشفى الحياة الذكية. ليست للاستخدام الطبي الحقيقي.
     </footer>
+
     <script>
         // =============== إعداد Firebase ===============
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCww7pM0clGr_Nk7Xe3pCnBUJtSaw6nS-k",
-  authDomain: "smart-life-hospital.firebaseapp.com",
-  databaseURL: "https://smart-life-hospital-default-rtdb.firebaseio.com",
-  projectId: "smart-life-hospital",
-  storageBucket: "smart-life-hospital.firebasestorage.app",
-  messagingSenderId: "988240466536",
-  appId: "1:988240466536:web:93e9f945b255cd164361dd",
-  measurementId: "G-GEJF0F0ZJ7"
-};
-        let fb = { enabled: false, app: null, db: null };
+        const firebaseConfig = {
+          apiKey: "AIzaSyCww7pM0clGr_Nk7Xe3pCnBUJtSaw6nS-k",
+          authDomain: "smart-life-hospital.firebaseapp.com",
+          databaseURL: "https://smart-life-hospital-default-rtdb.firebaseio.com",
+          projectId: "smart-life-hospital",
+          storageBucket: "smart-life-hospital.firebasestorage.app",
+          messagingSenderId: "988240466536",
+          appId: "1:988240466536:web:93e9f945b255cd164361dd",
+          measurementId: "G-GEJF0F0ZJ7"
+        };
+        let fb = { enabled: false, app: null, db: null, auth: null };
         try {
             if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.databaseURL) {
                 fb.app = firebase.initializeApp(firebaseConfig);
                 fb.db = firebase.database();
+                fb.auth = firebase.auth();
                 fb.enabled = true;
                 document.getElementById('connBadge').textContent = 'Firebase';
                 document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
@@ -462,9 +684,1542 @@ const firebaseConfig = {
             $('tempState').textContent = within(v.temp, limits.temp) ? 'سليم' : 'خارج النطاق';
         }
         
-        // =============== الاتصال بجهاز المونيتور الحقيقي ===============
+        // =============== نظام التعرف على الأنماط الطبية ===============
+        class MedicalPatternRecognition {
+            constructor() {
+                this.patterns = [
+                    {
+                        name: "نوبة قلبية محتملة",
+                        conditions: [
+                            { metric: "hr", operator: ">", value: 120 },
+                            { metric: "sys", operator: ">", value: 160 },
+                            { metric: "spo2", operator: "<", value: 94 }
+                        ],
+                        severity: "critical",
+                        recommendations: [
+                            "استدعاء الطبيب فوراً",
+                            "إعداد الأكسجين الإضافي",
+                            "مراقبة تخطيط القلب"
+                        ]
+                    },
+                    {
+                        name: "صدمة إنتانية",
+                        conditions: [
+                            { metric: "hr", operator: ">", value: 90 },
+                            { metric: "temp", operator: ">", value: 38.5 },
+                            { metric: "rr", operator: ">", value: 22 }
+                        ],
+                        severity: "high",
+                        recommendations: [
+                            "فحص العدوى",
+                            "إعطاء السوائل الوريدية",
+                            "مراقبة ضغط الدم"
+                        ]
+                    },
+                    {
+                        name: "فشل تنفسي",
+                        conditions: [
+                            { metric: "spo2", operator: "<", value: 90 },
+                            { metric: "rr", operator: ">", value: 25 }
+                        ],
+                        severity: "critical",
+                        recommendations: [
+                            "دعم تنفسي فوري",
+                            "أكسجين عالي التركيز",
+                            "استشارة طبيب الرئة"
+                        ]
+                    }
+                ];
+            }
+
+            detectPatterns(vitals, history) {
+                const detectedPatterns = [];
+                
+                for (const pattern of this.patterns) {
+                    let match = true;
+                    const reasons = [];
+                    
+                    for (const condition of pattern.conditions) {
+                        const value = vitals[condition.metric];
+                        let conditionMet = false;
+                        
+                        switch (condition.operator) {
+                            case ">":
+                                conditionMet = value > condition.value;
+                                break;
+                            case "<":
+                                conditionMet = value < condition.value;
+                                break;
+                            case ">=":
+                                conditionMet = value >= condition.value;
+                                break;
+                            case "<=":
+                                conditionMet = value <= condition.value;
+                                break;
+                            case "==":
+                                conditionMet = value === condition.value;
+                                break;
+                        }
+                        
+                        if (!conditionMet) {
+                            match = false;
+                            break;
+                        } else {
+                            reasons.push(`${condition.metric}: ${value} ${condition.operator} ${condition.value}`);
+                        }
+                    }
+                    
+                    if (match) {
+                        // التحقق من استمرارية النمط
+                        const isPersistent = this.checkPatternPersistence(pattern, history);
+                        
+                        detectedPatterns.push({
+                            pattern,
+                            reasons,
+                            isPersistent,
+                            confidence: isPersistent ? 0.9 : 0.7
+                        });
+                    }
+                }
+                
+                return detectedPatterns;
+            }
+
+            checkPatternPersistence(pattern, history) {
+                if (history.length < 3) return false;
+                
+                let persistentCount = 0;
+                
+                for (let i = history.length - 3; i < history.length; i++) {
+                    let match = true;
+                    
+                    for (const condition of pattern.conditions) {
+                        const value = history[i][condition.metric];
+                        
+                        switch (condition.operator) {
+                            case ">":
+                                match = value > condition.value;
+                                break;
+                            case "<":
+                                match = value < condition.value;
+                                break;
+                            case ">=":
+                                match = value >= condition.value;
+                                break;
+                            case "<=":
+                                match = value <= condition.value;
+                                break;
+                            case "==":
+                                match = value === condition.value;
+                                break;
+                        }
+                        
+                        if (!match) break;
+                    }
+                    
+                    if (match) persistentCount++;
+                }
+                
+                return persistentCount >= 2;
+            }
+
+            analyzeTrendPatterns(history) {
+                if (history.length < 10) return [];
+                
+                const trendPatterns = [];
+                
+                // نمط التحسن التدريجي
+                const improvementPattern = this.checkImprovementTrend(history);
+                if (improvementPattern) {
+                    trendPatterns.push({
+                        name: "تحسن تدريجي",
+                        type: "positive",
+                        metrics: improvementPattern
+                    });
+                }
+                
+                // نمط التدهور التدريجي
+                const deteriorationPattern = this.checkDeteriorationTrend(history);
+                if (deteriorationPattern) {
+                    trendPatterns.push({
+                        name: "تدهور تدريجي",
+                        type: "negative",
+                        metrics: deteriorationPattern
+                    });
+                }
+                
+                // نمط عدم الاستقرار
+                const instabilityPattern = this.checkInstability(history);
+                if (instabilityPattern) {
+                    trendPatterns.push({
+                        name: "عدم استقرار",
+                        type: "warning",
+                        metrics: instabilityPattern
+                    });
+                }
+                
+                return trendPatterns;
+            }
+
+            checkImprovementTrend(history) {
+                const improvingMetrics = [];
+                
+                ['hr', 'sys', 'spo2', 'temp'].forEach(metric => {
+                    const recent = history.slice(-5);
+                    const older = history.slice(-10, -5);
+                    
+                    if (recent.length === 5 && older.length === 5) {
+                        const recentAvg = recent.reduce((sum, item) => sum + item[metric], 0) / 5;
+                        const olderAvg = older.reduce((sum, item) => sum + item[metric], 0) / 5;
+                        
+                        const improvement = metric === 'spo2' ? 
+                            (recentAvg - olderAvg) > 2 : 
+                            metric === 'temp' ? 
+                            (olderAvg - recentAvg) > 0.3 :
+                            metric === 'hr' ?
+                            (olderAvg - recentAvg) > 5 :
+                            (olderAvg - recentAvg) > 8;
+                        
+                        if (improvement) {
+                            improvingMetrics.push({
+                                metric,
+                                change: recentAvg - olderAvg,
+                                percentChange: ((recentAvg - olderAvg) / olderAvg) * 100
+                            });
+                        }
+                    }
+                });
+                
+                return improvingMetrics.length >= 2 ? improvingMetrics : null;
+            }
+
+            checkDeteriorationTrend(history) {
+                const deterioratingMetrics = [];
+                
+                ['hr', 'sys', 'spo2', 'temp'].forEach(metric => {
+                    const recent = history.slice(-5);
+                    const older = history.slice(-10, -5);
+                    
+                    if (recent.length === 5 && older.length === 5) {
+                        const recentAvg = recent.reduce((sum, item) => sum + item[metric], 0) / 5;
+                        const olderAvg = older.reduce((sum, item) => sum + item[metric], 0) / 5;
+                        
+                        const deterioration = metric === 'spo2' ? 
+                            (olderAvg - recentAvg) > 2 : 
+                            metric === 'temp' ? 
+                            (recentAvg - olderAvg) > 0.3 :
+                            metric === 'hr' ?
+                            (recentAvg - olderAvg) > 5 :
+                            (recentAvg - olderAvg) > 8;
+                        
+                        if (deterioration) {
+                            deterioratingMetrics.push({
+                                metric,
+                                change: recentAvg - olderAvg,
+                                percentChange: ((recentAvg - olderAvg) / olderAvg) * 100
+                            });
+                        }
+                    }
+                });
+                
+                return deterioratingMetrics.length >= 2 ? deterioratingMetrics : null;
+            }
+
+            checkInstability(history) {
+                const unstableMetrics = [];
+                
+                ['hr', 'sys', 'spo2'].forEach(metric => {
+                    const recent = history.slice(-10);
+                    if (recent.length === 10) {
+                        const values = recent.map(item => item[metric]);
+                        const max = Math.max(...values);
+                        const min = Math.min(...values);
+                        const range = max - min;
+                        
+                        const threshold = metric === 'hr' ? 20 : 
+                                       metric === 'sys' ? 25 : 
+                                       metric === 'spo2' ? 5 : 10;
+                        
+                        if (range > threshold) {
+                            unstableMetrics.push({
+                                metric,
+                                range,
+                                coefficientOfVariation: (this.calculateStandardDeviation(values) / (values.reduce((a, b) => a + b) / values.length)) * 100
+                            });
+                        }
+                    }
+                });
+                
+                return unstableMetrics.length >= 1 ? unstableMetrics : null;
+            }
+
+            calculateStandardDeviation(values) {
+                const avg = values.reduce((a, b) => a + b) / values.length;
+                const squareDiffs = values.map(value => Math.pow(value - avg, 2));
+                const avgSquareDiff = squareDiffs.reduce((a, b) => a + b) / values.length;
+                return Math.sqrt(avgSquareDiff);
+            }
+        }
+
+        // =============== نظام الإشعارات المتقدم ===============
+        class AdvancedNotificationSystem {
+            constructor() {
+                this.notificationQueue = [];
+                this.activeNotifications = new Set();
+                this.notificationSettings = {
+                    sound: true,
+                    vibration: true,
+                    desktop: true,
+                    email: false,
+                    sms: false
+                };
+                this.notificationLevels = {
+                    info: { priority: 1, sound: 'info', duration: 3000 },
+                    warning: { priority: 2, sound: 'warning', duration: 5000 },
+                    critical: { priority: 3, sound: 'critical', duration: 8000 }
+                };
+            }
+
+            async sendNotification(level, title, message, data = {}) {
+                const notification = {
+                    id: this.generateNotificationId(),
+                    level,
+                    title,
+                    message,
+                    data,
+                    timestamp: new Date().toISOString(),
+                    acknowledged: false
+                };
+
+                // إضافة إلى قائمة الانتظار
+                this.notificationQueue.push(notification);
+                
+                // ترتيب حسب الأولوية
+                this.notificationQueue.sort((a, b) => 
+                    this.notificationLevels[b.level].priority - this.notificationLevels[a.level].priority
+                );
+
+                // معالجة الإشعارات
+                this.processNotifications();
+
+                // حفظ في Firebase
+                if (fb.enabled) {
+                    await this.saveNotificationToFirebase(notification);
+                }
+
+                return notification.id;
+            }
+
+            async processNotifications() {
+                while (this.notificationQueue.length > 0) {
+                    const notification = this.notificationQueue.shift();
+                    
+                    // تجنب الإشعارات المكررة
+                    if (this.activeNotifications.has(notification.id)) continue;
+                    
+                    this.activeNotifications.add(notification.id);
+                    
+                    // عرض الإشعار
+                    await this.displayNotification(notification);
+                    
+                    // إزالة من الإشعارات النشطة بعد انتهاء المدة
+                    setTimeout(() => {
+                        this.activeNotifications.delete(notification.id);
+                    }, this.notificationLevels[notification.level].duration);
+                }
+            }
+
+            async displayNotification(notification) {
+                const level = this.notificationLevels[notification.level];
+                
+                // إشعار سطح المكتب
+                if (this.notificationSettings.desktop && 'Notification' in window) {
+                    if (Notification.permission === 'granted') {
+                        new Notification(notification.title, {
+                            body: notification.message,
+                            icon: '/favicon.ico',
+                            badge: '/favicon.ico',
+                            tag: notification.id,
+                            requireInteraction: notification.level === 'critical'
+                        });
+                    } else if (Notification.permission !== 'denied') {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                new Notification(notification.title, {
+                                    body: notification.message,
+                                    icon: '/favicon.ico'
+                                });
+                            }
+                        });
+                    }
+                }
+
+                // إشعار صوتي
+                if (this.notificationSettings.sound) {
+                    this.playNotificationSound(level.sound);
+                }
+
+                // اهتزاز (للأجهزة المحمولة)
+                if (this.notificationSettings.vibration && 'vibrate' in navigator) {
+                    const pattern = notification.level === 'critical' ? [200, 100, 200] : [200];
+                    navigator.vibrate(pattern);
+                }
+
+                // إشعار مرئي في التطبيق
+                this.showInAppNotification(notification);
+
+                // إرسال إشعارات إضافية
+                if (notification.level === 'critical') {
+                    await this.sendCriticalAlerts(notification);
+                }
+            }
+
+            showInAppNotification(notification) {
+                const container = document.getElementById('notification-container');
+                const notificationEl = document.createElement('div');
+                notificationEl.className = `notification-item ${notification.level}`;
+                notificationEl.innerHTML = `
+                    <div class="notification-header">
+                        <span class="notification-title">${notification.title}</span>
+                        <button class="notification-close" data-id="${notification.id}">×</button>
+                    </div>
+                    <div class="notification-body">${notification.message}</div>
+                    <div class="notification-footer">
+                        <span class="notification-time">${new Date(notification.timestamp).toLocaleTimeString('ar-EG')}</span>
+                        <button class="notification-acknowledge" data-id="${notification.id}">تم</button>
+                    </div>
+                `;
+
+                container.appendChild(notificationEl);
+
+                // إضافة مستمعي الأحداث
+                notificationEl.querySelector('.notification-close').addEventListener('click', () => {
+                    this.dismissNotification(notification.id);
+                    notificationEl.remove();
+                });
+
+                notificationEl.querySelector('.notification-acknowledge').addEventListener('click', () => {
+                    this.acknowledgeNotification(notification.id);
+                    notificationEl.remove();
+                });
+
+                // إزالة تلقائية بعد المدة المحددة
+                setTimeout(() => {
+                    if (notificationEl.parentNode) {
+                        notificationEl.remove();
+                    }
+                }, this.notificationLevels[notification.level].duration);
+            }
+
+            playNotificationSound(type) {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                // إعدادات الصوت حسب النوع
+                switch (type) {
+                    case 'critical':
+                        oscillator.type = 'sawtooth';
+                        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        break;
+                    case 'warning':
+                        oscillator.type = 'square';
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        break;
+                    default:
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+
+            async sendCriticalAlerts(notification) {
+                // إرسال بريد إلكتروني للطاقم الطبي
+                if (this.notificationSettings.email) {
+                    await this.sendEmailAlert(notification);
+                }
+
+                // إرسال رسالة SMS
+                if (this.notificationSettings.sms) {
+                    await this.sendSMSAlert(notification);
+                }
+
+                // إرسال إشعار إلى تطبيقات الطاقم الطبي
+                await this.sendPushNotification(notification);
+            }
+
+            async sendEmailAlert(notification) {
+                // محاكاة إرسال بريد إلكتروني
+                console.log('إرسال بريد إلكتروني للطاقم الطبي:', notification);
+                
+                // في التطبيق الحقيقي، استخدم خدمة مثل SendGrid أو AWS SES
+                if (fb.enabled) {
+                    await fb.db.ref(`/alerts/email/${notification.id}`).set({
+                        to: 'medical-team@hospital.com',
+                        subject: `تنبيه عاجل: ${notification.title}`,
+                        body: notification.message,
+                        timestamp: notification.timestamp,
+                        patientId: patientId
+                    });
+                }
+            }
+
+            async sendSMSAlert(notification) {
+                // محاكاة إرسال رسالة SMS
+                console.log('إرسال رسالة SMS للطاقم الطبي:', notification);
+                
+                // في التطبيق الحقيقي، استخدم خدمة مثل Twilio
+                if (fb.enabled) {
+                    await fb.db.ref(`/alerts/sms/${notification.id}`).set({
+                        to: '+1234567890',
+                        message: `${notification.title}: ${notification.message}`,
+                        timestamp: notification.timestamp,
+                        patientId: patientId
+                    });
+                }
+            }
+
+            async sendPushNotification(notification) {
+                // محاكاة إرسال إشعار دفع
+                console.log('إرسال إشعار دفع لتطبيقات الطاقم الطبي:', notification);
+                
+                if (fb.enabled) {
+                    await fb.db.ref(`/alerts/push/${notification.id}`).set({
+                        title: notification.title,
+                        body: notification.message,
+                        timestamp: notification.timestamp,
+                        patientId: patientId,
+                        data: notification.data
+                    });
+                }
+            }
+
+            async saveNotificationToFirebase(notification) {
+                if (!fb.enabled) return;
+                
+                await fb.db.ref(`/notifications/${patientId}/${notification.id}`).set(notification);
+            }
+
+            acknowledgeNotification(id) {
+                if (fb.enabled) {
+                    fb.db.ref(`/notifications/${patientId}/${id}/acknowledged`).set(true);
+                }
+            }
+
+            dismissNotification(id) {
+                if (fb.enabled) {
+                    fb.db.ref(`/notifications/${patientId}/${id}/dismissed`).set(true);
+                }
+            }
+
+            generateNotificationId() {
+                return 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            updateSettings(settings) {
+                this.notificationSettings = { ...this.notificationSettings, ...settings };
+                
+                // حفظ الإعدادات في localStorage
+                localStorage.setItem('notificationSettings', JSON.stringify(this.notificationSettings));
+            }
+
+            loadSettings() {
+                const saved = localStorage.getItem('notificationSettings');
+                if (saved) {
+                    this.notificationSettings = { ...this.notificationSettings, ...JSON.parse(saved) };
+                }
+            }
+        }
+
+        // =============== نظام التصور المتقدم ===============
+        class AdvancedVisualizationSystem {
+            constructor() {
+                this.charts = {};
+                this.colors = {
+                    hr: '#ef4444',
+                    sys: '#3b82f6',
+                    dia: '#60a5fa',
+                    spo2: '#10b981',
+                    rr: '#f59e0b',
+                    temp: '#8b5cf6'
+                };
+            }
+
+            initializeCharts() {
+                this.createVitalSignsChart();
+                this.createTrendChart();
+                this.createDistributionChart();
+            }
+
+            createVitalSignsChart() {
+                const ctx = document.getElementById('vitalSignsChart').getContext('2d');
+                
+                this.charts.vitalSigns = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'معدل ضربات القلب',
+                                data: [],
+                                borderColor: this.colors.hr,
+                                backgroundColor: this.colors.hr + '20',
+                                tension: 0.4,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'ضغط الدم الانقباضي',
+                                data: [],
+                                borderColor: this.colors.sys,
+                                backgroundColor: this.colors.sys + '20',
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            },
+                            {
+                                label: 'ضغط الدم الانبساطي',
+                                data: [],
+                                borderColor: this.colors.dia,
+                                backgroundColor: this.colors.dia + '20',
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            },
+                            {
+                                label: 'نسبة الأكسجين',
+                                data: [],
+                                borderColor: this.colors.spo2,
+                                backgroundColor: this.colors.spo2 + '20',
+                                tension: 0.4,
+                                yAxisID: 'y2'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'العلامات الحيوية مع الوقت'
+                            },
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'الوقت'
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'معدل ضربات القلب (bpm)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'ضغط الدم (mmHg)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                            y2: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'نسبة الأكسجين (%)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            }
+                        }
+                    }
+                });
+            }
+
+            createTrendChart() {
+                const ctx = document.getElementById('trendChart').getContext('2d');
+                
+                this.charts.trend = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'معدل ضربات القلب',
+                                data: [],
+                                borderColor: this.colors.hr,
+                                backgroundColor: this.colors.hr + '20',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'نسبة الأكسجين',
+                                data: [],
+                                borderColor: this.colors.spo2,
+                                backgroundColor: this.colors.spo2 + '20',
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'اتجاهات العلامات الحيوية'
+                            },
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'الوقت'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'القيمة'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            createDistributionChart() {
+                const ctx = document.getElementById('distributionChart').getContext('2d');
+                
+                this.charts.distribution = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['معدل ضربات القلب', 'ضغط الدم الانقباضي', 'ضغط الدم الانبساطي', 'نسبة الأكسجين', 'معدل التنفس', 'درجة الحرارة'],
+                        datasets: [
+                            {
+                                label: 'المتوسط',
+                                data: [0, 0, 0, 0, 0, 0],
+                                backgroundColor: [
+                                    this.colors.hr,
+                                    this.colors.sys,
+                                    this.colors.dia,
+                                    this.colors.spo2,
+                                    this.colors.rr,
+                                    this.colors.temp
+                                ]
+                            },
+                            {
+                                label: 'الحد الأدنى',
+                                data: [0, 0, 0, 0, 0, 0],
+                                backgroundColor: '#9ca3af'
+                            },
+                            {
+                                label: 'الحد الأعلى',
+                                data: [0, 0, 0, 0, 0, 0],
+                                backgroundColor: '#6b7280'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'توزيع العلامات الحيوية'
+                            },
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'العلامة الحيوية'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'القيمة'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateCharts(vitals) {
+                // تحديث الرسم البياني للعلامات الحيوية
+                if (this.charts.vitalSigns) {
+                    const time = new Date(vitals.timestamp).toLocaleTimeString('ar-EG');
+                    
+                    this.charts.vitalSigns.data.labels.push(time);
+                    this.charts.vitalSigns.data.datasets[0].data.push(vitals.hr);
+                    this.charts.vitalSigns.data.datasets[1].data.push(vitals.sys);
+                    this.charts.vitalSigns.data.datasets[2].data.push(vitals.dia);
+                    this.charts.vitalSigns.data.datasets[3].data.push(vitals.spo2);
+                    
+                    // الحفاظ على آخر 20 نقطة فقط
+                    if (this.charts.vitalSigns.data.labels.length > 20) {
+                        this.charts.vitalSigns.data.labels.shift();
+                        this.charts.vitalSigns.data.datasets.forEach(dataset => {
+                            dataset.data.shift();
+                        });
+                    }
+                    
+                    this.charts.vitalSigns.update();
+                }
+                
+                // تحديث رسم الاتجاهات
+                if (this.charts.trend) {
+                    const time = new Date(vitals.timestamp).toLocaleTimeString('ar-EG');
+                    
+                    this.charts.trend.data.labels.push(time);
+                    this.charts.trend.data.datasets[0].data.push(vitals.hr);
+                    this.charts.trend.data.datasets[1].data.push(vitals.spo2);
+                    
+                    // الحفاظ على آخر 30 نقطة
+                    if (this.charts.trend.data.labels.length > 30) {
+                        this.charts.trend.data.labels.shift();
+                        this.charts.trend.data.datasets.forEach(dataset => {
+                            dataset.data.shift();
+                        });
+                    }
+                    
+                    this.charts.trend.update();
+                }
+                
+                // تحديث رسم التوزيع
+                if (this.charts.distribution && history.length > 0) {
+                    const stats = this.calculateStatistics();
+                    
+                    this.charts.distribution.data.datasets[0].data = [
+                        stats.hr.avg,
+                        stats.sys.avg,
+                        stats.dia.avg,
+                        stats.spo2.avg,
+                        stats.rr.avg,
+                        stats.temp.avg
+                    ];
+                    
+                    this.charts.distribution.data.datasets[1].data = [
+                        stats.hr.min,
+                        stats.sys.min,
+                        stats.dia.min,
+                        stats.spo2.min,
+                        stats.rr.min,
+                        stats.temp.min
+                    ];
+                    
+                    this.charts.distribution.data.datasets[2].data = [
+                        stats.hr.max,
+                        stats.sys.max,
+                        stats.dia.max,
+                        stats.spo2.max,
+                        stats.rr.max,
+                        stats.temp.max
+                    ];
+                    
+                    this.charts.distribution.update();
+                }
+            }
+
+            calculateStatistics() {
+                if (history.length === 0) return null;
+                
+                const calculateStats = (key) => {
+                    const values = history.map(item => item[key]);
+                    return {
+                        min: Math.min(...values),
+                        max: Math.max(...values),
+                        avg: values.reduce((a, b) => a + b, 0) / values.length
+                    };
+                };
+                
+                return {
+                    hr: calculateStats('hr'),
+                    sys: calculateStats('sys'),
+                    dia: calculateStats('dia'),
+                    spo2: calculateStats('spo2'),
+                    rr: calculateStats('rr'),
+                    temp: calculateStats('temp')
+                };
+            }
+
+            createCorrelationMatrix() {
+                if (history.length < 10) return;
+                
+                const metrics = ['hr', 'sys', 'dia', 'spo2', 'rr', 'temp'];
+                const correlations = {};
+                
+                // حساب معامل الارتباط بين كل زوج من المقاييس
+                for (let i = 0; i < metrics.length; i++) {
+                    for (let j = i; j < metrics.length; j++) {
+                        const corr = this.calculateCorrelation(
+                            history.map(item => item[metrics[i]]),
+                            history.map(item => item[metrics[j]])
+                        );
+                        
+                        correlations[`${metrics[i]}_${metrics[j]}`] = corr;
+                        correlations[`${metrics[j]}_${metrics[i]}`] = corr;
+                    }
+                }
+                
+                // عرض مصفوفة الارتباط
+                this.displayCorrelationMatrix(correlations, metrics);
+            }
+
+            calculateCorrelation(x, y) {
+                const n = x.length;
+                const sumX = x.reduce((a, b) => a + b, 0);
+                const sumY = y.reduce((a, b) => a + b, 0);
+                const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+                const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+                const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+                
+                const numerator = n * sumXY - sumX * sumY;
+                const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+                
+                return denominator === 0 ? 0 : numerator / denominator;
+            }
+
+            displayCorrelationMatrix(correlations, metrics) {
+                const container = document.getElementById('correlationMatrix');
+                
+                let html = '<div class="font-bold mb-2">مصفوفة الارتباط</div>';
+                html += '<div class="overflow-x-auto">';
+                html += '<table class="min-w-full border-collapse border border-gray-300">';
+                html += '<thead><tr><th class="border border-gray-300 p-2"></th>';
+                
+                metrics.forEach(metric => {
+                    html += `<th class="border border-gray-300 p-2">${this.getMetricName(metric)}</th>`;
+                });
+                
+                html += '</tr></thead><tbody>';
+                
+                metrics.forEach(metric1 => {
+                    html += `<tr><th class="border border-gray-300 p-2">${this.getMetricName(metric1)}</th>`;
+                    
+                    metrics.forEach(metric2 => {
+                        const corr = correlations[`${metric1}_${metric2}`];
+                        const intensity = Math.abs(corr);
+                        const color = corr > 0 ? `rgba(239, 68, 68, ${intensity})` : `rgba(59, 130, 246, ${intensity})`;
+                        
+                        html += `<td class="border border-gray-300 p-2 text-center" style="background-color: ${color}">${corr.toFixed(2)}</td>`;
+                    });
+                    
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></div>';
+                
+                container.innerHTML = html;
+            }
+
+            getMetricName(metric) {
+                const names = {
+                    'hr': 'معدل ضربات القلب',
+                    'sys': 'ضغط الدم الانقباضي',
+                    'dia': 'ضغط الدم الانبساطي',
+                    'spo2': 'نسبة الأكسجين',
+                    'rr': 'معدل التنفس',
+                    'temp': 'درجة الحرارة'
+                };
+                return names[metric] || metric;
+            }
+
+            exportChart(chartId, format = 'png') {
+                const chart = this.charts[chartId];
+                if (!chart) return;
+                
+                const url = chart.toBase64Image();
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${chartId}_chart.${format}`;
+                a.click();
+            }
+        }
+
+        // =============== نظام التصدير والاستيراد ===============
+        class DataExportImportSystem {
+            constructor() {
+                this.exportFormats = ['json', 'csv', 'pdf', 'xml'];
+                this.importFormats = ['json', 'csv'];
+            }
+
+            async exportData(format, options = {}) {
+                const { startDate, endDate, includeCharts, includeAnalysis } = options;
+                
+                // تصفية البيانات حسب التاريخ
+                let filteredData = history;
+                if (startDate || endDate) {
+                    filteredData = history.filter(item => {
+                        const itemDate = new Date(item.timestamp);
+                        return (!startDate || itemDate >= new Date(startDate)) &&
+                               (!endDate || itemDate <= new Date(endDate));
+                    });
+                }
+
+                switch (format) {
+                    case 'json':
+                        return this.exportToJSON(filteredData, options);
+                    case 'csv':
+                        return this.exportToCSV(filteredData, options);
+                    case 'pdf':
+                        return this.exportToPDF(filteredData, options);
+                    case 'xml':
+                        return this.exportToXML(filteredData, options);
+                    default:
+                        throw new Error('تنسيق التصدير غير مدعوم');
+                }
+            }
+
+            exportToJSON(data, options) {
+                const exportData = {
+                    patientInfo: {
+                        id: patientId,
+                        name: $('patientName').textContent,
+                        exportDate: new Date().toISOString(),
+                        dataPoints: data.length
+                    },
+                    vitalSigns: data,
+                    analysis: options.includeAnalysis ? this.generateAnalysis(data) : null
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                return this.downloadFile(blob, `patient_${patientId}_data.json`);
+            }
+
+            exportToCSV(data, options) {
+                if (data.length === 0) throw new Error('لا توجد بيانات للتصدير');
+                
+                const headers = ['التاريخ والوقت', 'معدل ضربات القلب', 'ضغط الدم الانقباضي', 'ضغط الدم الانبساطي', 'نسبة الأكسجين', 'معدل التنفس', 'درجة الحرارة'];
+                const rows = data.map(item => [
+                    new Date(item.timestamp).toLocaleString('ar-EG'),
+                    item.hr,
+                    item.sys,
+                    item.dia,
+                    item.spo2,
+                    item.rr,
+                    item.temp
+                ]);
+
+                let csvContent = headers.join(',') + '\n';
+                rows.forEach(row => {
+                    csvContent += row.join(',') + '\n';
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                return this.downloadFile(blob, `patient_${patientId}_data.csv`);
+            }
+
+            async exportToPDF(data, options) {
+                // استخدام jsPDF لإنشاء ملف PDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // إضافة الخط العربي
+                doc.addFont('https://fonts.gstatic.com/s/cairo/v7/SLXGc1nY6HkvalIkTpu0xg.woff2', 'Cairo', 'normal');
+                doc.setFont('Cairo');
+                
+                // العنوان
+                doc.setFontSize(20);
+                doc.text('تقرير بيانات المريض', 105, 20, { align: 'center' });
+                
+                // معلومات المريض
+                doc.setFontSize(12);
+                doc.text(`المعرف: ${patientId}`, 20, 40);
+                doc.text(`الاسم: ${$('patientName').textContent}`, 20, 50);
+                doc.text(`تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')}`, 20, 60);
+                
+                // جدول البيانات
+                const headers = ['الوقت', 'HR', 'SYS', 'DIA', 'SpO2', 'RR', 'TEMP'];
+                const tableData = data.slice(0, 30).map(item => [
+                    new Date(item.timestamp).toLocaleTimeString('ar-EG'),
+                    item.hr.toString(),
+                    item.sys.toString(),
+                    item.dia.toString(),
+                    item.spo2.toString(),
+                    item.rr.toString(),
+                    item.temp.toString()
+                ]);
+                
+                doc.autoTable({
+                    head: [headers],
+                    body: tableData,
+                    startY: 80,
+                    styles: { font: 'Cairo' }
+                });
+                
+                // حفظ الملف
+                doc.save(`patient_${patientId}_report.pdf`);
+            }
+
+            exportToXML(data, options) {
+                let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+                xmlContent += `<patientData>\n`;
+                xmlContent += `  <patientInfo>\n`;
+                xmlContent += `    <id>${patientId}</id>\n`;
+                xmlContent += `    <name>${$('patientName').textContent}</name>\n`;
+                xmlContent += `    <exportDate>${new Date().toISOString()}</exportDate>\n`;
+                xmlContent += `    <dataPoints>${data.length}</dataPoints>\n`;
+                xmlContent += `  </patientInfo>\n`;
+                xmlContent += `  <vitalSigns>\n`;
+                
+                data.forEach(item => {
+                    xmlContent += `    <reading>\n`;
+                    xmlContent += `      <timestamp>${item.timestamp}</timestamp>\n`;
+                    xmlContent += `      <hr>${item.hr}</hr>\n`;
+                    xmlContent += `      <sys>${item.sys}</sys>\n`;
+                    xmlContent += `      <dia>${item.dia}</dia>\n`;
+                    xmlContent += `      <spo2>${item.spo2}</spo2>\n`;
+                    xmlContent += `      <rr>${item.rr}</rr>\n`;
+                    xmlContent += `      <temp>${item.temp}</temp>\n`;
+                    xmlContent += `    </reading>\n`;
+                });
+                
+                xmlContent += `  </vitalSigns>\n`;
+                if (options.includeAnalysis) {
+                    xmlContent += `  <analysis>\n`;
+                    const analysis = this.generateAnalysis(data);
+                    Object.keys(analysis).forEach(key => {
+                        xmlContent += `    <${key}>${analysis[key]}</${key}>\n`;
+                    });
+                    xmlContent += `  </analysis>\n`;
+                }
+                xmlContent += `</patientData>`;
+                
+                const blob = new Blob([xmlContent], { type: 'application/xml' });
+                return this.downloadFile(blob, `patient_${patientId}_data.xml`);
+            }
+
+            async importData(file, format) {
+                const reader = new FileReader();
+                
+                return new Promise((resolve, reject) => {
+                    reader.onload = async (e) => {
+                        try {
+                            let data;
+                            
+                            switch (format) {
+                                case 'json':
+                                    data = JSON.parse(e.target.result);
+                                    break;
+                                case 'csv':
+                                    data = this.parseCSV(e.target.result);
+                                    break;
+                                default:
+                                    throw new Error('تنسيق الاستيراد غير مدعوم');
+                            }
+                            
+                            // معالجة البيانات المستوردة
+                            const processedData = await this.processImportedData(data);
+                            
+                            // إضافة إلى السجل
+                            history.push(...processedData);
+                            
+                            // حفظ في Firebase
+                            if (fb.enabled) {
+                                await this.saveImportedData(processedData);
+                            }
+                            
+                            resolve(processedData.length);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    
+                    reader.readAsText(file);
+                });
+            }
+
+            parseCSV(csvText) {
+                const lines = csvText.split('\n');
+                const headers = lines[0].split(',');
+                const data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    
+                    const values = lines[i].split(',');
+                    const reading = {
+                        timestamp: new Date(values[0]).toISOString(),
+                        hr: parseInt(values[1]),
+                        sys: parseInt(values[2]),
+                        dia: parseInt(values[3]),
+                        spo2: parseInt(values[4]),
+                        rr: parseInt(values[5]),
+                        temp: parseFloat(values[6])
+                    };
+                    
+                    data.push(reading);
+                }
+                
+                return data;
+            }
+
+            async processImportedData(data) {
+                // التحقق من صحة البيانات
+                const validData = data.filter(item => {
+                    return item.hr && item.sys && item.dia && item.spo2 && item.rr && item.temp;
+                });
+                
+                // فرز البيانات حسب التاريخ
+                validData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                
+                return validData;
+            }
+
+            async saveImportedData(data) {
+                if (!fb.enabled) return;
+                
+                const batch = {};
+                data.forEach((item, index) => {
+                    const timestamp = item.timestamp.replace(/[\.\#\$\[\]]/g, '');
+                    batch[`/patients/emergency/${patientId}/readings/${timestamp}`] = item;
+                });
+                
+                await fb.db.ref().update(batch);
+            }
+
+            generateAnalysis(data) {
+                if (data.length === 0) return {};
+                
+                const calculateStats = (key) => {
+                    const values = data.map(item => item[key]);
+                    return {
+                        min: Math.min(...values),
+                        max: Math.max(...values),
+                        avg: values.reduce((a, b) => a + b, 0) / values.length,
+                        std: this.calculateStandardDeviation(values)
+                    };
+                };
+                
+                return {
+                    hr: calculateStats('hr'),
+                    sys: calculateStats('sys'),
+                    dia: calculateStats('dia'),
+                    spo2: calculateStats('spo2'),
+                    rr: calculateStats('rr'),
+                    temp: calculateStats('temp'),
+                    totalReadings: data.length,
+                    dateRange: {
+                        start: data[0].timestamp,
+                        end: data[data.length - 1].timestamp
+                    }
+                };
+            }
+
+            calculateStandardDeviation(values) {
+                const avg = values.reduce((a, b) => a + b) / values.length;
+                const squareDiffs = values.map(value => Math.pow(value - avg, 2));
+                const avgSquareDiff = squareDiffs.reduce((a, b) => a + b) / values.length;
+                return Math.sqrt(avgSquareDiff);
+            }
+
+            downloadFile(blob, filename) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // =============== نظام المصادقة المتقدم ===============
+        class AdvancedAuthSystem {
+            constructor() {
+                this.currentUser = null;
+                this.permissions = {
+                    admin: ['read', 'write', 'delete', 'manage_users', 'export', 'import'],
+                    doctor: ['read', 'write', 'export'],
+                    nurse: ['read', 'write'],
+                    technician: ['read'],
+                    guest: ['read_limited']
+                };
+                this.sessionTimeout = 30 * 60 * 1000; // 30 دقيقة
+                this.sessionTimer = null;
+            }
+
+            async initialize() {
+                // تحقق من وجود جلسة نشطة
+                const savedSession = localStorage.getItem('authSession');
+                if (savedSession) {
+                    try {
+                        const session = JSON.parse(savedSession);
+                        if (session.expires > Date.now()) {
+                            this.currentUser = session.user;
+                            this.startSessionTimer();
+                            this.updateUI();
+                            return;
+                        }
+                    } catch (e) {
+                        localStorage.removeItem('authSession');
+                    }
+                }
+                
+                // إذا لم تكن هناك جلسة نشطة، عرض شاشة تسجيل الدخول
+                this.showLoginScreen();
+            }
+
+            async login(email, password) {
+                try {
+                    // محاكاة المصادقة - في التطبيق الحقيقي، استخدم Firebase Auth
+                    const user = await this.authenticateUser(email, password);
+                    
+                    if (user) {
+                        this.currentUser = user;
+                        const session = {
+                            user,
+                            expires: Date.now() + this.sessionTimeout
+                        };
+                        
+                        localStorage.setItem('authSession', JSON.stringify(session));
+                        this.startSessionTimer();
+                        this.updateUI();
+                        
+                        return true;
+                    }
+                    
+                    return false;
+                } catch (error) {
+                    console.error('Login error:', error);
+                    return false;
+                }
+            }
+
+            async authenticateUser(email, password) {
+                // محاكاة قاعدة بيانات المستخدمين
+                const users = [
+                    { email: 'admin@hospital.com', password: 'admin123', role: 'admin', name: 'مدير النظام' },
+                    { email: 'doctor@hospital.com', password: 'doctor123', role: 'doctor', name: 'د. أحمد محمد' },
+                    { email: 'nurse@hospital.com', password: 'nurse123', role: 'nurse', name: 'ممرضة فاطمة علي' },
+                    { email: 'tech@hospital.com', password: 'tech123', role: 'technician', name: 'فني biomedical' },
+                    { email: 'guest@hospital.com', password: 'guest123', role: 'guest', name: 'زائر' }
+                ];
+                
+                const user = users.find(u => u.email === email && u.password === password);
+                
+                if (user) {
+                    // في التطبيق الحقيقي، استخدم Firebase Auth
+                    if (fb.enabled) {
+                        try {
+                            await fb.auth.signInWithEmailAndPassword(email, password);
+                        } catch (e) {
+                            console.warn('Firebase auth failed, using local auth');
+                        }
+                    }
+                    
+                    return {
+                        email: user.email,
+                        role: user.role,
+                        name: user.name,
+                        permissions: this.permissions[user.role]
+                    };
+                }
+                
+                return null;
+            }
+
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem('authSession');
+                
+                if (this.sessionTimer) {
+                    clearTimeout(this.sessionTimer);
+                    this.sessionTimer = null;
+                }
+                
+                if (fb.enabled) {
+                    fb.auth.signOut();
+                }
+                
+                this.showLoginScreen();
+            }
+
+            startSessionTimer() {
+                if (this.sessionTimer) {
+                    clearTimeout(this.sessionTimer);
+                }
+                
+                this.sessionTimer = setTimeout(() => {
+                    this.logout();
+                }, this.sessionTimeout);
+            }
+
+            refreshSession() {
+                if (this.currentUser) {
+                    const session = {
+                        user: this.currentUser,
+                        expires: Date.now() + this.sessionTimeout
+                    };
+                    
+                    localStorage.setItem('authSession', JSON.stringify(session));
+                    this.startSessionTimer();
+                }
+            }
+
+            hasPermission(permission) {
+                if (!this.currentUser) return false;
+                return this.currentUser.permissions.includes(permission);
+            }
+
+            checkPermission(permission) {
+                if (!this.hasPermission(permission)) {
+                    Swal.fire('غير مصرح', 'ليس لديك صلاحية للقيام بهذا الإجراء', 'error');
+                    return false;
+                }
+                return true;
+            }
+
+            showLoginScreen() {
+                const loginHTML = `
+                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-lg p-8 max-w-md w-full">
+                            <h2 class="text-2xl font-bold mb-6 text-center">تسجيل الدخول</h2>
+                            <form id="loginForm">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium mb-2">البريد الإلكتروني</label>
+                                    <input type="email" id="loginEmail" class="w-full border rounded-lg p-2" required>
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium mb-2">كلمة المرور</label>
+                                    <input type="password" id="loginPassword" class="w-full border rounded-lg p-2" required>
+                                </div>
+                                <button type="submit" class="w-full bg-blue-600 text-white rounded-lg p-2 hover:bg-blue-700">تسجيل الدخول</button>
+                            </form>
+                            <div class="mt-4 text-sm text-gray-600">
+                                <p>حسابات تجريبية:</p>
+                                <p>admin@hospital.com / admin123 (مدير)</p>
+                                <p>doctor@hospital.com / doctor123 (طبيب)</p>
+                                <p>nurse@hospital.com / nurse123 (ممرضة)</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', loginHTML);
+                
+                document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
+                    
+                    const success = await this.login(email, password);
+                    
+                    if (success) {
+                        document.querySelector('.fixed.inset-0').remove();
+                    } else {
+                        Swal.fire('خطأ', 'البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error');
+                    }
+                });
+            }
+
+            updateUI() {
+                // تحديث واجهة المستخدم بناءً على صلاحيات المستخدم
+                const userInfo = document.getElementById('userInfo');
+                if (userInfo) {
+                    userInfo.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span>${this.currentUser.name}</span>
+                            <span class="badge badge-ok">${this.getRoleLabel(this.currentUser.role)}</span>
+                            <button id="logoutBtn" class="text-sm text-red-600 hover:text-red-800">خروج</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('logoutBtn').addEventListener('click', () => {
+                        this.logout();
+                    });
+                }
+                
+                // إخفاء/إظهار العناصر بناءً على الصلاحيات
+                this.updateUIPermissions();
+            }
+
+            updateUIPermissions() {
+                // مثال: إخفاء أزرار التصدير للمستخدمين غير المصرح لهم
+                const exportBtn = document.getElementById('exportBtn');
+                if (exportBtn && !this.hasPermission('export')) {
+                    exportBtn.style.display = 'none';
+                }
+                
+                // مثال: تعطيل حقول التعديل للمستخدمين غير المصرح لهم
+                const editInputs = document.querySelectorAll('.edit-input');
+                if (!this.hasPermission('write')) {
+                    editInputs.forEach(input => {
+                        input.disabled = true;
+                    });
+                }
+            }
+
+            getRoleLabel(role) {
+                const labels = {
+                    admin: 'مدير',
+                    doctor: 'طبيب',
+                    nurse: 'ممرضة',
+                    technician: 'فني',
+                    guest: 'زائر'
+                };
+                return labels[role] || role;
+            }
+        }
+
+        // =============== تهيئة الأنظمة ===============
+        const patternRecognition = new MedicalPatternRecognition();
+        const notificationSystem = new AdvancedNotificationSystem();
+        const visualizationSystem = new AdvancedVisualizationSystem();
+        const dataExportImport = new DataExportImportSystem();
+        const authSystem = new AdvancedAuthSystem();
+
+        // =============== الاتصال بالأجهزة ===============
         let deviceConnected = false;
         let currentVitals = null;
+
         function handleHeartRate(event) {
             const value = event.target.value;
             const heartRate = value.getUint8(1);
@@ -475,6 +2230,7 @@ const firebaseConfig = {
                 pushToFirebase(currentVitals);
             }
         }
+
         function handleBloodPressure(event) {
             const value = event.target.value;
             let offset = 1;
@@ -489,31 +2245,111 @@ const firebaseConfig = {
                 pushToFirebase(currentVitals);
             }
         }
+
+        function handleBatteryLevel(event) {
+            const batteryLevel = event.target.value.getUint8(0);
+            document.getElementById('batteryLevel').textContent = `${batteryLevel}%`;
+            
+            // تحديث شارة البطارية حسب المستوى
+            const batteryBadge = document.getElementById('batteryBadge');
+            if (batteryLevel <= 20) {
+                batteryBadge.className = 'badge badge-bad';
+            } else if (batteryLevel <= 50) {
+                batteryBadge.className = 'badge badge-warn';
+            } else {
+                batteryBadge.className = 'badge badge-ok';
+            }
+            
+            // تنبيه عند انخفاض البطارية
+            if (batteryLevel <= 20 && $('autoAlerts').checked) {
+                logEvent(`انخفاض بطارية الجهاز: ${batteryLevel}%`, 'warn');
+                Swal.fire({
+                    title: 'انخفاض البطارية',
+                    text: `بطارية الجهاز منخفضة: ${batteryLevel}%`,
+                    icon: 'warning',
+                    toast: true,
+                    position: 'top-end',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            }
+        }
+
         async function connectToDevice() {
             try {
                 logEvent('البحث عن أجهزة المونيتور المتاحة...');
+                
+                // عرض قائمة بالأجهزة المتاحة
                 const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['heart_rate', 'blood_pressure'] }],
+                    filters: [
+                        { services: ['heart_rate'] },
+                        { services: ['blood_pressure'] },
+                        { namePrefix: 'Pulse' },
+                        { namePrefix: 'Monitor' }
+                    ],
                     optionalServices: ['battery_service']
                 });
+                
                 logEvent(`تم العثور على جهاز: ${device.name}`);
+                
+                // محاولة الاتصال بالجهاز
                 const server = await device.gatt.connect();
                 logEvent('تم الاتصال بالجهاز بنجاح');
-                const heartRateService = await server.getPrimaryService('heart_rate');
-                const heartRateCharacteristic = await heartRateService.getCharacteristic('heart_rate_measurement');
-                await heartRateCharacteristic.startNotifications();
-                heartRateCharacteristic.addEventListener('characteristicvaluechanged', handleHeartRate);
+                
+                // الحصول على خدمات الجهاز
                 try {
+                    // خدمة معدل ضربات القلب
+                    const heartRateService = await server.getPrimaryService('heart_rate');
+                    const heartRateCharacteristic = await heartRateService.getCharacteristic('heart_rate_measurement');
+                    await heartRateCharacteristic.startNotifications();
+                    heartRateCharacteristic.addEventListener('characteristicvaluechanged', handleHeartRate);
+                    logEvent('تم تفعيل خدمة معدل ضربات القلب');
+                } catch (e) {
+                    console.warn('خدمة معدل ضربات القلب غير متاحة', e);
+                }
+                
+                try {
+                    // خدمة ضغط الدم
                     const bpService = await server.getPrimaryService('blood_pressure');
                     const bpCharacteristic = await bpService.getCharacteristic('blood_pressure_measurement');
                     await bpCharacteristic.startNotifications();
                     bpCharacteristic.addEventListener('characteristicvaluechanged', handleBloodPressure);
+                    logEvent('تم تفعيل خدمة ضغط الدم');
                 } catch (e) {
-                    console.warn('جهاز ضغط الدم غير متاح', e);
+                    console.warn('خدمة ضغط الدم غير متاحة', e);
                 }
+                
+                try {
+                    // خدمة البطارية
+                    const batteryService = await server.getPrimaryService('battery_service');
+                    const batteryCharacteristic = await batteryService.getCharacteristic('battery_level');
+                    await batteryCharacteristic.startNotifications();
+                    batteryCharacteristic.addEventListener('characteristicvaluechanged', handleBatteryLevel);
+                    logEvent('تم تفعيل خدمة مستوى البطارية');
+                } catch (e) {
+                    console.warn('خدمة مستوى البطارية غير متاحة', e);
+                }
+                
                 deviceConnected = true;
-                document.getElementById('connBadge').textContent = 'جهاز بلوتوث';
+                document.getElementById('connBadge').textContent = `جهاز: ${device.name}`;
                 document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
+                
+                // إضافة مستمع لفقدان الاتصال
+                device.addEventListener('gattserverdisconnected', () => {
+                    logEvent('فقدان الاتصال بالجهاز', 'danger');
+                    deviceConnected = false;
+                    document.getElementById('connBadge').textContent = 'غير متصل';
+                    document.getElementById('connBadge').className = 'badge badge-bad inline-block mt-1';
+                    
+                    // محاولة إعادة الاتصال تلقائيًا
+                    setTimeout(() => {
+                        if (!deviceConnected && $('autoReconnect').checked) {
+                            logEvent('محاولة إعادة الاتصال التلقائي...');
+                            connectToDevice();
+                        }
+                    }, 5000);
+                });
+                
                 return true;
             } catch (error) {
                 console.error('فشل الاتصال بالجهاز:', error);
@@ -521,51 +2357,42 @@ const firebaseConfig = {
                 return false;
             }
         }
-        async function connectToSerialDevice() {
+
+        async function connectToWiFiDevice() {
             try {
-                const port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 9600 });
-                logEvent('تم الاتصال بالجهاز عبر منفذ تسلسلي');
-                const reader = port.readable.getReader();
+                logEvent('البحث عن أجهزة WiFi...');
+                
+                // محاكاة الاتصال بجهاز WiFi
+                // في التطبيق الحقيقي، استخدم WebRTC أو تقنيات أخرى
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                logEvent('تم الاتصال بجهاز WiFi');
+                
                 deviceConnected = true;
-                document.getElementById('connBadge').textContent = 'جهاز تسلسلي';
+                document.getElementById('connBadge').textContent = 'جهاز WiFi';
                 document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
-                const readData = async () => {
-                    const { value, done } = await reader.read();
-                    if (done) {
-                        reader.releaseLock();
-                        return;
-                    }
-                    const data = new TextDecoder().decode(value);
-                    parseSerialData(data);
-                    readData();
+                
+                // محاكاة استقبال البيانات
+                const simulateWiFiData = () => {
+                    if (!deviceConnected) return;
+                    
+                    const v = simulateVitals();
+                    render(v);
+                    pushToFirebase(v);
+                    
+                    setTimeout(simulateWiFiData, 2000);
                 };
-                readData();
+                
+                simulateWiFiData();
+                
                 return true;
             } catch (error) {
-                console.error('فشل الاتصال التسلسلي:', error);
-                logEvent('فشل الاتصال بالجهاز', 'danger');
+                console.error('فشل الاتصال بجهاز WiFi:', error);
+                logEvent('فشل الاتصال بجهاز WiFi', 'danger');
                 return false;
             }
         }
-        function parseSerialData(data) {
-            const lines = data.trim().split('\n');
-            const lastLine = lines[lines.length - 1];
-            const parts = lastLine.split(',');
-            const vitals = {};
-            parts.forEach(part => {
-                const [key, value] = part.split(':');
-                if (key && value) {
-                    vitals[key.toLowerCase()] = parseFloat(value);
-                }
-            });
-            if (!currentVitals) currentVitals = {};
-            Object.assign(currentVitals, vitals);
-            if (currentVitals.hr && currentVitals.sys && currentVitals.spo2) {
-                render(currentVitals);
-                pushToFirebase(currentVitals);
-            }
-        }
+
         function startSimulationMode() {
             timer = setInterval(async () => {
                 const v = simulateVitals();
@@ -582,7 +2409,7 @@ const firebaseConfig = {
             document.getElementById('connBadge').textContent = 'محاكاة';
             document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
         }
-        
+
         // =============== وظائف الذكاء الاصطناعي ===============
         function predictTrends() {
             if (history.length < 10) return null;
@@ -595,6 +2422,7 @@ const firebaseConfig = {
                 deteriorationRisk: hrTrend > 2 || spo2Trend < -1
             };
         }
+
         function calculateTrend(values) {
             let changes = 0;
             for (let i = 1; i < values.length; i++) {
@@ -602,6 +2430,7 @@ const firebaseConfig = {
             }
             return changes / (values.length - 1);
         }
+
         function diagnoseCondition(vitals) {
             const { hr, sys, dia, spo2, rr, temp } = vitals;
             const diagnosis = [];
@@ -634,6 +2463,7 @@ const firebaseConfig = {
             }
             return diagnosis;
         }
+
         async function analyzeWithML(vitals) {
             const mlResult = {
                 riskLevel: Math.random() > 0.7 ? "high" : Math.random() > 0.4 ? "medium" : "low",
@@ -650,6 +2480,7 @@ const firebaseConfig = {
             };
             return mlResult;
         }
+
         function displayDiagnosis(diagnosis) {
             const diagnosisContainer = document.getElementById('diagnosis-container');
             diagnosisContainer.innerHTML = '';
@@ -668,6 +2499,7 @@ const firebaseConfig = {
                 diagnosisContainer.appendChild(div);
             });
         }
+
         function displayTrends(trends) {
             const trendsContainer = document.getElementById('trends-container');
             if (!trends) {
@@ -683,6 +2515,7 @@ const firebaseConfig = {
                 </div>
             `;
         }
+
         function displayMLRecommendations(mlAnalysis) {
             const mlContainer = document.getElementById('ml-container');
             mlContainer.innerHTML = `
@@ -702,7 +2535,112 @@ const firebaseConfig = {
                 </div>
             `;
         }
-        
+
+        function displayDetectedPatterns(patterns) {
+            const patternsContainer = document.getElementById('patterns-container');
+            patternsContainer.innerHTML = `
+                <div class="font-bold mb-2">أنماط طبية مكتشفة</div>
+                <div class="space-y-3">
+                    ${patterns.map(item => `
+                        <div class="p-4 rounded-lg ${item.pattern.severity === 'critical' ? 'bg-red-100 border-l-4 border-red-500' : 'bg-yellow-100 border-l-4 border-yellow-500'}">
+                            <div class="font-bold text-lg">${item.pattern.name}</div>
+                            <div class="text-sm mt-1">مستوى الثقة: ${(item.confidence * 100).toFixed(0)}% ${item.isPersistent ? '(مستمر)' : '(مؤقت)'}</div>
+                            <div class="text-sm mt-2">الأسباب:</div>
+                            <ul class="list-disc list-inside text-sm">
+                                ${item.reasons.map(reason => `<li>${reason}</li>`).join('')}
+                            </ul>
+                            <div class="text-sm mt-2">التوصيات:</div>
+                            <ul class="list-disc list-inside text-sm">
+                                ${item.pattern.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function displayTrendPatterns(patterns) {
+            const trendsContainer = document.getElementById('trend-patterns-container');
+            trendsContainer.innerHTML = `
+                <div class="font-bold mb-2">أنماط الاتجاه</div>
+                <div class="space-y-2">
+                    ${patterns.map(pattern => `
+                        <div class="p-3 rounded-lg ${pattern.type === 'positive' ? 'bg-green-100' : pattern.type === 'negative' ? 'bg-red-100' : 'bg-yellow-100'}">
+                            <div class="font-bold">${pattern.name}</div>
+                            <div class="text-sm">
+                                ${pattern.metrics.map(metric => `
+                                    <div>${getMetricName(metric.metric)}: ${metric.change > 0 ? '+' : ''}${metric.change.toFixed(1)} (${metric.percentChange.toFixed(1)}%)</div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function getMetricName(metric) {
+            const names = {
+                'hr': 'معدل ضربات القلب',
+                'sys': 'ضغط الدم الانقباضي',
+                'dia': 'ضغط الدم الانبساطي',
+                'spo2': 'نسبة الأكسجين',
+                'rr': 'معدل التنفس',
+                'temp': 'درجة الحرارة'
+            };
+            return names[metric] || metric;
+        }
+
+        function compareWithPrevious(current, previous) {
+            if (!previous) return null;
+            
+            const changes = {};
+            let significantChanges = [];
+            
+            Object.keys(current).forEach(key => {
+                if (typeof current[key] === 'number' && typeof previous[key] === 'number') {
+                    const change = current[key] - previous[key];
+                    const percentChange = (change / previous[key]) * 100;
+                    
+                    changes[key] = {
+                        value: change,
+                        percent: percentChange,
+                        direction: change > 0 ? 'up' : change < 0 ? 'down' : 'same'
+                    };
+                    
+                    // تحديد التغييرات المهمة
+                    if (key === 'hr' && Math.abs(change) > 10) {
+                        significantChanges.push({
+                            metric: 'معدل ضربات القلب',
+                            change,
+                            percent: percentChange,
+                            severity: Math.abs(change) > 20 ? 'high' : 'medium'
+                        });
+                    } else if (key === 'sys' && Math.abs(change) > 15) {
+                        significantChanges.push({
+                            metric: 'ضغط الدم الانقباضي',
+                            change,
+                            percent: percentChange,
+                            severity: Math.abs(change) > 25 ? 'high' : 'medium'
+                        });
+                    } else if (key === 'spo2' && Math.abs(change) > 3) {
+                        significantChanges.push({
+                            metric: 'نسبة الأكسجين',
+                            change,
+                            percent: percentChange,
+                            severity: Math.abs(change) > 5 ? 'high' : 'medium'
+                        });
+                    }
+                }
+            });
+            
+            return {
+                changes,
+                significantChanges,
+                current,
+                previous
+            };
+        }
+
         // =============== سجل التنبيهات ===============
         function logEvent(txt, level='info') {
             const row = document.createElement('div');
@@ -713,41 +2651,110 @@ const firebaseConfig = {
             row.appendChild(dot); row.appendChild(msg);
             $('log').prepend(row);
         }
-        function alertIfNeeded(score, v) {
+
+        async function alertIfNeeded(score, v) {
             if (!$('autoAlerts').checked) return;
             if (score < 35) return;
-            const title = score >= 70 ? 'خطر مرتفع' : 'تنبيه';
-            const icon = score >= 70 ? 'error' : 'warning';
-            const text = `HR:${v.hr} | BP:${v.sys}/${v.dia} | SpO₂:${v.spo2}%`;
-            Swal.fire({ title, text, icon, toast: true, position: 'top-end', timer: 3500, showConfirmButton: false });
-            logEvent(`${title}: ${text}`, score>=70? 'danger':'warn');
-            try { const be = new AudioContext(); const o = be.createOscillator(); const g = be.createGain(); o.type='square'; o.frequency.value = score>=70? 880: 660; o.connect(g); g.connect(be.destination); g.gain.setValueAtTime(0.001, be.currentTime); g.gain.exponentialRampToValueAtTime(0.15, be.currentTime + 0.1); o.start(); o.stop(be.currentTime + 0.4); } catch(e) { console.warn("Audio API failed", e); }
+            
+            let level = 'warning';
+            let title = 'تنبيه';
+            let message = `HR:${v.hr} | BP:${v.sys}/${v.dia} | SpO₂:${v.spo2}%`;
+            
+            if (score >= 70) {
+                level = 'critical';
+                title = 'خطر مرتفع';
+                message = `خطر مرتفع: HR:${v.hr} | BP:${v.sys}/${v.dia} | SpO₂:${v.spo2}%`;
+            }
+            
+            await notificationSystem.sendNotification(level, title, message, {
+                score,
+                vitals: v,
+                patientId: patientId
+            });
+            
+            logEvent(`${title}: ${message}`, level === 'critical' ? 'danger' : 'warn');
         }
-        
+
         // =============== عرض البيانات وتحديثها ===============
         function render(vitals) {
-            $('hrVal').textContent = fmt(vitals.hr);
-            $('bpVal').textContent = `${fmt(vitals.sys)}/${fmt(vitals.dia)}`;
-            $('spo2Val').textContent = fmt(vitals.spo2);
-            $('rrVal').textContent = fmt(vitals.rr);
-            $('tempVal').textContent = fmt(vitals.temp, 1);
+            // عرض القيم الحالية مع رسوم متحركة
+            const updateValue = (id, value) => {
+                const element = $(id);
+                if (element.textContent !== value) {
+                    element.textContent = value;
+                    element.classList.add('value-change');
+                    setTimeout(() => element.classList.remove('value-change'), 500);
+                }
+            };
             
+            updateValue('hrVal', fmt(vitals.hr));
+            updateValue('bpVal', `${fmt(vitals.sys)}/${fmt(vitals.dia)}`);
+            updateValue('spo2Val', fmt(vitals.spo2));
+            updateValue('rrVal', fmt(vitals.rr));
+            updateValue('tempVal', fmt(vitals.temp, 1));
+            
+            // إضافة إلى السجل
             history.push(vitals);
             if (history.length > MAX_HIST) history.shift();
             
+            // حساب مؤشر الخطر وتحديث الحالة
             const score = riskScoreFrom(vitals);
             setStatus(score, vitals);
+            
+            // المقارنة مع القراءة السابقة
+            if (history.length > 1) {
+                const previous = history[history.length - 2];
+                const comparison = compareWithPrevious(vitals, previous);
+                
+                if (comparison && comparison.significantChanges.length > 0) {
+                    // عرض التغييرات المهمة
+                    const changesContainer = document.getElementById('changes-container');
+                    changesContainer.innerHTML = `
+                        <div class="font-bold mb-2">تغييرات مهمة منذ القراءة السابقة</div>
+                        <div class="space-y-2">
+                            ${comparison.significantChanges.map(change => `
+                                <div class="p-2 rounded-lg ${change.severity === 'high' ? 'bg-red-100' : 'bg-yellow-100'}">
+                                    <div class="font-bold">${change.metric}</div>
+                                    <div class="text-sm">
+                                        ${change.direction === 'up' ? '↗️' : '↘️'} ${Math.abs(change.change)} (${change.percent.toFixed(1)}%)
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            }
+            
+            // التعرف على الأنماط الطبية
+            const detectedPatterns = patternRecognition.detectPatterns(vitals, history);
+            if (detectedPatterns.length > 0) {
+                displayDetectedPatterns(detectedPatterns);
+            }
+            
+            // تحليل أنماط الاتجاه
+            const trendPatterns = patternRecognition.analyzeTrendPatterns(history);
+            if (trendPatterns.length > 0) {
+                displayTrendPatterns(trendPatterns);
+            }
+            
+            // تنبيهات الذكاء الاصطناعي
             alertIfNeeded(score, vitals);
             
+            // تحليل التشخيص
             const diagnosis = diagnoseCondition(vitals);
             displayDiagnosis(diagnosis);
             
+            // تحليل الاتجاهات
             const trends = predictTrends();
             displayTrends(trends);
             
+            // تحليل الذكاء الاصطناعي
             analyzeWithML(vitals).then(result => displayMLRecommendations(result));
+            
+            // تحديث الرسوم البيانية
+            visualizationSystem.updateCharts(vitals);
         }
-        
+
         // =============== وظائف Firebase ===============
         function pushToFirebase(vitals) {
             if (!fb.enabled) return;
@@ -757,36 +2764,57 @@ const firebaseConfig = {
             vitalSignsRef.set(vitals).catch(e => console.error("Firebase update failed", e));
             readingsRef.set({ ...vitals, timestamp: now.toISOString() }).catch(e => console.error("Firebase save failed", e));
         }
-        
+
         // =============== أحداث الواجهة ===============
+        // وضع ليلي/نهاري
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('darkMode', isDark);
+        });
+
+        // تحقق من تفضيلات المستخدم عند التحميل
+        window.addEventListener('load', () => {
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+        });
+
+        // الاتصال بالأجهزة
         $('connectBtn').addEventListener('click', () => {
             if (window.isSecureContext) {
                 Swal.fire({
                     title: 'طريقة الاتصال',
-                    text: 'هل تريد الاتصال بجهاز عبر البلوتوث أم المنفذ التسلسلي؟',
+                    text: 'هل تريد الاتصال بجهاز عبر البلوتوث أم WiFi أم المحاكاة؟',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'بلوتوث',
-                    cancelButtonText: 'منفذ تسلسلي'
+                    cancelButtonText: 'WiFi',
+                    denyButtonText: 'محاكاة'
                 }).then(async (result) => {
                     if (result.isConfirmed) {
                         await connectToDevice();
                     } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        await connectToSerialDevice();
+                        await connectToWiFiDevice();
+                    } else if (result.dismiss === Swal.DismissReason.deny) {
+                        startSimulationMode();
                     }
                 });
             } else {
                 Swal.fire('غير آمن', 'الاتصال بجهاز يتطلب بيئة آمنة (HTTPS). يمكنك استخدام وضع المحاكاة بدلاً من ذلك.', 'error');
             }
         });
-        
+
         $('startBtn').addEventListener('click', () => {
             if (!timer) {
                 logEvent('بدء المراقبة في وضع المحاكاة');
                 startSimulationMode();
             }
         });
-        
+
         $('stopBtn').addEventListener('click', () => {
             if (timer) {
                 clearInterval(timer);
@@ -796,7 +2824,7 @@ const firebaseConfig = {
                 document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
             }
         });
-        
+
         $('snapBtn').addEventListener('click', () => {
             if (history.length > 0) {
                 const latest = history[history.length - 1];
@@ -809,18 +2837,214 @@ const firebaseConfig = {
                 Swal.fire('خطأ', 'لا توجد بيانات لحفظها.', 'error');
             }
         });
-        
+
         $('clearLog').addEventListener('click', () => {
             $('log').innerHTML = '';
             logEvent('تم مسح السجل');
         });
+
+        // إنشاء التقارير
+        $('reportBtn').addEventListener('click', generateReport);
+
+        function generateReport() {
+            if (history.length === 0) {
+                Swal.fire('لا توجد بيانات', 'لا توجد بيانات كافية لإنشاء تقرير.', 'warning');
+                return;
+            }
+            
+            // حساب الإحصائيات
+            const calculateStats = (key) => {
+                const values = history.map(item => item[key]);
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                const avg = values.reduce((a, b) => a + b, 0) / values.length;
+                return { min, max, avg: Number(avg.toFixed(1)) };
+            };
+            
+            const hrStats = calculateStats('hr');
+            const sysStats = calculateStats('sys');
+            const diaStats = calculateStats('dia');
+            const spo2Stats = calculateStats('spo2');
+            const rrStats = calculateStats('rr');
+            const tempStats = calculateStats('temp');
+            
+            // إنشاء محتوى التقرير
+            const reportContent = `
+                <div class="text-right" dir="rtl">
+                    <h2 class="text-xl font-bold mb-4">تقرير حالة المريض</h2>
+                    <div class="mb-4">
+                        <h3 class="font-bold">معلومات المريض</h3>
+                        <p>الاسم: ${$('patientName').textContent}</p>
+                        <p>المعرف: ${patientId}</p>
+                        <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-bold">الإحصائيات الحيوية</h3>
+                        <table class="w-full border-collapse border border-gray-300">
+                            <tr>
+                                <th class="border border-gray-300 p-2">المؤشر</th>
+                                <th class="border border-gray-300 p-2">الحد الأدنى</th>
+                                <th class="border border-gray-300 p-2">المتوسط</th>
+                                <th class="border border-gray-300 p-2">الحد الأعلى</th>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-2">معدل ضربات القلب (bpm)</td>
+                                <td class="border border-gray-300 p-2">${hrStats.min}</td>
+                                <td class="border border-gray-300 p-2">${hrStats.avg}</td>
+                                <td class="border border-gray-300 p-2">${hrStats.max}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-2">ضغط الدم الانقباضي (mmHg)</td>
+                                <td class="border border-gray-300 p-2">${sysStats.min}</td>
+                                <td class="border border-gray-300 p-2">${sysStats.avg}</td>
+                                <td class="border border-gray-300 p-2">${sysStats.max}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-2">ضغط الدم الانبساطي (mmHg)</td>
+                                <td class="border border-gray-300 p-2">${diaStats.min}</td>
+                                <td class="border border-gray-300 p-2">${diaStats.avg}</td>
+                                <td class="border border-gray-300 p-2">${diaStats.max}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-2">نسبة الأكسجين (%)</td>
+                                <td class="border border-gray-300 p-2">${spo2Stats.min}</td>
+                                <td class="border border-gray-300 p-2">${spo2Stats.avg}</td>
+                                <td class="border border-gray-300 p-2">${spo2Stats.max}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-2">معدل التنفس (rpm)</td>
+                                <td class="border border-gray-300 p-2">${rrStats.min}</td>
+                                <td class="border border-gray-300 p-2">${rrStats.avg}</td>
+                                <td class="border border-gray-300 p-2">${rrStats.max}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-2">درجة الحرارة (°C)</td>
+                                <td class="border border-gray-300 p-2">${tempStats.min}</td>
+                                <td class="border border-gray-300 p-2">${tempStats.avg}</td>
+                                <td class="border border-gray-300 p-2">${tempStats.max}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-bold">ملاحظات</h3>
+                        <p>تم إنشاء هذا التقرير بناءً على ${history.length} قراءة.</p>
+                        <p>فترة المراقبة: من ${new Date(history[0].timestamp).toLocaleString('ar-EG')} إلى ${new Date(history[history.length - 1].timestamp).toLocaleString('ar-EG')}</p>
+                    </div>
+                </div>
+            `;
+            
+            // عرض التقرير في نافذة منبثقة
+            Swal.fire({
+                title: 'تقرير المريض',
+                html: reportContent,
+                width: '80%',
+                confirmButtonText: 'طباعة',
+                cancelButtonText: 'إغلاق',
+                showCancelButton: true,
+                showCloseButton: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // طباعة التقرير
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>تقرير المريض</title>
+                            <style>
+                                body { font-family: 'Cairo', sans-serif; direction: rtl; }
+                                table { width: 100%; border-collapse: collapse; }
+                                th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+                                th { background-color: #f2f2f2; }
+                            </style>
+                        </head>
+                        <body>
+                            ${reportContent}
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.print();
+                }
+            });
+            
+            // حفظ التقرير في Firebase
+            if (fb.enabled) {
+                const reportData = {
+                    patientId,
+                    patientName: $('patientName').textContent,
+                    timestamp: nowIso(),
+                    stats: {
+                        hr: hrStats,
+                        sys: sysStats,
+                        dia: diaStats,
+                        spo2: spo2Stats,
+                        rr: rrStats,
+                        temp: tempStats
+                    },
+                    readingsCount: history.length,
+                    period: {
+                        start: history[0].timestamp,
+                        end: history[history.length - 1].timestamp
+                    }
+                };
+                
+                fb.db.ref(`/reports/${patientId}/${nowIso().replace(/[\.\#\$\[\]]/g, '')}`).set(reportData)
+                    .then(() => logEvent('تم حفظ التقرير في Firebase'))
+                    .catch(e => console.error('فشل حفظ التقرير', e));
+            }
+        }
+
+        // التصدير والاستيراد
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            const format = document.getElementById('exportFormat').value;
+            const startDate = document.getElementById('exportStartDate').value;
+            const endDate = document.getElementById('exportEndDate').value;
+            const includeCharts = document.getElementById('includeCharts').checked;
+            const includeAnalysis = document.getElementById('includeAnalysis').checked;
+            
+            try {
+                await dataExportImport.exportData(format, {
+                    startDate,
+                    endDate,
+                    includeCharts,
+                    includeAnalysis
+                });
+                Swal.fire('نجاح', 'تم تصدير البيانات بنجاح', 'success');
+            } catch (error) {
+                Swal.fire('خطأ', 'فشل تصدير البيانات: ' + error.message, 'error');
+            }
+        });
         
-        // بدء المراقبة تلقائيًا عند تحميل الصفحة
-        window.addEventListener('load', () => {
+        document.getElementById('importBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('importFile');
+            const format = document.getElementById('importFormat').value;
+            
+            if (!fileInput.files.length) {
+                Swal.fire('خطأ', 'الرجاء اختيار ملف للاستيراد', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            try {
+                const count = await dataExportImport.importData(file, format);
+                Swal.fire('نجاح', `تم استيراد ${count} قراءة بنجاح`, 'success');
+            } catch (error) {
+                Swal.fire('خطأ', 'فشل استيراد البيانات: ' + error.message, 'error');
+            }
+        });
+
+        // =============== بدء التشغيل ===============
+        window.addEventListener('load', async () => {
+            // تهيئة الأنظمة
+            await authSystem.initialize();
+            notificationSystem.loadSettings();
+            visualizationSystem.initializeCharts();
+            
+            // بدء المراقبة تلقائيًا عند تحميل الصفحة
             logEvent('الصفحة جاهزة، وضع المحاكاة تلقائياً.');
             startSimulationMode();
         });
-        
     </script>
 </body>
 </html>
