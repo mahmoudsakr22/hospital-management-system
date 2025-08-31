@@ -82,7 +82,6 @@
         </div>
     </div>
     
-    <!-- قسم تسجيل التحويلات مع حقول الصيدلية -->
     <div class="bg-white p-4 rounded shadow mb-6">
         <h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -95,7 +94,6 @@
                 <option value="الصيدلية">🏥 الصيدلية</option>
             </select>
             
-            <!-- حقول الصيدلية (تظهر فقط عند اختيار الصيدلية) -->
             <div id="pharmacyFields" class="hidden col-span-2">
                 <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <h3 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
@@ -165,7 +163,7 @@
 
 <!-- نموذج الكشف الطبي -->
 <div id="checkupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-4">
@@ -257,9 +255,32 @@
                     <div class="bg-gray-50 rounded-xl p-4">
                         <label class="block mb-3 font-semibold text-gray-700 flex items-center gap-2">
                             <i class="fas fa-pills text-green-600"></i>
-                            الخطة العلاجية
+                            الخطة العلاجية والوصفات الطبية
                         </label>
-                        <textarea id="treatmentPlan" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="حدد العلاج أو الخطوات القادمة..."></textarea>
+                        <textarea id="treatmentPlan" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-4" placeholder="الخطة العلاجية العامة..."></textarea>
+                        
+                        <!-- قسم الوصفات الطبية -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-semibold text-gray-700 flex items-center gap-2">
+                                    <i class="fas fa-prescription-bottle text-green-600"></i>
+                                    الأدوية الموصوفة
+                                </h4>
+                                <button type="button" onclick="addMedication()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                    <i class="fas fa-plus mr-2"></i> إضافة دواء
+                                </button>
+                            </div>
+                            
+                            <div id="medicationsList" class="space-y-4">
+                                <!-- سيتم إضافة الأدوية هنا ديناميكيًا -->
+                            </div>
+                            
+                            <div id="noMedications" class="text-center py-8 text-gray-500">
+                                <i class="fas fa-pills text-4xl mb-2"></i>
+                                <p>لا توجد أدوية مضافة</p>
+                                <p class="text-sm">اضغط على زر "إضافة دواء" لبدء إضافة الأدوية</p>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="bg-gray-50 rounded-xl p-4">
@@ -450,6 +471,10 @@ window.doctorCheckup = function() {
     document.getElementById('attachments').value = '';
     document.getElementById('filePreview').innerHTML = '';
     
+    // إعادة تعيين قائمة الأدوية
+    document.getElementById('medicationsList').innerHTML = '';
+    document.getElementById('noMedications').style.display = 'block';
+    
     // عرض النموذج
     document.getElementById('checkupModal').classList.remove('hidden');
 };
@@ -490,6 +515,78 @@ document.getElementById('attachments').addEventListener('change', function() {
     }
 });
 
+// دالة لإضافة دواء جديد
+window.addMedication = function() {
+    const medicationsList = document.getElementById('medicationsList');
+    const noMedications = document.getElementById('noMedications');
+    
+    // إخفاء رسالة "لا توجد أدوية"
+    noMedications.style.display = 'none';
+    
+    const medicationId = Date.now();
+    const medicationItem = document.createElement('div');
+    medicationItem.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4';
+    medicationItem.id = `medication-${medicationId}`;
+    
+    medicationItem.innerHTML = `
+        <div class="flex justify-between items-start mb-3">
+            <h5 class="font-semibold text-gray-700">الدواء #${medicationsList.children.length + 1}</h5>
+            <button type="button" onclick="removeMedication(${medicationId})" class="text-red-600 hover:text-red-800 transition-colors">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">اسم الدواء <span class="text-red-500">*</span></label>
+                <input type="text" class="medication-name w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="اسم الدواء">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">الجرعة <span class="text-red-500">*</span></label>
+                <input type="text" class="medication-dosage w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="مثال: 500 مجم">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">المدة <span class="text-red-500">*</span></label>
+                <input type="text" class="medication-duration w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="مثال: 7 أيام">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">نوع التأمين</label>
+                <select class="medication-insurance w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">اختر نوع التأمين</option>
+                    <option value="تأمين أساسي">تأمين أساسي</option>
+                    <option value="تأمين تكميلي">تأمين تكميلي</option>
+                    <option value="خاص">خاص</option>
+                    <option value="غير مؤمن">غير مؤمن</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">عدد الجرعات</label>
+                <input type="number" class="medication-doses w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="مثال: 3" min="1">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">تعليمات الإعطاء</label>
+                <input type="text" class="medication-instructions w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="مثال: بعد الأكل">
+            </div>
+        </div>
+    `;
+    
+    medicationsList.appendChild(medicationItem);
+};
+
+// دالة لإزالة دواء
+window.removeMedication = function(medicationId) {
+    const medicationItem = document.getElementById(`medication-${medicationId}`);
+    if (medicationItem) {
+        medicationItem.remove();
+        
+        // التحقق إذا لم يعد هناك أدوية
+        const medicationsList = document.getElementById('medicationsList');
+        if (medicationsList.children.length === 0) {
+            document.getElementById('noMedications').style.display = 'block';
+        }
+    }
+};
+
 // حفظ بيانات الكشف الطبي
 window.saveVisit = async function() {
     if (!validatePatientId()) return;
@@ -504,6 +601,30 @@ window.saveVisit = async function() {
     const diagnosis = document.getElementById('diagnosis').value;
     const treatmentPlan = document.getElementById('treatmentPlan').value;
     const attachments = document.getElementById('attachments').files;
+    
+    // جمع بيانات الأدوية
+    const medications = [];
+    const medicationItems = document.querySelectorAll('#medicationsList > div');
+    
+    medicationItems.forEach(item => {
+        const name = item.querySelector('.medication-name').value.trim();
+        const dosage = item.querySelector('.medication-dosage').value.trim();
+        const duration = item.querySelector('.medication-duration').value.trim();
+        const insurance = item.querySelector('.medication-insurance').value;
+        const doses = item.querySelector('.medication-doses').value;
+        const instructions = item.querySelector('.medication-instructions').value.trim();
+        
+        if (name && dosage && duration) {
+            medications.push({
+                name,
+                dosage,
+                duration,
+                insurance: insurance || "غير محدد",
+                doses: doses || null,
+                instructions: instructions || "حسب إرشادات الطبيب"
+            });
+        }
+    });
     
     // التحقق من الحقول المطلوبة
     if (!visitType || !symptoms || !diagnosis) {
@@ -526,10 +647,11 @@ window.saveVisit = async function() {
             },
             diagnosis,
             treatmentPlan,
-            doctorId: "currentDoctorId", // في نظام حقيقي: استخدم auth.uid
+            medications, // إضافة الأدوية هنا
+            doctorId: "currentDoctorId",
             date: new Date().toISOString(),
             status: "مكتمل",
-            attachments: [] // سيتم ملؤها لاحقًا
+            attachments: []
         };
         
         // رفع الملفات إذا وجدت
@@ -882,6 +1004,33 @@ function loadCheckups() {
                 `;
             }
             
+            // عرض الأدوية
+            let medicationsHtml = '';
+            if (checkup.medications && checkup.medications.length > 0) {
+                medicationsHtml = `
+                    <div class="mt-3 bg-green-50 p-3 rounded-lg border border-green-200">
+                        <h5 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-pills"></i>
+                            الأدوية الموصوفة:
+                        </h5>
+                        <div class="space-y-2">
+                            ${checkup.medications.map((med, index) => `
+                                <div class="bg-white p-2 rounded border border-green-100">
+                                    <div class="font-medium text-green-700">${index + 1}. ${med.name}</div>
+                                    <div class="text-sm text-gray-600 grid grid-cols-2 md:grid-cols-3 gap-1">
+                                        <div>الجرعة: ${med.dosage}</div>
+                                        <div>المدة: ${med.duration}</div>
+                                        <div>التأمين: ${med.insurance}</div>
+                                        ${med.doses ? `<div>الجرعات: ${med.doses}</div>` : ''}
+                                        <div class="col-span-2 md:col-span-3">التعليمات: ${med.instructions}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
             // عرض المرفقات
             let attachmentsHtml = '';
             if (checkup.attachments && checkup.attachments.length > 0) {
@@ -925,6 +1074,8 @@ function loadCheckups() {
                         <p class="text-sm text-gray-700 mb-1">
                             <span class="font-medium">الخطة العلاجية:</span> ${checkup.treatmentPlan || '-'}
                         </p>
+                        
+                        ${medicationsHtml}
                         
                         ${attachmentsHtml}
                     </div>
