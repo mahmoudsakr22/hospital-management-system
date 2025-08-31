@@ -354,6 +354,42 @@
               </table>
             </div>
           </div>
+          
+          <!-- Medication Requests Table -->
+          <div id="medRequestsTable" class="card fade-in">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-3 gap-3">
+              <h2 class="text-lg font-bold">طلبات الدواء من الأقسام الأخرى</h2>
+              <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                <select id="filterMedRequests" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  <option value="all">الكل</option>
+                  <option value="pending">قيد الانتظار</option>
+                  <option value="dispensed">تم الصرف</option>
+                  <option value="rejected">مرفوض</option>
+                </select>
+                <input id="searchMedRequests" placeholder="بحث باسم المريض/الدواء" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-60" />
+              </div>
+            </div>
+            <div class="overflow-auto rounded-xl border border-white/10">
+              <table class="min-w-full text-sm">
+                <thead class="bg-white/5">
+                  <tr class="text-white/80">
+                    <th class="p-3 text-right">المريض</th>
+                    <th class="p-3">ID</th>
+                    <th class="p-3 text-right">القسم المرسل</th>
+                    <th class="p-3 text-right">الدواء</th>
+                    <th class="p-3">الجرعة</th>
+                    <th class="p-3">المدة</th>
+                    <th class="p-3">التأمين</th>
+                    <th class="p-3">الجرعات</th>
+                    <th class="p-3">الحالة</th>
+                    <th class="p-3 text-center">QR</th>
+                    <th class="p-3 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyMedRequests" class="divide-y divide-white/10"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
         
         <!-- Suppliers Panel -->
@@ -1224,7 +1260,7 @@
     const medicationRequestsRef = db.ref('patients/emergency');
     
     // دالة لعرض صفوف طلبات الدواء
-    function medRequestRow(patientId, transferKey, transfer) {
+    function medRequestRow(patientId, transferKey, transfer, patientName) {
       const statusBadge = (s) => {
         const map = { 
           'قيد الانتظار': 'bg-amber-500', 
@@ -1238,7 +1274,7 @@
       
       return `
         <tr data-patient-id="${patientId}" data-transfer-key="${transferKey}" class="hover:bg-white/5">
-          <td class="p-3 font-semibold">${transfer.patientName || '-'}</td>
+          <td class="p-3 font-semibold">${patientName || '-'}</td>
           <td class="p-3 text-center">${patientId}</td>
           <td class="p-3">${transfer.department || '-'}</td>
           <td class="p-3">${med.name || '-'}</td>
@@ -1264,20 +1300,17 @@
     
     // دالة لتحميل وعرض طلبات الدواء
     function loadMedicationRequests() {
-      // التحقق من وجود جدول طلبات الدواء
-      if (!$('#tbodyMedRequests').length) {
-        addMedicationRequestsTable();
-      }
-      
       const filter = $('#filterMedRequests').value;
       const q = ($('#searchMedRequests').value || '').trim().toLowerCase();
       
-      medicationRequestsRef.once('value', (snap) => {
+      // استخدام on بدلاً من once لتحديث البيانات بشكل مباشر
+      medicationRequestsRef.on('value', (snap) => {
         let html = '';
         let pendingCount = 0;
         
         snap.forEach(patientSnap => {
           const patientId = patientSnap.key;
+          const patientData = patientSnap.val(); // الحصول على بيانات المريض
           const transfers = patientSnap.child('transfers');
           
           transfers.forEach(transferSnap => {
@@ -1293,7 +1326,7 @@
             // تطبيق فلتر البحث
             if (q) {
               const searchText = [
-                transfer.patientName || '',
+                patientData.name || '', // اسم المريض من بيانات المريض
                 transfer.medication?.name || '',
                 patientId
               ].join(' ').toLowerCase();
@@ -1306,7 +1339,7 @@
               pendingCount++;
             }
             
-            html += medRequestRow(patientId, transferKey, transfer);
+            html += medRequestRow(patientId, transferKey, transfer, patientData.name);
           });
         });
         
@@ -1333,53 +1366,6 @@
         const payload = { type: 'med-request', id };
         QRCode.toCanvas(c, JSON.stringify(payload), { width: 64, margin: 1 });
       });
-    }
-    
-    // دالة لإضافة جدول طلبات الدواء
-    function addMedicationRequestsTable() {
-      // إضافة جدول طلبات الدواء بعد جدول الوصفات الطبية
-      const prescriptionsPanel = $('#panelPrescriptions');
-      
-      const medRequestsTable = `
-        <div class="card fade-in mt-6">
-          <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-3 gap-3">
-            <h2 class="text-lg font-bold">طلبات الدواء من الأقسام الأخرى</h2>
-            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              <select id="filterMedRequests" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                <option value="all">الكل</option>
-                <option value="pending">قيد الانتظار</option>
-                <option value="dispensed">تم الصرف</option>
-                <option value="rejected">مرفوض</option>
-              </select>
-              <input id="searchMedRequests" placeholder="بحث باسم المريض/الدواء" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-60" />
-            </div>
-          </div>
-          <div class="overflow-auto rounded-xl border border-white/10">
-            <table class="min-w-full text-sm">
-              <thead class="bg-white/5">
-                <tr class="text-white/80">
-                  <th class="p-3 text-right">المريض</th>
-                  <th class="p-3">ID</th>
-                  <th class="p-3 text-right">القسم المرسل</th>
-                  <th class="p-3 text-right">الدواء</th>
-                  <th class="p-3">الجرعة</th>
-                  <th class="p-3">المدة</th>
-                  <th class="p-3">التأمين</th>
-                  <th class="p-3">الجرعات</th>
-                  <th class="p-3">الحالة</th>
-                  <th class="p-3 text-center">QR</th>
-                  <th class="p-3 text-center">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyMedRequests" class="divide-y divide-white/10"></tbody>
-            </table>
-          </div>
-        </div>
-      `;
-      
-      // إضافة الجدول بعد جدول الوصفات الطبية
-      const prescriptionsTable = $('#panelPrescriptions .card:last-child');
-      prescriptionsTable.insertAdjacentHTML('afterend', medRequestsTable);
     }
     
     // التعامل مع أحداث طلبات الدواء
@@ -2493,6 +2479,34 @@
     $('#btnReports').addEventListener('click', () => {
       switchTab(tabReports, panelReports);
     });
+    
+    // =============================
+    // Helper Functions for Loading and Results
+    // =============================
+    function showLoading(message = "جاري التحميل...") {
+      Swal.fire({
+        title: message,
+        didOpen: () => { 
+          Swal.showLoading(); 
+        },
+        allowOutsideClick: false,
+        allowEscapeKey: false
+      });
+    }
+    
+    function showResult(title, message, icon = "success") {
+      Swal.fire({
+        title,
+        text: message,
+        icon,
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+    
+    // =============================
+    // End of Helper Functions
+    // =============================
     
     // =============================
     // Seed helper (محدثة) – يمكن إبقاؤها للاختبار
