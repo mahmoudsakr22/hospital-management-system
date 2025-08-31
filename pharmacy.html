@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>قسم الصيدلة – مستشفى الحياة الذكية</title>
+  <title>قسم الصيدلية المتقدم – مستشفى الحياة الذكية</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Icons -->
@@ -19,6 +19,8 @@
   <!-- jsPDF for PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <!-- Barcode Generator -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   
   <style>
     body { background: #0b1220; }
@@ -56,6 +58,51 @@
       from { transform: translateX(20px); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(236, 72, 153, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+    }
+    .barcode-container {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+    }
+    .modal-content {
+      background-color: #1e293b;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #334155;
+      width: 80%;
+      max-width: 800px;
+      border-radius: 12px;
+      color: white;
+    }
+    .close {
+      color: #aaa;
+      float: left;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: white;
+    }
   </style>
 </head>
 <body class="text-white transition-colors duration-300">
@@ -65,8 +112,8 @@
       <div class="flex items-center gap-3">
         <i class='bx bxs-capsule text-2xl text-teal-300'></i>
         <div>
-          <h1 class="text-xl md:text-2xl font-bold">قسم الصيدلة</h1>
-          <p class="text-xs md:text-sm text-white/70">Smart Life Hospital – Pharmacy Department</p>
+          <h1 class="text-xl md:text-2xl font-bold">قسم الصيدلية المتقدم</h1>
+          <p class="text-xs md:text-sm text-white/70">Smart Life Hospital – Advanced Pharmacy</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -78,6 +125,9 @@
           <span id="notificationBadge" class="notification-badge hidden">0</span>
         </button>
         <button id="btnReports" class="btn bg-indigo-600 hover:bg-indigo-700">تقارير</button>
+        <button id="btnBarcodeScanner" class="btn bg-purple-600 hover:bg-purple-700">
+          <i class='bx bx-barcode-reader'></i>
+        </button>
         <button id="btnRefresh" class="btn bg-white/10 hover:bg-white/20">تحديث</button>
         <a href="index.html" class="btn bg-rose-600 hover:bg-rose-700">خروج</a>
       </div>
@@ -94,6 +144,23 @@
     </div>
     <div id="notificationList" class="max-h-96 overflow-y-auto p-2 space-y-2">
       <!-- Notifications will be added here dynamically -->
+    </div>
+  </div>
+
+  <!-- Barcode Scanner Modal -->
+  <div id="barcodeModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 class="text-xl font-bold mb-4">ماسح الباركود</h2>
+      <div class="mb-4">
+        <input type="text" id="barcodeInput" class="w-full p-3 rounded-lg bg-slate-700 border border-slate-600" placeholder="امسح الباركود أو أدخله يدوياً">
+      </div>
+      <div class="mb-4">
+        <button id="simulateScan" class="btn bg-purple-600 hover:bg-purple-700 w-full">محاكاة المسح</button>
+      </div>
+      <div id="barcodeResult" class="hidden p-4 bg-slate-800 rounded-lg">
+        <!-- Barcode result will be shown here -->
+      </div>
     </div>
   </div>
 
@@ -148,12 +215,27 @@
       </div>
     </section>
 
+    <!-- Auto Reorder Alert -->
+    <div id="autoReorderAlert" class="hidden card bg-amber-900/30 border border-amber-700/50 pulse">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <i class='bx bx-error-circle text-2xl text-amber-400'></i>
+          <div>
+            <h3 class="font-bold">تنبيه إعادة طلب تلقائي</h3>
+            <p class="text-sm">تم إنشاء طلبات تلقائية للأدوية التالية</p>
+          </div>
+        </div>
+        <button id="viewReorders" class="btn bg-amber-600 hover:bg-amber-700">عرض الطلبات</button>
+      </div>
+    </div>
+
     <!-- Tabs -->
     <section class="glass rounded-2xl">
       <div class="flex border-b border-white/10">
         <button id="tabInventory" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-teal-400">المخزن</button>
         <button id="tabPrescriptions" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الوصفات الطبية</button>
         <button id="tabSuppliers" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الموردون</button>
+        <button id="tabOrders" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الطلبات</button>
         <button id="tabReports" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">التقارير</button>
       </div>
       <div class="p-4 md:p-6 space-y-6">
@@ -165,7 +247,7 @@
               <i class='bx bx-plus-medical'></i> إضافة دواء جديد
             </h2>
             <form id="formAddDrug" class="grid md:grid-cols-6 gap-3">
-              <input id="drugName" required placeholder="اسم الدواء (اكتب المادة الفعالة مثلاً: Paracetamol)" class="md:col-span-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="drugName" required placeholder="اسم الدواء" class="md:col-span-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
               <input id="manufacturer" placeholder="الشركة المصنعة" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
               <input id="batch" placeholder="رقم التشغيلة (Batch)" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
               <input id="expiry" type="date" required class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
@@ -174,7 +256,9 @@
               <div class="md:col-span-6 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
                   <input id="lowThreshold" type="number" min="0" value="10" class="w-24 px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                  <label for="lowThreshold" class="text-sm text-white/70">حد التنبيه للكمية المنخفضة</label>
+                  <label for="lowThreshold" class="text-sm text-white/70">حد التنبيه</label>
+                  <input id="reorderPoint" type="number" min="0" value="5" class="w-24 px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                  <label for="reorderPoint" class="text-sm text-white/70">نقطة إعادة الطلب</label>
                 </div>
                 <div class="flex items-center gap-2">
                   <select id="supplierSelect" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
@@ -209,6 +293,7 @@
                     <th class="p-3">الصلاحية</th>
                     <th class="p-3">الكمية</th>
                     <th class="p-3">السعر</th>
+                    <th class="p-3 text-center">الباركود</th>
                     <th class="p-3 text-center">تنبيهات</th>
                     <th class="p-3 text-center">إجراءات</th>
                   </tr>
@@ -299,6 +384,44 @@
           </div>
         </div>
         
+        <!-- Orders Panel -->
+        <div id="panelOrders" class="hidden space-y-6">
+          <div class="card fade-in">
+            <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+              <i class='bx bx-shopping-bag'></i> إدارة الطلبات
+            </h2>
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
+              <div class="card bg-teal-900/20 border border-teal-700/30">
+                <h3 class="font-bold text-teal-300">الطلبات النشطة</h3>
+                <p class="text-2xl font-bold" id="activeOrdersCount">0</p>
+              </div>
+              <div class="card bg-amber-900/20 border border-amber-700/30">
+                <h3 class="font-bold text-amber-300">بانتظار الموافقة</h3>
+                <p class="text-2xl font-bold" id="pendingOrdersCount">0</p>
+              </div>
+              <div class="card bg-rose-900/20 border border-rose-700/30">
+                <h3 class="font-bold text-rose-300">الطلبات المتأخرة</h3>
+                <p class="text-2xl font-bold" id="overdueOrdersCount">0</p>
+              </div>
+            </div>
+            <div class="overflow-auto rounded-xl border border-white/10">
+              <table class="min-w-full text-sm">
+                <thead class="bg-white/5">
+                  <tr class="text-white/80">
+                    <th class="p-3 text-right">رقم الطلب</th>
+                    <th class="p-3 text-right">المورد</th>
+                    <th class="p-3">التاريخ</th>
+                    <th class="p-3">الحالة</th>
+                    <th class="p-3">القيمة</th>
+                    <th class="p-3 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyOrders" class="divide-y divide-white/10"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
         <!-- Reports Panel -->
         <div id="panelReports" class="hidden space-y-6">
           <div class="card fade-in">
@@ -328,6 +451,9 @@
               </button>
               <button id="generateLowStockReport" class="btn bg-rose-600 hover:bg-rose-700">
                 تقرير الأدوية منخفضة المخزون
+              </button>
+              <button id="generateSupplierReport" class="btn bg-teal-600 hover:bg-teal-700">
+                تقرير أداء الموردين
               </button>
             </div>
           </div>
@@ -365,6 +491,7 @@
     let currentPage = 1;
     const itemsPerPage = 10;
     let allDrugs = [];
+    let autoReorders = [];
     // =============================
     // Helpers
     // =============================
@@ -372,6 +499,7 @@
     const $$ = (sel) => Array.from(document.querySelectorAll(sel));
     const fmtDate = (v) => v ? new Date(v).toLocaleDateString('ar-EG') : '-';
     const todayISO = () => new Date().toISOString().slice(0,10);
+    
     // Auth (اختياري: تحقق من صلاحيات الصيدلي عبر localStorage)
     try {
       const role = localStorage.getItem('role');
@@ -379,6 +507,7 @@
         Swal.fire({icon:'warning', title:'صلاحية غير كافية', text:'هذه الصفحة للصيدلية فقط', confirmButtonText:'رجوع'}).then(()=>{ window.location.href='index.html'; });
       }
     } catch(e) {}
+    
     // Theme Toggle
     $('#btnTheme').addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
@@ -386,24 +515,108 @@
       $('#btnTheme').innerHTML = isDark ? '<i class="bx bx-sun"></i>' : '<i class="bx bx-moon"></i>';
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
+    
     // Load saved theme
     if (localStorage.getItem('theme') === 'dark') {
       document.body.classList.add('dark-mode');
       $('#btnTheme').innerHTML = '<i class="bx bx-sun"></i>';
     }
+    
+    // Barcode Scanner Modal
+    const barcodeModal = $('#barcodeModal');
+    const barcodeInput = $('#barcodeInput');
+    
+    $('#btnBarcodeScanner').addEventListener('click', () => {
+      barcodeModal.style.display = 'block';
+      barcodeInput.focus();
+    });
+    
+    $('.close').addEventListener('click', () => {
+      barcodeModal.style.display = 'none';
+    });
+    
+    window.addEventListener('click', (event) => {
+      if (event.target == barcodeModal) {
+        barcodeModal.style.display = 'none';
+      }
+    });
+    
+    // Simulate barcode scan
+    $('#simulateScan').addEventListener('click', () => {
+      // Generate a random barcode number
+      const randomBarcode = Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0');
+      barcodeInput.value = randomBarcode;
+      
+      // Find drug by barcode (in a real app, this would be stored in the database)
+      const foundDrug = allDrugs.find(drug => drug.data.barcode === randomBarcode);
+      
+      const resultDiv = $('#barcodeResult');
+      if (foundDrug) {
+        resultDiv.innerHTML = `
+          <div class="text-green-400 font-bold mb-2">تم العثور على الدواء</div>
+          <div><strong>الاسم:</strong> ${foundDrug.data.name}</div>
+          <div><strong>الشركة:</strong> ${foundDrug.data.manufacturer || '-'}</div>
+          <div><strong>الكمية:</strong> ${foundDrug.data.quantity || 0}</div>
+          <div><strong>السعر:</strong> ${foundDrug.data.price || 0} ريال</div>
+          <div class="mt-3 flex gap-2">
+            <button class="btn bg-teal-600 hover:bg-teal-700" onclick="updateDrugQuantity('${foundDrug.key}', 1)">زيادة الكمية</button>
+            <button class="btn bg-rose-600 hover:bg-rose-700" onclick="updateDrugQuantity('${foundDrug.key}', -1)">نقص الكمية</button>
+          </div>
+        `;
+      } else {
+        resultDiv.innerHTML = `
+          <div class="text-rose-400 font-bold mb-2">لم يتم العثور على الدواء</div>
+          <div>الباركود: ${randomBarcode}</div>
+          <div class="mt-3">
+            <button class="btn bg-indigo-600 hover:bg-indigo-700" onclick="addNewDrugWithBarcode('${randomBarcode}')">إضافة دواء جديد</button>
+          </div>
+        `;
+      }
+      resultDiv.classList.remove('hidden');
+    });
+    
+    // Function to update drug quantity from barcode scanner
+    window.updateDrugQuantity = async (key, change) => {
+      const snap = await drugsRef.child(key).get();
+      const cur = Number((snap.val().quantity||0));
+      const q = Math.max(0, cur + change);
+      await drugsRef.child(key).update({quantity: q});
+      Swal.fire({icon:'success', title:'تم تحديث الكمية'});
+      barcodeModal.style.display = 'none';
+    };
+    
+    // Function to add new drug with barcode
+    window.addNewDrugWithBarcode = (barcode) => {
+      barcodeModal.style.display = 'none';
+      switchTab(tabInventory, panelInventory);
+      $('#drugName').focus();
+      
+      // Pre-fill some fields if needed
+      // In a real app, you might have a barcode database to get drug info
+      Swal.fire({
+        icon: 'info',
+        title: 'إضافة دواء جديد',
+        text: `تم مسح باركود ${barcode}. يرجى ملء باقي البيانات.`,
+        confirmButtonText: 'موافق'
+      });
+    };
+    
     // Notification System
     $('#btnNotifications').addEventListener('click', () => {
       $('#notificationPanel').classList.toggle('hidden');
     });
+    
     $('#closeNotifications').addEventListener('click', () => {
       $('#notificationPanel').classList.add('hidden');
     });
-    function addNotification(type, title, message) {
+    
+    function addNotification(type, title, message, action = null) {
       const id = Date.now();
-      const notification = { id, type, title, message, read: false };
+      const notification = { id, type, title, message, read: false, action };
       notifications.unshift(notification);
       updateNotificationBadge();
       renderNotifications();
+      
       // Show toast notification
       const toast = Swal.mixin({
         toast: true,
@@ -416,12 +629,14 @@
           toast.addEventListener('mouseleave', Swal.resumeTimer)
         }
       });
+      
       toast.fire({
         icon: type === 'warning' ? 'warning' : type === 'error' ? 'error' : 'info',
         title: title,
         text: message
       });
     }
+    
     function updateNotificationBadge() {
       const unreadCount = notifications.filter(n => !n.read).length;
       const badge = $('#notificationBadge');
@@ -432,12 +647,14 @@
         badge.classList.add('hidden');
       }
     }
+    
     function renderNotifications() {
       const container = $('#notificationList');
       if (notifications.length === 0) {
         container.innerHTML = '<div class="text-center p-4 text-white/60">لا توجد إشعارات</div>';
         return;
       }
+      
       container.innerHTML = notifications.map(n => `
         <div class="p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer ${n.read ? 'opacity-60' : ''}" data-id="${n.id}">
           <div class="flex justify-between">
@@ -445,8 +662,10 @@
             <span class="text-xs text-white/60">${new Date(n.id).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}</span>
           </div>
           <p class="text-sm text-white/70 mt-1">${n.message}</p>
+          ${n.action ? `<button class="mt-2 text-xs text-teal-400 hover:text-teal-300" onclick="${n.action}">اتخذ إجراء</button>` : ''}
         </div>
       `).join('');
+      
       // Mark as read when clicked
       $$('#notificationList > div').forEach(el => {
         el.addEventListener('click', () => {
@@ -458,22 +677,54 @@
         });
       });
     }
+    
+    // Auto Reorder System
+    function checkAutoReorder() {
+      autoReorders = [];
+      allDrugs.forEach(drug => {
+        const quantity = Number(drug.data.quantity || 0);
+        const reorderPoint = Number(drug.data.reorderPoint || 5);
+        
+        if (quantity <= reorderPoint) {
+          autoReorders.push(drug);
+        }
+      });
+      
+      if (autoReorders.length > 0) {
+        $('#autoReorderAlert').classList.remove('hidden');
+        addNotification('warning', 'تنبيه إعادة طلب', `يوجد ${autoReorders.length} أدوية تحتاج إلى إعادة طلب`, 'viewReorders()');
+      } else {
+        $('#autoReorderAlert').classList.add('hidden');
+      }
+    }
+    
+    window.viewReorders = () => {
+      switchTab(tabOrders, panelOrders);
+      $('#notificationPanel').classList.add('hidden');
+    };
+    
+    $('#viewReorders').addEventListener('click', () => {
+      switchTab(tabOrders, panelOrders);
+    });
+    
     // Tabs
     const tabInventory = $('#tabInventory');
     const tabPrescriptions = $('#tabPrescriptions');
     const tabSuppliers = $('#tabSuppliers');
+    const tabOrders = $('#tabOrders');
     const tabReports = $('#tabReports');
     const panelInventory = $('#panelInventory');
     const panelPrescriptions = $('#panelPrescriptions');
     const panelSuppliers = $('#panelSuppliers');
+    const panelOrders = $('#panelOrders');
     const panelReports = $('#panelReports');
     
     function switchTab(activeTab, activePanel) {
-      [tabInventory, tabPrescriptions, tabSuppliers, tabReports].forEach(tab => {
+      [tabInventory, tabPrescriptions, tabSuppliers, tabOrders, tabReports].forEach(tab => {
         tab.classList.remove('border-teal-400');
         tab.classList.add('border-transparent');
       });
-      [panelInventory, panelPrescriptions, panelSuppliers, panelReports].forEach(panel => {
+      [panelInventory, panelPrescriptions, panelSuppliers, panelOrders, panelReports].forEach(panel => {
         panel.classList.add('hidden');
       });
       activeTab.classList.add('border-teal-400');
@@ -489,6 +740,7 @@
     tabInventory.addEventListener('click', () => switchTab(tabInventory, panelInventory));
     tabPrescriptions.addEventListener('click', () => switchTab(tabPrescriptions, panelPrescriptions));
     tabSuppliers.addEventListener('click', () => switchTab(tabSuppliers, panelSuppliers));
+    tabOrders.addEventListener('click', () => switchTab(tabOrders, panelOrders));
     tabReports.addEventListener('click', () => switchTab(tabReports, panelReports));
     // =============================
     // Inventory Logic
@@ -503,6 +755,8 @@
     function drugRow(key, d){
       const expSoon = daysUntil(d.expiry) <= 30; // خلال 30 يوم
       const low = Number(d.quantity||0) <= Number(d.lowThreshold||LOW_DEFAULT);
+      const barcode = d.barcode || generateBarcode(key);
+      
       return `
         <tr data-key="${key}" class="hover:bg-white/5">
           <td class="p-3 font-semibold">${esc(d.name)}</td>
@@ -518,6 +772,11 @@
           </td>
           <td class="p-3 text-center">${d.price ? Number(d.price).toFixed(2) : '-'}</td>
           <td class="p-3 text-center">
+            <div class="barcode-container">
+              <svg id="barcode-${key}"></svg>
+            </div>
+          </td>
+          <td class="p-3 text-center">
             ${low ? '<span class="text-amber-300 text-xs">كمية منخفضة</span>' : ''}
             ${expSoon ? '<span class="text-rose-300 text-xs ml-2">قرب انتهاء</span>' : ''}
           </td>
@@ -528,6 +787,27 @@
             </div>
           </td>
         </tr>`;
+    }
+    
+    function generateBarcode(key) {
+      // Generate a unique barcode based on drug key
+      return 'DRG' + key.slice(-8).toUpperCase();
+    }
+    
+    function renderBarcodes() {
+      $$('svg[id^="barcode-"]').forEach(svg => {
+        const key = svg.id.replace('barcode-', '');
+        const drug = allDrugs.find(d => d.key === key);
+        if (drug) {
+          const barcode = drug.data.barcode || generateBarcode(key);
+          JsBarcode(svg, barcode, {
+            format: "CODE128",
+            width: 1,
+            height: 30,
+            displayValue: false
+          });
+        }
+      });
     }
     
     function esc(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
@@ -576,7 +856,10 @@
         html += drugRow(drug.key, drug.data);
       });
       
-      tbodyDrugs.innerHTML = html || `<tr><td colspan="8" class="p-4 text-center text-white/60">لا توجد أدوية</td></tr>`;
+      tbodyDrugs.innerHTML = html || `<tr><td colspan="9" class="p-4 text-center text-white/60">لا توجد أدوية</td></tr>`;
+      
+      // Render barcodes after DOM update
+      setTimeout(renderBarcodes, 100);
       
       // Update pagination info
       const totalPages = Math.ceil(drugs.length / itemsPerPage);
@@ -636,6 +919,7 @@
       renderDrugsList();
       recalcStats(snap);
       updateRevenueChart();
+      checkAutoReorder();
     });
     
     $('#searchDrug').addEventListener('input', () => {
@@ -658,9 +942,11 @@
         expiry: $('#expiry').value,
         quantity: Number($('#quantity').value||0),
         lowThreshold: Number($('#lowThreshold').value||LOW_DEFAULT),
+        reorderPoint: Number($('#reorderPoint').value||5),
         price: Number($('#price').value||0),
         category: $('#filterCategory').value !== 'all' ? $('#filterCategory').value : 'general',
         supplier: $('#supplierSelect').value,
+        barcode: generateBarcode(Date.now().toString()),
         createdAt: Date.now()
       };
       if(!data.name || !data.expiry){
@@ -670,6 +956,7 @@
       await newRef.set(data);
       e.target.reset();
       $('#lowThreshold').value = LOW_DEFAULT;
+      $('#reorderPoint').value = 5;
       Swal.fire({icon:'success', title:'تم حفظ الدواء'});
       addNotification('success', 'تمت الإضافة', `تم إضافة الدواء ${data.name} بنجاح`);
     });
@@ -711,7 +998,8 @@
             `<input id="swExp" type="date" class="swal2-input" value="${(d.expiry||'').slice(0,10)}">`+
             `<input id="swQty" type="number" class="swal2-input" placeholder="الكمية" value="${Number(d.quantity||0)}">`+
             `<input id="swPrice" type="number" step="0.01" class="swal2-input" placeholder="السعر" value="${Number(d.price||0)}">`+
-            `<input id="swLow" type="number" class="swal2-input" placeholder="حد التنبيه" value="${Number(d.lowThreshold||LOW_DEFAULT)}">`,
+            `<input id="swLow" type="number" class="swal2-input" placeholder="حد التنبيه" value="${Number(d.lowThreshold||LOW_DEFAULT)}">`+
+            `<input id="swReorder" type="number" class="swal2-input" placeholder="نقطة إعادة الطلب" value="${Number(d.reorderPoint||5)}">`,
           focusConfirm: false,
           confirmButtonText: 'حفظ',
           showCancelButton: true,
@@ -726,7 +1014,8 @@
               expiry: document.getElementById('swExp').value,
               quantity: Number(document.getElementById('swQty').value||0),
               price: Number(document.getElementById('swPrice').value||0),
-              lowThreshold: Number(document.getElementById('swLow').value||LOW_DEFAULT)
+              lowThreshold: Number(document.getElementById('swLow').value||LOW_DEFAULT),
+              reorderPoint: Number(document.getElementById('swReorder').value||5)
             }
           }
         });
@@ -1006,6 +1295,239 @@
           Swal.fire({icon:'success', title:'تم التحديث'});
           addNotification('success', 'تم التحديث', `تم تحديث بيانات المورد ${formValues.name}`);
         }
+      }
+    });
+    // =============================
+    // Orders Logic
+    // =============================
+    const ordersRef = db.ref('pharmacy/orders');
+    const tbodyOrders = $('#tbodyOrders');
+    
+    function orderRow(key, o) {
+      const statusBadge = (s) => {
+        const map = { 
+          pending: 'bg-amber-500', 
+          approved: 'bg-teal-600', 
+          shipped: 'bg-blue-600', 
+          delivered: 'bg-green-600', 
+          cancelled: 'bg-rose-600' 
+        };
+        const txt = { 
+          pending: 'قيد الانتظار', 
+          approved: 'م批准', 
+          shipped: 'تم الشحن', 
+          delivered: 'تم التسليم', 
+          cancelled: 'ملغي' 
+        };
+        return `<span class="px-2 py-1 rounded-full text-xs ${map[s]||'bg-white/10'}">${txt[s]||s}</span>`;
+      };
+      
+      return `
+        <tr data-key="${key}" class="hover:bg-white/5">
+          <td class="p-3 font-semibold">#${key.slice(-6)}</td>
+          <td class="p-3">${esc(o.supplierName || '-')}</td>
+          <td class="p-3 text-center">${o.orderDate ? fmtDate(o.orderDate) : '-'}</td>
+          <td class="p-3 text-center">${statusBadge(o.status || 'pending')}</td>
+          <td class="p-3 text-center">${o.totalValue ? Number(o.totalValue).toFixed(2) : '-'}</td>
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-2">
+              ${o.status === 'pending' ? `<button class="approve-order btn bg-teal-600 hover:bg-teal-700">موافقة</button>` : ''}
+              ${o.status === 'approved' ? `<button class="ship-order btn bg-blue-600 hover:bg-blue-700">شحن</button>` : ''}
+              <button class="view-order btn bg-indigo-600 hover:bg-indigo-700">عرض</button>
+              <button class="cancel-order btn bg-rose-600 hover:bg-rose-700">إلغاء</button>
+            </div>
+          </td>
+        </tr>`;
+    }
+    
+    function updateOrderStats() {
+      let active = 0, pending = 0, overdue = 0;
+      
+      ordersRef.once('value', (snap) => {
+        snap.forEach(ch => {
+          const o = ch.val();
+          const status = o.status || 'pending';
+          
+          if (status !== 'delivered' && status !== 'cancelled') {
+            active++;
+          }
+          
+          if (status === 'pending') {
+            pending++;
+          }
+          
+          // Check if order is overdue (more than 7 days since order date)
+          if (o.orderDate) {
+            const orderDate = new Date(o.orderDate);
+            const today = new Date();
+            const diffTime = Math.abs(today - orderDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 7 && status !== 'delivered' && status !== 'cancelled') {
+              overdue++;
+            }
+          }
+        });
+        
+        $('#activeOrdersCount').textContent = active;
+        $('#pendingOrdersCount').textContent = pending;
+        $('#overdueOrdersCount').textContent = overdue;
+      });
+    }
+    
+    ordersRef.on('value', (snap) => {
+      let html = '';
+      snap.forEach(ch => {
+        const k = ch.key;
+        const o = ch.val();
+        html += orderRow(k, o);
+      });
+      
+      tbodyOrders.innerHTML = html || `<tr><td colspan="6" class="p-4 text-center text-white/60">لا توجد طلبات</td></tr>`;
+      updateOrderStats();
+    });
+    
+    tbodyOrders.addEventListener('click', async (e) => {
+      const tr = e.target.closest('tr[data-key]');
+      if (!tr) return;
+      const key = tr.getAttribute('data-key');
+      const snap = await ordersRef.child(key).get();
+      const o = snap.val();
+      
+      if (e.target.classList.contains('approve-order')) {
+        await ordersRef.child(key).update({ status: 'approved', approvedAt: Date.now() });
+        Swal.fire({ icon: 'success', title: 'تمت الموافقة على الطلب' });
+        addNotification('success', 'تمت الموافقة', `تمت الموافقة على الطلب #${key.slice(-6)}`);
+      } else if (e.target.classList.contains('ship-order')) {
+        await ordersRef.child(key).update({ status: 'shipped', shippedAt: Date.now() });
+        Swal.fire({ icon: 'success', title: 'تم شحن الطلب' });
+        addNotification('success', 'تم الشحن', `تم شحن الطلب #${key.slice(-6)}`);
+      } else if (e.target.classList.contains('cancel-order')) {
+        const confirm = await Swal.fire({
+          icon: 'warning',
+          title: 'إلغاء الطلب؟',
+          text: 'لا يمكن التراجع',
+          showCancelButton: true,
+          confirmButtonText: 'نعم، إلغاء',
+          cancelButtonText: 'إلغاء'
+        });
+        
+        if (confirm.isConfirmed) {
+          await ordersRef.child(key).update({ status: 'cancelled', cancelledAt: Date.now() });
+          Swal.fire({ icon: 'success', title: 'تم إلغاء الطلب' });
+          addNotification('info', 'تم الإلغاء', `تم إلغاء الطلب #${key.slice(-6)}`);
+        }
+      } else if (e.target.classList.contains('view-order')) {
+        // Show order details
+        const items = o.items || [];
+        const itemsHtml = items.map(item => `
+          <div class="p-2 border-b border-white/5">
+            <div class="flex justify-between">
+              <span>${esc(item.name)}</span>
+              <span>${item.quantity} × ${Number(item.price).toFixed(2)} = ${Number(item.quantity * item.price).toFixed(2)}</span>
+            </div>
+          </div>
+        `).join('');
+        
+        Swal.fire({
+          title: `تفاصيل الطلب #${key.slice(-6)}`,
+          html: `
+            <div style="text-align: right">
+              <div class="mb-3">
+                <strong>المورد:</strong> ${esc(o.supplierName || '-')}
+              </div>
+              <div class="mb-3">
+                <strong>تاريخ الطلب:</strong> ${o.orderDate ? fmtDate(o.orderDate) : '-'}
+              </div>
+              <div class="mb-3">
+                <strong>الحالة:</strong> ${o.status || 'pending'}
+              </div>
+              <div class="mb-3">
+                <strong>القيمة الإجمالية:</strong> ${o.totalValue ? Number(o.totalValue).toFixed(2) : '-'} ريال
+              </div>
+              <div class="mt-4">
+                <strong>العناصر:</strong>
+                <div class="mt-2">
+                  ${itemsHtml || '<div class="text-white/60">لا توجد عناصر</div>'}
+                </div>
+              </div>
+            </div>
+          `,
+          width: 600
+        });
+      }
+    });
+    
+    // Create auto reorder orders
+    async function createAutoReorderOrders() {
+      if (autoReorders.length === 0) return;
+      
+      // Group drugs by supplier
+      const supplierGroups = {};
+      
+      for (const drug of autoReorders) {
+        const supplierId = drug.data.supplier;
+        if (!supplierId) continue;
+        
+        if (!supplierGroups[supplierId]) {
+          supplierGroups[supplierId] = {
+            supplierId,
+            supplierName: '',
+            items: []
+          };
+        }
+        
+        // Calculate reorder quantity (typically 2x the reorder point)
+        const reorderQty = (drug.data.reorderPoint || 5) * 2;
+        
+        supplierGroups[supplierId].items.push({
+          drugId: drug.key,
+          name: drug.data.name,
+          quantity: reorderQty,
+          price: drug.data.price || 0
+        });
+      }
+      
+      // Get supplier names and create orders
+      for (const supplierId in supplierGroups) {
+        const group = supplierGroups[supplierId];
+        
+        // Get supplier name
+        const supplierSnap = await suppliersRef.child(supplierId).get();
+        if (supplierSnap.exists()) {
+          group.supplierName = supplierSnap.val().name;
+        }
+        
+        // Calculate total value
+        const totalValue = group.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+        
+        // Create order
+        const orderData = {
+          supplierId: group.supplierId,
+          supplierName: group.supplierName,
+          orderDate: todayISO(),
+          status: 'pending',
+          items: group.items,
+          totalValue: totalValue,
+          isAutoReorder: true,
+          createdAt: Date.now()
+        };
+        
+        await ordersRef.push(orderData);
+      }
+      
+      addNotification('success', 'طلبات تلقائية', `تم إنشاء ${Object.keys(supplierGroups).length} طلبات إعادة طلب تلقائية`);
+    }
+    
+    // Check for auto reorders every 5 minutes
+    setInterval(checkAutoReorder, 300000);
+    
+    // Create auto reorder orders when needed
+    $('#viewReorders').addEventListener('click', async () => {
+      if (autoReorders.length > 0) {
+        await createAutoReorderOrders();
+        autoReorders = [];
+        $('#autoReorderAlert').classList.add('hidden');
       }
     });
     // =============================
@@ -1369,10 +1891,77 @@
       addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير الأدوية منخفضة المخزون بنجاح');
     });
     
+    $('#generateSupplierReport').addEventListener('click', async () => {
+      const drugsSnap = await drugsRef.once('value');
+      const suppliersSnap = await suppliersRef.once('value');
+      
+      // Calculate supplier stats
+      const supplierStats = {};
+      
+      drugsSnap.forEach(ch => {
+        const d = ch.val();
+        const supplierId = d.supplier;
+        if (!supplierId) return;
+        
+        if (!supplierStats[supplierId]) {
+          supplierStats[supplierId] = {
+            name: '',
+            drugsCount: 0,
+            totalValue: 0
+          };
+        }
+        
+        supplierStats[supplierId].drugsCount++;
+        supplierStats[supplierId].totalValue += Number(d.price || 0) * Number(d.quantity || 0);
+      });
+      
+      // Get supplier names
+      suppliersSnap.forEach(ch => {
+        const k = ch.key;
+        const s = ch.val();
+        if (supplierStats[k]) {
+          supplierStats[k].name = s.name;
+        }
+      });
+      
+      // Prepare report data
+      const reportData = [];
+      for (const supplierId in supplierStats) {
+        const stats = supplierStats[supplierId];
+        reportData.push([
+          stats.name,
+          stats.drugsCount,
+          stats.totalValue.toFixed(2)
+        ]);
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFont('helvetica');
+      doc.setFontSize(18);
+      doc.text('Supplier Performance Report', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+      
+      doc.autoTable({
+        head: [['Supplier Name', 'Drugs Count', 'Total Value (SAR)']],
+        body: reportData,
+        startY: 40,
+        styles: { font: 'helvetica', fontSize: 10 },
+        headStyles: { fillColor: [52, 152, 219] }
+      });
+      
+      doc.save('supplier-report.pdf');
+      addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير أداء الموردين بنجاح');
+    });
+    
     // Export to Excel
     $('#btnExportExcel').addEventListener('click', async () => {
       const drugsSnap = await drugsRef.once('value');
       const rxSnap = await rxRef.once('value');
+      const ordersSnap = await ordersRef.once('value');
       
       // Create workbook
       const wb = XLSX.utils.book_new();
@@ -1388,7 +1977,9 @@
           'Expiry Date': d.expiry ? fmtDate(d.expiry) : '',
           'Quantity': d.quantity || 0,
           'Price': d.price || 0,
-          'Low Threshold': d.lowThreshold || LOW_DEFAULT
+          'Low Threshold': d.lowThreshold || LOW_DEFAULT,
+          'Reorder Point': d.reorderPoint || 5,
+          'Category': d.category || 'general'
         });
       });
       
@@ -1415,6 +2006,23 @@
       const rxSheet = XLSX.utils.json_to_sheet(rxData);
       XLSX.utils.book_append_sheet(wb, rxSheet, 'Prescriptions');
       
+      // Orders sheet
+      const ordersData = [];
+      ordersSnap.forEach(ch => {
+        const o = ch.val();
+        ordersData.push({
+          'Order ID': ch.key,
+          'Supplier': o.supplierName || '',
+          'Order Date': o.orderDate ? fmtDate(o.orderDate) : '',
+          'Status': o.status || 'pending',
+          'Total Value': o.totalValue || 0,
+          'Is Auto Reorder': o.isAutoReorder ? 'Yes' : 'No'
+        });
+      });
+      
+      const ordersSheet = XLSX.utils.json_to_sheet(ordersData);
+      XLSX.utils.book_append_sheet(wb, ordersSheet, 'Orders');
+      
       // Save the file
       XLSX.writeFile(wb, 'pharmacy-data.xlsx');
       addNotification('success', 'تم التصدير', 'تم تصدير البيانات إلى ملف Excel بنجاح');
@@ -1424,6 +2032,7 @@
     $('#btnExportPdf').addEventListener('click', async () => {
       const drugsSnap = await drugsRef.once('value');
       const rxSnap = await rxRef.once('value');
+      const ordersSnap = await ordersRef.once('value');
       
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -1441,20 +2050,28 @@
       let totalDrugs = 0;
       let totalRx = 0;
       let newRx = 0;
+      let totalOrders = 0;
+      let pendingOrders = 0;
       
       drugsSnap.forEach(() => totalDrugs++);
       rxSnap.forEach(ch => {
         totalRx++;
         if (ch.val().status === 'new') newRx++;
       });
+      ordersSnap.forEach(ch => {
+        totalOrders++;
+        if (ch.val().status === 'pending') pendingOrders++;
+      });
       
       doc.text(`Total Drugs: ${totalDrugs}`, 20, 40);
       doc.text(`Total Prescriptions: ${totalRx}`, 20, 50);
       doc.text(`New Prescriptions: ${newRx}`, 20, 60);
+      doc.text(`Total Orders: ${totalOrders}`, 20, 70);
+      doc.text(`Pending Orders: ${pendingOrders}`, 20, 80);
       
       // Drugs table
       doc.setFontSize(14);
-      doc.text('Drugs Inventory', 20, 75);
+      doc.text('Drugs Inventory', 20, 95);
       
       let drugsData = [];
       drugsSnap.forEach(ch => {
@@ -1471,7 +2088,7 @@
       doc.autoTable({
         head: [['Drug Name', 'Manufacturer', 'Quantity', 'Price', 'Expiry Date']],
         body: drugsData,
-        startY: 85,
+        startY: 105,
         styles: { font: 'helvetica', fontSize: 10 },
         headStyles: { fillColor: [41, 128, 185] }
       });
@@ -1504,6 +2121,33 @@
         headStyles: { fillColor: [41, 128, 185] }
       });
       
+      // Add new page for orders
+      doc.addPage();
+      
+      // Orders table
+      doc.setFontSize(14);
+      doc.text('Orders', 20, 15);
+      
+      let ordersData = [];
+      ordersSnap.forEach(ch => {
+        const o = ch.val();
+        ordersData.push([
+          `#${ch.key.slice(-6)}`,
+          o.supplierName || '-',
+          o.orderDate ? fmtDate(o.orderDate) : '-',
+          o.status || 'pending',
+          o.totalValue ? o.totalValue.toFixed(2) : '-'
+        ]);
+      });
+      
+      doc.autoTable({
+        head: [['Order ID', 'Supplier', 'Order Date', 'Status', 'Total Value']],
+        body: ordersData,
+        startY: 25,
+        styles: { font: 'helvetica', fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] }
+      });
+      
       doc.save('pharmacy-report.pdf');
       addNotification('success', 'تم التصدير', 'تم تصدير البيانات إلى ملف PDF بنجاح');
     });
@@ -1519,11 +2163,14 @@
       const d = await drugsRef.limitToFirst(1).get();
       if(!d.exists()){
         const samples = [
-          {name:'Paracetamol 500mg', manufacturer:'GSK', batch:'PA123', expiry: addDaysISO(120), quantity: 25, lowThreshold: 10, price: 2.50, category: 'painkillers'},
-          {name:'Ibuprofen 200mg', manufacturer:'Bayer', batch:'IB420', expiry: addDaysISO(20), quantity: 8, lowThreshold: 10, price: 3.75, category: 'painkillers'},
-          {name:'Amoxicillin 500mg', manufacturer:'Pfizer', batch:'AMX77', expiry: addDaysISO(300), quantity: 50, lowThreshold: 15, price: 6.20, category: 'antibiotics'}
+          {name:'Paracetamol 500mg', manufacturer:'GSK', batch:'PA123', expiry: addDaysISO(120), quantity: 25, lowThreshold: 10, reorderPoint: 5, price: 2.50, category: 'painkillers'},
+          {name:'Ibuprofen 200mg', manufacturer:'Bayer', batch:'IB420', expiry: addDaysISO(20), quantity: 8, lowThreshold: 10, reorderPoint: 5, price: 3.75, category: 'painkillers'},
+          {name:'Amoxicillin 500mg', manufacturer:'Pfizer', batch:'AMX77', expiry: addDaysISO(300), quantity: 50, lowThreshold: 15, reorderPoint: 10, price: 6.20, category: 'antibiotics'}
         ];
-        for(const s of samples){ await drugsRef.push({...s, createdAt: Date.now()}); }
+        for(const s of samples){ 
+          const newRef = drugsRef.push();
+          await newRef.set({...s, barcode: generateBarcode(newRef.key), createdAt: Date.now()}); 
+        }
       }
       const r = await rxRef.limitToFirst(1).get();
       if(!r.exists()){
@@ -1540,6 +2187,24 @@
           {name:'المستودعات الطبية', contact:'0987654321', email:'sales@medical-warehouse.com', createdAt: Date.now()}
         ];
         for(const s of samplesSuppliers){ await suppliersRef.push(s); }
+      }
+      const o = await ordersRef.limitToFirst(1).get();
+      if(!o.exists()){
+        const samplesOrders = [
+          {
+            supplierId: 'supplier1',
+            supplierName: 'شركة الأدوية المتحدة',
+            orderDate: todayISO(),
+            status: 'pending',
+            items: [
+              {drugId: 'drug1', name: 'Paracetamol 500mg', quantity: 50, price: 2.50},
+              {drugId: 'drug2', name: 'Amoxicillin 500mg', quantity: 30, price: 6.20}
+            ],
+            totalValue: 316.00,
+            createdAt: Date.now()
+          }
+        ];
+        for(const o of samplesOrders){ await ordersRef.push(o); }
       }
     }
     
