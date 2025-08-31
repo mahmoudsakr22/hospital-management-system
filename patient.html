@@ -847,7 +847,7 @@
                         </div>
                         <div class="flex items-center gap-2 text-blue-100">
                             <i class="fas fa-user-md"></i>
-                            <span>د. أحمد محمد</span>
+                            <span id="doctorName">د. أحمد محمد</span>
                             <span>•</span>
                             <span id="currentDate"></span>
                         </div>
@@ -859,8 +859,29 @@
             </div>
         </div>
         
+        <!-- Patient Info Bar -->
+        <div class="bg-white rounded-xl shadow-md p-4 border border-blue-100">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-50 p-2 rounded-lg">
+                        <i class="fas fa-user-injured text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800" id="patientName">جاري تحميل بيانات المريض...</h3>
+                        <p class="text-sm text-gray-600" id="patientDetails">الرجاء الانتظار</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="patient-file.html?id=" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i>
+                        العودة لملف المريض
+                    </a>
+                </div>
+            </div>
+        </div>
+        
         <!-- Modal Body -->
-        <div class="overflow-y-auto" style="max-height: calc(95vh - 200px);">
+        <div class="overflow-y-auto" style="max-height: calc(95vh - 280px);">
             <form id="checkupForm">
                 <!-- Visit Type Section -->
                 <div class="form-section">
@@ -1132,32 +1153,67 @@ async function loadPatientData() {
     }
 }
 
+// Load patient and doctor data for modal
+async function loadPatientAndDoctorData() {
+    if (!validatePatientId()) return;
+    
+    try {
+        // Get patient data
+        const patientSnapshot = await get(ref(db, `patients/emergency/${patientId}`));
+        
+        if (patientSnapshot.exists()) {
+            const patient = patientSnapshot.val();
+            
+            // Update patient info in modal
+            document.getElementById('patientName').textContent = patient.name || 'مريض غير معروف';
+            document.getElementById('patientDetails').textContent = 
+                `العمر: ${patient.age || '-'} | الرقم القومي: ${patient.nid || '-'}`;
+            
+            // Get doctor name - try from patient data first, then use default
+            const doctorName = patient.doctors || patient.doctorId || "د. أحمد محمد";
+            document.getElementById('doctorName').textContent = doctorName;
+            
+            console.log("Loaded patient data:", patient);
+            console.log("Doctor name:", doctorName);
+        } else {
+            document.getElementById('patientName').textContent = 'مريض غير موجود';
+            document.getElementById('patientDetails').textContent = 'لا توجد بيانات المريض';
+        }
+    } catch (error) {
+        console.error("Error loading patient data:", error);
+        Swal.fire("خطأ", "فشل تحميل بيانات المريض: " + error.message, "error");
+    }
+}
+
 // Open medical checkup modal
 window.openCheckupModal = function() {
     if (!validatePatientId()) return;
     
-    // Reset form
-    document.getElementById('checkupForm').reset();
-    
-    // Reset medications list
-    document.getElementById('medicationsList').innerHTML = '';
-    document.getElementById('noMedications').style.display = 'block';
-    
-    // Show modal with animation
-    const modal = document.getElementById('checkupModal');
-    modal.classList.add('active');
-    
-    // Add entrance animations
-    const sections = modal.querySelectorAll('.form-section');
-    sections.forEach((section, index) => {
-        section.style.opacity = '0';
-        section.style.transform = 'translateY(20px)';
+    // Load patient and doctor data first
+    loadPatientAndDoctorData().then(() => {
+        // Reset form
+        document.getElementById('checkupForm').reset();
         
-        setTimeout(() => {
-            section.style.transition = 'all 0.5s ease';
-            section.style.opacity = '1';
-            section.style.transform = 'translateY(0)';
-        }, index * 100);
+        // Reset medications list
+        document.getElementById('medicationsList').innerHTML = '';
+        document.getElementById('noMedications').style.display = 'block';
+        
+        // Show modal with animation
+        const modal = document.getElementById('checkupModal');
+        modal.classList.add('active');
+        
+        // Add entrance animations
+        const sections = modal.querySelectorAll('.form-section');
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                section.style.transition = 'all 0.5s ease';
+                section.style.opacity = '1';
+                section.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
     });
 };
 
@@ -1264,6 +1320,9 @@ window.saveVisit = async function() {
     const diagnosis = document.getElementById('diagnosis').value;
     const treatmentPlan = document.getElementById('treatmentPlan').value;
     
+    // Get current doctor name from the header
+    const doctorName = document.getElementById('doctorName').textContent;
+    
     // Validate required fields
     if (!visitType || !symptoms || !diagnosis) {
         Swal.fire({
@@ -1316,8 +1375,8 @@ window.saveVisit = async function() {
             diagnosis,
             treatmentPlan,
             medications,
-            doctorId: "د. أحمد محمد",
-            doctorName: "أحمد محمد",
+            doctorId: doctorName,
+            doctorName: doctorName,
             date: new Date().toISOString(),
             status: "مكتمل"
         };
@@ -1330,7 +1389,7 @@ window.saveVisit = async function() {
         await update(ref(db, `patients/emergency/${patientId}`), {
             lastCheckup: new Date().toISOString(),
             serviceType: visitType,
-            lastCheckupBy: "د. أحمد محمد"
+            lastCheckupBy: doctorName
         });
         
         // Show success message
@@ -1349,7 +1408,7 @@ window.saveVisit = async function() {
         // Close modal and refresh data
         setTimeout(() => {
             closeCheckupModal();
-            loadCheckups(); // Refresh the checkups list
+            loadCheckups();
         }, 1500);
         
     } catch (error) {
@@ -1552,338 +1611,4 @@ function loadTransfers() {
                         <button onclick='updateMedicationStatus("${key}", "تم الصرف")' class="btn btn-success text-sm ml-2">
                             <i class="fas fa-check"></i>تأكيد الصرف
                         </button>
-                        <button onclick='updateMedicationStatus("${key}", "مرفوض")' class="btn btn-danger text-sm ml-2">
-                            <i class="fas fa-times"></i>رفض
-                        </button>
-                    `;
-                } else if (t.status === "تم الصرف") {
-                    actionBtns += `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">تم الصرف</span>`;
-                } else if (t.status === "مرفوض") {
-                    actionBtns += `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">مرفوض</span>`;
-                }
-                actionBtns += `<button onclick='deleteTransfer("${key}")' class="btn btn-danger text-sm ml-2">
-                    <i class="fas fa-trash"></i>
-                </button>`;
-            }
-            
-            const statusColor = {
-                "قيد الانتظار": "text-yellow-600 bg-yellow-50",
-                "تم التنفيذ": "text-green-600 bg-green-50",
-                "تم الصرف": "text-green-600 bg-green-50",
-                "مرفوض": "text-red-600 bg-red-50"
-            };
-            
-            const item = document.createElement("div");
-            item.className = "medical-record-item";
-            item.innerHTML = `
-                <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
-                    <div class="mb-2 md:mb-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-semibold text-lg">${getDepartmentIcon(t.department)} ${t.department}</span>
-                            <span class="mx-1">•</span>
-                            <span>${t.type}</span>
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            ${t.date}
-                        </div>
-                    </div>
-                    <div class="px-3 py-1 rounded-full text-sm font-medium ${statusColor[t.status] || 'text-gray-600 bg-gray-50'}">
-                        ${t.status}
-                    </div>
-                </div>
-                ${resultText}
-                <div class="mt-3 flex flex-wrap gap-2">
-                    ${actionBtns}
-                </div>
-            `;
-            list.appendChild(item);
-        });
-    });
-}
-
-// Helper function to get department icon
-function getDepartmentIcon(department) {
-    const icons = {
-        "radiology": "📡",
-        "التحاليل": "🔬",
-        "العناية المركزة": "🏥",
-        "العمليات": "🔪",
-        "الصيدلية": "💊"
-    };
-    return icons[department] || "📋";
-}
-
-// Function to update medication status
-window.updateMedicationStatus = async function(transferKey, newStatus) {
-    try {
-        showLoading("جاري تحديث الحالة...");
-        await update(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`), {
-            status: newStatus,
-            updatedAt: new Date().toISOString(),
-            processedBy: "موظف الصيدلية" // In real system: use username from authentication
-        });
-        showResult("تم!", `تم تحديث حالة الطلب إلى: ${newStatus}`);
-    } catch (error) {
-        Swal.fire("خطأ", "فشل تحديث الحالة: " + error.message, "error");
-    }
-};
-
-// Show radiology report
-window.showRadiologyReport = function(transfer) {
-    let fileHtml = '';
-    if (transfer.fileUrl) {
-        const ext = transfer.fileUrl.split('.').pop().toLowerCase();
-        if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext)) {
-            fileHtml = `<img src="${transfer.fileUrl}" alt="صورة الأشعة" style="max-width:100%;max-height:40vh;display:block;margin:10px auto;">`;
-        } else if (ext === "pdf") {
-            fileHtml = `<iframe src="${transfer.fileUrl}" style="width:100%;height:40vh;" frameborder="0"></iframe>`;
-        } else {
-            fileHtml = `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">تحميل الملف</a>`;
-        }
-    } else {
-        fileHtml = `<span class="text-gray-500">لا يوجد ملف مرفق</span>`;
-    }
-    
-    Swal.fire({
-        title: "نتيجة الأشعة",
-        html: `
-            <div class="text-right">
-                <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
-                <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
-                <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
-                <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
-                <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
-                <div class="mt-4">
-                    ${fileHtml}
-                </div>
-            </div>
-        `,
-        width: "60vw",
-        showCloseButton: true,
-        confirmButtonText: "إغلاق"
-    });
-};
-
-// FIXED: Load medical checkups with improved error handling and display
-function loadCheckups() {
-    if (!validatePatientId()) {
-        console.log("Patient ID validation failed");
-        return;
-    }
-    
-    console.log("Loading checkups for patient:", patientId);
-    
-    const checkupsList = document.getElementById("checkupsList");
-    const checkupsRef = ref(db, `patients/emergency/${patientId}/checkups`);
-    
-    // Show loading state
-    checkupsList.innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
-            <p>جاري تحميل الكشوفات الطبية...</p>
-        </div>
-    `;
-    
-    try {
-        onValue(checkupsRef, (snapshot) => {
-            console.log("Checkups snapshot received:", snapshot.exists());
-            
-            checkupsList.innerHTML = ""; // Clear loading state
-            
-            if (!snapshot.exists()) {
-                checkupsList.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-file-medical text-4xl mb-3"></i>
-                        <p class="text-lg font-medium">لا توجد كشوفات طبية مسجلة</p>
-                        <p class="text-sm">اضغط على "كشف طبي جديد" لتسجيل أول كشف</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const checkupsArray = [];
-            snapshot.forEach((child) => {
-                const checkup = child.val();
-                checkup.id = child.key; // Add the ID to the checkup object
-                checkupsArray.push(checkup);
-            });
-            
-            console.log("Found checkups:", checkupsArray.length);
-            
-            if (checkupsArray.length === 0) {
-                checkupsList.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-file-medical text-4xl mb-3"></i>
-                        <p class="text-lg font-medium">لا توجد كشوفات طبية مسجلة</p>
-                        <p class="text-sm">اضغط على "كشف طبي جديد" لتسجيل أول كشف</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Sort checkups by date (newest first)
-            checkupsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            checkupsArray.forEach((checkup) => {
-                const checkupEl = document.createElement("div");
-                checkupEl.className = "checkup-item";
-                
-                // Format date
-                const checkupDate = new Date(checkup.date);
-                const formattedDate = checkupDate.toLocaleDateString('ar-EG', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                // Build medications HTML
-                let medicationsHtml = '';
-                if (checkup.medications && checkup.medications.length > 0) {
-                    const medicationsList = checkup.medications.map((med, index) => `
-                        <div class="medication-list-item">
-                            <div class="medication-name">${index + 1}. ${med.name}</div>
-                            <div class="medication-details">
-                                <div><span class="font-medium">الجرعة:</span> ${med.dosage}</div>
-                                <div><span class="font-medium">المدة:</span> ${med.duration}</div>
-                                <div><span class="font-medium">التأمين:</span> ${med.insurance}</div>
-                                ${med.doses ? `<div><span class="font-medium">الجرعات:</span> ${med.doses}</div>` : ''}
-                                <div><span class="font-medium">التعليمات:</span> ${med.instructions}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    medicationsHtml = `
-                        <div class="checkup-section">
-                            <div class="checkup-section-title">
-                                <i class="fas fa-pills text-green-600"></i>
-                                الأدوية الموصوفة (${checkup.medications.length})
-                            </div>
-                            <div class="medications-list">
-                                ${medicationsList}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                checkupEl.innerHTML = `
-                    <div class="checkup-header-info">
-                        <div>
-                            <div class="checkup-meta">
-                                <span class="checkup-type-badge">${checkup.visitType || 'كشف'}</span>
-                                <span class="checkup-date">${formattedDate}</span>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-500">
-                            <i class="fas fa-user-md"></i> ${checkup.doctorName || checkup.doctorId || 'طبيب'}
-                        </div>
-                    </div>
-                    
-                    <div class="checkup-section">
-                        <div class="checkup-section-title">
-                            <i class="fas fa-notes-medical text-red-500"></i>
-                            الأعراض
-                        </div>
-                        <div class="checkup-section-content">${checkup.symptoms || 'لا توجد أعراض مسجلة'}</div>
-                    </div>
-                    
-                    <div class="checkup-section">
-                        <div class="checkup-section-title">
-                            <i class="fas fa-diagnoses text-purple-600"></i>
-                            التشخيص
-                        </div>
-                        <div class="checkup-section-content">${checkup.diagnosis || 'لا يوجد تشخيص مسجل'}</div>
-                    </div>
-                    
-                    <div class="checkup-section">
-                        <div class="checkup-section-title">
-                            <i class="fas fa-heartbeat text-blue-600"></i>
-                            الخطة العلاجية
-                        </div>
-                        <div class="checkup-section-content">${checkup.treatmentPlan || 'لا توجد خطة علاجية مسجلة'}</div>
-                    </div>
-                    
-                    ${medicationsHtml}
-                `;
-                
-                checkupsList.appendChild(checkupEl);
-            });
-            
-            console.log("Successfully rendered", checkupsArray.length, "checkups");
-            
-        }, (error) => {
-            console.error("Error loading checkups:", error);
-            checkupsList.innerHTML = `
-                <div class="text-center py-8 text-red-500">
-                    <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
-                    <p class="text-lg font-medium">خطأ في تحميل الكشوفات الطبية</p>
-                    <p class="text-sm">${error.message}</p>
-                </div>
-            `;
-        });
-        
-    } catch (error) {
-        console.error("Critical error in loadCheckups:", error);
-        checkupsList.innerHTML = `
-            <div class="text-center py-8 text-red-500">
-                <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
-                <p class="text-lg font-medium">خطأ غير متوقع</p>
-                <p class="text-sm">يرجى تحديث الصفحة والمحاولة مرة أخرى</p>
-            </div>
-        `;
-    }
-}
-
-// Tab switching functionality
-function showTab(tabName) {
-    // Hide all tabs
-    document.getElementById('transfersTab').classList.add('hidden');
-    document.getElementById('checkupsTab').classList.add('hidden');
-    
-    // Remove active class from all tab buttons
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Show selected tab
-    document.getElementById(tabName + 'Tab').classList.remove('hidden');
-    
-    // Add active class to clicked tab
-    event.target.classList.add('active');
-    
-    // Load data for the selected tab
-    if (tabName === 'checkups') {
-        loadCheckups();
-    }
-}
-
-// Add keyboard shortcut for save (Ctrl+S)
-document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        if (document.getElementById('checkupModal').classList.contains('active')) {
-            saveVisit();
-        }
-    }
-});
-
-// Load data when page opens
-if (patientId) {
-    console.log("Page loaded with patient ID:", patientId);
-    loadPatientData();
-    loadTransfers();
-    loadCheckups(); // Initial load of checkups
-} else {
-    console.error("No patient ID found in URL");
-    Swal.fire("خطأ", "معرف المريض غير موجود في الرابط", "error");
-}
-
-// Link monitor button
-const monitorBtn = document.getElementById('monitorBtn');
-if (monitorBtn && patientId) {
-    monitorBtn.href = `monitor.html?id=${patientId}`;
-}
-</script>
-</body>
-</html>
+                        <button onclick='updateMedicationStatus("${key}", "مرفوض")
