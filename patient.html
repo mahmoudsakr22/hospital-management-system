@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             font-family: 'Tajawal', sans-serif;
@@ -29,6 +29,8 @@
             --danger: #dc2626;
             --light: #f1f5f9;
             --dark: #0f172a;
+            --accent: #667eea;
+            --accent-light: #a78bfa;
         }
         
         /* Modern Card Styles */
@@ -225,16 +227,16 @@
             border-bottom-color: var(--primary);
         }
         
-        /* Professional Checkup Form Styles - Enhanced */
+        /* Enhanced Checkup Form Styles */
         .checkup-form-container {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
         .checkup-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
             border-radius: 16px 16px 0 0;
-            padding: 2rem;
+            padding: 2.5rem;
             position: relative;
             overflow: hidden;
         }
@@ -256,9 +258,9 @@
         }
         
         .form-section {
-            padding: 2rem;
+            padding: 2.5rem;
             border-bottom: 1px solid #e2e8f0;
-            transition: background-color 0.2s ease;
+            transition: all 0.3s ease;
             background: white;
         }
         
@@ -267,66 +269,76 @@
         }
         
         .form-section:hover {
-            background-color: #fafbfc;
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
         }
         
         .section-header {
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 3px solid var(--accent-light);
         }
         
         .section-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
             color: white;
-            border-radius: 12px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            box-shadow: 0 4px 6px rgba(3, 105, 161, 0.3);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .section-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
         }
         
         .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1e293b;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
         
         .form-label {
             display: block;
-            font-weight: 600;
-            color: #1e293b;
+            font-weight: 700;
+            color: var(--text-primary);
             margin-bottom: 0.75rem;
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
         
         .form-textarea, .form-select {
             width: 100%;
             padding: 1rem 1.25rem;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 15px;
             background: white;
-            color: #1e293b;
+            color: var(--text-primary);
             font-size: 1rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
         
         .form-textarea:focus, .form-select:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
-            transform: translateY(-1px);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
         }
         
         .form-textarea {
@@ -334,88 +346,167 @@
             min-height: 120px;
         }
         
-        /* Medication Item Styles - Enhanced */
+        /* Enhanced Medication Item Styles */
         .medication-item {
-            background: #f8fafc;
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
             border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
             position: relative;
             transition: all 0.3s ease;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
         }
         
         .medication-item:hover {
-            border-color: #cbd5e1;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
         }
         
         .medication-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 2px solid #e2e8f0;
         }
         
         .medication-title {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent);
+            font-size: 1.3rem;
         }
         
         .remove-medication {
             background: var(--danger);
             color: white;
             border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
         }
         
         .remove-medication:hover {
-            background: #b91c1c;
+            background: #c53030;
             transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(229, 62, 62, 0.3);
         }
         
         .medication-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
         }
         
-        /* Save Button Styles - Enhanced */
-        .save-section {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        /* Enhanced Medications Container */
+        .medications-container {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            border-radius: 20px;
             padding: 2.5rem;
+            border: 3px dashed #e2e8f0;
+            margin-top: 2rem;
+        }
+        
+        .medications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .medications-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        /* Enhanced Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #718096;
+            background: white;
+            border-radius: 15px;
+            border: 2px dashed #e2e8f0;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--accent-light);
+            margin-bottom: 1.5rem;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Enhanced Save Section */
+        .save-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 3rem;
             border-radius: 0 0 16px 16px;
             margin-top: 0;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
+        .save-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .save-info {
+            color: white;
+            flex: 1;
+        }
+        
+        .save-info h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .save-info p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        /* Enhanced Save Button */
         .save-btn {
-            background: linear-gradient(135deg, var(--success), #10b981);
+            background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
             color: white;
             padding: 1.5rem 4rem;
-            border-radius: 16px;
-            font-weight: 800;
-            font-size: 1.25rem;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 1.3rem;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 1rem;
-            box-shadow: 0 10px 25px rgba(5, 150, 105, 0.4);
+            box-shadow: 0 12px 24px rgba(56, 161, 105, 0.4);
             position: relative;
             overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .save-btn::before {
@@ -426,7 +517,7 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.6s;
+            transition: left 0.8s;
         }
         
         .save-btn:hover::before {
@@ -434,55 +525,42 @@
         }
         
         .save-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(5, 150, 105, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(56, 161, 105, 0.5);
         }
         
         .save-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
         
         .save-btn i {
-            font-size: 1.75rem;
+            font-size: 2rem;
         }
         
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #64748b;
+        /* Enhanced Add Medication Button */
+        .add-medication-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
         }
         
-        .empty-state i {
-            font-size: 3rem;
-            color: #cbd5e1;
-            margin-bottom: 1rem;
+        .add-medication-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
         }
         
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Success Animation */
-        @keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .success-animation {
-            animation: successPulse 0.6s ease-in-out;
+        .add-medication-btn i {
+            font-size: 1.2rem;
         }
         
         /* Checkup Display Styles */
@@ -581,10 +659,36 @@
             color: #6b7280;
         }
         
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Success Animation */
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .success-animation {
+            animation: successPulse 0.6s ease-in-out;
+        }
+        
         /* Required field indicator */
         .required::after {
             content: " *";
-            color: #dc2626;
+            color: var(--danger);
             font-weight: bold;
         }
         
@@ -604,8 +708,35 @@
                 max-height: 98vh;
             }
             
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .section-header {
+                margin-bottom: 1.5rem;
+            }
+            
+            .section-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+            
+            .save-section {
+                padding: 2rem;
+            }
+            
+            .save-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
             .save-btn {
-                padding: 1.25rem 2rem;
+                padding: 1.2rem 3rem;
                 font-size: 1.1rem;
                 width: 100%;
                 justify-content: center;
@@ -624,23 +755,14 @@
                 grid-template-columns: 1fr;
             }
             
-            .form-section {
-                padding: 1.5rem;
+            .medications-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
             }
             
-            .section-header {
-                margin-bottom: 1rem;
-                padding-bottom: 0.75rem;
-            }
-            
-            .section-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.25rem;
-            }
-            
-            .section-title {
-                font-size: 1.1rem;
+            .add-medication-btn {
+                justify-content: center;
             }
         }
     </style>
@@ -850,7 +972,7 @@
         </div>
     </div>
 </div>
-<!-- Professional Medical Checkup Modal - Enhanced -->
+<!-- Enhanced Medical Checkup Modal -->
 <div id="checkupModal" class="modal checkup-form-container">
     <div class="modal-content">
         <!-- Modal Header -->
@@ -858,20 +980,20 @@
             <div class="relative z-10">
                 <div class="flex justify-between items-start">
                     <div>
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                                <i class="fas fa-stethoscope text-3xl"></i>
+                        <div class="flex items-center gap-6 mb-4">
+                            <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-sm">
+                                <i class="fas fa-stethoscope text-4xl"></i>
                             </div>
                             <div>
-                                <h1 class="text-3xl font-bold mb-1">كشف طبي جديد</h1>
-                                <p class="text-blue-100 text-lg">تسجيل بيانات الكشف الطبي للمريض</p>
+                                <h1 class="text-4xl font-black mb-2">كشف طبي جديد</h1>
+                                <p class="text-purple-100 text-xl">تسجيل بيانات الكشف الطبي للمريض</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 text-blue-100">
-                            <i class="fas fa-user-md"></i>
-                            <span>د. أحمد محمد</span>
-                            <span>•</span>
-                            <span id="currentDate"></span>
+                        <div class="flex items-center gap-3 text-purple-100 text-lg">
+                            <i class="fas fa-user-md text-2xl"></i>
+                            <span class="font-semibold">د. أحمد محمد</span>
+                            <span class="text-2xl">•</span>
+                            <span id="currentDate" class="font-medium"></span>
                         </div>
                     </div>
                     <button onclick="closeCheckupModal()" class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors">
@@ -944,18 +1066,18 @@
                     
                     <div class="form-group mb-6">
                         <label class="form-label">الخطة العلاجية العامة</label>
-                        <textarea id="treatmentPlan" class="form-textarea" placeholder="الخطة العلاجية العامة والتوصيات..." rows="3"></textarea>
+                        <textarea id="treatmentPlan" class="form-textarea" placeholder="الخطة العلاجية العامة والتوصيات..." rows="4"></textarea>
                     </div>
                     
-                    <!-- Medications Section -->
-                    <div class="bg-gray-50 rounded-xl p-6 border-2 border-dashed border-gray-200">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="font-semibold text-gray-800 flex items-center gap-2 text-lg">
+                    <!-- Enhanced Medications Section -->
+                    <div class="medications-container">
+                        <div class="medications-header">
+                            <h3 class="medications-title">
                                 <i class="fas fa-prescription-bottle text-green-600"></i>
                                 الأدوية الموصوفة
                             </h3>
-                            <button type="button" onclick="addMedication()" class="btn btn-success">
-                                <i class="fas fa-plus"></i>
+                            <button type="button" onclick="addMedication()" class="add-medication-btn">
+                                <i class="fas fa-plus-circle"></i>
                                 إضافة دواء
                             </button>
                         </div>
@@ -966,23 +1088,23 @@
                         
                         <div id="noMedications" class="empty-state">
                             <i class="fas fa-pills"></i>
-                            <p class="font-medium text-lg">لا توجد أدوية مضافة</p>
-                            <p class="text-sm">اضغط على زر "إضافة دواء" لبدء إضافة الأدوية</p>
+                            <p class="font-semibold text-lg">لا توجد أدوية مضافة</p>
+                            <p class="text-base">اضغط على زر "إضافة دواء" لبدء إضافة الأدوية</p>
                         </div>
                     </div>
                 </div>
             </form>
         </div>
         
-        <!-- Save Section -->
+        <!-- Enhanced Save Section -->
         <div class="save-section">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="text-gray-600">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="fas fa-info-circle text-blue-500"></i>
-                        <span class="font-medium">تأكد من ملء جميع الحقول المطلوبة قبل الحفظ</span>
-                    </div>
-                    <p class="text-sm">سيتم حفظ الكشف الطبي في ملف المريض</p>
+            <div class="save-content">
+                <div class="save-info">
+                    <h3>
+                        <i class="fas fa-info-circle"></i>
+                        تأكد من ملء جميع الحقول المطلوبة
+                    </h3>
+                    <p>سيتم حفظ الكشف الطبي في ملف المريض بعد التأكد من صحة البيانات</p>
                 </div>
                 <button onclick="saveVisit()" class="save-btn">
                     <i class="fas fa-save"></i>
@@ -1165,13 +1287,13 @@ window.openCheckupModal = function() {
     const sections = modal.querySelectorAll('.form-section');
     sections.forEach((section, index) => {
         section.style.opacity = '0';
-        section.style.transform = 'translateY(20px)';
+        section.style.transform = 'translateY(30px)';
         
         setTimeout(() => {
-            section.style.transition = 'all 0.5s ease';
+            section.style.transition = 'all 0.6s ease';
             section.style.opacity = '1';
             section.style.transform = 'translateY(0)';
-        }, index * 100);
+        }, index * 150);
     });
 };
 // Close medical checkup modal
@@ -1238,9 +1360,9 @@ window.addMedication = function() {
     
     // Add animation
     medicationItem.style.opacity = '0';
-    medicationItem.style.transform = 'translateY(20px)';
+    medicationItem.style.transform = 'translateY(30px)';
     setTimeout(() => {
-        medicationItem.style.transition = 'all 0.3s ease';
+        medicationItem.style.transition = 'all 0.5s ease';
         medicationItem.style.opacity = '1';
         medicationItem.style.transform = 'translateY(0)';
     }, 10);
@@ -1251,7 +1373,7 @@ window.removeMedication = function(medicationId) {
     if (medicationItem) {
         medicationItem.style.transition = 'all 0.3s ease';
         medicationItem.style.opacity = '0';
-        medicationItem.style.transform = 'translateX(-20px)';
+        medicationItem.style.transform = 'translateX(-30px)';
         
         setTimeout(() => {
             medicationItem.remove();
@@ -1666,7 +1788,7 @@ window.showRadiologyReport = function(transfer) {
         confirmButtonText: "إغلاق"
     });
 };
-// FIXED: Load medical checkups with improved error handling and display
+// Load medical checkups with improved error handling and display
 function loadCheckups() {
     if (!validatePatientId()) {
         console.log("Patient ID validation failed");
