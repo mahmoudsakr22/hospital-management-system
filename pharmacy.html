@@ -1055,7 +1055,7 @@
           focusConfirm: false,
           confirmButtonText: 'حفظ',
           showCancelButton: true,
-          didOpen:()=>{
+          didOpen: ()=>{
             // ensure rtl
           },
           preConfirm: () => {
@@ -1180,260 +1180,74 @@
     $('#filterRx').addEventListener('change', ()=> rxRef.once('value', (s)=>applyRxFilters(s)));
     $('#searchRx').addEventListener('input', ()=> rxRef.once('value', (s)=>applyRxFilters(s)));
     
-    // دالة إنشاء الفاتورة
-    async function generateInvoice(prescription, unitPrice, quantity, totalPrice) {
-      // Create invoice HTML
-      const invoiceHtml = `
-        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #f9f9f9; border-radius: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #1e293b; padding-bottom: 15px;">
-            <div>
-              <h1 style="margin: 0; color: #1e293b; font-size: 24px;">فاتورة صرف أدوية</h1>
-              <p style="margin: 5px 0 0 0; color: #64748b;">مستشفى الحياة الذكية</p>
-              <p style="margin: 0; color: #64748b;">قسم الصيدلية</p>
-            </div>
-            <div style="text-align: left;">
-              <p style="margin: 0; color: #64748b;">التاريخ: ${new Date().toLocaleDateString('ar-EG')}</p>
-              <p style="margin: 5px 0 0 0; color: #64748b;">الوقت: ${new Date().toLocaleTimeString('ar-EG')}</p>
-              <p style="margin: 5px 0 0 0; color: #64748b; font-weight: bold;">كود التعديل: ${prescription.patientId || 'N/A'}</p>
-            </div>
-          </div>
-          
-          <div style="margin-bottom: 20px;">
-            <h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 18px;">بيانات المريض</h2>
-            <p style="margin: 5px 0;"><strong>الاسم:</strong> ${prescription.patientName || '-'}</p>
-            <p style="margin: 5px 0;"><strong>الرقم:</strong> ${prescription.patientId || '-'}</p>
-            <p style="margin: 5px 0;"><strong>نوع التأمين:</strong> ${prescription.insuranceCovered ? prescription.insurer || 'مؤمن عليه' : 'غير مؤمن عليه'}</p>
-          </div>
-          
-          <div style="margin-bottom: 20px;">
-            <h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 18px;">تفاصيل الأدوية</h2>
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background-color: #1e293b; color: white;">
-                  <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">الدواء</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">الجرعة</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">المدة</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">الكمية</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">السعر</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">الإجمالي</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${prescription.drugName || '-'}</td>
-                  <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${prescription.dose || '-'}</td>
-                  <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${prescription.duration || '-'}</td>
-                  <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${quantity}</td>
-                  <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${unitPrice.toFixed(2)} ريال</td>
-                  <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${totalPrice.toFixed(2)} ريال</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <div style="display: flex; justify-content: space-between; margin-top: 30px; padding-top: 15px; border-top: 2px solid #1e293b;">
-            <div>
-              <p style="margin: 0; color: #64748b;">الموظف: موظف الصيدلية</p>
-              <p style="margin: 5px 0 0 0; color: #64748b;">التوقيع: _________________</p>
-            </div>
-            <div style="text-align: left;">
-              <p style="margin: 0; font-size: 18px; font-weight: bold;">الإجمالي: ${totalPrice.toFixed(2)} ريال</p>
-              <p style="margin: 5px 0 0 0; color: #64748b;">شامل الضريبة إن وجدت</p>
-            </div>
-          </div>
-          
-          <div style="margin-top: 30px; text-align: center; color: #64748b; font-size: 12px;">
-            <p>مستشفى الحياة الذكية - قسم الصيدلية - جميع الحقوق محفوظة</p>
-            <p>هاتف: 1234567890 - البريد الإلكتروني: pharmacy@smartlife-hospital.com</p>
-          </div>
-        </div>
-      `;
-      
-      // Show invoice in a new window for printing
-      const invoiceWindow = window.open('', '_blank');
-      invoiceWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>فاتورة صرف أدوية - مستشفى الحياة الذكية</title>
-          <meta charset="UTF-8">
-          <style>
-            @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          ${invoiceHtml}
-          <div class="no-print" style="text-align: center; margin-top: 20px;">
-            <button onclick="window.print()" style="padding: 10px 20px; background-color: #1e293b; color: white; border: none; border-radius: 4px; cursor: pointer;">طباعة الفاتورة</button>
-            <button onclick="window.close()" style="padding: 10px 20px; background-color: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">إغلاق</button>
-          </div>
-        </body>
-        </html>
-      `);
-      invoiceWindow.document.close();
-    }
-    
-    // دالة لمعالجة وصفات متعددة في فاتورة واحدة
-    async function generateMultiplePrescriptionsInvoice(prescriptions, patientInfo) {
-      let totalAmount = 0;
-      let drugsList = '';
-      
-      // Calculate total and prepare drugs list
-      prescriptions.forEach(prescription => {
-        const drugTotal = Number(prescription.totalPrice || 0);
-        totalAmount += drugTotal;
-        
-        drugsList += `
-          <tr>
-            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${prescription.drugName || '-'}</td>
-            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${prescription.dose || '-'}</td>
-            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${prescription.duration || '-'}</td>
-            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${prescription.quantityNeeded || 1}</td>
-            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${Number(prescription.price || 0).toFixed(2)} ريال</td>
-            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${drugTotal.toFixed(2)} ريال</td>
-          </tr>
-        `;
-      });
-      
-      // Create invoice HTML
-      const invoiceHtml = `
-        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #f9f9f9; border-radius: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #1e293b; padding-bottom: 15px;">
-            <div>
-              <h1 style="margin: 0; color: #1e293b; font-size: 24px;">فاتورة صرف أدوية</h1>
-              <p style="margin: 5px 0 0 0; color: #64748b;">مستشفى الحياة الذكية</p>
-              <p style="margin: 0; color: #64748b;">قسم الصيدلية</p>
-            </div>
-            <div style="text-align: left;">
-              <p style="margin: 0; color: #64748b;">التاريخ: ${new Date().toLocaleDateString('ar-EG')}</p>
-              <p style="margin: 5px 0 0 0; color: #64748b;">الوقت: ${new Date().toLocaleTimeString('ar-EG')}</p>
-              <p style="margin: 5px 0 0 0; color: #64748b; font-weight: bold;">كود التعديل: ${patientInfo.id || 'N/A'}</p>
-            </div>
-          </div>
-          
-          <div style="margin-bottom: 20px;">
-            <h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 18px;">بيانات المريض</h2>
-            <p style="margin: 5px 0;"><strong>الاسم:</strong> ${patientInfo.name || '-'}</p>
-            <p style="margin: 5px 0;"><strong>الرقم:</strong> ${patientInfo.id || '-'}</p>
-            <p style="margin: 5px 0;"><strong>نوع التأمين:</strong> ${patientInfo.insuranceCovered ? patientInfo.insurer || 'مؤمن عليه' : 'غير مؤمن عليه'}</p>
-          </div>
-          
-          <div style="margin-bottom: 20px;">
-            <h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 18px;">تفاصيل الأدوية</h2>
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background-color: #1e293b; color: white;">
-                  <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">الدواء</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">الجرعة</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">المدة</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">الكمية</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">السعر</th>
-                  <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">الإجمالي</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${drugsList}
-              </tbody>
-            </table>
-          </div>
-          
-          <div style="display: flex; justify-content: space-between; margin-top: 30px; padding-top: 15px; border-top: 2px solid #1e293b;">
-            <div>
-              <p style="margin: 0; color: #64748b;">الموظف: موظف الصيدلية</p>
-              <p style="margin: 5px 0 0 0; color: #64748b;">التوقيع: _________________</p>
-            </div>
-            <div style="text-align: left;">
-              <p style="margin: 0; font-size: 18px; font-weight: bold;">الإجمالي: ${totalAmount.toFixed(2)} ريال</p>
-              <p style="margin: 5px 0 0 0; color: #64748b;">شامل الضريبة إن وجدت</p>
-            </div>
-          </div>
-          
-          <div style="margin-top: 30px; text-align: center; color: #64748b; font-size: 12px;">
-            <p>مستشفى الحياة الذكية - قسم الصيدلية - جميع الحقوق محفوظة</p>
-            <p>هاتف: 1234567890 - البريد الإلكتروني: pharmacy@smartlife-hospital.com</p>
-          </div>
-        </div>
-      `;
-      
-      // Show invoice in a new window for printing
-      const invoiceWindow = window.open('', '_blank');
-      invoiceWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>فاتورة صرف أدوية - مستشفى الحياة الذكية</title>
-          <meta charset="UTF-8">
-          <style>
-            @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          ${invoiceHtml}
-          <div class="no-print" style="text-align: center; margin-top: 20px;">
-            <button onclick="window.print()" style="padding: 10px 20px; background-color: #1e293b; color: white; border: none; border-radius: 4px; cursor: pointer;">طباعة الفاتورة</button>
-            <button onclick="window.close()" style="padding: 10px 20px; background-color: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">إغلاق</button>
-          </div>
-        </body>
-        </html>
-      `);
-      invoiceWindow.document.close();
-    }
-    
     tbodyRx.addEventListener('click', async (e)=>{
       const tr = e.target.closest('tr[data-key]');
       if(!tr) return;
       const key = tr.getAttribute('data-key');
       const snap = await rxRef.child(key).get();
       const p = snap.val();
+      
       if(e.target.classList.contains('rx-done')){
-        // If insurance not covered, warn
-        if(p.insuranceCovered === false){
-          const ok = await Swal.fire({icon:'warning', title:'انتباه', text:'المريض غير مغطى بالتأمين لهذه الوصفة. هل تريد المتابعة؟', showCancelButton:true});
-          if(!ok.isConfirmed) return;
+        // جلب بيانات الوصفة
+        const prescriptionData = {
+          patientName: p.patientName,
+          patientId: p.patientId,
+          drugName: p.drugName,
+          dose: p.dose,
+          duration: p.duration,
+          insuranceCovered: p.insuranceCovered,
+          insurer: p.insurer,
+          status: p.status,
+          quantityNeeded: p.quantityNeeded || 1
+        };
+        
+        // جلب سعر الدواء من المخزون
+        let drugPrice = 0;
+        try {
+          const drugSnap = await drugsRef.orderByChild('name').equalTo(p.drugName).limitToFirst(1).get();
+          if (drugSnap.exists()) {
+            const drugData = Object.values(drugSnap.val())[0];
+            drugPrice = Number(drugData.price || 0);
+          }
+        } catch (error) {
+          console.error('Error fetching drug price:', error);
         }
         
-        // Get drug price from inventory
-        let drugPrice = 0;
-        const drugSnap = await drugsRef.orderByChild('name').equalTo(p.drugName).limitToFirst(1).get();
-        if(drugSnap.exists()){
-          const dKey = Object.keys(drugSnap.val())[0];
-          const dVal = drugSnap.val()[dKey];
-          drugPrice = Number(dVal.price || 0);
+        // حساب الإجمالي
+        const quantity = Number(p.quantityNeeded || 1);
+        const totalPrice = drugPrice * quantity;
+        
+        // عرض نافذة تأكيد مع تفاصيل الأسعار
+        const { value: confirm } = await Swal.fire({
+          title: 'تأكيد صرف الدواء',
+          html: `
+            <div style="text-align: right; direction: rtl;">
+              <p><strong>المريض:</strong> ${p.patientName}</p>
+              <p><strong>الدواء:</strong> ${p.drugName}</p>
+              <p><strong>الكمية:</strong> ${quantity}</p>
+              <p><strong>سعر الوحدة:</strong> ${drugPrice.toFixed(2)} ريال</p>
+              <p><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ريال</p>
+              ${p.insuranceCovered === false ? '<p class="text-amber-300">المريض غير مغطى بالتأمين</p>' : ''}
+            </div>
+          `,
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: 'تأكيد الصرف',
+          cancelButtonText: 'إلغاء'
+        });
+        
+        if (confirm) {
+          // If insurance not covered, warn (already handled above)
           
-          const cur = Number(dVal.quantity||0);
-          const need = Number(p.quantityNeeded||1);
-          if(cur >= need){
-            // Calculate total price
-            const totalPrice = drugPrice * need;
-            
-            // Show invoice confirmation
-            const { value: confirmDispense } = await Swal.fire({
-              title: 'تأكيد صرف الدواء',
-              html: `
-                <div style="text-align: right">
-                  <p><strong>الدواء:</strong> ${p.drugName}</p>
-                  <p><strong>الكمية:</strong> ${need}</p>
-                  <p><strong>السعر للوحدة:</strong> ${drugPrice.toFixed(2)} ريال</p>
-                  <p><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ريال</p>
-                </div>
-              `,
-              icon: 'question',
-              showCancelButton: true,
-              confirmButtonText: 'صرف الدواء وطباعة الفاتورة',
-              cancelButtonText: 'إلغاء'
-            });
-            
-            if(confirmDispense) {
-              // Update inventory
+          // reduce stock if available
+          const drugSnap = await drugsRef.orderByChild('name').equalTo(p.drugName).limitToFirst(1).get();
+          if(drugSnap.exists()){
+            const dKey = Object.keys(drugSnap.val())[0];
+            const dVal = drugSnap.val()[dKey];
+            const cur = Number(dVal.quantity||0);
+            const need = Number(p.quantityNeeded||1);
+            if(cur >= need){
               await drugsRef.child(dKey).update({quantity: cur - need});
-              
-              // Update prescription status
               await rxRef.child(key).update({
                 status:'dispensed', 
                 dispensedAt: Date.now(),
@@ -1441,21 +1255,37 @@
                 totalPrice: totalPrice
               });
               
-              // Generate and show invoice
-              await generateInvoice(p, drugPrice, need, totalPrice);
+              // إنشاء الفاتورة
+              const invoiceData = {
+                patientName: p.patientName,
+                patientId: p.patientId,
+                items: [{
+                  name: p.drugName,
+                  quantity: quantity,
+                  unitPrice: drugPrice,
+                  totalPrice: totalPrice
+                }],
+                totalAmount: totalPrice,
+                date: new Date().toISOString(),
+                hospitalName: 'مستشفى الحياة الذكية',
+                hospitalContact: '0123456789',
+                hospitalAddress: 'الرياض، المملكة العربية السعودية'
+              };
               
-              Swal.fire({icon:'success', title:'تم صرف الوصفة وطباعة الفاتورة'});
-              addNotification('success', 'تم الصرف', `تم صرف وصفة ${p.drugName} للمريض ${p.patientName} وتم إصدار الفاتورة`);
+              generateInvoice(invoiceData);
+              
+              Swal.fire({icon:'success', title:'تم صرف الوصفة'});
+              addNotification('success', 'تم الصرف', `تم صرف وصفة ${p.drugName} للمريض ${p.patientName}`);
+            } else {
+              await rxRef.child(key).update({status:'unavailable'});
+              Swal.fire({icon:'error', title:'الكمية غير كافية في المخزون'});
+              addNotification('error', 'نقص المخزون', `الكمية المتوفرة من ${p.drugName} غير كافية`);
             }
           } else {
             await rxRef.child(key).update({status:'unavailable'});
-            Swal.fire({icon:'error', title:'الكمية غير كافية في المخزون'});
-            addNotification('error', 'نقص المخزون', `الكمية المتوفرة من ${p.drugName} غير كافية`);
+            Swal.fire({icon:'error', title:'لم يتم العثور على الدواء في المخزون'});
+            addNotification('error', 'دواء غير متوفر', `${p.drugName} غير متوفر في المخزون`);
           }
-        } else {
-          await rxRef.child(key).update({status:'unavailable'});
-          Swal.fire({icon:'error', title:'لم يتم العثور على الدواء في المخزون'});
-          addNotification('error', 'دواء غير متوفر', `${p.drugName} غير متوفر في المخزون`);
         }
       } else if(e.target.classList.contains('rx-na')){
         await rxRef.child(key).update({status:'unavailable'});
@@ -1472,7 +1302,7 @@
         // Suggest substitutes
         const subs = await findSubstitutes(p.drugName);
         if(subs.length===0) return Swal.fire({icon:'info', title:'لا توجد بدائل مقترحة'});
-        const list = subs.map(s => `<div class="p-2 border-b border-white/5"><b>${esc(s.name)}</b> — الكمية: ${s.quantity||0}</div>`).join('');
+        const list = subs.map(s => `<div class="p-2 border-b border-white/5"><b>${esc(s.name)}</b> — الكمية: ${s.quantity||0} — السعر: ${Number(s.price||0).toFixed(2)} ريال</div>`).join('');
         Swal.fire({
           title: 'بدائل مقترحة',
           html: `<div style="text-align:right">${list}</div>`,
@@ -1485,6 +1315,37 @@
             const chosen = subs[0];
             // update prescription drugName to substitute and mark dispensed if quantity ok
             await rxRef.child(key).update({drugName: chosen.name});
+            
+            // جلب سعر الدواء البديل
+            const drugPrice = Number(chosen.price || 0);
+            const quantity = Number(p.quantityNeeded || 1);
+            const totalPrice = drugPrice * quantity;
+            
+            // تحديث الوصفة بالسعر الجديد
+            await rxRef.child(key).update({
+              price: drugPrice,
+              totalPrice: totalPrice
+            });
+            
+            // إنشاء الفاتورة
+            const invoiceData = {
+              patientName: p.patientName,
+              patientId: p.patientId,
+              items: [{
+                name: chosen.name,
+                quantity: quantity,
+                unitPrice: drugPrice,
+                totalPrice: totalPrice
+              }],
+              totalAmount: totalPrice,
+              date: new Date().toISOString(),
+              hospitalName: 'مستشفى الحياة الذكية',
+              hospitalContact: '0123456789',
+              hospitalAddress: 'الرياض، المملكة العربية السعودية'
+            };
+            
+            generateInvoice(invoiceData);
+            
             Swal.fire({icon:'success', title:'تم تعيين البديل'});
             addNotification('success', 'تم تعيين بديل', `تم تعيين ${chosen.name} كبديل لـ ${p.drugName}`);
             // refresh list
@@ -2815,6 +2676,255 @@
     });
     
     // =============================
+    // Invoice Generation Functions
+    // =============================
+    
+    function generateInvoice(data) {
+      // إنشاء محتوى الفاتورة
+      const invoiceContent = `
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>فاتورة - ${data.hospitalName}</title>
+          <style>
+            body {
+              font-family: 'Tahoma', Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              background-color: #f5f5f5;
+              color: #333;
+            }
+            .invoice-container {
+              max-width: 800px;
+              margin: 0 auto;
+              background-color: white;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .invoice-header {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #eee;
+              padding-bottom: 20px;
+            }
+            .invoice-title {
+              font-size: 24px;
+              font-weight: bold;
+              color: #2c3e50;
+            }
+            .invoice-info {
+              text-align: left;
+            }
+            .invoice-info div {
+              margin-bottom: 5px;
+            }
+            .invoice-details {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 30px;
+            }
+            .patient-info, .hospital-info {
+              width: 48%;
+            }
+            .patient-info h3, .hospital-info h3 {
+              margin-bottom: 10px;
+              color: #2c3e50;
+              border-bottom: 1px solid #eee;
+              padding-bottom: 5px;
+            }
+            .invoice-items {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 30px;
+            }
+            .invoice-items th, .invoice-items td {
+              border: 1px solid #ddd;
+              padding: 12px;
+              text-align: right;
+            }
+            .invoice-items th {
+              background-color: #f2f2f2;
+              font-weight: bold;
+            }
+            .invoice-total {
+              text-align: left;
+              margin-top: 20px;
+            }
+            .invoice-total table {
+              width: 300px;
+              border-collapse: collapse;
+              float: left;
+            }
+            .invoice-total td {
+              padding: 8px;
+              border: none;
+            }
+            .invoice-total .total-row {
+              border-top: 2px solid #ddd;
+              font-weight: bold;
+              font-size: 18px;
+            }
+            .invoice-footer {
+              margin-top: 50px;
+              text-align: center;
+              color: #777;
+              font-size: 14px;
+            }
+            .barcode {
+              margin: 20px 0;
+              text-align: center;
+            }
+            .qr-code {
+              text-align: center;
+              margin: 20px 0;
+            }
+            @media print {
+              body {
+                background-color: white;
+                padding: 0;
+              }
+              .invoice-container {
+                box-shadow: none;
+                padding: 20px;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="invoice-container">
+            <div class="invoice-header">
+              <div class="invoice-title">فاتورة</div>
+              <div class="invoice-info">
+                <div><strong>التاريخ:</strong> ${new Date(data.date).toLocaleDateString('ar-EG')}</div>
+                <div><strong>الوقت:</strong> ${new Date(data.date).toLocaleTimeString('ar-EG')}</div>
+                <div><strong>الرقم المرجعي:</strong> #${data.patientId}-${Date.now().toString().slice(-6)}</div>
+              </div>
+            </div>
+            
+            <div class="invoice-details">
+              <div class="patient-info">
+                <h3>بيانات المريض</h3>
+                <div><strong>الاسم:</strong> ${data.patientName}</div>
+                <div><strong>الرقم:</strong> ${data.patientId}</div>
+              </div>
+              <div class="hospital-info">
+                <h3>بيانات المستشفى</h3>
+                <div><strong>المستشفى:</strong> ${data.hospitalName}</div>
+                <div><strong>الهاتف:</strong> ${data.hospitalContact}</div>
+                <div><strong>العنوان:</strong> ${data.hospitalAddress}</div>
+              </div>
+            </div>
+            
+            <table class="invoice-items">
+              <thead>
+                <tr>
+                  <th>الوصف</th>
+                  <th>الكمية</th>
+                  <th>السعر</th>
+                  <th>الإجمالي</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.items.map(item => `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.unitPrice.toFixed(2)} ريال</td>
+                    <td>${item.totalPrice.toFixed(2)} ريال</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <div class="invoice-total">
+              <table>
+                <tr>
+                  <td>المجموع:</td>
+                  <td>${data.items.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)} ريال</td>
+                </tr>
+                <tr>
+                  <td>الضريبة (0%):</td>
+                  <td>0.00 ريال</td>
+                </tr>
+                <tr class="total-row">
+                  <td>الإجمالي:</td>
+                  <td>${data.totalAmount.toFixed(2)} ريال</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="barcode">
+              <!-- يمكن إضافة الباركود هنا -->
+              <div style="font-family: monospace; font-size: 18px; margin: 10px 0;">
+                ${data.patientId}-${Date.now().toString().slice(-6)}
+              </div>
+            </div>
+            
+            <div class="qr-code">
+              <!-- يمكن إضافة رمز QR هنا -->
+            </div>
+            
+            <div class="invoice-footer">
+              <p>شكراً لثقتكم بـ ${data.hospitalName}</p>
+              <p>هذه الفاتورة تم إنشاؤها إلكترونياً ولا تتطلب توقيعاً</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // فتح الفاتورة في نافذة جديدة
+      const invoiceWindow = window.open('', '_blank');
+      invoiceWindow.document.write(invoiceContent);
+      invoiceWindow.document.close();
+      
+      // طباعة الفاتورة تلقائياً
+      setTimeout(() => {
+        invoiceWindow.print();
+      }, 500);
+    }
+    
+    function generateMultiplePrescriptionsInvoice(prescriptions) {
+      // تجميع الأدوية
+      const items = [];
+      let totalAmount = 0;
+      
+      prescriptions.forEach(prescription => {
+        const quantity = Number(prescription.quantityNeeded || 1);
+        const unitPrice = Number(prescription.price || 0);
+        const totalPrice = unitPrice * quantity;
+        
+        items.push({
+          name: prescription.drugName,
+          quantity: quantity,
+          unitPrice: unitPrice,
+          totalPrice: totalPrice
+        });
+        
+        totalAmount += totalPrice;
+      });
+      
+      // إنشاء بيانات الفاتورة
+      const invoiceData = {
+        patientName: prescriptions[0].patientName,
+        patientId: prescriptions[0].patientId,
+        items: items,
+        totalAmount: totalAmount,
+        date: new Date().toISOString(),
+        hospitalName: 'مستشفى الحياة الذكية',
+        hospitalContact: '0123456789',
+        hospitalAddress: 'الرياض، المملكة العربية السعودية'
+      };
+      
+      // إنشاء الفاتورة
+      generateInvoice(invoiceData);
+    }
+    
+    // =============================
     // End of Helper Functions
     // =============================
     
@@ -2837,8 +2947,8 @@
       const r = await rxRef.limitToFirst(1).get();
       if(!r.exists()){
         const samplesRx = [
-          {patientName:'أحمد عبد الله', patientId:'P-1001', drugName:'Paracetamol 500mg', dose:'1 قرص كل 8 ساعات', duration:'5 أيام', status:'new', createdAt: Date.now(), insuranceCovered:true, insurer:'شركة البيان', schedule:[{time:'08:00', timesPerDay:3, note:'بعد الأكل'},{time:'16:00', timesPerDay:3}], quantityNeeded:15},
-          {patientName:'منى علي', patientId:'P-1002', drugName:'Ibuprofen 200mg', dose:'1 قرص بعد الأكل', duration:'3 أيام', status:'new', createdAt: Date.now(), insuranceCovered:false, insurer:'', schedule:[{time:'12:00', timesPerDay:1, note:'مع الطعام'}], quantityNeeded:3}
+          {patientName:'أحمد عبد الله', patientId:'P-1001', drugName:'Paracetamol 500mg', dose:'1 قرص كل 8 ساعات', duration:'5 أيام', status:'new', createdAt: Date.now(), insuranceCovered:true, insurer:'شركة البيان', schedule:[{time:'08:00', timesPerDay:3, note:'بعد الأكل'},{time:'16:00', timesPerDay:3}], quantityNeeded:15, price: 2.50},
+          {patientName:'منى علي', patientId:'P-1002', drugName:'Ibuprofen 200mg', dose:'1 قرص بعد الأكل', duration:'3 أيام', status:'new', createdAt: Date.now(), insuranceCovered:false, insurer:'', schedule:[{time:'12:00', timesPerDay:1, note:'مع الطعام'}], quantityNeeded:3, price: 3.75}
         ];
         for(const s of samplesRx){ await rxRef.push(s); }
       }
