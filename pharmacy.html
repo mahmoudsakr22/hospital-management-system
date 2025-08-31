@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>قسم الصيدلية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-5">
+
+  <!-- أزرار التنقل -->
+  <div class="flex gap-3 mb-5">
+    <button onclick="showSection('prescriptionsSection')" class="px-4 py-2 bg-blue-500 text-white rounded">الوصفات</button>
+    <button onclick="showSection('inventorySection')" class="px-4 py-2 bg-green-500 text-white rounded">المخزن</button>
+    <button onclick="showSection('suppliersSection')" class="px-4 py-2 bg-purple-500 text-white rounded">الموردين</button>
+    <button onclick="showSection('dashboardSection')" class="px-4 py-2 bg-orange-500 text-white rounded">الإحصائيات</button>
+  </div>
+
+  <!-- الأقسام -->
+
+  <!-- الوصفات -->
+  <section id="prescriptionsSection" class="bg-white p-5 rounded shadow">
+    <h2 class="text-xl font-bold mb-3">📑 الوصفات الطبية</h2>
+    <table id="prescriptionsTable" class="w-full border">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="p-2 border">المريض</th>
+          <th class="p-2 border">الدواء</th>
+          <th class="p-2 border">الجرعة</th>
+          <th class="p-2 border">التأمين</th>
+          <th class="p-2 border">QR</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- المخزن -->
+  <section id="inventorySection" class="hidden bg-white p-5 rounded shadow">
+    <h2 class="text-xl font-bold mb-3">💊 المخزن</h2>
+    <table id="inventoryTable" class="w-full border">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="p-2 border">الدواء</th>
+          <th class="p-2 border">الكمية</th>
+          <th class="p-2 border">المورد</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- الموردين -->
+  <section id="suppliersSection" class="hidden bg-white p-5 rounded shadow">
+    <h2 class="text-xl font-bold mb-3">🏭 الموردين</h2>
+    <form id="addSupplierForm" class="mb-4 flex gap-2">
+      <input type="text" id="supplierName" placeholder="اسم المورد" class="border p-2 flex-1" required>
+      <input type="text" id="supplierCompany" placeholder="الشركة" class="border p-2 flex-1" required>
+      <input type="text" id="supplierPhone" placeholder="تليفون" class="border p-2 flex-1">
+      <input type="email" id="supplierEmail" placeholder="الإيميل" class="border p-2 flex-1">
+      <button type="submit" class="px-3 py-2 bg-purple-600 text-white rounded">إضافة</button>
+    </form>
+    <table id="suppliersTable" class="w-full border">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="p-2 border">الاسم</th>
+          <th class="p-2 border">الشركة</th>
+          <th class="p-2 border">تليفون</th>
+          <th class="p-2 border">الإيميل</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- الإحصائيات -->
+  <section id="dashboardSection" class="hidden bg-white p-5 rounded shadow">
+    <h2 class="text-xl font-bold mb-3">📊 لوحة الإحصائيات</h2>
+    <canvas id="topDrugsChart" height="100"></canvas>
+    <canvas id="expensesChart" height="100" class="mt-6"></canvas>
+  </section>
+
+  <script>
+    function showSection(id) {
+      document.querySelectorAll("section").forEach(sec => sec.classList.add("hidden"));
+      document.getElementById(id).classList.remove("hidden");
+    }
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_DOMAIN",
+      projectId: "YOUR_PROJECT_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    function loadPrescriptions() {
+      db.collection("pharmacy").doc("prescriptions").collection("items")
+        .onSnapshot(snapshot => {
+          const tbody = document.querySelector("#prescriptionsTable tbody");
+          tbody.innerHTML = "";
+          snapshot.forEach(doc => {
+            const p = doc.data();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td class="border p-2">${p.patient}</td>
+              <td class="border p-2">${p.drug}</td>
+              <td class="border p-2">${p.dose}</td>
+              <td class="border p-2">${p.insuranceCovered ? "✅ " + p.insurer : "❌"}</td>
+              <td class="border p-2"><canvas id="qr-${doc.id}" width="50" height="50"></canvas></td>
+            `;
+            tbody.appendChild(row);
+            new QRious({ element: document.getElementById(`qr-${doc.id}`), value: doc.id, size: 50 });
+          });
+        });
+    }
+    function loadInventory() {
+      db.collection("pharmacy").doc("inventory").collection("items")
+        .onSnapshot(snapshot => {
+          const tbody = document.querySelector("#inventoryTable tbody");
+          tbody.innerHTML = "";
+          snapshot.forEach(doc => {
+            const i = doc.data();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td class="border p-2">${i.name}</td>
+              <td class="border p-2">${i.quantity}</td>
+              <td class="border p-2">${i.supplier}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        });
+    }
+    const suppliersForm = document.getElementById("addSupplierForm");
+    suppliersForm.addEventListener("submit", e => {
+      e.preventDefault();
+      db.collection("pharmacy").doc("suppliers").collection("items").add({
+        name: document.getElementById("supplierName").value,
+        company: document.getElementById("supplierCompany").value,
+        phone: document.getElementById("supplierPhone").value,
+        email: document.getElementById("supplierEmail").value
+      }).then(() => {
+        Swal.fire("تمت الإضافة!", "تم إضافة المورد بنجاح", "success");
+        suppliersForm.reset();
+      });
+    });
+    function loadSuppliers() {
+      db.collection("pharmacy").doc("suppliers").collection("items")
+        .onSnapshot(snapshot => {
+          const tbody = document.querySelector("#suppliersTable tbody");
+          tbody.innerHTML = "";
+          snapshot.forEach(doc => {
+            const s = doc.data();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td class="border p-2">${s.name}</td>
+              <td class="border p-2">${s.company}</td>
+              <td class="border p-2">${s.phone}</td>
+              <td class="border p-2">${s.email}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        });
+    }
+    function loadDashboard() {
+      const ctx1 = document.getElementById('topDrugsChart').getContext('2d');
+      new Chart(ctx1, {
+        type: 'bar',
+        data: { labels: ['دواء A', 'دواء B', 'دواء C'], datasets: [{ label: 'الأكثر صرفاً', data: [12, 19, 7] }] }
+      });
+      const ctx2 = document.getElementById('expensesChart').getContext('2d');
+      new Chart(ctx2, {
+        type: 'line',
+        data: { labels: ['يناير', 'فبراير', 'مارس'], datasets: [{ label: 'المصروفات', data: [5000, 7000, 4000] }] }
+      });
+    }
+    loadPrescriptions();
+    loadInventory();
+    loadSuppliers();
+    loadDashboard();
+  </script>
+</body>
+</html>
