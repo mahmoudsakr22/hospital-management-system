@@ -1186,7 +1186,7 @@
       });
     }
     
-    // معالجة الأحداث
+    // معالجة الأحداث لطلبات الدواء
     document.addEventListener('click', async function(e) {
       // تم الصرف
       if (e.target.classList.contains('med-req-dispense')) {
@@ -1199,7 +1199,10 @@
         try {
           showLoading('جاري تحديث حالة الطلب...');
           
-          // جلب بيانات التحويل
+          // جلب بيانات المريض والتحويل
+          const patientSnap = await medicationRequestsRef.child(patientId).get();
+          const patientData = patientSnap.val();
+          
           const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
           const transfer = transferSnap.val();
           
@@ -1224,7 +1227,7 @@
             title: 'تأكيد صرف الدواء',
             html: `
               <div style="text-align: right; direction: rtl;">
-                <p><strong>المريض:</strong> ${transfer.patientName}</p>
+                <p><strong>المريض:</strong> ${patientData.name}</p>
                 <p><strong>الدواء:</strong> ${transfer.medication.name}</p>
                 <p><strong>الكمية:</strong> ${quantity}</p>
                 <p><strong>سعر الوحدة:</strong> ${drugPrice.toFixed(2)} ج.م</p>
@@ -1262,7 +1265,7 @@
                 
                 // إنشاء الفاتورة
                 const invoiceData = {
-                  patientName: transfer.patientName,
+                  patientName: patientData.name,
                   patientId: patientId,
                   items: [{
                     name: transfer.medication.name,
@@ -1358,7 +1361,10 @@
         const transferKey = tr.getAttribute('data-transfer-key');
         
         try {
-          // جلب بيانات التحويل
+          // جلب بيانات المريض والتحويل
+          const patientSnap = await medicationRequestsRef.child(patientId).get();
+          const patientData = patientSnap.val();
+          
           const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
           const transfer = transferSnap.val();
           
@@ -1394,7 +1400,7 @@
               
               // إنشاء الفاتورة
               const invoiceData = {
-                patientName: transfer.patientName,
+                patientName: patientData.name,
                 patientId: patientId,
                 items: [{
                   name: chosen.name,
