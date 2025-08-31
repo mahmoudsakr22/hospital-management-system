@@ -819,6 +819,10 @@
                         <button onclick="openCheckupModal()" class="btn btn-primary">
                             <i class="fas fa-stethoscope"></i> كشف طبي جديد
                         </button>
+                        <!-- زر الحفظ السريع المضاف -->
+                        <button onclick="quickSaveCheckup()" class="btn btn-success">
+                            <i class="fas fa-save"></i> حفظ سريع
+                        </button>
                         <a href="#" id="monitorBtn" class="btn btn-success">
                             <i class="fas fa-heartbeat"></i> عرض المونيتور
                         </a>
@@ -1487,6 +1491,57 @@ window.saveVisit = async function() {
     } catch (error) {
         console.error('Error saving checkup:', error);
         Swal.fire("خطأ", "فشل حفظ الكشف: " + error.message, "error");
+    }
+};
+// دالة الحفظ السريع - مضافة حديثاً
+window.quickSaveCheckup = async function() {
+    if (!validatePatientId()) return;
+    
+    // إنشاء كشف بيانات افتراضي
+    const checkupData = {
+        visitType: "كشف سريع",
+        symptoms: "تم إجراء كشف سريع",
+        diagnosis: "يتم المتابعة",
+        treatmentPlan: "يتم تحديد الخطة العلاجية لاحقاً",
+        medications: [],
+        doctorId: "د. أحمد محمد",
+        doctorName: "أحمد محمد",
+        date: new Date().toISOString(),
+        status: "مكتمل"
+    };
+    
+    try {
+        Swal.fire({
+            title: 'جاري حفظ الكشف السريع...',
+            html: '<div class="loading"></div>',
+            didOpen: () => { Swal.showLoading(); },
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+        
+        // حفظ البيانات
+        const newCheckupRef = await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
+        
+        // تحديث حالة المريض
+        await update(ref(db, `patients/emergency/${patientId}`), {
+            lastCheckup: new Date().toISOString(),
+            serviceType: "كشف سريع",
+            lastCheckupBy: "د. أحمد محمد"
+        });
+        
+        Swal.fire({
+            title: 'تم الحفظ!',
+            text: 'تم حفظ الكشف السريع بنجاح',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+        // تحديث قائمة الكشوفات
+        loadCheckups();
+        
+    } catch (error) {
+        Swal.fire("خطأ", "فشل الحفظ: " + error.message, "error");
     }
 };
 // Show/hide fields based on selected department
