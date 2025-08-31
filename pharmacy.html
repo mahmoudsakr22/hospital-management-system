@@ -1,186 +1,1561 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>قسم الصيدلية</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>قسم الصيدلة – مستشفى الحياة الذكية</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- QR Code -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <!-- XLSX for Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  
+  <style>
+    body { background: #0b1220; }
+    .glass { background: rgba(255,255,255,0.06); backdrop-filter: saturate(180%) blur(12px); }
+    .card { @apply glass rounded-2xl shadow-xl p-4 md:p-6; }
+    .btn { @apply px-3 py-2 rounded-xl text-sm font-medium shadow transition-all duration-200; }
+    .dark-mode { background: #000; color: #fff; }
+    .dark-mode .glass { background: rgba(255,255,255,0.03); }
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-in {
+      animation: slideIn 0.3s ease-in-out;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-5">
-
-  <!-- أزرار التنقل -->
-  <div class="flex gap-3 mb-5">
-    <button onclick="showSection('prescriptionsSection')" class="px-4 py-2 bg-blue-500 text-white rounded">الوصفات</button>
-    <button onclick="showSection('inventorySection')" class="px-4 py-2 bg-green-500 text-white rounded">المخزن</button>
-    <button onclick="showSection('suppliersSection')" class="px-4 py-2 bg-purple-500 text-white rounded">الموردين</button>
-    <button onclick="showSection('dashboardSection')" class="px-4 py-2 bg-orange-500 text-white rounded">الإحصائيات</button>
+<body class="text-white transition-colors duration-300">
+  <!-- Topbar -->
+  <header class="sticky top-0 z-50 glass border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class='bx bxs-capsule text-2xl text-teal-300'></i>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold">قسم الصيدلة</h1>
+          <p class="text-xs md:text-sm text-white/70">Smart Life Hospital – Pharmacy Department</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnTheme" class="btn bg-white/10 hover:bg-white/20 relative">
+          <i class='bx bx-moon'></i>
+        </button>
+        <button id="btnNotifications" class="btn bg-white/10 hover:bg-white/20 relative">
+          <i class='bx bx-bell'></i>
+          <span id="notificationBadge" class="notification-badge hidden">0</span>
+        </button>
+        <button id="btnReports" class="btn bg-indigo-600 hover:bg-indigo-700">تقارير</button>
+        <button id="btnRefresh" class="btn bg-white/10 hover:bg-white/20">تحديث</button>
+        <a href="index.html" class="btn bg-rose-600 hover:bg-rose-700">خروج</a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Notification Panel -->
+  <div id="notificationPanel" class="fixed top-16 left-4 w-80 glass rounded-xl shadow-2xl z-50 hidden slide-in">
+    <div class="p-4 border-b border-white/10 flex justify-between items-center">
+      <h3 class="font-bold">الإشعارات</h3>
+      <button id="closeNotifications" class="text-white/60 hover:text-white">
+        <i class='bx bx-x'></i>
+      </button>
+    </div>
+    <div id="notificationList" class="max-h-96 overflow-y-auto p-2 space-y-2">
+      <!-- Notifications will be added here dynamically -->
+    </div>
   </div>
 
-  <!-- الأقسام -->
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <!-- Quick Stats -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="card hover:scale-[1.02] transition-transform">
+        <p class="text-xs text-white/60">إجمالي الأدوية</p>
+        <p id="statTotal" class="text-2xl font-bold">0</p>
+        <div class="mt-2 h-1 bg-teal-500/30 rounded-full overflow-hidden">
+          <div id="totalProgress" class="h-full bg-teal-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="card hover:scale-[1.02] transition-transform">
+        <p class="text-xs text-white/60">أدوية منخفضة</p>
+        <p id="statLow" class="text-2xl font-bold">0</p>
+        <div class="mt-2 h-1 bg-amber-500/30 rounded-full overflow-hidden">
+          <div id="lowProgress" class="h-full bg-amber-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="card hover:scale-[1.02] transition-transform">
+        <p class="text-xs text-white/60">قاربت الانتهاء</p>
+        <p id="statExpSoon" class="text-2xl font-bold">0</p>
+        <div class="mt-2 h-1 bg-rose-500/30 rounded-full overflow-hidden">
+          <div id="expProgress" class="h-full bg-rose-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="card hover:scale-[1.02] transition-transform">
+        <p class="text-xs text-white/60">وصفات جديدة</p>
+        <p id="statNewRx" class="text-2xl font-bold">0</p>
+        <div class="mt-2 h-1 bg-indigo-500/30 rounded-full overflow-hidden">
+          <div id="rxProgress" class="h-full bg-indigo-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+    </section>
 
-  <!-- الوصفات -->
-  <section id="prescriptionsSection" class="bg-white p-5 rounded shadow">
-    <h2 class="text-xl font-bold mb-3">📑 الوصفات الطبية</h2>
-    <table id="prescriptionsTable" class="w-full border">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="p-2 border">المريض</th>
-          <th class="p-2 border">الدواء</th>
-          <th class="p-2 border">الجرعة</th>
-          <th class="p-2 border">التأمين</th>
-          <th class="p-2 border">QR</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+    <!-- Revenue Chart -->
+    <section class="card">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold">إحصائيات المبيعات</h2>
+        <div class="flex gap-2">
+          <button id="btnExportExcel" class="btn bg-green-600 hover:bg-green-700 text-xs">
+            <i class='bx bx-spreadsheet ml-1'></i> Excel
+          </button>
+          <button id="btnExportPdf" class="btn bg-red-600 hover:bg-red-700 text-xs">
+            <i class='bx bx-file-pdf ml-1'></i> PDF
+          </button>
+        </div>
+      </div>
+      <div class="h-64">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </section>
 
-  <!-- المخزن -->
-  <section id="inventorySection" class="hidden bg-white p-5 rounded shadow">
-    <h2 class="text-xl font-bold mb-3">💊 المخزن</h2>
-    <table id="inventoryTable" class="w-full border">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="p-2 border">الدواء</th>
-          <th class="p-2 border">الكمية</th>
-          <th class="p-2 border">المورد</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+    <!-- Tabs -->
+    <section class="glass rounded-2xl">
+      <div class="flex border-b border-white/10">
+        <button id="tabInventory" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-teal-400">المخزن</button>
+        <button id="tabPrescriptions" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الوصفات الطبية</button>
+        <button id="tabSuppliers" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الموردون</button>
+        <button id="tabReports" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">التقارير</button>
+      </div>
+      <div class="p-4 md:p-6 space-y-6">
+        <!-- Inventory Panel -->
+        <div id="panelInventory" class="space-y-6">
+          <!-- Add Drug Form -->
+          <div class="card fade-in">
+            <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+              <i class='bx bx-plus-medical'></i> إضافة دواء جديد
+            </h2>
+            <form id="formAddDrug" class="grid md:grid-cols-6 gap-3">
+              <input id="drugName" required placeholder="اسم الدواء (اكتب المادة الفعالة مثلاً: Paracetamol)" class="md:col-span-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="manufacturer" placeholder="الشركة المصنعة" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="batch" placeholder="رقم التشغيلة (Batch)" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="expiry" type="date" required class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="quantity" type="number" min="0" required placeholder="الكمية" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="price" type="number" min="0" step="0.01" placeholder="السعر للوحدة" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <div class="md:col-span-6 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                  <input id="lowThreshold" type="number" min="0" value="10" class="w-24 px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                  <label for="lowThreshold" class="text-sm text-white/70">حد التنبيه للكمية المنخفضة</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <select id="supplierSelect" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="">اختر المورد</option>
+                  </select>
+                  <button class="btn bg-teal-600 hover:bg-teal-700" type="submit">حفظ الدواء</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <!-- Inventory Table -->
+          <div class="card fade-in">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-3 gap-3">
+              <h2 class="text-lg font-bold">قائمة الأدوية</h2>
+              <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                <input id="searchDrug" placeholder="بحث عن دواء..." class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-60" />
+                <select id="filterCategory" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  <option value="all">جميع الفئات</option>
+                  <option value="antibiotics">مضادات حيوية</option>
+                  <option value="painkillers">مسكنات</option>
+                  <option value="chronic">أمراض مزمنة</option>
+                </select>
+              </div>
+            </div>
+            <div class="overflow-auto rounded-xl border border-white/10">
+              <table class="min-w-full text-sm">
+                <thead class="bg-white/5">
+                  <tr class="text-white/80">
+                    <th class="p-3 text-right">الدواء</th>
+                    <th class="p-3 text-right">الشركة</th>
+                    <th class="p-3">Batch</th>
+                    <th class="p-3">الصلاحية</th>
+                    <th class="p-3">الكمية</th>
+                    <th class="p-3">السعر</th>
+                    <th class="p-3 text-center">تنبيهات</th>
+                    <th class="p-3 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyDrugs" class="divide-y divide-white/10"></tbody>
+              </table>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+              <div class="text-sm text-white/60">
+                إجمالي: <span id="drugCount">0</span> أدوية
+              </div>
+              <div class="flex gap-2">
+                <button id="prevPage" class="btn bg-white/10 hover:bg-white/20 disabled:opacity-50" disabled>
+                  <i class='bx bx-chevron-right'></i>
+                </button>
+                <span id="pageInfo" class="px-3 py-1">صفحة 1 من 1</span>
+                <button id="nextPage" class="btn bg-white/10 hover:bg-white/20 disabled:opacity-50" disabled>
+                  <i class='bx bx-chevron-left'></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Prescriptions Panel -->
+        <div id="panelPrescriptions" class="hidden space-y-6">
+          <div class="card fade-in">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-3 gap-3">
+              <h2 class="text-lg font-bold">طلبات الوصفات الطبية</h2>
+              <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                <select id="filterRx" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  <option value="all">الكل</option>
+                  <option value="new">جديدة</option>
+                  <option value="dispensed">تم الصرف</option>
+                  <option value="unavailable">غير متوفر</option>
+                </select>
+                <input id="searchRx" placeholder="بحث باسم المريض/الدواء" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-60" />
+              </div>
+            </div>
+            <div class="overflow-auto rounded-xl border border-white/10">
+              <table class="min-w-full text-sm">
+                <thead class="bg-white/5">
+                  <tr class="text-white/80">
+                    <th class="p-3 text-right">المريض</th>
+                    <th class="p-3">ID</th>
+                    <th class="p-3 text-right">الدواء</th>
+                    <th class="p-3">الجرعة</th>
+                    <th class="p-3">المدة</th>
+                    <th class="p-3">التأمين</th>
+                    <th class="p-3">الجرعات</th>
+                    <th class="p-3">الحالة</th>
+                    <th class="p-3 text-center">QR</th>
+                    <th class="p-3 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyRx" class="divide-y divide-white/10"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Suppliers Panel -->
+        <div id="panelSuppliers" class="hidden space-y-6">
+          <div class="card fade-in">
+            <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+              <i class='bx bx-truck'></i> إدارة الموردين
+            </h2>
+            <form id="formAddSupplier" class="grid md:grid-cols-4 gap-3 mb-6">
+              <input id="supplierName" required placeholder="اسم المورد" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="supplierContact" placeholder="رقم الاتصال" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <input id="supplierEmail" type="email" placeholder="البريد الإلكتروني" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <button class="btn bg-teal-600 hover:bg-teal-700" type="submit">إضافة مورد</button>
+            </form>
+            <div class="overflow-auto rounded-xl border border-white/10">
+              <table class="min-w-full text-sm">
+                <thead class="bg-white/5">
+                  <tr class="text-white/80">
+                    <th class="p-3 text-right">المورد</th>
+                    <th class="p-3">الاتصال</th>
+                    <th class="p-3">البريد الإلكتروني</th>
+                    <th class="p-3">الأدوية</th>
+                    <th class="p-3 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodySuppliers" class="divide-y divide-white/10"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Reports Panel -->
+        <div id="panelReports" class="hidden space-y-6">
+          <div class="card fade-in">
+            <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+              <i class='bx bx-bar-chart-alt-2'></i> التقارير والإحصائيات
+            </h2>
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 class="font-medium mb-3">تقرير المخزون</h3>
+                <div class="h-64">
+                  <canvas id="inventoryChart"></canvas>
+                </div>
+              </div>
+              <div>
+                <h3 class="font-medium mb-3">تقرير الوصفات</h3>
+                <div class="h-64">
+                  <canvas id="prescriptionChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button id="generateInventoryReport" class="btn bg-indigo-600 hover:bg-indigo-700">
+                تقرير المخزون الحالي
+              </button>
+              <button id="generateExpiryReport" class="btn bg-amber-600 hover:bg-amber-700">
+                تقرير الأدوية منتهية الصلاحية
+              </button>
+              <button id="generateLowStockReport" class="btn bg-rose-600 hover:bg-rose-700">
+                تقرير الأدوية منخفضة المخزون
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-  <!-- الموردين -->
-  <section id="suppliersSection" class="hidden bg-white p-5 rounded shadow">
-    <h2 class="text-xl font-bold mb-3">🏭 الموردين</h2>
-    <form id="addSupplierForm" class="mb-4 flex gap-2">
-      <input type="text" id="supplierName" placeholder="اسم المورد" class="border p-2 flex-1" required>
-      <input type="text" id="supplierCompany" placeholder="الشركة" class="border p-2 flex-1" required>
-      <input type="text" id="supplierPhone" placeholder="تليفون" class="border p-2 flex-1">
-      <input type="email" id="supplierEmail" placeholder="الإيميل" class="border p-2 flex-1">
-      <button type="submit" class="px-3 py-2 bg-purple-600 text-white rounded">إضافة</button>
-    </form>
-    <table id="suppliersTable" class="w-full border">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="p-2 border">الاسم</th>
-          <th class="p-2 border">الشركة</th>
-          <th class="p-2 border">تليفون</th>
-          <th class="p-2 border">الإيميل</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <!-- الإحصائيات -->
-  <section id="dashboardSection" class="hidden bg-white p-5 rounded shadow">
-    <h2 class="text-xl font-bold mb-3">📊 لوحة الإحصائيات</h2>
-    <canvas id="topDrugsChart" height="100"></canvas>
-    <canvas id="expensesChart" height="100" class="mt-6"></canvas>
-  </section>
-
+  <!-- Firebase SDKs (Compat for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
-    function showSection(id) {
-      document.querySelectorAll("section").forEach(sec => sec.classList.add("hidden"));
-      document.getElementById(id).classList.remove("hidden");
-    }
+    // =============================
+    // 🔧 Firebase Config (ضع إعداداتك هنا)
+    // =============================
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_DOMAIN",
-      projectId: "YOUR_PROJECT_ID"
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "",
+      appId: ""
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    function loadPrescriptions() {
-      db.collection("pharmacy").doc("prescriptions").collection("items")
-        .onSnapshot(snapshot => {
-          const tbody = document.querySelector("#prescriptionsTable tbody");
-          tbody.innerHTML = "";
-          snapshot.forEach(doc => {
-            const p = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td class="border p-2">${p.patient}</td>
-              <td class="border p-2">${p.drug}</td>
-              <td class="border p-2">${p.dose}</td>
-              <td class="border p-2">${p.insuranceCovered ? "✅ " + p.insurer : "❌"}</td>
-              <td class="border p-2"><canvas id="qr-${doc.id}" width="50" height="50"></canvas></td>
-            `;
-            tbody.appendChild(row);
-            new QRious({ element: document.getElementById(`qr-${doc.id}`), value: doc.id, size: 50 });
-          });
-        });
-    }
-    function loadInventory() {
-      db.collection("pharmacy").doc("inventory").collection("items")
-        .onSnapshot(snapshot => {
-          const tbody = document.querySelector("#inventoryTable tbody");
-          tbody.innerHTML = "";
-          snapshot.forEach(doc => {
-            const i = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td class="border p-2">${i.name}</td>
-              <td class="border p-2">${i.quantity}</td>
-              <td class="border p-2">${i.supplier}</td>
-            `;
-            tbody.appendChild(row);
-          });
-        });
-    }
-    const suppliersForm = document.getElementById("addSupplierForm");
-    suppliersForm.addEventListener("submit", e => {
-      e.preventDefault();
-      db.collection("pharmacy").doc("suppliers").collection("items").add({
-        name: document.getElementById("supplierName").value,
-        company: document.getElementById("supplierCompany").value,
-        phone: document.getElementById("supplierPhone").value,
-        email: document.getElementById("supplierEmail").value
-      }).then(() => {
-        Swal.fire("تمت الإضافة!", "تم إضافة المورد بنجاح", "success");
-        suppliersForm.reset();
-      });
+    const db = firebase.database();
+    // =============================
+    // Global Variables
+    // =============================
+    let revenueChart = null;
+    let inventoryChart = null;
+    let prescriptionChart = null;
+    let notifications = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let allDrugs = [];
+    // =============================
+    // Helpers
+    // =============================
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const fmtDate = (v) => v ? new Date(v).toLocaleDateString('ar-EG') : '-';
+    const todayISO = () => new Date().toISOString().slice(0,10);
+    // Auth (اختياري: تحقق من صلاحيات الصيدلي عبر localStorage)
+    try {
+      const role = localStorage.getItem('role');
+      if (role && role !== 'pharmacy' && role !== 'admin') {
+        Swal.fire({icon:'warning', title:'صلاحية غير كافية', text:'هذه الصفحة للصيدلية فقط', confirmButtonText:'رجوع'}).then(()=>{ window.location.href='index.html'; });
+      }
+    } catch(e) {}
+    // Theme Toggle
+    $('#btnTheme').addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      $('#btnTheme').innerHTML = isDark ? '<i class="bx bx-sun"></i>' : '<i class="bx bx-moon"></i>';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
-    function loadSuppliers() {
-      db.collection("pharmacy").doc("suppliers").collection("items")
-        .onSnapshot(snapshot => {
-          const tbody = document.querySelector("#suppliersTable tbody");
-          tbody.innerHTML = "";
-          snapshot.forEach(doc => {
-            const s = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td class="border p-2">${s.name}</td>
-              <td class="border p-2">${s.company}</td>
-              <td class="border p-2">${s.phone}</td>
-              <td class="border p-2">${s.email}</td>
-            `;
-            tbody.appendChild(row);
-          });
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      $('#btnTheme').innerHTML = '<i class="bx bx-sun"></i>';
+    }
+    // Notification System
+    $('#btnNotifications').addEventListener('click', () => {
+      $('#notificationPanel').classList.toggle('hidden');
+    });
+    $('#closeNotifications').addEventListener('click', () => {
+      $('#notificationPanel').classList.add('hidden');
+    });
+    function addNotification(type, title, message) {
+      const id = Date.now();
+      const notification = { id, type, title, message, read: false };
+      notifications.unshift(notification);
+      updateNotificationBadge();
+      renderNotifications();
+      // Show toast notification
+      const toast = Swal.mixin({
+        toast: true,
+        position: 'top-start',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer)
+          toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+      });
+      toast.fire({
+        icon: type === 'warning' ? 'warning' : type === 'error' ? 'error' : 'info',
+        title: title,
+        text: message
+      });
+    }
+    function updateNotificationBadge() {
+      const unreadCount = notifications.filter(n => !n.read).length;
+      const badge = $('#notificationBadge');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+    function renderNotifications() {
+      const container = $('#notificationList');
+      if (notifications.length === 0) {
+        container.innerHTML = '<div class="text-center p-4 text-white/60">لا توجد إشعارات</div>';
+        return;
+      }
+      container.innerHTML = notifications.map(n => `
+        <div class="p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer ${n.read ? 'opacity-60' : ''}" data-id="${n.id}">
+          <div class="flex justify-between">
+            <h4 class="font-medium">${n.title}</h4>
+            <span class="text-xs text-white/60">${new Date(n.id).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}</span>
+          </div>
+          <p class="text-sm text-white/70 mt-1">${n.message}</p>
+        </div>
+      `).join('');
+      // Mark as read when clicked
+      $$('#notificationList > div').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = parseInt(el.getAttribute('data-id'));
+          const notif = notifications.find(n => n.id === id);
+          if (notif) notif.read = true;
+          updateNotificationBadge();
+          renderNotifications();
         });
+      });
     }
-    function loadDashboard() {
-      const ctx1 = document.getElementById('topDrugsChart').getContext('2d');
-      new Chart(ctx1, {
+    // Tabs
+    const tabInventory = $('#tabInventory');
+    const tabPrescriptions = $('#tabPrescriptions');
+    const tabSuppliers = $('#tabSuppliers');
+    const tabReports = $('#tabReports');
+    const panelInventory = $('#panelInventory');
+    const panelPrescriptions = $('#panelPrescriptions');
+    const panelSuppliers = $('#panelSuppliers');
+    const panelReports = $('#panelReports');
+    
+    function switchTab(activeTab, activePanel) {
+      [tabInventory, tabPrescriptions, tabSuppliers, tabReports].forEach(tab => {
+        tab.classList.remove('border-teal-400');
+        tab.classList.add('border-transparent');
+      });
+      [panelInventory, panelPrescriptions, panelSuppliers, panelReports].forEach(panel => {
+        panel.classList.add('hidden');
+      });
+      activeTab.classList.add('border-teal-400');
+      activeTab.classList.remove('border-transparent');
+      activePanel.classList.remove('hidden');
+      
+      // Initialize charts when reports tab is opened
+      if (activePanel === panelReports && !inventoryChart) {
+        initCharts();
+      }
+    }
+    
+    tabInventory.addEventListener('click', () => switchTab(tabInventory, panelInventory));
+    tabPrescriptions.addEventListener('click', () => switchTab(tabPrescriptions, panelPrescriptions));
+    tabSuppliers.addEventListener('click', () => switchTab(tabSuppliers, panelSuppliers));
+    tabReports.addEventListener('click', () => switchTab(tabReports, panelReports));
+    // =============================
+    // Inventory Logic
+    // =============================
+    const drugsRef = db.ref('pharmacy/drugs');
+    const tbodyDrugs = $('#tbodyDrugs');
+    const statTotal = $('#statTotal');
+    const statLow = $('#statLow');
+    const statExpSoon = $('#statExpSoon');
+    const LOW_DEFAULT = 10; // حد افتراضي للكمية المنخفضة
+    
+    function drugRow(key, d){
+      const expSoon = daysUntil(d.expiry) <= 30; // خلال 30 يوم
+      const low = Number(d.quantity||0) <= Number(d.lowThreshold||LOW_DEFAULT);
+      return `
+        <tr data-key="${key}" class="hover:bg-white/5">
+          <td class="p-3 font-semibold">${esc(d.name)}</td>
+          <td class="p-3">${esc(d.manufacturer||'-')}</td>
+          <td class="p-3 text-center">${esc(d.batch||'-')}</td>
+          <td class="p-3 text-center">${d.expiry ? fmtDate(d.expiry) : '-'}</td>
+          <td class="p-3 text-center">
+            <div class="inline-flex items-center gap-2">
+              <button class="dec btn bg-white/10" title="نقص">−</button>
+              <span class="qty min-w-[2ch] inline-block">${d.quantity||0}</span>
+              <button class="inc btn bg-white/10" title="زيادة">+</button>
+            </div>
+          </td>
+          <td class="p-3 text-center">${d.price ? Number(d.price).toFixed(2) : '-'}</td>
+          <td class="p-3 text-center">
+            ${low ? '<span class="text-amber-300 text-xs">كمية منخفضة</span>' : ''}
+            ${expSoon ? '<span class="text-rose-300 text-xs ml-2">قرب انتهاء</span>' : ''}
+          </td>
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button class="edit btn bg-teal-600 hover:bg-teal-700">تعديل</button>
+              <button class="del btn bg-rose-600 hover:bg-rose-700">حذف</button>
+            </div>
+          </td>
+        </tr>`;
+    }
+    
+    function esc(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+    
+    function daysUntil(dateStr){
+      if(!dateStr) return 9999;
+      const today = new Date();
+      const target = new Date(dateStr);
+      return Math.ceil((target - today)/(1000*60*60*24));
+    }
+    
+    function recalcStats(snapshot){
+      let total=0, low=0, expSoon=0;
+      snapshot.forEach(ch=>{
+        const d = ch.val();
+        total++;
+        if ((Number(d.quantity||0) <= Number(d.lowThreshold||LOW_DEFAULT))) low++;
+        if (daysUntil(d.expiry) <= 30) expSoon++;
+      });
+      statTotal.textContent = total;
+      statLow.textContent = low;
+      statExpSoon.textContent = expSoon;
+      
+      // Update progress bars
+      $('#totalProgress').style.width = `${Math.min(100, total)}%`;
+      $('#lowProgress').style.width = `${Math.min(100, low * 10)}%`;
+      $('#expProgress').style.width = `${Math.min(100, expSoon * 10)}%`;
+      
+      // Add notifications for low stock or expiring drugs
+      if (low > 0) {
+        addNotification('warning', 'تنبيه المخزون', `يوجد ${low} أدوية منخفضة المخزون`);
+      }
+      if (expSoon > 0) {
+        addNotification('warning', 'تنبيه الصلاحية', `يوجد ${expSoon} أدوية قاربت على الانتهاء`);
+      }
+    }
+    
+    // Pagination
+    function renderDrugsPage(drugs, page) {
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const paginatedDrugs = drugs.slice(start, end);
+      
+      let html = '';
+      paginatedDrugs.forEach(drug => {
+        html += drugRow(drug.key, drug.data);
+      });
+      
+      tbodyDrugs.innerHTML = html || `<tr><td colspan="8" class="p-4 text-center text-white/60">لا توجد أدوية</td></tr>`;
+      
+      // Update pagination info
+      const totalPages = Math.ceil(drugs.length / itemsPerPage);
+      $('#pageInfo').textContent = `صفحة ${page} من ${totalPages}`;
+      $('#prevPage').disabled = page === 1;
+      $('#nextPage').disabled = page >= totalPages;
+      $('#drugCount').textContent = drugs.length;
+    }
+    
+    $('#prevPage').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderDrugsList();
+      }
+    });
+    
+    $('#nextPage').addEventListener('click', () => {
+      const totalPages = Math.ceil(allDrugs.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderDrugsList();
+      }
+    });
+    
+    function renderDrugsList() {
+      const q = ($('#searchDrug').value||'').trim().toLowerCase();
+      const category = $('#filterCategory').value;
+      
+      let filteredDrugs = allDrugs;
+      
+      // Apply search filter
+      if (q) {
+        filteredDrugs = filteredDrugs.filter(drug => {
+          const rowTxt = [drug.data.name, drug.data.manufacturer, drug.data.batch].join(' ').toLowerCase();
+          return rowTxt.includes(q);
+        });
+      }
+      
+      // Apply category filter
+      if (category !== 'all') {
+        filteredDrugs = filteredDrugs.filter(drug => {
+          return drug.data.category === category;
+        });
+      }
+      
+      renderDrugsPage(filteredDrugs, currentPage);
+    }
+    
+    // Live list
+    drugsRef.on('value', (snap)=>{
+      allDrugs = [];
+      snap.forEach(ch=>{
+        const k = ch.key; 
+        const d = ch.val();
+        allDrugs.push({ key: k, data: d });
+      });
+      renderDrugsList();
+      recalcStats(snap);
+      updateRevenueChart();
+    });
+    
+    $('#searchDrug').addEventListener('input', () => {
+      currentPage = 1;
+      renderDrugsList();
+    });
+    
+    $('#filterCategory').addEventListener('change', () => {
+      currentPage = 1;
+      renderDrugsList();
+    });
+    
+    // Add drug
+    $('#formAddDrug').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const data = {
+        name: $('#drugName').value.trim(),
+        manufacturer: $('#manufacturer').value.trim(),
+        batch: $('#batch').value.trim(),
+        expiry: $('#expiry').value,
+        quantity: Number($('#quantity').value||0),
+        lowThreshold: Number($('#lowThreshold').value||LOW_DEFAULT),
+        price: Number($('#price').value||0),
+        category: $('#filterCategory').value !== 'all' ? $('#filterCategory').value : 'general',
+        supplier: $('#supplierSelect').value,
+        createdAt: Date.now()
+      };
+      if(!data.name || !data.expiry){
+        return Swal.fire({icon:'warning', title:'برجاء إدخال البيانات المطلوبة'});
+      }
+      const newRef = drugsRef.push();
+      await newRef.set(data);
+      e.target.reset();
+      $('#lowThreshold').value = LOW_DEFAULT;
+      Swal.fire({icon:'success', title:'تم حفظ الدواء'});
+      addNotification('success', 'تمت الإضافة', `تم إضافة الدواء ${data.name} بنجاح`);
+    });
+    
+    // Row actions (delegate)
+    tbodyDrugs.addEventListener('click', async (e)=>{
+      const tr = e.target.closest('tr[data-key]');
+      if(!tr) return;
+      const key = tr.getAttribute('data-key');
+      const qtyEl = tr.querySelector('.qty');
+      if(e.target.classList.contains('inc')){
+        const snap = await drugsRef.child(key).get();
+        const q = Number((snap.val().quantity||0))+1;
+        await drugsRef.child(key).update({quantity:q});
+        qtyEl.textContent = q;
+      } else if(e.target.classList.contains('dec')){
+        const snap = await drugsRef.child(key).get();
+        const cur = Number((snap.val().quantity||0));
+        const q = Math.max(0, cur-1);
+        await drugsRef.child(key).update({quantity:q});
+        qtyEl.textContent = q;
+      } else if(e.target.classList.contains('del')){
+        const confirm = await Swal.fire({icon:'warning', title:'حذف الدواء؟', text:'لا يمكن التراجع', showCancelButton:true, confirmButtonText:'نعم، حذف', cancelButtonText:'إلغاء'});
+        if(confirm.isConfirmed){ 
+          await drugsRef.child(key).remove(); 
+          Swal.fire({icon:'success', title:'تم الحذف'});
+          addNotification('info', 'تم الحذف', 'تم حذف الدواء من المخزون');
+        }
+      } else if(e.target.classList.contains('edit')){
+        // Load current
+        const snap = await drugsRef.child(key).get();
+        const d = snap.val();
+        const { value: formValues } = await Swal.fire({
+          title: 'تعديل الدواء',
+          html:
+            `<input id="swName" class="swal2-input" placeholder="الاسم" value="${esc(d.name)}">`+
+            `<input id="swMan" class="swal2-input" placeholder="الشركة" value="${esc(d.manufacturer||'')}">`+
+            `<input id="swBatch" class="swal2-input" placeholder="Batch" value="${esc(d.batch||'')}">`+
+            `<input id="swExp" type="date" class="swal2-input" value="${(d.expiry||'').slice(0,10)}">`+
+            `<input id="swQty" type="number" class="swal2-input" placeholder="الكمية" value="${Number(d.quantity||0)}">`+
+            `<input id="swPrice" type="number" step="0.01" class="swal2-input" placeholder="السعر" value="${Number(d.price||0)}">`+
+            `<input id="swLow" type="number" class="swal2-input" placeholder="حد التنبيه" value="${Number(d.lowThreshold||LOW_DEFAULT)}">`,
+          focusConfirm: false,
+          confirmButtonText: 'حفظ',
+          showCancelButton: true,
+          didOpen: ()=>{
+            // ensure rtl
+          },
+          preConfirm: () => {
+            return {
+              name: document.getElementById('swName').value.trim(),
+              manufacturer: document.getElementById('swMan').value.trim(),
+              batch: document.getElementById('swBatch').value.trim(),
+              expiry: document.getElementById('swExp').value,
+              quantity: Number(document.getElementById('swQty').value||0),
+              price: Number(document.getElementById('swPrice').value||0),
+              lowThreshold: Number(document.getElementById('swLow').value||LOW_DEFAULT)
+            }
+          }
+        });
+        if(formValues){ 
+          await drugsRef.child(key).update(formValues); 
+          Swal.fire({icon:'success', title:'تم التحديث'});
+          addNotification('success', 'تم التحديث', `تم تحديث بيانات الدواء ${formValues.name}`);
+        }
+      }
+    });
+    // =============================
+    // Prescriptions Logic
+    // =============================
+    const rxRef = db.ref('pharmacy/prescriptions');
+    const tbodyRx = $('#tbodyRx');
+    const statNewRx = $('#statNewRx');
+    
+    function badgeInsurance(isCovered, insurer){
+      if(isCovered) return `<span class="px-2 py-1 rounded-full text-xs bg-teal-600">مغطى (${esc(insurer||'التأمين')})</span>`;
+      return `<span class="px-2 py-1 rounded-full text-xs bg-rose-600">غير مغطى</span>`;
+    }
+    
+    function scheduleSummary(schedule){
+      if(!schedule || !Array.isArray(schedule) || schedule.length===0) return '-';
+      // show next 2 doses
+      const next = schedule.slice(0,2).map(s=>`${s.time} × ${s.timesPerDay || 1}`).join('<br>');
+      return next + (schedule.length>2? ' ...' : '');
+    }
+    
+    function rxRow(key, p){
+      const statusBadge = (s)=>{
+        const map = { new:'bg-amber-500', dispensed:'bg-teal-600', unavailable:'bg-rose-600' };
+        const txt = { new:'جديدة', dispensed:'تم الصرف', unavailable:'غير متوفر' };
+        return `<span class="px-2 py-1 rounded-full text-xs ${map[s]||'bg-white/10'}">${txt[s]||s}</span>`
+      };
+      return `
+        <tr data-key="${key}" class="hover:bg-white/5">
+          <td class="p-3 font-semibold">${esc(p.patientName||'-')}</td>
+          <td class="p-3 text-center">${esc(p.patientId||'-')}</td>
+          <td class="p-3">${esc(p.drugName||'-')}</td>
+          <td class="p-3 text-center">${esc(p.dose||'-')}</td>
+          <td class="p-3 text-center">${esc(p.duration||'-')}</td>
+          <td class="p-3 text-center">${badgeInsurance(p.insuranceCovered, p.insurer)}</td>
+          <td class="p-3 text-center">${scheduleSummary(p.schedule)}</td>
+          <td class="p-3 text-center">${statusBadge(p.status||'new')}</td>
+          <td class="p-3 text-center">
+            <canvas data-qrc="${key}" class="mx-auto" width="64" height="64"></canvas>
+          </td>
+          <td class="p-3 text-center">
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <button class="rx-done btn bg-teal-600 hover:bg-teal-700">تم الصرف</button>
+              <button class="rx-na btn bg-amber-600 hover:bg-amber-700">غير متوفر</button>
+              <button class="rx-sub btn bg-indigo-600 hover:bg-indigo-700">بدائل</button>
+              <button class="rx-sched btn bg-white/10 hover:bg-white/20">الجرعات</button>
+              <button class="rx-del btn bg-rose-600 hover:bg-rose-700">حذف</button>
+            </div>
+          </td>
+        </tr>`;
+    }
+    
+    function renderQRs(){
+      $$('canvas[data-qrc]').forEach(c => {
+        const id = c.getAttribute('data-qrc');
+        const payload = { type:'rx', id };
+        QRCode.toCanvas(c, JSON.stringify(payload), { width: 64, margin: 1 });
+      });
+    }
+    
+    async function findSubstitutes(drugName){
+      // Strategy: take main token (first word) and search drugs that include it
+      const token = (drugName||'').split(' ')[0].toLowerCase();
+      const snap = await drugsRef.get();
+      const subs = [];
+      snap.forEach(ch=>{
+        const d = ch.val();
+        const name = (d.name||'').toLowerCase();
+        if(name.includes(token) && name !== (drugName||'').toLowerCase()){
+          subs.push({...d, id: ch.key});
+        }
+      });
+      return subs;
+    }
+    
+    function applyRxFilters(snapshot){
+      const filter = $('#filterRx').value;
+      const q = ($('#searchRx').value||'').trim().toLowerCase();
+      let html=''; let newCount=0;
+      snapshot.forEach(ch=>{
+        const k = ch.key, p = ch.val();
+        if(p.status==='new') newCount++;
+        if(filter!=='all' && (p.status||'new')!==filter) return;
+        const rowTxt = [p.patientName,p.patientId,p.drugName].join(' ').toLowerCase();
+        if(q && !rowTxt.includes(q)) return;
+        html += rxRow(k,p);
+      });
+      tbodyRx.innerHTML = html || `<tr><td colspan="10" class="p-4 text-center text-white/60">لا توجد وصفات</td></tr>`;
+      statNewRx.textContent = newCount;
+      $('#rxProgress').style.width = `${Math.min(100, newCount * 10)}%`;
+      renderQRs();
+      
+      // Add notification for new prescriptions
+      if (newCount > 0) {
+        addNotification('info', 'وصفات جديدة', `يوجد ${newCount} وصفات طبية جديدة بانتظار الصرف`);
+      }
+    }
+    
+    rxRef.on('value', (snap)=> applyRxFilters(snap));
+    $('#filterRx').addEventListener('change', ()=> rxRef.once('value', (s)=>applyRxFilters(s)));
+    $('#searchRx').addEventListener('input', ()=> rxRef.once('value', (s)=>applyRxFilters(s)));
+    
+    tbodyRx.addEventListener('click', async (e)=>{
+      const tr = e.target.closest('tr[data-key]');
+      if(!tr) return;
+      const key = tr.getAttribute('data-key');
+      const snap = await rxRef.child(key).get();
+      const p = snap.val();
+      if(e.target.classList.contains('rx-done')){
+        // If insurance not covered, warn
+        if(p.insuranceCovered === false){
+          const ok = await Swal.fire({icon:'warning', title:'انتباه', text:'المريض غير مغطى بالتأمين لهذه الوصفة. هل تريد المتابعة؟', showCancelButton:true});
+          if(!ok.isConfirmed) return;
+        }
+        // reduce stock if available
+        const drugSnap = await drugsRef.orderByChild('name').equalTo(p.drugName).limitToFirst(1).get();
+        if(drugSnap.exists()){
+          const dKey = Object.keys(drugSnap.val())[0];
+          const dVal = drugSnap.val()[dKey];
+          const cur = Number(dVal.quantity||0);
+          const need = Number(p.quantityNeeded||1);
+          if(cur >= need){
+            await drugsRef.child(dKey).update({quantity: cur - need});
+            await rxRef.child(key).update({status:'dispensed', dispensedAt: Date.now()});
+            Swal.fire({icon:'success', title:'تم صرف الوصفة'});
+            addNotification('success', 'تم الصرف', `تم صرف وصفة ${p.drugName} للمريض ${p.patientName}`);
+          } else {
+            await rxRef.child(key).update({status:'unavailable'});
+            Swal.fire({icon:'error', title:'الكمية غير كافية في المخزن'});
+            addNotification('error', 'نقص المخزون', `الكمية المتوفرة من ${p.drugName} غير كافية`);
+          }
+        } else {
+          await rxRef.child(key).update({status:'unavailable'});
+          Swal.fire({icon:'error', title:'لم يتم العثور على الدواء في المخزن'});
+          addNotification('error', 'دواء غير متوفر', `${p.drugName} غير متوفر في المخزون`);
+        }
+      } else if(e.target.classList.contains('rx-na')){
+        await rxRef.child(key).update({status:'unavailable'});
+        Swal.fire({icon:'info', title:'تم تحديدها كغير متوفرة'});
+        addNotification('info', 'غير متوفر', `تم تحديد ${p.drugName} كغير متوفر`);
+      } else if(e.target.classList.contains('rx-del')){
+        const confirm = await Swal.fire({icon:'warning', title:'حذف الوصفة؟', showCancelButton:true, confirmButtonText:'نعم'});
+        if(confirm.isConfirmed){ 
+          await rxRef.child(key).remove(); 
+          Swal.fire({icon:'success', title:'تم الحذف'});
+          addNotification('info', 'تم الحذف', 'تم حذف الوصفة الطبية');
+        }
+      } else if(e.target.classList.contains('rx-sub')){
+        // Suggest substitutes
+        const subs = await findSubstitutes(p.drugName);
+        if(subs.length===0) return Swal.fire({icon:'info', title:'لا توجد بدائل مقترحة'});
+        const list = subs.map(s => `<div class="p-2 border-b border-white/5"><b>${esc(s.name)}</b> — الكمية: ${s.quantity||0}</div>`).join('');
+        Swal.fire({
+          title: 'بدائل مقترحة',
+          html: `<div style="text-align:right">${list}</div>`,
+          width: 600,
+          showCancelButton: true,
+          confirmButtonText: 'استعمل كبديل'
+        }).then(async (r)=>{
+          if(r.isConfirmed){
+            // take first substitute
+            const chosen = subs[0];
+            // update prescription drugName to substitute and mark dispensed if quantity ok
+            await rxRef.child(key).update({drugName: chosen.name});
+            Swal.fire({icon:'success', title:'تم تعيين البديل'});
+            addNotification('success', 'تم تعيين بديل', `تم تعيين ${chosen.name} كبديل لـ ${p.drugName}`);
+            // refresh list
+            rxRef.once('value', sn=>applyRxFilters(sn));
+          }
+        });
+      } else if(e.target.classList.contains('rx-sched')){
+        // Show schedule details
+        const sched = p.schedule || [];
+        if(sched.length===0) return Swal.fire({icon:'info', title:'لا يوجد جدول جرعات'});
+        const html = sched.map(s=>`<div class="p-2 border-b border-white/5 text-right"><b>الوقت:</b> ${esc(s.time)} — <b>مرات/يوم:</b> ${esc(s.timesPerDay||1)} — <b>تعليمات:</b> ${esc(s.note||'-')}</div>`).join('');
+        Swal.fire({title:'تفاصيل جدول الجرعات', html:`<div style="text-align:right">${html}</div>`, width:600});
+      }
+    });
+    // =============================
+    // Suppliers Logic
+    // =============================
+    const suppliersRef = db.ref('pharmacy/suppliers');
+    const tbodySuppliers = $('#tbodySuppliers');
+    const supplierSelect = $('#supplierSelect');
+    
+    function supplierRow(key, s) {
+      return `
+        <tr data-key="${key}" class="hover:bg-white/5">
+          <td class="p-3 font-semibold">${esc(s.name)}</td>
+          <td class="p-3">${esc(s.contact||'-')}</td>
+          <td class="p-3">${esc(s.email||'-')}</td>
+          <td class="p-3 text-center">${s.drugsCount || 0}</td>
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button class="edit-supplier btn bg-teal-600 hover:bg-teal-700">تعديل</button>
+              <button class="del-supplier btn bg-rose-600 hover:bg-rose-700">حذف</button>
+            </div>
+          </td>
+        </tr>`;
+    }
+    
+    // Load suppliers for dropdown
+    suppliersRef.on('value', (snap) => {
+      supplierSelect.innerHTML = '<option value="">اختر المورد</option>';
+      let html = '';
+      snap.forEach(ch => {
+        const k = ch.key;
+        const s = ch.val();
+        supplierSelect.innerHTML += `<option value="${k}">${esc(s.name)}</option>`;
+        html += supplierRow(k, s);
+      });
+      tbodySuppliers.innerHTML = html || `<tr><td colspan="5" class="p-4 text-center text-white/60">لا يوجد موردين</td></tr>`;
+    });
+    
+    // Add supplier
+    $('#formAddSupplier').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name: $('#supplierName').value.trim(),
+        contact: $('#supplierContact').value.trim(),
+        email: $('#supplierEmail').value.trim(),
+        drugsCount: 0,
+        createdAt: Date.now()
+      };
+      if(!data.name) {
+        return Swal.fire({icon:'warning', title:'برجاء إدخال اسم المورد'});
+      }
+      await suppliersRef.push(data);
+      e.target.reset();
+      Swal.fire({icon:'success', title:'تم حفظ المورد'});
+      addNotification('success', 'تمت الإضافة', `تم إضافة المورد ${data.name} بنجاح`);
+    });
+    
+    // Supplier actions
+    tbodySuppliers.addEventListener('click', async (e) => {
+      const tr = e.target.closest('tr[data-key]');
+      if(!tr) return;
+      const key = tr.getAttribute('data-key');
+      
+      if(e.target.classList.contains('del-supplier')) {
+        const confirm = await Swal.fire({icon:'warning', title:'حذف المورد؟', text:'لا يمكن التراجع', showCancelButton:true, confirmButtonText:'نعم، حذف', cancelButtonText:'إلغاء'});
+        if(confirm.isConfirmed) {
+          await suppliersRef.child(key).remove();
+          Swal.fire({icon:'success', title:'تم الحذف'});
+          addNotification('info', 'تم الحذف', 'تم حذف المورد');
+        }
+      } else if(e.target.classList.contains('edit-supplier')) {
+        const snap = await suppliersRef.child(key).get();
+        const s = snap.val();
+        const { value: formValues } = await Swal.fire({
+          title: 'تعديل المورد',
+          html:
+            `<input id="swName" class="swal2-input" placeholder="الاسم" value="${esc(s.name)}">`+
+            `<input id="swContact" class="swal2-input" placeholder="الاتصال" value="${esc(s.contact||'')}">`+
+            `<input id="swEmail" type="email" class="swal2-input" placeholder="البريد الإلكتروني" value="${esc(s.email||'')}">`,
+          focusConfirm: false,
+          confirmButtonText: 'حفظ',
+          showCancelButton: true,
+          preConfirm: () => {
+            return {
+              name: document.getElementById('swName').value.trim(),
+              contact: document.getElementById('swContact').value.trim(),
+              email: document.getElementById('swEmail').value.trim()
+            }
+          }
+        });
+        if(formValues) {
+          await suppliersRef.child(key).update(formValues);
+          Swal.fire({icon:'success', title:'تم التحديث'});
+          addNotification('success', 'تم التحديث', `تم تحديث بيانات المورد ${formValues.name}`);
+        }
+      }
+    });
+    // =============================
+    // Charts Logic
+    // =============================
+    function initCharts() {
+      // Inventory Chart
+      const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
+      inventoryChart = new Chart(inventoryCtx, {
         type: 'bar',
-        data: { labels: ['دواء A', 'دواء B', 'دواء C'], datasets: [{ label: 'الأكثر صرفاً', data: [12, 19, 7] }] }
+        data: {
+          labels: ['مضادات حيوية', 'مسكنات', 'أمراض مزمنة', 'فيتامينات', 'أخرى'],
+          datasets: [{
+            label: 'الكمية',
+            data: [0, 0, 0, 0, 0],
+            backgroundColor: [
+              'rgba(53, 162, 235, 0.5)',
+              'rgba(255, 99, 132, 0.5)',
+              'rgba(255, 206, 86, 0.5)',
+              'rgba(75, 192, 192, 0.5)',
+              'rgba(153, 102, 255, 0.5)'
+            ],
+            borderColor: [
+              'rgb(53, 162, 235)',
+              'rgb(255, 99, 132)',
+              'rgb(255, 206, 86)',
+              'rgb(75, 192, 192)',
+              'rgb(153, 102, 255)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
       });
-      const ctx2 = document.getElementById('expensesChart').getContext('2d');
-      new Chart(ctx2, {
-        type: 'line',
-        data: { labels: ['يناير', 'فبراير', 'مارس'], datasets: [{ label: 'المصروفات', data: [5000, 7000, 4000] }] }
+      
+      // Prescription Chart
+      const prescriptionCtx = document.getElementById('prescriptionChart').getContext('2d');
+      prescriptionChart = new Chart(prescriptionCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['جديدة', 'تم الصرف', 'غير متوفر'],
+          datasets: [{
+            data: [0, 0, 0],
+            backgroundColor: [
+              'rgba(255, 206, 86, 0.5)',
+              'rgba(75, 192, 192, 0.5)',
+              'rgba(255, 99, 132, 0.5)'
+            ],
+            borderColor: [
+              'rgb(255, 206, 86)',
+              'rgb(75, 192, 192)',
+              'rgb(255, 99, 132)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+      
+      // Update charts with data
+      updateCharts();
+    }
+    
+    function updateCharts() {
+      if (!inventoryChart || !prescriptionChart) return;
+      
+      // Update inventory chart
+      const categories = {
+        'antibiotics': 0,
+        'painkillers': 0,
+        'chronic': 0,
+        'vitamins': 0,
+        'general': 0
+      };
+      
+      drugsRef.once('value', (snap) => {
+        snap.forEach(ch => {
+          const d = ch.val();
+          const cat = d.category || 'general';
+          if (categories.hasOwnProperty(cat)) {
+            categories[cat] += Number(d.quantity || 0);
+          } else {
+            categories.general += Number(d.quantity || 0);
+          }
+        });
+        
+        inventoryChart.data.datasets[0].data = [
+          categories.antibiotics,
+          categories.painkillers,
+          categories.chronic,
+          categories.vitamins,
+          categories.general
+        ];
+        inventoryChart.update();
+      });
+      
+      // Update prescription chart
+      const statuses = {
+        'new': 0,
+        'dispensed': 0,
+        'unavailable': 0
+      };
+      
+      rxRef.once('value', (snap) => {
+        snap.forEach(ch => {
+          const p = ch.val();
+          const status = p.status || 'new';
+          if (statuses.hasOwnProperty(status)) {
+            statuses[status]++;
+          }
+        });
+        
+        prescriptionChart.data.datasets[0].data = [
+          statuses.new,
+          statuses.dispensed,
+          statuses.unavailable
+        ];
+        prescriptionChart.update();
       });
     }
-    loadPrescriptions();
-    loadInventory();
-    loadSuppliers();
-    loadDashboard();
+    
+    // Revenue Chart
+    function initRevenueChart() {
+      const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+      revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+          labels: ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+          datasets: [{
+            label: 'الإيرادات',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)',
+                callback: function(value) {
+                  return value + ' ريال';
+                }
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+      
+      updateRevenueChart();
+    }
+    
+    function updateRevenueChart() {
+      if (!revenueChart) return;
+      
+      // Simulate weekly revenue data
+      // In a real app, this would come from your database
+      const revenueData = [1200, 1900, 1500, 2100, 1800, 2400, 2000];
+      revenueChart.data.datasets[0].data = revenueData;
+      revenueChart.update();
+    }
+    
+    // Initialize revenue chart on page load
+    window.addEventListener('load', () => {
+      initRevenueChart();
+    });
+    
+    // Report generation
+    $('#generateInventoryReport').addEventListener('click', async () => {
+      const snap = await drugsRef.once('value');
+      let totalValue = 0;
+      let totalItems = 0;
+      let reportData = [];
+      
+      snap.forEach(ch => {
+        const d = ch.val();
+        const value = Number(d.price || 0) * Number(d.quantity || 0);
+        totalValue += value;
+        totalItems += Number(d.quantity || 0);
+        reportData.push([
+          d.name,
+          d.manufacturer || '-',
+          d.quantity || 0,
+          d.price || 0,
+          value.toFixed(2),
+          d.expiry ? fmtDate(d.expiry) : '-'
+        ]);
+      });
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFont('helvetica');
+      doc.setFontSize(18);
+      doc.text('Inventory Report', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Total Items: ${totalItems}`, 20, 30);
+      doc.text(`Total Value: ${totalValue.toFixed(2)} SAR`, 20, 40);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 50);
+      
+      doc.autoTable({
+        head: [['Drug Name', 'Manufacturer', 'Quantity', 'Unit Price', 'Total Value', 'Expiry Date']],
+        body: reportData,
+        startY: 60,
+        styles: { font: 'helvetica', fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] }
+      });
+      
+      doc.save('inventory-report.pdf');
+      addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير المخزون بنجاح');
+    });
+    
+    $('#generateExpiryReport').addEventListener('click', async () => {
+      const snap = await drugsRef.once('value');
+      let reportData = [];
+      
+      snap.forEach(ch => {
+        const d = ch.val();
+        const daysLeft = daysUntil(d.expiry);
+        if (daysLeft <= 90) { // Drugs expiring within 90 days
+          reportData.push([
+            d.name,
+            d.manufacturer || '-',
+            d.quantity || 0,
+            d.expiry ? fmtDate(d.expiry) : '-',
+            daysLeft
+          ]);
+        }
+      });
+      
+      if (reportData.length === 0) {
+        return Swal.fire({icon: 'info', title: 'لا توجد أدوية منتهية الصلاحية قريباً'});
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFont('helvetica');
+      doc.setFontSize(18);
+      doc.text('Expiry Report', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Drugs expiring within 90 days: ${reportData.length}`, 20, 30);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 40);
+      
+      doc.autoTable({
+        head: [['Drug Name', 'Manufacturer', 'Quantity', 'Expiry Date', 'Days Left']],
+        body: reportData,
+        startY: 50,
+        styles: { font: 'helvetica', fontSize: 10 },
+        headStyles: { fillColor: [231, 76, 60] }
+      });
+      
+      doc.save('expiry-report.pdf');
+      addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير الأدوية منتهية الصلاحية بنجاح');
+    });
+    
+    $('#generateLowStockReport').addEventListener('click', async () => {
+      const snap = await drugsRef.once('value');
+      let reportData = [];
+      
+      snap.forEach(ch => {
+        const d = ch.val();
+        const threshold = Number(d.lowThreshold || LOW_DEFAULT);
+        const quantity = Number(d.quantity || 0);
+        if (quantity <= threshold) {
+          reportData.push([
+            d.name,
+            d.manufacturer || '-',
+            quantity,
+            threshold,
+            threshold - quantity
+          ]);
+        }
+      });
+      
+      if (reportData.length === 0) {
+        return Swal.fire({icon: 'info', title: 'لا توجد أدوية منخفضة المخزون'});
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFont('helvetica');
+      doc.setFontSize(18);
+      doc.text('Low Stock Report', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Drugs with low stock: ${reportData.length}`, 20, 30);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 40);
+      
+      doc.autoTable({
+        head: [['Drug Name', 'Manufacturer', 'Current Stock', 'Threshold', 'Needed']],
+        body: reportData,
+        startY: 50,
+        styles: { font: 'helvetica', fontSize: 10 },
+        headStyles: { fillColor: [243, 156, 18] }
+      });
+      
+      doc.save('low-stock-report.pdf');
+      addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير الأدوية منخفضة المخزون بنجاح');
+    });
+    
+    // Export to Excel
+    $('#btnExportExcel').addEventListener('click', async () => {
+      const drugsSnap = await drugsRef.once('value');
+      const rxSnap = await rxRef.once('value');
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Drugs sheet
+      const drugsData = [];
+      drugsSnap.forEach(ch => {
+        const d = ch.val();
+        drugsData.push({
+          'Drug Name': d.name,
+          'Manufacturer': d.manufacturer || '',
+          'Batch': d.batch || '',
+          'Expiry Date': d.expiry ? fmtDate(d.expiry) : '',
+          'Quantity': d.quantity || 0,
+          'Price': d.price || 0,
+          'Low Threshold': d.lowThreshold || LOW_DEFAULT
+        });
+      });
+      
+      const drugsSheet = XLSX.utils.json_to_sheet(drugsData);
+      XLSX.utils.book_append_sheet(wb, drugsSheet, 'Drugs');
+      
+      // Prescriptions sheet
+      const rxData = [];
+      rxSnap.forEach(ch => {
+        const p = ch.val();
+        rxData.push({
+          'Patient Name': p.patientName || '',
+          'Patient ID': p.patientId || '',
+          'Drug Name': p.drugName || '',
+          'Dose': p.dose || '',
+          'Duration': p.duration || '',
+          'Insurance Covered': p.insuranceCovered ? 'Yes' : 'No',
+          'Insurer': p.insurer || '',
+          'Status': p.status || 'new',
+          'Created At': p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''
+        });
+      });
+      
+      const rxSheet = XLSX.utils.json_to_sheet(rxData);
+      XLSX.utils.book_append_sheet(wb, rxSheet, 'Prescriptions');
+      
+      // Save the file
+      XLSX.writeFile(wb, 'pharmacy-data.xlsx');
+      addNotification('success', 'تم التصدير', 'تم تصدير البيانات إلى ملف Excel بنجاح');
+    });
+    
+    // Export to PDF
+    $('#btnExportPdf').addEventListener('click', async () => {
+      const drugsSnap = await drugsRef.once('value');
+      const rxSnap = await rxRef.once('value');
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      // Title
+      doc.setFont('helvetica');
+      doc.setFontSize(18);
+      doc.text('Pharmacy Department Report', 105, 15, { align: 'center' });
+      
+      // Date
+      doc.setFontSize(12);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+      
+      // Summary stats
+      let totalDrugs = 0;
+      let totalRx = 0;
+      let newRx = 0;
+      
+      drugsSnap.forEach(() => totalDrugs++);
+      rxSnap.forEach(ch => {
+        totalRx++;
+        if (ch.val().status === 'new') newRx++;
+      });
+      
+      doc.text(`Total Drugs: ${totalDrugs}`, 20, 40);
+      doc.text(`Total Prescriptions: ${totalRx}`, 20, 50);
+      doc.text(`New Prescriptions: ${newRx}`, 20, 60);
+      
+      // Drugs table
+      doc.setFontSize(14);
+      doc.text('Drugs Inventory', 20, 75);
+      
+      let drugsData = [];
+      drugsSnap.forEach(ch => {
+        const d = ch.val();
+        drugsData.push([
+          d.name,
+          d.manufacturer || '-',
+          d.quantity || 0,
+          d.price || 0,
+          d.expiry ? fmtDate(d.expiry) : '-'
+        ]);
+      });
+      
+      doc.autoTable({
+        head: [['Drug Name', 'Manufacturer', 'Quantity', 'Price', 'Expiry Date']],
+        body: drugsData,
+        startY: 85,
+        styles: { font: 'helvetica', fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] }
+      });
+      
+      // Add new page for prescriptions
+      doc.addPage();
+      
+      // Prescriptions table
+      doc.setFontSize(14);
+      doc.text('Prescriptions', 20, 15);
+      
+      let rxData = [];
+      rxSnap.forEach(ch => {
+        const p = ch.val();
+        rxData.push([
+          p.patientName || '-',
+          p.patientId || '-',
+          p.drugName || '-',
+          p.dose || '-',
+          p.duration || '-',
+          p.status || 'new'
+        ]);
+      });
+      
+      doc.autoTable({
+        head: [['Patient Name', 'Patient ID', 'Drug Name', 'Dose', 'Duration', 'Status']],
+        body: rxData,
+        startY: 25,
+        styles: { font: 'helvetica', fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] }
+      });
+      
+      doc.save('pharmacy-report.pdf');
+      addNotification('success', 'تم التصدير', 'تم تصدير البيانات إلى ملف PDF بنجاح');
+    });
+    
+    // Reports button in top bar
+    $('#btnReports').addEventListener('click', () => {
+      switchTab(tabReports, panelReports);
+    });
+    // =============================
+    // Seed helper (محدثة) – يمكن إبقاؤها للاختبار
+    // =============================
+    async function seedIfEmpty(){
+      const d = await drugsRef.limitToFirst(1).get();
+      if(!d.exists()){
+        const samples = [
+          {name:'Paracetamol 500mg', manufacturer:'GSK', batch:'PA123', expiry: addDaysISO(120), quantity: 25, lowThreshold: 10, price: 2.50, category: 'painkillers'},
+          {name:'Ibuprofen 200mg', manufacturer:'Bayer', batch:'IB420', expiry: addDaysISO(20), quantity: 8, lowThreshold: 10, price: 3.75, category: 'painkillers'},
+          {name:'Amoxicillin 500mg', manufacturer:'Pfizer', batch:'AMX77', expiry: addDaysISO(300), quantity: 50, lowThreshold: 15, price: 6.20, category: 'antibiotics'}
+        ];
+        for(const s of samples){ await drugsRef.push({...s, createdAt: Date.now()}); }
+      }
+      const r = await rxRef.limitToFirst(1).get();
+      if(!r.exists()){
+        const samplesRx = [
+          {patientName:'أحمد عبد الله', patientId:'P-1001', drugName:'Paracetamol 500mg', dose:'1 قرص كل 8 ساعات', duration:'5 أيام', status:'new', createdAt: Date.now(), insuranceCovered:true, insurer:'شركة البيان', schedule:[{time:'08:00', timesPerDay:3, note:'بعد الأكل'},{time:'16:00', timesPerDay:3}], quantityNeeded:15},
+          {patientName:'منى علي', patientId:'P-1002', drugName:'Ibuprofen 200mg', dose:'1 قرص بعد الأكل', duration:'3 أيام', status:'new', createdAt: Date.now(), insuranceCovered:false, insurer:'', schedule:[{time:'12:00', timesPerDay:1, note:'مع الطعام'}], quantityNeeded:3}
+        ];
+        for(const s of samplesRx){ await rxRef.push(s); }
+      }
+      const s = await suppliersRef.limitToFirst(1).get();
+      if(!s.exists()){
+        const samplesSuppliers = [
+          {name:'شركة الأدوية المتحدة', contact:'0123456789', email:'info@united-pharma.com', createdAt: Date.now()},
+          {name:'المستودعات الطبية', contact:'0987654321', email:'sales@medical-warehouse.com', createdAt: Date.now()}
+        ];
+        for(const s of samplesSuppliers){ await suppliersRef.push(s); }
+      }
+    }
+    
+    function addDaysISO(days){ 
+      const d = new Date(); 
+      d.setDate(d.getDate()+days); 
+      return d.toISOString().slice(0,10); 
+    }
+    
+    // Utils
+    $('#btnRefresh').addEventListener('click', ()=>{ 
+      location.reload(); 
+    });
+    
+    // Kickoff
+    seedIfEmpty();
   </script>
 </body>
 </html>
