@@ -103,6 +103,9 @@
     .close:hover {
       color: white;
     }
+    .swal2-rtl {
+      direction: rtl;
+    }
   </style>
 </head>
 <body class="text-white transition-colors duration-300">
@@ -1186,73 +1189,132 @@
       });
     }
     
-    // معالجة الأحداث لطلبات الدواء
-    document.addEventListener('click', async function(e) {
-      // تم الصرف
-      if (e.target.classList.contains('med-req-dispense')) {
-        const tr = e.target.closest('tr[data-patient-id]');
-        if (!tr) return;
+    // معالجة أحداث طلبات الدواء
+    document.addEventListener('DOMContentLoaded', function() {
+      // إضافة مستمعي الأحداث لجميع أزرار "صرف الدواء" الموجودة في الصفحة
+      document.querySelectorAll('.med-req-dispense').forEach(button => {
+        button.addEventListener('click', handleDispenseMedication);
+      });
+    });
+
+    // دالة معالجة صرف الدواء
+    async function handleDispenseMedication(e) {
+      e.preventDefault();
+      
+      const tr = e.target.closest('tr[data-patient-id]');
+      if (!tr) {
+        console.error('لم يتم العثور على صف المريض');
+        return;
+      }
+      
+      const patientId = tr.getAttribute('data-patient-id');
+      const transferKey = tr.getAttribute('data-transfer-key');
+      
+      if (!patientId || !transferKey) {
+        console.error('بيانات غير مكتملة:', { patientId, transferKey });
+        Swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: 'بيانات غير مكتملة، يرجى تحديث الصفحة والمحاولة مرة أخرى'
+        });
+        return;
+      }
+      
+      try {
+        // عرض رسالة تحميل
+        Swal.fire({
+          title: 'جاري معالجة الطلب...',
+          didOpen: () => {
+            Swal.showLoading();
+          },
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
         
-        const patientId = tr.getAttribute('data-patient-id');
-        const transferKey = tr.getAttribute('data-transfer-key');
+        // جلب بيانات المريض والتحويل
+        const patientSnap = await medicationRequestsRef.child(patientId).get();
+        if (!patientSnap.exists()) {
+          throw new Error('المريض غير موجود');
+        }
+        
+        const patientData = patientSnap.val();
+        
+        const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
+        if (!transferSnap.exists()) {
+          throw new Error('طلب الدواء غير موجود');
+        }
+        
+        const transfer = transferSnap.val();
+        
+        // جلب سعر الدواء من المخزون
+        let drugPrice = 0;
+        let drugExists = false;
         
         try {
-          showLoading('جاري تحديث حالة الطلب...');
-          
-          // جلب بيانات المريض والتحويل
-          const patientSnap = await medicationRequestsRef.child(patientId).get();
-          const patientData = patientSnap.val();
-          
-          const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
-          const transfer = transferSnap.val();
-          
-          // جلب سعر الدواء من المخزون
-          let drugPrice = 0;
-          try {
-            const drugSnap = await drugsRef.orderByChild('name').equalTo(transfer.medication.name).limitToFirst(1).get();
-            if (drugSnap.exists()) {
-              const drugData = Object.values(drugSnap.val())[0];
-              drugPrice = Number(drugData.price || 0);
-            }
-          } catch (error) {
-            console.error('Error fetching drug price:', error);
+          const drugSnap = await drugsRef.orderByChild('name').equalTo(transfer.medication.name).limitToFirst(1).get();
+          if (drugSnap.exists()) {
+            drugExists = true;
+            const drugData = Object.values(drugSnap.val())[0];
+            drugPrice = Number(drugData.price || 0);
           }
-          
-          // حساب الإجمالي
-          const quantity = Number(transfer.medication.dosesCount || 1);
-          const totalPrice = drugPrice * quantity;
-          
-          // عرض نافذة تأكيد مع تفاصيل الأسعار
-          const { value: confirm } = await Swal.fire({
-            title: 'تأكيد صرف الدواء',
-            html: `
-              <div style="text-align: right; direction: rtl;">
-                <p><strong>المريض:</strong> ${patientData.name}</p>
-                <p><strong>الدواء:</strong> ${transfer.medication.name}</p>
-                <p><strong>الكمية:</strong> ${quantity}</p>
-                <p><strong>سعر الوحدة:</strong> ${drugPrice.toFixed(2)} ج.م</p>
-                <p><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
-                ${transfer.medication.insuranceType === 'خاص' ? '<p class="text-amber-300">المريض غير مغطى بالتأمين</p>' : ''}
-              </div>
-            `,
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'تأكيد الصرف',
-            cancelButtonText: 'إلغاء'
+        } catch (error) {
+          console.error('Error fetching drug price:', error);
+        }
+        
+        // حساب الإجمالي
+        const quantity = Number(transfer.medication.dosesCount || 1);
+        const totalPrice = drugPrice * quantity;
+        
+        // إغلاق رسالة التحميل
+        Swal.close();
+        
+        // عرض نافذة تأكيد مع تفاصيل الأسعار
+        const { value: confirm } = await Swal.fire({
+          title: 'تأكيد صرف الدواء',
+          html: `
+            <div style="text-align: right; direction: rtl;">
+              <p><strong>المريض:</strong> ${patientData.name}</p>
+              <p><strong>الدواء:</strong> ${transfer.medication.name}</p>
+              <p><strong>الكمية:</strong> ${quantity}</p>
+              <p><strong>سعر الوحدة:</strong> ${drugPrice.toFixed(2)} ج.م</p>
+              <p><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
+              ${transfer.medication.insuranceType === 'خاص' ? '<p class="text-amber-300">المريض غير مغطى بالتأمين</p>' : ''}
+            </div>
+          `,
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: 'تأكيد الصرف',
+          cancelButtonText: 'إلغاء',
+          customClass: {
+            container: 'swal2-rtl'
+          }
+        });
+        
+        if (confirm) {
+          // عرض رسالة تحميل مرة أخرى
+          Swal.fire({
+            title: 'جاري صرف الدواء...',
+            didOpen: () => {
+              Swal.showLoading();
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false
           });
           
-          if (confirm) {
-            // If insurance not covered, warn (already handled above)
-            
-            // reduce stock if available
+          // تقليل المخزون إذا كان متوفرًا
+          if (drugExists) {
             const drugSnap = await drugsRef.orderByChild('name').equalTo(transfer.medication.name).limitToFirst(1).get();
-            if(drugSnap.exists()){
+            if (drugSnap.exists()) {
               const dKey = Object.keys(drugSnap.val())[0];
               const dVal = drugSnap.val()[dKey];
-              const cur = Number(dVal.quantity||0);
-              const need = Number(transfer.medication.dosesCount||1);
-              if(cur >= need){
-                await drugsRef.child(dKey).update({quantity: cur - need});
+              const cur = Number(dVal.quantity || 0);
+              const need = Number(transfer.medication.dosesCount || 1);
+              
+              if (cur >= need) {
+                // تحديث كمية الدواء في المخزون
+                await drugsRef.child(dKey).update({ quantity: cur - need });
+                
+                // تحديث حالة الطلب
                 await medicationRequestsRef
                   .child(`${patientId}/transfers/${transferKey}`)
                   .update({
@@ -1282,232 +1344,390 @@
                 
                 generateInvoice(invoiceData);
                 
-                showResult('تم!', 'تم تحديث حالة الطلب إلى "تم الصرف"');
+                // إغلاق رسالة التحميل وعرض رسالة النجاح
+                Swal.close();
+                Swal.fire({
+                  icon: 'success',
+                  title: 'تم الصرف بنجاح',
+                  text: 'تم تحديث حالة الطلب إلى "تم الصرف"',
+                  timer: 2000,
+                  showConfirmButton: false
+                });
+                
+                // إضافة إشعار
                 addNotification('success', 'تم الصرف', 'تم صرف الدواء بنجاح');
                 
-                // إعادة تحميل القائمة
-                loadMedicationRequests();
+                // إعادة تحميل القائمة بعد فترة وجيزة
+                setTimeout(() => {
+                  loadMedicationRequests();
+                }, 1000);
               } else {
+                // الكمية غير كافية
                 await medicationRequestsRef
                   .child(`${patientId}/transfers/${transferKey}`)
-                  .update({status: 'غير متوفر'});
-                showResult('فشل!', 'الكمية غير كافية في المخزون');
+                  .update({ status: 'غير متوفر' });
+                
+                Swal.close();
+                Swal.fire({
+                  icon: 'error',
+                  title: 'فشل الصرف',
+                  text: 'الكمية غير كافية في المخزون'
+                });
+                
                 addNotification('error', 'نقص المخزون', 'الكمية المتوفرة غير كافية');
               }
             } else {
+              // الدواء غير موجود في المخزون
               await medicationRequestsRef
                 .child(`${patientId}/transfers/${transferKey}`)
-                .update({status: 'غير متوفر'});
-              showResult('فشل!', 'لم يتم العثور على الدواء في المخزون');
+                .update({ status: 'غير متوفر' });
+              
+              Swal.close();
+              Swal.fire({
+                icon: 'error',
+                title: 'فشل الصرف',
+                text: 'لم يتم العثور على الدواء في المخزون'
+              });
+              
               addNotification('error', 'دواء غير متوفر', 'الدواء غير متوفر في المخزون');
             }
+          } else {
+            // الدواء غير موجود في المخزون
+            await medicationRequestsRef
+              .child(`${patientId}/transfers/${transferKey}`)
+              .update({ status: 'غير متوفر' });
+            
+            Swal.close();
+            Swal.fire({
+              icon: 'error',
+              title: 'فشل الصرف',
+              text: 'لم يتم العثور على الدواء في المخزون'
+            });
+            
+            addNotification('error', 'دواء غير متوفر', 'الدواء غير متوفر في المخزون');
           }
-        } catch (error) {
-          console.error('Error:', error);
-          Swal.fire('خطأ', 'فشل تحديث حالة الطلب: ' + error.message, 'error');
         }
+      } catch (error) {
+        console.error('Error in handleDispenseMedication:', error);
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: 'فشل تحديث حالة الطلب: ' + error.message
+        });
       }
+    }
+
+    // تعديل دالة loadMedicationRequests لإضافة مستمعي الأحداث بعد تحديث الجدول
+    function loadMedicationRequests() {
+      const filter = document.getElementById('filterMedRequests').value;
+      const q = (document.getElementById('searchMedRequests').value || '').trim().toLowerCase();
       
-      // غير متوفر
-      if (e.target.classList.contains('med-req-unavailable')) {
-        const tr = e.target.closest('tr[data-patient-id]');
-        if (!tr) return;
+      medicationRequestsRef.on('value', (snap) => {
+        let html = '';
+        let pendingCount = 0;
         
-        const patientId = tr.getAttribute('data-patient-id');
-        const transferKey = tr.getAttribute('data-transfer-key');
-        
-        // طلب سبب الرفض
-        const { value: reason } = await Swal.fire({
-          title: 'سبب الرفض',
-          input: 'textarea',
-          inputPlaceholder: 'اكتب سبب رفض الطلب...',
-          showCancelButton: true,
-          confirmButtonText: 'رفض',
-          cancelButtonText: 'إلغاء'
+        snap.forEach(patientSnap => {
+          const patientId = patientSnap.key;
+          const patientData = patientSnap.val();
+          const transfers = patientSnap.child('transfers');
+          
+          transfers.forEach(transferSnap => {
+            const transferKey = transferSnap.key;
+            const transfer = transferSnap.val();
+            
+            // عرض فقط تحويلات الصيدلية
+            if (transfer.department !== 'الصيدلية') return;
+            
+            // تطبيق فلتر الحالة
+            if (filter !== 'all' && (transfer.status || 'قيد الانتظار') !== filter) return;
+            
+            // تطبيق فلتر البحث
+            if (q) {
+              const searchText = [
+                patientData.name || '',
+                transfer.medication?.name || '',
+                patientId
+              ].join(' ').toLowerCase();
+              
+              if (!searchText.includes(q)) return;
+            }
+            
+            // حساب الطلبات قيد الانتظار
+            if (transfer.status === 'قيد الانتظار' || !transfer.status) {
+              pendingCount++;
+            }
+            
+            html += medRequestRow(patientId, transferKey, transfer, patientData.name);
+          });
         });
         
-        if (!reason) return;
+        document.getElementById('tbodyMedRequests').innerHTML = html || `<tr><td colspan="12" class="p-4 text-center text-white/60">لا توجد طلبات دواء</td></tr>`;
         
+        // تحديث الإحصائيات
+        document.getElementById('statNewRx').textContent = pendingCount;
+        document.getElementById('rxProgress').style.width = `${Math.min(100, pendingCount * 10)}%`;
+        
+        // عرض رموز QR
+        setTimeout(renderMedRequestsQRs, 100);
+        
+        // إضافة مستمعي الأحداث للأزرار الجديدة
+        document.querySelectorAll('.med-req-dispense').forEach(button => {
+          button.addEventListener('click', handleDispenseMedication);
+        });
+        
+        // إضافة مستمعي الأحداث للأزرار الأخرى
+        document.querySelectorAll('.med-req-unavailable').forEach(button => {
+          button.addEventListener('click', handleUnavailableMedication);
+        });
+        
+        document.querySelectorAll('.med-req-substitute').forEach(button => {
+          button.addEventListener('click', handleSubstituteMedication);
+        });
+        
+        document.querySelectorAll('.med-req-schedule').forEach(button => {
+          button.addEventListener('click', handleScheduleMedication);
+        });
+        
+        document.querySelectorAll('.med-req-del').forEach(button => {
+          button.addEventListener('click', handleDeleteMedication);
+        });
+        
+        // إضافة إشعار للطلبات الجديدة
+        if (pendingCount > 0) {
+          addNotification('info', 'طلبات دواء جديدة', `يوجد ${pendingCount} طلبات دواء جديدة بانتظار الصرف`);
+        }
+      });
+    }
+
+    // دوال معالجة الأحداث الأخرى
+    async function handleUnavailableMedication(e) {
+      const tr = e.target.closest('tr[data-patient-id]');
+      if (!tr) return;
+      
+      const patientId = tr.getAttribute('data-patient-id');
+      const transferKey = tr.getAttribute('data-transfer-key');
+      
+      // طلب سبب الرفض
+      const { value: reason } = await Swal.fire({
+        title: 'سبب الرفض',
+        input: 'textarea',
+        inputPlaceholder: 'اكتب سبب رفض الطلب...',
+        showCancelButton: true,
+        confirmButtonText: 'رفض',
+        cancelButtonText: 'إلغاء'
+      });
+      
+      if (!reason) return;
+      
+      try {
+        Swal.fire({
+          title: 'جاري تحديث حالة الطلب...',
+          didOpen: () => {
+            Swal.showLoading();
+          },
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
+        
+        // تحديث حالة الطلب إلى "غير متوفر"
+        await medicationRequestsRef
+          .child(`${patientId}/transfers/${transferKey}`)
+          .update({
+            status: 'غير متوفر',
+            rejectionReason: reason,
+            processedAt: Date.now(),
+            processedBy: 'موظف الصيدلية'
+          });
+        
+        Swal.close();
+        Swal.fire({
+          icon: 'success',
+          title: 'تم!',
+          text: 'تم تحديث حالة الطلب إلى "غير متوفر"',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        
+        addNotification('warning', 'تم الرفض', 'تم رفض طلب الدواء');
+        
+        // إعادة تحميل القائمة
+        loadMedicationRequests();
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.close();
+        Swal.fire('خطأ', 'فشل تحديث حالة الطلب: ' + error.message, 'error');
+      }
+    }
+
+    async function handleSubstituteMedication(e) {
+      const tr = e.target.closest('tr[data-patient-id]');
+      if (!tr) return;
+      
+      const patientId = tr.getAttribute('data-patient-id');
+      const transferKey = tr.getAttribute('data-transfer-key');
+      
+      try {
+        // جلب بيانات المريض والتحويل
+        const patientSnap = await medicationRequestsRef.child(patientId).get();
+        const patientData = patientSnap.val();
+        
+        const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
+        const transfer = transferSnap.val();
+        
+        const med = transfer.medication || {};
+        
+        // البحث عن بدائل
+        const subs = await findSubstitutes(med.name);
+        if (subs.length === 0) {
+          return Swal.fire({icon: 'info', title: 'لا توجد بدائل مقترحة'});
+        }
+        
+        const list = subs.map(s => `<div class="p-2 border-b border-white/5"><b>${esc(s.name)}</b> — الكمية: ${s.quantity||0} — السعر: ${Number(s.price||0).toFixed(2)} ج.م</div>`).join('');
+        
+        Swal.fire({
+          title: 'بدائل مقترحة',
+          html: `<div style="text-align:right">${list}</div>`,
+          width: 600,
+          showCancelButton: true,
+          confirmButtonText: 'استعمل كبديل'
+        }).then(async (r) => {
+          if (r.isConfirmed) {
+            // أخذ أول بديل
+            const chosen = subs[0];
+            
+            // تحديث اسم الدواء في الطلب
+            await medicationRequestsRef
+              .child(`${patientId}/transfers/${transferKey}/medication`)
+              .update({
+                name: chosen.name,
+                substituteFor: med.name,
+                price: Number(chosen.price || 0)
+              });
+            
+            // إنشاء الفاتورة
+            const invoiceData = {
+              patientName: patientData.name,
+              patientId: patientId,
+              items: [{
+                name: chosen.name,
+                quantity: Number(med.dosesCount || 1),
+                unitPrice: Number(chosen.price || 0),
+                totalPrice: Number(chosen.price || 0) * Number(med.dosesCount || 1)
+              }],
+              totalAmount: Number(chosen.price || 0) * Number(med.dosesCount || 1),
+              date: new Date().toISOString(),
+              hospitalName: 'مستشفى الحياة الذكية - مصر',
+              hospitalContact: '02-12345678',
+              hospitalAddress: 'القاهرة، جمهورية مصر العربية'
+            };
+            
+            generateInvoice(invoiceData);
+            
+            Swal.fire({icon: 'success', title: 'تم تعيين البديل'});
+            addNotification('success', 'تم تعيين بديل', `تم تعيين ${chosen.name} كبديل لـ ${med.name}`);
+            
+            // تحديث القائمة
+            loadMedicationRequests();
+          }
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('خطأ', 'فشل البحث عن بدائل: ' + error.message, 'error');
+      }
+    }
+
+    async function handleScheduleMedication(e) {
+      const tr = e.target.closest('tr[data-patient-id]');
+      if (!tr) return;
+      
+      const patientId = tr.getAttribute('data-patient-id');
+      const transferKey = tr.getAttribute('data-transfer-key');
+      
+      try {
+        // جلب بيانات التحويل
+        const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
+        const transfer = transferSnap.val();
+        
+        const med = transfer.medication || {};
+        
+        // عرض تفاصيل الجرعات
+        const schedule = med.schedule || [];
+        if (schedule.length === 0) {
+          return Swal.fire({icon: 'info', title: 'لا يوجد جدول جرعات'});
+        }
+        
+        const html = schedule.map(s => `
+          <div class="p-2 border-b border-white/5 text-right">
+            <b>الوقت:</b> ${esc(s.time)} — 
+            <b>مرات/يوم:</b> ${esc(s.timesPerDay || 1)} — 
+            <b>تعليمات:</b> ${esc(s.note || '-')}
+          </div>
+        `).join('');
+        
+        Swal.fire({
+          title: 'تفاصيل جدول الجرعات',
+          html: `<div style="text-align:right">${html}</div>`,
+          width: 600
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('خطأ', 'فشل عرض التفاصيل: ' + error.message, 'error');
+      }
+    }
+
+    async function handleDeleteMedication(e) {
+      const tr = e.target.closest('tr[data-patient-id]');
+      if (!tr) return;
+      
+      const patientId = tr.getAttribute('data-patient-id');
+      const transferKey = tr.getAttribute('data-transfer-key');
+      
+      const confirm = await Swal.fire({
+        icon: 'warning',
+        title: 'حذف الطلب؟',
+        text: 'لا يمكن التراجع',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، حذف',
+        cancelButtonText: 'إلغاء'
+      });
+      
+      if (confirm.isConfirmed) {
         try {
-          showLoading('جاري تحديث حالة الطلب...');
+          Swal.fire({
+            title: 'جاري حذف الطلب...',
+            didOpen: () => {
+              Swal.showLoading();
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false
+          });
           
-          // تحديث حالة الطلب إلى "غير متوفر"
+          // حذف التحويل
           await medicationRequestsRef
             .child(`${patientId}/transfers/${transferKey}`)
-            .update({
-              status: 'غير متوفر',
-              rejectionReason: reason,
-              processedAt: Date.now(),
-              processedBy: 'موظف الصيدلية'
-            });
+            .remove();
           
-          showResult('تم!', 'تم تحديث حالة الطلب إلى "غير متوفر"');
-          addNotification('warning', 'تم الرفض', 'تم رفض طلب الدواء');
+          Swal.close();
+          Swal.fire({
+            icon: 'success',
+            title: 'تم!',
+            text: 'تم حذف الطلب بنجاح',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+          addNotification('info', 'تم الحذف', 'تم حذف طلب الدواء');
           
           // إعادة تحميل القائمة
           loadMedicationRequests();
         } catch (error) {
           console.error('Error:', error);
-          Swal.fire('خطأ', 'فشل تحديث حالة الطلب: ' + error.message, 'error');
+          Swal.close();
+          Swal.fire('خطأ', 'فشل حذف الطلب: ' + error.message, 'error');
         }
       }
-      
-      // البدائل
-      if (e.target.classList.contains('med-req-substitute')) {
-        const tr = e.target.closest('tr[data-patient-id]');
-        if (!tr) return;
-        
-        const patientId = tr.getAttribute('data-patient-id');
-        const transferKey = tr.getAttribute('data-transfer-key');
-        
-        try {
-          // جلب بيانات المريض والتحويل
-          const patientSnap = await medicationRequestsRef.child(patientId).get();
-          const patientData = patientSnap.val();
-          
-          const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
-          const transfer = transferSnap.val();
-          
-          const med = transfer.medication || {};
-          
-          // البحث عن بدائل
-          const subs = await findSubstitutes(med.name);
-          if (subs.length === 0) {
-            return Swal.fire({icon: 'info', title: 'لا توجد بدائل مقترحة'});
-          }
-          
-          const list = subs.map(s => `<div class="p-2 border-b border-white/5"><b>${esc(s.name)}</b> — الكمية: ${s.quantity||0} — السعر: ${Number(s.price||0).toFixed(2)} ج.م</div>`).join('');
-          
-          Swal.fire({
-            title: 'بدائل مقترحة',
-            html: `<div style="text-align:right">${list}</div>`,
-            width: 600,
-            showCancelButton: true,
-            confirmButtonText: 'استعمل كبديل'
-          }).then(async (r) => {
-            if (r.isConfirmed) {
-              // أخذ أول بديل
-              const chosen = subs[0];
-              
-              // تحديث اسم الدواء في الطلب
-              await medicationRequestsRef
-                .child(`${patientId}/transfers/${transferKey}/medication`)
-                .update({
-                  name: chosen.name,
-                  substituteFor: med.name,
-                  price: Number(chosen.price || 0)
-                });
-              
-              // إنشاء الفاتورة
-              const invoiceData = {
-                patientName: patientData.name,
-                patientId: patientId,
-                items: [{
-                  name: chosen.name,
-                  quantity: Number(med.dosesCount || 1),
-                  unitPrice: Number(chosen.price || 0),
-                  totalPrice: Number(chosen.price || 0) * Number(med.dosesCount || 1)
-                }],
-                totalAmount: Number(chosen.price || 0) * Number(med.dosesCount || 1),
-                date: new Date().toISOString(),
-                hospitalName: 'مستشفى الحياة الذكية - مصر',
-                hospitalContact: '02-12345678',
-                hospitalAddress: 'القاهرة، جمهورية مصر العربية'
-              };
-              
-              generateInvoice(invoiceData);
-              
-              Swal.fire({icon: 'success', title: 'تم تعيين البديل'});
-              addNotification('success', 'تم تعيين بديل', `تم تعيين ${chosen.name} كبديل لـ ${med.name}`);
-              
-              // تحديث القائمة
-              loadMedicationRequests();
-            }
-          });
-        } catch (error) {
-          console.error('Error:', error);
-          Swal.fire('خطأ', 'فشل البحث عن بدائل: ' + error.message, 'error');
-        }
-      }
-      
-      // الجرعات
-      if (e.target.classList.contains('med-req-schedule')) {
-        const tr = e.target.closest('tr[data-patient-id]');
-        if (!tr) return;
-        
-        const patientId = tr.getAttribute('data-patient-id');
-        const transferKey = tr.getAttribute('data-transfer-key');
-        
-        try {
-          // جلب بيانات التحويل
-          const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
-          const transfer = transferSnap.val();
-          
-          const med = transfer.medication || {};
-          
-          // عرض تفاصيل الجرعات
-          const schedule = med.schedule || [];
-          if (schedule.length === 0) {
-            return Swal.fire({icon: 'info', title: 'لا يوجد جدول جرعات'});
-          }
-          
-          const html = schedule.map(s => `
-            <div class="p-2 border-b border-white/5 text-right">
-              <b>الوقت:</b> ${esc(s.time)} — 
-              <b>مرات/يوم:</b> ${esc(s.timesPerDay || 1)} — 
-              <b>تعليمات:</b> ${esc(s.note || '-')}
-            </div>
-          `).join('');
-          
-          Swal.fire({
-            title: 'تفاصيل جدول الجرعات',
-            html: `<div style="text-align:right">${html}</div>`,
-            width: 600
-          });
-        } catch (error) {
-          console.error('Error:', error);
-          Swal.fire('خطأ', 'فشل عرض التفاصيل: ' + error.message, 'error');
-        }
-      }
-      
-      // الحذف
-      if (e.target.classList.contains('med-req-del')) {
-        const tr = e.target.closest('tr[data-patient-id]');
-        if (!tr) return;
-        
-        const patientId = tr.getAttribute('data-patient-id');
-        const transferKey = tr.getAttribute('data-transfer-key');
-        
-        const confirm = await Swal.fire({
-          icon: 'warning',
-          title: 'حذف الطلب؟',
-          text: 'لا يمكن التراجع',
-          showCancelButton: true,
-          confirmButtonText: 'نعم، حذف',
-          cancelButtonText: 'إلغاء'
-        });
-        
-        if (confirm.isConfirmed) {
-          try {
-            showLoading('جاري حذف الطلب...');
-            
-            // حذف التحويل
-            await medicationRequestsRef
-              .child(`${patientId}/transfers/${transferKey}`)
-              .remove();
-            
-            showResult('تم!', 'تم حذف الطلب بنجاح');
-            addNotification('info', 'تم الحذف', 'تم حذف طلب الدواء');
-            
-            // إعادة تحميل القائمة
-            loadMedicationRequests();
-          } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('خطأ', 'فشل حذف الطلب: ' + error.message, 'error');
-          }
-        }
-      }
-    });
+    }
     
     // إضافة مستمعي الأحداث للفلاتر والبحث
     document.getElementById('filterMedRequests').addEventListener('change', function() {
