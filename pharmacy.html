@@ -180,57 +180,13 @@
     </div>
   </div>
   
-  <!-- Insurance Verification Modal -->
-  <div id="insuranceModal" class="modal">
+  <!-- Invoice Modal -->
+  <div id="invoiceModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h2 class="text-xl font-bold mb-4">التحقق من التأمين</h2>
-      <div class="mb-4">
-        <input type="text" id="insuranceId" class="w-full p-3 rounded-lg bg-slate-700 border border-slate-600" placeholder="رقم البطاقة التأمينية">
-      </div>
-      <div class="mb-4">
-        <button id="verifyInsurance" class="btn bg-blue-600 hover:bg-blue-700 w-full">تحقق</button>
-      </div>
-      <div id="insuranceResult" class="hidden p-4 bg-slate-800 rounded-lg">
-        <!-- Insurance result will be shown here -->
-      </div>
-    </div>
-  </div>
-  
-  <!-- Payment Modal -->
-  <div id="paymentModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2 class="text-xl font-bold mb-4">عملية الدفع</h2>
-      <div class="mb-4">
-        <div class="flex justify-between mb-2">
-          <span>المبلغ الإجمالي:</span>
-          <span id="paymentTotal" class="font-bold">0 ريال</span>
-        </div>
-        <div class="flex justify-between mb-2">
-          <span>خصم التأمين:</span>
-          <span id="insuranceDiscount" class="font-bold">0 ريال</span>
-        </div>
-        <div class="flex justify-between mb-4 text-lg">
-          <span>المبلغ المستحق:</span>
-          <span id="paymentDue" class="font-bold">0 ريال</span>
-        </div>
-      </div>
-      <div class="mb-4">
-        <label class="block mb-2">طريقة الدفع:</label>
-        <div class="grid grid-cols-2 gap-2">
-          <button class="payment-method btn bg-green-600 hover:bg-green-700" data-method="cash">نقدي</button>
-          <button class="payment-method btn bg-blue-600 hover:bg-blue-700" data-method="card">بطاقة</button>
-          <button class="payment-method btn bg-purple-600 hover:bg-purple-700" data-method="credit">دين</button>
-          <button class="payment-method btn bg-amber-600 hover:bg-amber-700" data-method="insurance">تأمين</button>
-        </div>
-      </div>
-      <div id="paymentDetails" class="mb-4 hidden">
-        <!-- Payment details will be shown here -->
-      </div>
-      <div class="flex gap-2">
-        <button id="completePayment" class="btn bg-teal-600 hover:bg-teal-700 flex-1">إتمام الدفع</button>
-        <button id="cancelPayment" class="btn bg-rose-600 hover:bg-rose-700 flex-1">إلغاء</button>
+      <h2 class="text-xl font-bold mb-4">حساب الفاتورة</h2>
+      <div id="invoiceContent">
+        <!-- Invoice content will be shown here -->
       </div>
     </div>
   </div>
@@ -308,7 +264,6 @@
         <button id="tabSuppliers" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الموردون</button>
         <button id="tabOrders" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الطلبات</button>
         <button id="tabReports" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">التقارير</button>
-        <button id="tabAccounting" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">المحاسبة</button>
       </div>
       <div class="p-4 md:p-6 space-y-6">
         <!-- Inventory Panel -->
@@ -336,14 +291,6 @@
                   <select id="supplierSelect" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
                     <option value="">اختر المورد</option>
                   </select>
-                  <select id="drugCategory" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <option value="general">عام</option>
-                    <option value="antibiotics">مضادات حيوية</option>
-                    <option value="painkillers">مسكنات</option>
-                    <option value="chronic">أمراض مزمنة</option>
-                    <option value="vitamins">فيتامينات</option>
-                    <option value="controlled">مخدرات</option>
-                  </select>
                   <button class="btn bg-teal-600 hover:bg-teal-700" type="submit">حفظ الدواء</button>
                 </div>
               </div>
@@ -355,20 +302,12 @@
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-3 gap-3">
               <h2 class="text-lg font-bold">قائمة الأدوية</h2>
               <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                <div class="relative">
-                  <input id="searchDrug" placeholder="بحث عن دواء..." class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-60 pr-10">
-                  <button id="advancedSearchBtn" class="absolute left-2 top-2 text-white/60 hover:text-white">
-                    <i class='bx bx-filter-alt'></i>
-                  </button>
-                </div>
+                <input id="searchDrug" placeholder="بحث عن دواء..." class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-60" />
                 <select id="filterCategory" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
                   <option value="all">جميع الفئات</option>
-                  <option value="general">عام</option>
                   <option value="antibiotics">مضادات حيوية</option>
                   <option value="painkillers">مسكنات</option>
                   <option value="chronic">أمراض مزمنة</option>
-                  <option value="vitamins">فيتامينات</option>
-                  <option value="controlled">مخدرات</option>
                 </select>
               </div>
             </div>
@@ -501,7 +440,6 @@
                     <th class="p-3">الاتصال</th>
                     <th class="p-3">البريد الإلكتروني</th>
                     <th class="p-3">الأدوية</th>
-                    <th class="p-3">التقييم</th>
                     <th class="p-3 text-center">إجراءات</th>
                   </tr>
                 </thead>
@@ -582,76 +520,6 @@
               <button id="generateSupplierReport" class="btn bg-teal-600 hover:bg-teal-700">
                 تقرير أداء الموردين
               </button>
-              <button id="generateTopSellingReport" class="btn bg-purple-600 hover:bg-purple-700">
-                الأدوية الأكثر مبيعاً
-              </button>
-              <button id="generateSalesReport" class="btn bg-blue-600 hover:bg-blue-700">
-                تقرير المبيعات
-              </button>
-              <button id="generateTaxReport" class="btn bg-green-600 hover:bg-green-700">
-                تقرير ضريبة القيمة المضافة
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Accounting Panel -->
-        <div id="panelAccounting" class="hidden space-y-6">
-          <div class="card fade-in">
-            <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
-              <i class='bx bx-dollar-circle'></i> المحاسبة والمالية
-            </h2>
-            <div class="grid md:grid-cols-4 gap-4 mb-6">
-              <div class="card bg-green-900/20 border border-green-700/30">
-                <h3 class="font-bold text-green-300">إجمالي المبيعات</h3>
-                <p class="text-2xl font-bold" id="totalSales">0 ريال</p>
-              </div>
-              <div class="card bg-blue-900/20 border border-blue-700/30">
-                <h3 class="font-bold text-blue-300">الديون المستحقة</h3>
-                <p class="text-2xl font-bold" id="totalDebts">0 ريال</p>
-              </div>
-              <div class="card bg-purple-900/20 border border-purple-700/30">
-                <h3 class="font-bold text-purple-300">ضريبة القيمة المضافة</h3>
-                <p class="text-2xl font-bold" id="totalVAT">0 ريال</p>
-              </div>
-              <div class="card bg-amber-900/20 border border-amber-700/30">
-                <h3 class="font-bold text-amber-300">صافي الربح</h3>
-                <p class="text-2xl font-bold" id="netProfit">0 ريال</p>
-              </div>
-            </div>
-            
-            <div class="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 class="font-medium mb-3">تقرير المبيعات اليومي</h3>
-                <div class="h-64">
-                  <canvas id="dailySalesChart"></canvas>
-                </div>
-              </div>
-              <div>
-                <h3 class="font-medium mb-3">تقرير الديون</h3>
-                <div class="h-64">
-                  <canvas id="debtsChart"></canvas>
-                </div>
-              </div>
-            </div>
-            
-            <div class="mt-6">
-              <h3 class="font-medium mb-3">سجل الحسابات</h3>
-              <div class="overflow-auto rounded-xl border border-white/10">
-                <table class="min-w-full text-sm">
-                  <thead class="bg-white/5">
-                    <tr class="text-white/80">
-                      <th class="p-3 text-right">التاريخ</th>
-                      <th class="p-3 text-right">الوصف</th>
-                      <th class="p-3">النوع</th>
-                      <th class="p-3">المبلغ</th>
-                      <th class="p-3">طريقة الدفع</th>
-                      <th class="p-3 text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tbodyAccounting" class="divide-y divide-white/10"></tbody>
-                </table>
-              </div>
             </div>
           </div>
         </div>
@@ -687,82 +555,11 @@
     let revenueChart = null;
     let inventoryChart = null;
     let prescriptionChart = null;
-    let dailySalesChart = null;
-    let debtsChart = null;
     let notifications = [];
     let currentPage = 1;
     const itemsPerPage = 10;
     let allDrugs = [];
     let autoReorders = [];
-    let currentUser = null;
-    let userPermissions = {};
-    
-    // =============================
-    // User Authentication & Permissions
-    // =============================
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        // Load user permissions
-        db.ref(`users/${user.uid}/permissions`).once('value').then(snap => {
-          userPermissions = snap.val() || {};
-          applyPermissions();
-        });
-      } else {
-        window.location.href = 'login.html';
-      }
-    });
-    
-    function applyPermissions() {
-      // Hide/show elements based on permissions
-      if (!userPermissions.canDeleteDrugs) {
-        document.querySelectorAll('.del').forEach(btn => btn.style.display = 'none');
-      }
-      
-      if (!userPermissions.canManageSuppliers) {
-        document.getElementById('tabSuppliers').style.display = 'none';
-      }
-      
-      if (!userPermissions.canViewReports) {
-        document.getElementById('tabReports').style.display = 'none';
-      }
-      
-      if (!userPermissions.canManageAccounting) {
-        document.getElementById('tabAccounting').style.display = 'none';
-      }
-      
-      if (!userPermissions.canManageOrders) {
-        document.getElementById('tabOrders').style.display = 'none';
-      }
-    }
-    
-    // =============================
-    // Drug Interactions Database
-    // =============================
-    const drugInteractionsDB = {
-      'Paracetamol': ['Warfarin', 'Isoniazid', 'Carbamazepine'],
-      'Ibuprofen': ['Aspirin', 'Warfarin', 'Methotrexate', 'Lithium'],
-      'Amoxicillin': ['Methotrexate', 'Oral contraceptives', 'Allopurinol'],
-      'Warfarin': ['Aspirin', 'Ibuprofen', 'Amoxicillin', 'Clopidogrel'],
-      'Aspirin': ['Ibuprofen', 'Warfarin', 'Clopidogrel', 'SSRIs'],
-      'Metformin': ['Furosemide', 'Nifedipine', 'Cimetidine'],
-      'Lisinopril': ['Potassium supplements', 'NSAIDs', 'Diuretics'],
-      'Atorvastatin': ['Clarithromycin', 'Cyclosporine', 'Grapefruit juice'],
-      'Omeprazole': ['Clopidogrel', 'Ketoconazole', 'Diazepam'],
-      'Simvastatin': ['Amiodarone', 'Verapamil', 'Diltiazem', 'Grapefruit juice']
-    };
-    
-    // =============================
-    // Insurance Companies Database
-    // =============================
-    const insuranceCompanies = {
-      'BUPA': { discount: 0.8, coverage: 'full' },
-      'Tawuniya': { discount: 0.75, coverage: 'full' },
-      'MedGulf': { discount: 0.7, coverage: 'partial' },
-      'AXA': { discount: 0.85, coverage: 'full' },
-      'Allianz': { discount: 0.65, coverage: 'partial' },
-      'Private': { discount: 1, coverage: 'none' }
-    };
     
     // =============================
     // Helpers
@@ -806,248 +603,6 @@
         event.target.style.display = 'none';
       }
     });
-    
-    // Insurance Verification Modal
-    const insuranceModal = $('#insuranceModal');
-    $('#btnInsurance').addEventListener('click', () => {
-      insuranceModal.style.display = 'block';
-    });
-    
-    $('#verifyInsurance').addEventListener('click', async () => {
-      const insuranceId = $('#insuranceId').value.trim();
-      if (!insuranceId) {
-        return Swal.fire('خطأ', 'يرجى إدخال رقم البطاقة التأمينية', 'error');
-      }
-      
-      // Simulate insurance verification
-      const resultDiv = $('#insuranceResult');
-      resultDiv.innerHTML = '<div class="text-center">جاري التحقق...</div>';
-      resultDiv.classList.remove('hidden');
-      
-      setTimeout(() => {
-        const insuranceType = insuranceId.startsWith('BUPA') ? 'BUPA' : 
-                            insuranceId.startsWith('TAW') ? 'Tawuniya' : 
-                            insuranceId.startsWith('MED') ? 'MedGulf' : 
-                            insuranceId.startsWith('AXA') ? 'AXA' : 
-                            insuranceId.startsWith('ALZ') ? 'Allianz' : 'Private';
-        
-        const insurance = insuranceCompanies[insuranceType];
-        
-        resultDiv.innerHTML = `
-          <div class="text-green-400 font-bold mb-2">تم التحقق بنجاح</div>
-          <div><strong>شركة التأمين:</strong> ${insuranceType}</div>
-          <div><strong>نسبة التغطية:</strong> ${insurance.coverage === 'full' ? 'كاملة' : 'جزئية'}</div>
-          <div><strong>نسبة الخصم:</strong> ${(insurance.discount * 100).toFixed(0)}%</div>
-          <div class="mt-3">
-            <button class="btn bg-teal-600 hover:bg-teal-700" onclick="applyInsurance('${insuranceType}')">تطبيق التأمين</button>
-          </div>
-        `;
-      }, 1500);
-    });
-    
-    window.applyInsurance = (insuranceType) => {
-      // Store current insurance for payment
-      localStorage.setItem('currentInsurance', insuranceType);
-      insuranceModal.style.display = 'none';
-      addNotification('success', 'تم تطبيق التأمين', `تم تطبيق تأمين ${insuranceType} بنجاح`);
-    };
-    
-    // Payment Modal
-    const paymentModal = $('#paymentModal');
-    let currentPaymentData = null;
-    
-    $('#completePayment').addEventListener('click', async () => {
-      if (!currentPaymentData) return;
-      
-      const paymentMethod = document.querySelector('.payment-method.active')?.dataset.method;
-      if (!paymentMethod) {
-        return Swal.fire('خطأ', 'يرجى اختيار طريقة الدفع', 'error');
-      }
-      
-      // Process payment
-      const paymentRef = db.ref('pharmacy/payments');
-      await paymentRef.push({
-        ...currentPaymentData,
-        paymentMethod,
-        timestamp: Date.now(),
-        processedBy: currentUser.uid
-      });
-      
-      // Update prescription status if applicable
-      if (currentPaymentData.prescriptionId) {
-        await db.ref(`pharmacy/prescriptions/${currentPaymentData.prescriptionId}`).update({
-          status: 'paid',
-          paidAt: Date.now()
-        });
-      }
-      
-      // Print receipt if needed
-      if (paymentMethod === 'cash' || paymentMethod === 'card') {
-        printReceipt(currentPaymentData);
-      }
-      
-      paymentModal.style.display = 'none';
-      Swal.fire('نجاح', 'تمت عملية الدفع بنجاح', 'success');
-      loadAccountingData();
-    });
-    
-    $('#cancelPayment').addEventListener('click', () => {
-      paymentModal.style.display = 'none';
-      currentPaymentData = null;
-    });
-    
-    document.querySelectorAll('.payment-method').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.payment-method').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        const method = btn.dataset.method;
-        const detailsDiv = $('#paymentDetails');
-        detailsDiv.classList.remove('hidden');
-        
-        if (method === 'credit') {
-          detailsDiv.innerHTML = `
-            <div class="mb-3">
-              <label class="block mb-2">اسم العميل:</label>
-              <input type="text" id="customerName" class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600">
-            </div>
-            <div class="mb-3">
-              <label class="block mb-2">رقم الهاتف:</label>
-              <input type="tel" id="customerPhone" class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600">
-            </div>
-            <div>
-              <label class="block mb-2">تاريخ السداد:</label>
-              <input type="date" id="dueDate" class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600">
-            </div>
-          `;
-        } else if (method === 'insurance') {
-          detailsDiv.innerHTML = `
-            <div class="mb-3">
-              <label class="block mb-2">رقم البطاقة التأمينية:</label>
-              <input type="text" id="insuranceCard" class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600">
-            </div>
-            <div>
-              <label class="block mb-2">ملاحظات:</label>
-              <textarea id="insuranceNotes" class="w-full p-2 rounded-lg bg-slate-700 border border-slate-600"></textarea>
-            </div>
-          `;
-        } else {
-          detailsDiv.innerHTML = '';
-        }
-      });
-    });
-    
-    // Print receipt function
-    function printReceipt(data) {
-      const receiptContent = `
-        <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 300px; margin: 0 auto;">
-          <h2 style="text-align: center; margin-bottom: 20px;">إيصال الدفع</h2>
-          <div style="margin-bottom: 10px;">
-            <strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-EG')}
-          </div>
-          <div style="margin-bottom: 10px;">
-            <strong>الوقت:</strong> ${new Date().toLocaleTimeString('ar-EG')}
-          </div>
-          <div style="margin-bottom: 10px;">
-            <strong>الرقم التسلسلي:</strong> ${data.receiptNumber || Math.floor(Math.random() * 1000000)}
-          </div>
-          <hr style="margin: 15px 0;">
-          <div style="margin-bottom: 10px;">
-            <strong>الوصف:</strong> ${data.description || 'بيع أدوية'}
-          </div>
-          <div style="margin-bottom: 10px;">
-            <strong>المبلغ الإجمالي:</strong> ${data.totalAmount} ريال
-          </div>
-          ${data.insuranceDiscount ? `
-          <div style="margin-bottom: 10px;">
-            <strong>خصم التأمين:</strong> ${data.insuranceDiscount} ريال
-          </div>
-          ` : ''}
-          <div style="margin-bottom: 10px;">
-            <strong>المبلغ المدفوع:</strong> ${data.amountPaid} ريال
-          </div>
-          <div style="margin-bottom: 10px;">
-            <strong>طريقة الدفع:</strong> ${data.paymentMethod}
-          </div>
-          <hr style="margin: 15px 0;">
-          <div style="text-align: center; margin-top: 20px;">
-            شكراً لتعاملكم معنا
-          </div>
-        </div>
-      `;
-      
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(receiptContent);
-      printWindow.document.close();
-      printWindow.print();
-    }
-    
-    // Print function
-    $('#btnPrint').addEventListener('click', () => {
-      const activeTab = document.querySelector('[class*="border-teal-400"]').id;
-      
-      if (activeTab === 'tabInventory') {
-        printInventoryReport();
-      } else if (activeTab === 'tabPrescriptions') {
-        printPrescriptionsReport();
-      } else if (activeTab === 'tabSuppliers') {
-        printSuppliersReport();
-      } else if (activeTab === 'tabOrders') {
-        printOrdersReport();
-      } else if (activeTab === 'tabReports') {
-        printReportsSummary();
-      } else if (activeTab === 'tabAccounting') {
-        printAccountingReport();
-      }
-    });
-    
-    function printInventoryReport() {
-      // Implementation for printing inventory report
-      Swal.fire('معلومات', 'جاري إعداد التقرير للطباعة...', 'info');
-      setTimeout(() => {
-        window.print();
-      }, 1000);
-    }
-    
-    function printPrescriptionsReport() {
-      // Implementation for printing prescriptions report
-      Swal.fire('معلومات', 'جاري إعداد التقرير للطباعة...', 'info');
-      setTimeout(() => {
-        window.print();
-      }, 1000);
-    }
-    
-    function printSuppliersReport() {
-      // Implementation for printing suppliers report
-      Swal.fire('معلومات', 'جاري إعداد التقرير للطباعة...', 'info');
-      setTimeout(() => {
-        window.print();
-      }, 1000);
-    }
-    
-    function printOrdersReport() {
-      // Implementation for printing orders report
-      Swal.fire('معلومات', 'جاري إعداد التقرير للطباعة...', 'info');
-      setTimeout(() => {
-        window.print();
-      }, 1000);
-    }
-    
-    function printReportsSummary() {
-      // Implementation for printing reports summary
-      Swal.fire('معلومات', 'جاري إعداد التقرير للطباعة...', 'info');
-      setTimeout(() => {
-        window.print();
-      }, 1000);
-    }
-    
-    function printAccountingReport() {
-      // Implementation for printing accounting report
-      Swal.fire('معلومات', 'جاري إعداد التقرير للطباعة...', 'info');
-      setTimeout(() => {
-        window.print();
-      }, 1000);
-    }
     
     // Notification System
     $('#btnNotifications').addEventListener('click', () => {
@@ -1161,20 +716,18 @@
     const tabSuppliers = $('#tabSuppliers');
     const tabOrders = $('#tabOrders');
     const tabReports = $('#tabReports');
-    const tabAccounting = $('#tabAccounting');
     const panelInventory = $('#panelInventory');
     const panelPrescriptions = $('#panelPrescriptions');
     const panelSuppliers = $('#panelSuppliers');
     const panelOrders = $('#panelOrders');
     const panelReports = $('#panelReports');
-    const panelAccounting = $('#panelAccounting');
     
     function switchTab(activeTab, activePanel) {
-      [tabInventory, tabPrescriptions, tabSuppliers, tabOrders, tabReports, tabAccounting].forEach(tab => {
+      [tabInventory, tabPrescriptions, tabSuppliers, tabOrders, tabReports].forEach(tab => {
         tab.classList.remove('border-teal-400');
         tab.classList.add('border-transparent');
       });
-      [panelInventory, panelPrescriptions, panelSuppliers, panelOrders, panelReports, panelAccounting].forEach(panel => {
+      [panelInventory, panelPrescriptions, panelSuppliers, panelOrders, panelReports].forEach(panel => {
         panel.classList.add('hidden');
       });
       activeTab.classList.add('border-teal-400');
@@ -1184,11 +737,6 @@
       // Initialize charts when reports tab is opened
       if (activePanel === panelReports && !inventoryChart) {
         initCharts();
-      }
-      
-      // Load accounting data when accounting tab is opened
-      if (activePanel === panelAccounting) {
-        loadAccountingData();
       }
       
       // Load medication requests when prescriptions tab is opened
@@ -1205,7 +753,268 @@
     tabSuppliers.addEventListener('click', () => switchTab(tabSuppliers, panelSuppliers));
     tabOrders.addEventListener('click', () => switchTab(tabOrders, panelOrders));
     tabReports.addEventListener('click', () => switchTab(tabReports, panelReports));
-    tabAccounting.addEventListener('click', () => switchTab(tabAccounting, panelAccounting));
+    
+    // =============================
+    // Invoice System
+    // =============================
+    const invoiceModal = $('#invoiceModal');
+    
+    // دالة لحساب الفاتورة
+    window.calculateInvoice = async (patientId, transferKey) => {
+      try {
+        // جلب بيانات المريض والطلب
+        const patientSnap = await medicationRequestsRef.child(patientId).get();
+        const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
+        
+        const patientData = patientSnap.val();
+        const transfer = transferSnap.val();
+        const medication = transfer.medication || {};
+        
+        // جلب سعر الدواء من المخزون
+        const drugSnap = await drugsRef.orderByChild('name').equalTo(medication.name).limitToFirst(1).get();
+        let drugPrice = 0;
+        if (drugSnap.exists()) {
+          const drugData = Object.values(drugSnap.val())[0];
+          drugPrice = drugData.price || 0;
+        }
+        
+        // حساب الإجمالي
+        const quantity = medication.dosesCount || 1;
+        const totalPrice = drugPrice * quantity;
+        
+        // عرض نافذة الفاتورة
+        const { value: formValues } = await Swal.fire({
+          title: 'حساب الفاتورة',
+          html: `
+            <div class="text-right">
+              <div class="mb-4 p-3 bg-slate-800 rounded-lg">
+                <div class="font-bold mb-2">معلومات المريض</div>
+                <div>الاسم: ${patientData.name || '-'}</div>
+                <div>الرقم: ${patientId}</div>
+                <div>القسم: ${transfer.department || '-'}</div>
+              </div>
+              
+              <div class="mb-4 p-3 bg-slate-800 rounded-lg">
+                <div class="font-bold mb-2">معلومات الدواء</div>
+                <div>الدواء: ${medication.name || '-'}</div>
+                <div>الجرعة: ${medication.dosage || '-'}</div>
+                <div>المدة: ${medication.duration || '-'}</div>
+                <div>الكمية: ${quantity}</div>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block mb-2">سعر الوحدة (ريال):</label>
+                <input type="number" id="unitPrice" class="swal2-input" value="${drugPrice}" step="0.01">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block mb-2">الخصم (ريال):</label>
+                <input type="number" id="discount" class="swal2-input" value="0" step="0.01">
+              </div>
+              
+              <div class="mb-4 p-3 bg-slate-800 rounded-lg">
+                <div class="flex justify-between mb-1">
+                  <span>الإجمالي:</span>
+                  <span id="totalAmount">${totalPrice.toFixed(2)} ريال</span>
+                </div>
+                <div class="flex justify-between mb-1">
+                  <span>الخصم:</span>
+                  <span id="discountAmount">0.00 ريال</span>
+                </div>
+                <div class="flex justify-between font-bold text-lg">
+                  <span>الصافي:</span>
+                  <span id="netAmount">${totalPrice.toFixed(2)} ريال</span>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block mb-2">طريقة الدفع:</label>
+                <select id="paymentMethod" class="swal2-select">
+                  <option value="cash">نقدي</option>
+                  <option value="card">بطاقة</option>
+                  <option value="department">حساب القسم</option>
+                  <option value="insurance">تأمين</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block mb-2">ملاحظات:</label>
+                <textarea id="notes" class="swal2-textarea" placeholder="أي ملاحظات إضافية..."></textarea>
+              </div>
+            </div>
+          `,
+          width: 600,
+          showCancelButton: true,
+          confirmButtonText: 'حفظ وطباعة',
+          cancelButtonText: 'إلغاء',
+          preConfirm: () => {
+            return {
+              unitPrice: parseFloat(document.getElementById('unitPrice').value) || 0,
+              discount: parseFloat(document.getElementById('discount').value) || 0,
+              paymentMethod: document.getElementById('paymentMethod').value,
+              notes: document.getElementById('notes').value,
+              patientName: patientData.name,
+              patientId: patientId,
+              drugName: medication.name,
+              quantity: quantity,
+              department: transfer.department
+            };
+          }
+        });
+        
+        if (formValues) {
+          // حساب القيم النهائية
+          const totalAmount = formValues.unitPrice * formValues.quantity;
+          const netAmount = totalAmount - formValues.discount;
+          
+          // حفظ الفاتورة
+          const invoiceRef = db.ref('pharmacy/invoices');
+          const invoiceData = {
+            ...formValues,
+            totalAmount,
+            netAmount,
+            invoiceNumber: `INV-${Date.now()}`,
+            invoiceDate: new Date().toISOString(),
+            hospitalName: 'مستشفى الحياة الذكية',
+            status: 'paid',
+            createdAt: Date.now(),
+            patientId,
+            transferKey
+          };
+          
+          await invoiceRef.push(invoiceData);
+          
+          // تحديث حالة الطلب إلى تم الصرف
+          await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).update({
+            status: 'تم الصرف',
+            processedAt: Date.now(),
+            processedBy: 'نظام الصيدلة',
+            invoiceNumber: invoiceData.invoiceNumber
+          });
+          
+          // طباعة الفاتورة
+          printInvoice(invoiceData);
+          
+          // تحديث واجهة المستخدم
+          loadMedicationRequests();
+          
+          Swal.fire('نجاح', 'تم حفظ الفاتورة وطباعتها', 'success');
+          addNotification('success', 'تم إنشاء الفاتورة', `تم إنشاء فاتورة لـ ${formValues.drugName}`);
+        }
+      } catch (error) {
+        console.error('Error calculating invoice:', error);
+        Swal.fire('خطأ', 'فشل في حساب الفاتورة', 'error');
+      }
+    };
+    
+    // دالة طباعة الفاتورة
+    function printInvoice(invoiceData) {
+      const invoiceContent = `
+        <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
+            <h1 style="font-size: 24px; margin: 0; color: #333;">${invoiceData.hospitalName}</h1>
+            <h2 style="font-size: 18px; margin: 10px 0; color: #666;">قسم الصيدلة</h2>
+            <p style="margin: 5px 0; font-size: 14px;">فاتورة بيع أدوية</p>
+          </div>
+          
+          <!-- Invoice Info -->
+          <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <div>
+              <p style="margin: 5px 0;"><strong>رقم الفاتورة:</strong> ${invoiceData.invoiceNumber}</p>
+              <p style="margin: 5px 0;"><strong>التاريخ:</strong> ${new Date(invoiceData.invoiceDate).toLocaleDateString('ar-EG')}</p>
+              <p style="margin: 5px 0;"><strong>الوقت:</strong> ${new Date(invoiceData.invoiceDate).toLocaleTimeString('ar-EG')}</p>
+            </div>
+            <div>
+              <p style="margin: 5px 0;"><strong>طريقة الدفع:</strong> ${getPaymentMethodText(invoiceData.paymentMethod)}</p>
+              <p style="margin: 5px 0;"><strong>الحالة:</strong> مدفوعة</p>
+            </div>
+          </div>
+          
+          <!-- Patient Info -->
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">معلومات المريض</h3>
+            <p style="margin: 5px 0;"><strong>الاسم:</strong> ${invoiceData.patientName}</p>
+            <p style="margin: 5px 0;"><strong>الرقم:</strong> ${invoiceData.patientId}</p>
+            <p style="margin: 5px 0;"><strong>القسم:</strong> ${invoiceData.department}</p>
+          </div>
+          
+          <!-- Medication Info -->
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">معلومات الدواء</h3>
+            <p style="margin: 5px 0;"><strong>الدواء:</strong> ${invoiceData.drugName}</p>
+            <p style="margin: 5px 0;"><strong>الكمية:</strong> ${invoiceData.quantity}</p>
+            <p style="margin: 5px 0;"><strong>سعر الوحدة:</strong> ${invoiceData.unitPrice.toFixed(2)} ريال</p>
+          </div>
+          
+          <!-- Calculation -->
+          <div style="margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">الإجمالي:</td>
+                <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">${invoiceData.totalAmount.toFixed(2)} ريال</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">الخصم:</td>
+                <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">${invoiceData.discount.toFixed(2)} ريال</td>
+              </tr>
+              <tr style="background: #f0f0f0;">
+                <td style="padding: 10px; text-align: right; font-weight: bold;">الصافي:</td>
+                <td style="padding: 10px; text-align: left; font-weight: bold;">${invoiceData.netAmount.toFixed(2)} ريال</td>
+              </tr>
+            </table>
+          </div>
+          
+          <!-- Notes -->
+          ${invoiceData.notes ? `
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">ملاحظات</h3>
+            <p style="margin: 0; white-space: pre-wrap;">${invoiceData.notes}</p>
+          </div>
+          ` : ''}
+          
+          <!-- Footer -->
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+            <p>شكراً لثقتكم بنا</p>
+            <p>هاتف المستشفى: 1234567890</p>
+            <p>العنوان: شارع الملك فهد، الرياض</p>
+          </div>
+          
+          <!-- Barcode -->
+          <div style="text-align: center; margin-top: 20px;">
+            <svg id="invoiceBarcode"></svg>
+          </div>
+        </div>
+      `;
+      
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(invoiceContent);
+      printWindow.document.close();
+      
+      // Generate barcode for invoice
+      setTimeout(() => {
+        if (printWindow.document.getElementById('invoiceBarcode')) {
+          JsBarcode(printWindow.document.getElementById('invoiceBarcode'), invoiceData.invoiceNumber, {
+            format: "CODE128",
+            width: 2,
+            height: 50,
+            displayValue: true
+          });
+        }
+        printWindow.print();
+      }, 500);
+    }
+    
+    // دالة مساعدة لتحويل طريقة الدفع إلى نص
+    function getPaymentMethodText(method) {
+      const methods = {
+        'cash': 'نقدي',
+        'card': 'بطاقة',
+        'department': 'حساب القسم',
+        'insurance': 'تأمين'
+      };
+      return methods[method] || method;
+    }
     
     // =============================
     // Inventory Logic
@@ -1220,16 +1029,10 @@
     function drugRow(key, d){
       const expSoon = daysUntil(d.expiry) <= 30; // خلال 30 يوم
       const low = Number(d.quantity||0) <= Number(d.lowThreshold||LOW_DEFAULT);
-      const isControlled = d.category === 'controlled';
       const barcode = d.barcode || generateBarcode(key);
       
-      let rowClass = '';
-      if (low) rowClass += ' low-stock';
-      if (expSoon) rowClass += ' expiring';
-      if (isControlled) rowClass += ' controlled';
-      
       return `
-        <tr data-key="${key}" class="hover:bg-white/5 ${rowClass}">
+        <tr data-key="${key}" class="hover:bg-white/5">
           <td class="p-3 font-semibold">${esc(d.name)}</td>
           <td class="p-3">${esc(d.manufacturer||'-')}</td>
           <td class="p-3 text-center">${esc(d.batch||'-')}</td>
@@ -1250,7 +1053,6 @@
           <td class="p-3 text-center">
             ${low ? '<span class="text-amber-300 text-xs">كمية منخفضة</span>' : ''}
             ${expSoon ? '<span class="text-rose-300 text-xs ml-2">قرب انتهاء</span>' : ''}
-            ${isControlled ? '<span class="text-purple-300 text-xs ml-2">مخدر</span>' : ''}
           </td>
           <td class="p-3 text-center">
             <div class="flex items-center justify-center gap-2">
@@ -1380,99 +1182,6 @@
       renderDrugsPage(filteredDrugs, currentPage);
     }
     
-    // Advanced search
-    $('#advancedSearchBtn').addEventListener('click', () => {
-      Swal.fire({
-        title: 'بحث متقدم',
-        html: `
-          <div class="text-right">
-            <div class="mb-3">
-              <label>نطاق السعر</label>
-              <div class="flex gap-2">
-                <input id="minPrice" type="number" placeholder="الحد الأدنى" class="swal2-input">
-                <input id="maxPrice" type="number" placeholder="الحد الأقصى" class="swal2-input">
-              </div>
-            </div>
-            <div class="mb-3">
-              <label>الكمية</label>
-              <select id="quantityFilter" class="swal2-select">
-                <option value="all">الكل</option>
-                <option value="low">منخفضة</option>
-                <option value="available">متوفرة</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label>تاريخ الانتهاء</label>
-              <select id="expiryFilter" class="swal2-select">
-                <option value="all">الكل</option>
-                <option value="soon">قريبة (أقل من 30 يوم)</option>
-                <option value="expired">منتهية</option>
-              </select>
-            </div>
-          </div>
-        `,
-        confirmButtonText: 'بحث',
-        showCancelButton: true,
-        preConfirm: () => {
-          return {
-            minPrice: document.getElementById('minPrice').value,
-            maxPrice: document.getElementById('maxPrice').value,
-            quantity: document.getElementById('quantityFilter').value,
-            expiry: document.getElementById('expiryFilter').value
-          };
-        }
-      }).then(result => {
-        if(result.isConfirmed) {
-          applyAdvancedFilters(result.value);
-        }
-      });
-    });
-    
-    function applyAdvancedFilters(filters) {
-      let filteredDrugs = allDrugs;
-      
-      // فلتر السعر
-      if(filters.minPrice || filters.maxPrice) {
-        const min = filters.minPrice ? parseFloat(filters.minPrice) : 0;
-        const max = filters.maxPrice ? parseFloat(filters.maxPrice) : Infinity;
-        filteredDrugs = filteredDrugs.filter(drug => {
-          const price = parseFloat(drug.data.price || 0);
-          return price >= min && price <= max;
-        });
-      }
-      
-      // فلتر الكمية
-      if(filters.quantity !== 'all') {
-        filteredDrugs = filteredDrugs.filter(drug => {
-          const quantity = parseInt(drug.data.quantity || 0);
-          const threshold = parseInt(drug.data.lowThreshold || 10);
-          
-          if(filters.quantity === 'low') {
-            return quantity <= threshold;
-          } else if(filters.quantity === 'available') {
-            return quantity > threshold;
-          }
-          return true;
-        });
-      }
-      
-      // فلتر تاريخ الانتهاء
-      if(filters.expiry !== 'all') {
-        filteredDrugs = filteredDrugs.filter(drug => {
-          const daysLeft = daysUntil(drug.data.expiry);
-          
-          if(filters.expiry === 'soon') {
-            return daysLeft <= 30 && daysLeft > 0;
-          } else if(filters.expiry === 'expired') {
-            return daysLeft <= 0;
-          }
-          return true;
-        });
-      }
-      
-      renderDrugsPage(filteredDrugs, 1);
-    }
-    
     // Live list
     drugsRef.on('value', (snap)=>{
       allDrugs = [];
@@ -1509,21 +1218,14 @@
         lowThreshold: Number($('#lowThreshold').value||LOW_DEFAULT),
         reorderPoint: Number($('#reorderPoint').value||5),
         price: Number($('#price').value||0),
-        category: $('#drugCategory').value,
+        category: $('#filterCategory').value !== 'all' ? $('#filterCategory').value : 'general',
         supplier: $('#supplierSelect').value,
         barcode: generateBarcode(Date.now().toString()),
-        createdAt: Date.now(),
-        createdBy: currentUser.uid
+        createdAt: Date.now()
       };
       if(!data.name || !data.expiry){
         return Swal.fire({icon:'warning', title:'برجاء إدخال البيانات المطلوبة'});
       }
-      
-      // Check for controlled substances
-      if (data.category === 'controlled' && !userPermissions.canManageControlled) {
-        return Swal.fire({icon:'error', title:'صلاحية غير كافية', text:'لا تملك صلاحية إدارة المواد المخدرة'});
-      }
-      
       const newRef = drugsRef.push();
       await newRef.set(data);
       e.target.reset();
@@ -1551,10 +1253,6 @@
         await drugsRef.child(key).update({quantity:q});
         qtyEl.textContent = q;
       } else if(e.target.classList.contains('del')){
-        if (!userPermissions.canDeleteDrugs) {
-          return Swal.fire({icon:'error', title:'صلاحية غير كافية', text:'لا تملك صلاحية حذف الأدوية'});
-        }
-        
         const confirm = await Swal.fire({icon:'warning', title:'حذف الدواء؟', text:'لا يمكن التراجع', showCancelButton:true, confirmButtonText:'نعم، حذف', cancelButtonText:'إلغاء'});
         if(confirm.isConfirmed){ 
           await drugsRef.child(key).remove(); 
@@ -1624,8 +1322,8 @@
     
     function rxRow(key, p){
       const statusBadge = (s)=>{
-        const map = { new:'bg-amber-500', dispensed:'bg-teal-600', unavailable:'bg-rose-600', paid:'bg-green-600' };
-        const txt = { new:'جديدة', dispensed:'تم الصرف', unavailable:'غير متوفر', paid:'مدفوعة' };
+        const map = { new:'bg-amber-500', dispensed:'bg-teal-600', unavailable:'bg-rose-600' };
+        const txt = { new:'جديدة', dispensed:'تم الصرف', unavailable:'غير متوفر' };
         return `<span class="px-2 py-1 rounded-full text-xs ${map[s]||'bg-white/10'}">${txt[s]||s}</span>`
       };
       return `
@@ -1643,11 +1341,8 @@
           </td>
           <td class="p-3 text-center">
             <div class="flex flex-wrap items-center justify-center gap-2">
-              ${p.status === 'new' ? `
-                <button class="rx-pay btn bg-green-600 hover:bg-green-700">دفع</button>
-                <button class="rx-done btn bg-teal-600 hover:bg-teal-700">تم الصرف</button>
-                <button class="rx-na btn bg-amber-600 hover:bg-amber-700">غير متوفر</button>
-              ` : ''}
+              <button class="rx-done btn bg-teal-600 hover:bg-teal-700">تم الصرف</button>
+              <button class="rx-na btn bg-amber-600 hover:bg-amber-700">غير متوفر</button>
               <button class="rx-sub btn bg-indigo-600 hover:bg-indigo-700">بدائل</button>
               <button class="rx-sched btn bg-white/10 hover:bg-white/20">الجرعات</button>
               <button class="rx-del btn bg-rose-600 hover:bg-rose-700">حذف</button>
@@ -1677,30 +1372,6 @@
         }
       });
       return subs;
-    }
-    
-    // Check for drug interactions
-    async function checkDrugInteractions(drugName, patientId) {
-      // Get current medications for the patient
-      const currentMeds = await getCurrentPatientMedications(patientId);
-      
-      // Check for interactions
-      const interactions = [];
-      if (drugInteractionsDB[drugName]) {
-        drugInteractionsDB[drugName].forEach(interactingDrug => {
-          if (currentMeds.includes(interactingDrug)) {
-            interactions.push(interactingDrug);
-          }
-        });
-      }
-      
-      return interactions;
-    }
-    
-    async function getCurrentPatientMedications(patientId) {
-      // This would typically query patient's current medications
-      // For now, return an empty array
-      return [];
     }
     
     function applyRxFilters(snapshot){
@@ -1736,45 +1407,12 @@
       const key = tr.getAttribute('data-key');
       const snap = await rxRef.child(key).get();
       const p = snap.val();
-      
-      if(e.target.classList.contains('rx-pay')) {
-        // Open payment modal
-        currentPaymentData = {
-          prescriptionId: key,
-          description: `دفع وصفة: ${p.drugName} للمريض ${p.patientName}`,
-          totalAmount: p.totalAmount || 0,
-          insuranceDiscount: p.insuranceCovered ? (p.totalAmount || 0) * 0.2 : 0,
-          amountPaid: p.insuranceCovered ? (p.totalAmount || 0) * 0.8 : (p.totalAmount || 0),
-          patientName: p.patientName,
-          drugName: p.drugName
-        };
-        
-        $('#paymentTotal').textContent = `${currentPaymentData.totalAmount} ريال`;
-        $('#insuranceDiscount').textContent = `${currentPaymentData.insuranceDiscount} ريال`;
-        $('#paymentDue').textContent = `${currentPaymentData.amountPaid} ريال`;
-        
-        paymentModal.style.display = 'block';
-      } else if(e.target.classList.contains('rx-done')){
-        // Check for drug interactions first
-        const interactions = await checkDrugInteractions(p.drugName, p.patientId);
-        if(interactions.length > 0) {
-          const confirm = await Swal.fire({
-            icon: 'warning',
-            title: 'تحذير تفاعلات دوائية',
-            html: `يوجد تفاعلات محتملة مع: <br>${interactions.join('<br>')}`,
-            confirmButtonText: 'مواصلة الصرف',
-            cancelButtonText: 'إلغاء',
-            showCancelButton: true
-          });
-          if(!confirm.isConfirmed) return;
-        }
-        
+      if(e.target.classList.contains('rx-done')){
         // If insurance not covered, warn
         if(p.insuranceCovered === false){
           const ok = await Swal.fire({icon:'warning', title:'انتباه', text:'المريض غير مغطى بالتأمين لهذه الوصفة. هل تريد المتابعة؟', showCancelButton:true});
           if(!ok.isConfirmed) return;
         }
-        
         // reduce stock if available
         const drugSnap = await drugsRef.orderByChild('name').equalTo(p.drugName).limitToFirst(1).get();
         if(drugSnap.exists()){
@@ -1875,6 +1513,9 @@
           <td class="p-3 text-center">
             <div class="flex flex-wrap items-center justify-center gap-2">
               ${transfer.status === 'قيد الانتظار' ? `
+                <button class="med-req-invoice btn bg-green-600 hover:bg-green-700" onclick="calculateInvoice('${patientId}', '${transferKey}')">
+                  <i class='bx bx-receipt'></i> الفاتورة
+                </button>
                 <button class="med-req-dispense btn bg-teal-600 hover:bg-teal-700">تم الصرف</button>
                 <button class="med-req-unavailable btn bg-amber-600 hover:bg-amber-700">غير متوفر</button>
               ` : ''}
@@ -1996,7 +1637,7 @@
             .update({
               status: 'تم الصرف',
               processedAt: Date.now(),
-              processedBy: 'موظف الصيدلية'
+              processedBy: 'نظام الصيدلة'
             });
           
           showResult('تم!', 'تم تحديث حالة الطلب إلى "تم الصرف"');
@@ -2040,7 +1681,7 @@
               status: 'غير متوفر',
               rejectionReason: reason,
               processedAt: Date.now(),
-              processedBy: 'موظف الصيدلية'
+              processedBy: 'نظام الصيدلة'
             });
           
           showResult('تم!', 'تم تحديث حالة الطلب إلى "غير متوفر"');
@@ -2205,19 +1846,12 @@
     const supplierSelect = $('#supplierSelect');
     
     function supplierRow(key, s) {
-      const rating = s.rating || 0;
-      const stars = '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
-      
       return `
         <tr data-key="${key}" class="hover:bg-white/5">
           <td class="p-3 font-semibold">${esc(s.name)}</td>
           <td class="p-3">${esc(s.contact||'-')}</td>
           <td class="p-3">${esc(s.email||'-')}</td>
           <td class="p-3 text-center">${s.drugsCount || 0}</td>
-          <td class="p-3 text-center">
-            <div class="text-yellow-400">${stars}</div>
-            <div class="text-xs">${rating.toFixed(1)}/5</div>
-          </td>
           <td class="p-3 text-center">
             <div class="flex items-center justify-center gap-2">
               <button class="edit-supplier btn bg-teal-600 hover:bg-teal-700">تعديل</button>
@@ -2237,7 +1871,7 @@
         supplierSelect.innerHTML += `<option value="${k}">${esc(s.name)}</option>`;
         html += supplierRow(k, s);
       });
-      tbodySuppliers.innerHTML = html || `<tr><td colspan="6" class="p-4 text-center text-white/60">لا يوجد موردين</td></tr>`;
+      tbodySuppliers.innerHTML = html || `<tr><td colspan="5" class="p-4 text-center text-white/60">لا يوجد موردين</td></tr>`;
     });
     
     // Add supplier
@@ -2248,7 +1882,6 @@
         contact: $('#supplierContact').value.trim(),
         email: $('#supplierEmail').value.trim(),
         drugsCount: 0,
-        rating: 5,
         createdAt: Date.now()
       };
       if(!data.name) {
@@ -2630,115 +2263,12 @@
         }
       });
       
-      // Daily Sales Chart
-      const dailySalesCtx = document.getElementById('dailySalesChart').getContext('2d');
-      dailySalesChart = new Chart(dailySalesCtx, {
-        type: 'line',
-        data: {
-          labels: ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
-          datasets: [{
-            label: 'المبيعات',
-            data: [0, 0, 0, 0, 0, 0, 0],
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 2,
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              ticks: {
-                color: 'rgba(255, 255, 255, 0.7)',
-                callback: function(value) {
-                  return value + ' ريال';
-                }
-              }
-            },
-            x: {
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              ticks: {
-                color: 'rgba(255, 255, 255, 0.7)'
-              }
-            }
-          }
-        }
-      });
-      
-      // Debts Chart
-      const debtsCtx = document.getElementById('debtsChart').getContext('2d');
-      debtsChart = new Chart(debtsCtx, {
-        type: 'bar',
-        data: {
-          labels: ['الديون المستحقة', 'المدفوعات', 'الديون المتأخرة'],
-          datasets: [{
-            label: 'المبلغ',
-            data: [0, 0, 0],
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.5)',
-              'rgba(75, 192, 192, 0.5)',
-              'rgba(255, 206, 86, 0.5)'
-            ],
-            borderColor: [
-              'rgb(255, 99, 132)',
-              'rgb(75, 192, 192)',
-              'rgb(255, 206, 86)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              ticks: {
-                color: 'rgba(255, 255, 255, 0.7)',
-                callback: function(value) {
-                  return value + ' ريال';
-                }
-              }
-            },
-            x: {
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              ticks: {
-                color: 'rgba(255, 255, 255, 0.7)'
-              }
-            }
-          }
-        }
-      });
-      
       // Update charts with data
       updateCharts();
     }
     
     function updateCharts() {
-      if (!inventoryChart || !prescriptionChart || !dailySalesChart || !debtsChart) return;
+      if (!inventoryChart || !prescriptionChart) return;
       
       // Update inventory chart
       const categories = {
@@ -2793,16 +2323,6 @@
         ];
         prescriptionChart.update();
       });
-      
-      // Update daily sales chart
-      const salesData = [1200, 1900, 1500, 2100, 1800, 2400, 2000];
-      dailySalesChart.data.datasets[0].data = salesData;
-      dailySalesChart.update();
-      
-      // Update debts chart
-      const debtsData = [5000, 12000, 2000];
-      debtsChart.data.datasets[0].data = debtsData;
-      debtsChart.update();
     }
     
     // Revenue Chart
@@ -2871,76 +2391,6 @@
     window.addEventListener('load', () => {
       initRevenueChart();
     });
-    
-    // =============================
-    // Accounting Logic
-    // =============================
-    const accountingRef = db.ref('pharmacy/accounting');
-    const paymentsRef = db.ref('pharmacy/payments');
-    const tbodyAccounting = $('#tbodyAccounting');
-    
-    function loadAccountingData() {
-      // Load accounting statistics
-      let totalSales = 0;
-      let totalDebts = 0;
-      let totalVAT = 0;
-      let netProfit = 0;
-      
-      paymentsRef.once('value', (snap) => {
-        snap.forEach(child => {
-          const payment = child.val();
-          totalSales += payment.amountPaid || 0;
-          
-          if (payment.paymentMethod === 'credit') {
-            totalDebts += payment.amountPaid || 0;
-          }
-          
-          // Calculate VAT (15%)
-          totalVAT += (payment.amountPaid || 0) * 0.15;
-        });
-        
-        netProfit = totalSales - totalVAT;
-        
-        $('#totalSales').textContent = `${totalSales.toFixed(2)} ريال`;
-        $('#totalDebts').textContent = `${totalDebts.toFixed(2)} ريال`;
-        $('#totalVAT').textContent = `${totalVAT.toFixed(2)} ريال`;
-        $('#netProfit').textContent = `${netProfit.toFixed(2)} ريال`;
-        
-        // Update charts
-        if (dailySalesChart && debtsChart) {
-          dailySalesChart.data.datasets[0].data = [1200, 1900, 1500, 2100, 1800, 2400, 2000];
-          dailySalesChart.update();
-          
-          debtsChart.data.datasets[0].data = [totalDebts, totalSales - totalDebts, totalDebts * 0.3];
-          debtsChart.update();
-        }
-      });
-      
-      // Load accounting records
-      accountingRef.on('value', (snap) => {
-        let html = '';
-        snap.forEach(child => {
-          const record = child.val();
-          const typeBadge = record.type === 'income' ? 
-            '<span class="px-2 py-1 rounded-full text-xs bg-green-600">إيراد</span>' : 
-            '<span class="px-2 py-1 rounded-full text-xs bg-red-600">مصروف</span>';
-          
-          html += `
-            <tr data-key="${child.key}" class="hover:bg-white/5">
-              <td class="p-3">${record.date ? fmtDate(record.date) : '-'}</td>
-              <td class="p-3">${esc(record.description || '-')}</td>
-              <td class="p-3 text-center">${typeBadge}</td>
-              <td class="p-3 text-center">${record.amount ? Number(record.amount).toFixed(2) : '-'}</td>
-              <td class="p-3 text-center">${record.paymentMethod || '-'}</td>
-              <td class="p-3 text-center">
-                <button class="view-record btn bg-indigo-600 hover:bg-indigo-700">عرض</button>
-              </td>
-            </tr>`;
-        });
-        
-        tbodyAccounting.innerHTML = html || `<tr><td colspan="6" class="p-4 text-center text-white/60">لا توجد سجلات</td></tr>`;
-      });
-    }
     
     // Report generation
     $('#generateInventoryReport').addEventListener('click', async () => {
@@ -3145,271 +2595,11 @@
       addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير أداء الموردين بنجاح');
     });
     
-    $('#generateTopSellingReport').addEventListener('click', async () => {
-      const salesRef = db.ref('pharmacy/sales');
-      const snap = await salesRef.once('value');
-      
-      const salesData = {};
-      snap.forEach(child => {
-        const sale = child.val();
-        if(!salesData[sale.drugName]) {
-          salesData[sale.drugName] = 0;
-        }
-        salesData[sale.drugName] += sale.quantity;
-      });
-      
-      // Sort drugs by sales
-      const sortedDrugs = Object.entries(salesData)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-      
-      const reportHtml = sortedDrugs.map(([drug, quantity]) => `
-        <div class="flex justify-between p-2 border-b">
-          <span>${drug}</span>
-          <span class="font-bold">${quantity} وحدة</span>
-        </div>
-      `).join('');
-      
-      Swal.fire({
-        title: 'أكثر 10 أدوية مبيعاً',
-        html: `<div class="text-right">${reportHtml}</div>`,
-        width: 600,
-        confirmButtonText: 'تصدير PDF'
-      }).then(result => {
-        if(result.isConfirmed) {
-          exportTopSellingToPDF(sortedDrugs);
-        }
-      });
-    });
-    
-    $('#generateSalesReport').addEventListener('click', async () => {
-      const paymentsRef = db.ref('pharmacy/payments');
-      const snap = await paymentsRef.once('value');
-      
-      const salesData = {
-        daily: {},
-        weekly: {},
-        monthly: {},
-        yearly: {}
-      };
-      
-      snap.forEach(child => {
-        const payment = child.val();
-        const date = new Date(payment.timestamp);
-        const day = date.toISOString().slice(0, 10);
-        const week = getWeekNumber(date);
-        const month = date.toISOString().slice(0, 7);
-        const year = date.getFullYear();
-        
-        if (!salesData.daily[day]) salesData.daily[day] = 0;
-        if (!salesData.weekly[week]) salesData.weekly[week] = 0;
-        if (!salesData.monthly[month]) salesData.monthly[month] = 0;
-        if (!salesData.yearly[year]) salesData.yearly[year] = 0;
-        
-        salesData.daily[day] += payment.amountPaid || 0;
-        salesData.weekly[week] += payment.amountPaid || 0;
-        salesData.monthly[month] += payment.amountPaid || 0;
-        salesData.yearly[year] += payment.amountPaid || 0;
-      });
-      
-      // Generate report HTML
-      const reportHtml = `
-        <div class="text-right">
-          <h3 class="font-bold mb-3">ملخص المبيعات</h3>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="p-3 bg-green-900/20 rounded">
-              <div>إجمالي المبيعات اليوم</div>
-              <div class="text-xl font-bold">${Object.values(salesData.daily).reduce((a, b) => a + b, 0).toFixed(2)} ريال</div>
-            </div>
-            <div class="p-3 bg-blue-900/20 rounded">
-              <div>إجمالي المبيعات الشهرية</div>
-              <div class="text-xl font-bold">${Object.values(salesData.monthly).reduce((a, b) => a + b, 0).toFixed(2)} ريال</div>
-            </div>
-          </div>
-          <h3 class="font-bold mb-3">أفضل 5 أيام مبيعاً</h3>
-          <div class="mb-4">
-            ${Object.entries(salesData.daily)
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 5)
-              .map(([date, amount]) => `
-                <div class="flex justify-between p-2 border-b">
-                  <span>${date}</span>
-                  <span class="font-bold">${amount.toFixed(2)} ريال</span>
-                </div>
-              `).join('')}
-          </div>
-        </div>
-      `;
-      
-      Swal.fire({
-        title: 'تقرير المبيعات',
-        html: reportHtml,
-        width: 700,
-        confirmButtonText: 'تصدير PDF'
-      }).then(result => {
-        if(result.isConfirmed) {
-          exportSalesReportToPDF(salesData);
-        }
-      });
-    });
-    
-    $('#generateTaxReport').addEventListener('click', async () => {
-      const paymentsRef = db.ref('pharmacy/payments');
-      const snap = await paymentsRef.once('value');
-      
-      let totalSales = 0;
-      let totalVAT = 0;
-      let taxableSales = 0;
-      let exemptSales = 0;
-      
-      snap.forEach(child => {
-        const payment = child.val();
-        const amount = payment.amountPaid || 0;
-        totalSales += amount;
-        
-        // Assume 15% VAT for all sales
-        const vat = amount * 0.15;
-        totalVAT += vat;
-        taxableSales += amount;
-      });
-      
-      const reportHtml = `
-        <div class="text-right">
-          <h3 class="font-bold mb-3">ملخص ضريبة القيمة المضافة</h3>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="p-3 bg-green-900/20 rounded">
-              <div>إجمالي المبيعات</div>
-              <div class="text-xl font-bold">${totalSales.toFixed(2)} ريال</div>
-            </div>
-            <div class="p-3 bg-blue-900/20 rounded">
-              <div>ضريبة القيمة المضافة (15%)</div>
-              <div class="text-xl font-bold">${totalVAT.toFixed(2)} ريال</div>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="p-3 bg-purple-900/20 rounded">
-              <div>المبيعات الخاضعة للضريبة</div>
-              <div class="text-xl font-bold">${taxableSales.toFixed(2)} ريال</div>
-            </div>
-            <div class="p-3 bg-amber-900/20 rounded">
-              <div>المبيعات المعفاة</div>
-              <div class="text-xl font-bold">${exemptSales.toFixed(2)} ريال</div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      Swal.fire({
-        title: 'تقرير ضريبة القيمة المضافة',
-        html: reportHtml,
-        width: 700,
-        confirmButtonText: 'تصدير PDF'
-      }).then(result => {
-        if(result.isConfirmed) {
-          exportTaxReportToPDF({
-            totalSales,
-            totalVAT,
-            taxableSales,
-            exemptSales
-          });
-        }
-      });
-    });
-    
-    function getWeekNumber(d) {
-      const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-      date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-      const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
-      const weekNo = Math.ceil(( ( (date - yearStart) / 86400000) + 1)/7);
-      return `${date.getUTCFullYear()}-W${weekNo}`;
-    }
-    
-    function exportTopSellingToPDF(sortedDrugs) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      doc.setFont('helvetica');
-      doc.setFontSize(18);
-      doc.text('Top Selling Drugs Report', 105, 15, { align: 'center' });
-      
-      doc.setFontSize(12);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-      
-      const reportData = sortedDrugs.map(([drug, quantity]) => [drug, quantity]);
-      
-      doc.autoTable({
-        head: [['Drug Name', 'Quantity Sold']],
-        body: reportData,
-        startY: 40,
-        styles: { font: 'helvetica', fontSize: 10 },
-        headStyles: { fillColor: [128, 0, 128] }
-      });
-      
-      doc.save('top-selling-drugs.pdf');
-      addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير الأدوية الأكثر مبيعاً بنجاح');
-    }
-    
-    function exportSalesReportToPDF(salesData) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      doc.setFont('helvetica');
-      doc.setFontSize(18);
-      doc.text('Sales Report', 105, 15, { align: 'center' });
-      
-      doc.setFontSize(12);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-      
-      // Summary
-      doc.text(`Total Daily Sales: ${Object.values(salesData.daily).reduce((a, b) => a + b, 0).toFixed(2)} SAR`, 20, 40);
-      doc.text(`Total Monthly Sales: ${Object.values(salesData.monthly).reduce((a, b) => a + b, 0).toFixed(2)} SAR`, 20, 50);
-      
-      // Top days
-      const topDays = Object.entries(salesData.daily)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-      
-      const daysData = topDays.map(([date, amount]) => [date, amount.toFixed(2)]);
-      
-      doc.autoTable({
-        head: [['Date', 'Sales (SAR)']],
-        body: daysData,
-        startY: 60,
-        styles: { font: 'helvetica', fontSize: 10 },
-        headStyles: { fillColor: [52, 152, 219] }
-      });
-      
-      doc.save('sales-report.pdf');
-      addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير المبيعات بنجاح');
-    }
-    
-    function exportTaxReportToPDF(data) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      doc.setFont('helvetica');
-      doc.setFontSize(18);
-      doc.text('VAT Report', 105, 15, { align: 'center' });
-      
-      doc.setFontSize(12);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-      
-      // Summary
-      doc.text(`Total Sales: ${data.totalSales.toFixed(2)} SAR`, 20, 40);
-      doc.text(`VAT (15%): ${data.totalVAT.toFixed(2)} SAR`, 20, 50);
-      doc.text(`Taxable Sales: ${data.taxableSales.toFixed(2)} SAR`, 20, 60);
-      doc.text(`Exempt Sales: ${data.exemptSales.toFixed(2)} SAR`, 20, 70);
-      
-      doc.save('vat-report.pdf');
-      addNotification('success', 'تم إنشاء التقرير', 'تم إنشاء تقرير ضريبة القيمة المضافة بنجاح');
-    }
-    
     // Export to Excel
     $('#btnExportExcel').addEventListener('click', async () => {
       const drugsSnap = await drugsRef.once('value');
       const rxSnap = await rxRef.once('value');
       const ordersSnap = await ordersRef.once('value');
-      const paymentsSnap = await paymentsRef.once('value');
       
       // Create workbook
       const wb = XLSX.utils.book_new();
@@ -3471,23 +2661,6 @@
       const ordersSheet = XLSX.utils.json_to_sheet(ordersData);
       XLSX.utils.book_append_sheet(wb, ordersSheet, 'Orders');
       
-      // Payments sheet
-      const paymentsData = [];
-      paymentsSnap.forEach(ch => {
-        const p = ch.val();
-        paymentsData.push({
-          'Date': p.timestamp ? new Date(p.timestamp).toLocaleDateString() : '',
-          'Description': p.description || '',
-          'Amount': p.amountPaid || 0,
-          'Payment Method': p.paymentMethod || '',
-          'Patient Name': p.patientName || '',
-          'Drug Name': p.drugName || ''
-        });
-      });
-      
-      const paymentsSheet = XLSX.utils.json_to_sheet(paymentsData);
-      XLSX.utils.book_append_sheet(wb, paymentsSheet, 'Payments');
-      
       // Save the file
       XLSX.writeFile(wb, 'pharmacy-data.xlsx');
       addNotification('success', 'تم التصدير', 'تم تصدير البيانات إلى ملف Excel بنجاح');
@@ -3498,7 +2671,6 @@
       const drugsSnap = await drugsRef.once('value');
       const rxSnap = await rxRef.once('value');
       const ordersSnap = await ordersRef.once('value');
-      const paymentsSnap = await paymentsRef.once('value');
       
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -3518,8 +2690,6 @@
       let newRx = 0;
       let totalOrders = 0;
       let pendingOrders = 0;
-      let totalPayments = 0;
-      let totalSales = 0;
       
       drugsSnap.forEach(() => totalDrugs++);
       rxSnap.forEach(ch => {
@@ -3530,22 +2700,16 @@
         totalOrders++;
         if (ch.val().status === 'pending') pendingOrders++;
       });
-      paymentsSnap.forEach(ch => {
-        totalPayments++;
-        totalSales += ch.val().amountPaid || 0;
-      });
       
       doc.text(`Total Drugs: ${totalDrugs}`, 20, 40);
       doc.text(`Total Prescriptions: ${totalRx}`, 20, 50);
       doc.text(`New Prescriptions: ${newRx}`, 20, 60);
       doc.text(`Total Orders: ${totalOrders}`, 20, 70);
       doc.text(`Pending Orders: ${pendingOrders}`, 20, 80);
-      doc.text(`Total Payments: ${totalPayments}`, 20, 90);
-      doc.text(`Total Sales: ${totalSales.toFixed(2)} SAR`, 20, 100);
       
       // Drugs table
       doc.setFontSize(14);
-      doc.text('Drugs Inventory', 20, 115);
+      doc.text('Drugs Inventory', 20, 95);
       
       let drugsData = [];
       drugsSnap.forEach(ch => {
@@ -3562,7 +2726,7 @@
       doc.autoTable({
         head: [['Drug Name', 'Manufacturer', 'Quantity', 'Price', 'Expiry Date']],
         body: drugsData,
-        startY: 125,
+        startY: 105,
         styles: { font: 'helvetica', fontSize: 10 },
         headStyles: { fillColor: [41, 128, 185] }
       });
@@ -3622,33 +2786,6 @@
         headStyles: { fillColor: [41, 128, 185] }
       });
       
-      // Add new page for payments
-      doc.addPage();
-      
-      // Payments table
-      doc.setFontSize(14);
-      doc.text('Payments', 20, 15);
-      
-      let paymentsData = [];
-      paymentsSnap.forEach(ch => {
-        const p = ch.val();
-        paymentsData.push([
-          p.timestamp ? new Date(p.timestamp).toLocaleDateString() : '-',
-          p.description || '-',
-          p.amountPaid ? p.amountPaid.toFixed(2) : '-',
-          p.paymentMethod || '-',
-          p.patientName || '-'
-        ]);
-      });
-      
-      doc.autoTable({
-        head: [['Date', 'Description', 'Amount', 'Payment Method', 'Patient']],
-        body: paymentsData,
-        startY: 25,
-        styles: { font: 'helvetica', fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] }
-      });
-      
       doc.save('pharmacy-report.pdf');
       addNotification('success', 'تم التصدير', 'تم تصدير البيانات إلى ملف PDF بنجاح');
     });
@@ -3657,6 +2794,43 @@
     $('#btnReports').addEventListener('click', () => {
       switchTab(tabReports, panelReports);
     });
+    
+    // Print function
+    $('#btnPrint').addEventListener('click', () => {
+      const activeTab = document.querySelector('[class*="border-teal-400"]').id;
+      
+      if (activeTab === 'tabInventory') {
+        printInventoryReport();
+      } else if (activeTab === 'tabPrescriptions') {
+        printPrescriptionsReport();
+      } else if (activeTab === 'tabSuppliers') {
+        printSuppliersReport();
+      } else if (activeTab === 'tabOrders') {
+        printOrdersReport();
+      } else if (activeTab === 'tabReports') {
+        printReportsSummary();
+      }
+    });
+    
+    function printInventoryReport() {
+      window.print();
+    }
+    
+    function printPrescriptionsReport() {
+      window.print();
+    }
+    
+    function printSuppliersReport() {
+      window.print();
+    }
+    
+    function printOrdersReport() {
+      window.print();
+    }
+    
+    function printReportsSummary() {
+      window.print();
+    }
     
     // =============================
     // End of Helper Functions
@@ -3671,10 +2845,7 @@
         const samples = [
           {name:'Paracetamol 500mg', manufacturer:'GSK', batch:'PA123', expiry: addDaysISO(120), quantity: 25, lowThreshold: 10, reorderPoint: 5, price: 2.50, category: 'painkillers'},
           {name:'Ibuprofen 200mg', manufacturer:'Bayer', batch:'IB420', expiry: addDaysISO(20), quantity: 8, lowThreshold: 10, reorderPoint: 5, price: 3.75, category: 'painkillers'},
-          {name:'Amoxicillin 500mg', manufacturer:'Pfizer', batch:'AMX77', expiry: addDaysISO(300), quantity: 50, lowThreshold: 15, reorderPoint: 10, price: 6.20, category: 'antibiotics'},
-          {name:'Metformin 500mg', manufacturer:'Merck', batch:'MET456', expiry: addDaysISO(180), quantity: 30, lowThreshold: 10, reorderPoint: 5, price: 4.50, category: 'chronic'},
-          {name:'Vitamin D3', manufacturer:'Nature Made', batch:'VIT789', expiry: addDaysISO(365), quantity: 60, lowThreshold: 20, reorderPoint: 10, price: 8.90, category: 'vitamins'},
-          {name:'Codeine 30mg', manufacturer:'Pfizer', batch:'COD101', expiry: addDaysISO(90), quantity: 5, lowThreshold: 5, reorderPoint: 2, price: 12.50, category: 'controlled'}
+          {name:'Amoxicillin 500mg', manufacturer:'Pfizer', batch:'AMX77', expiry: addDaysISO(300), quantity: 50, lowThreshold: 15, reorderPoint: 10, price: 6.20, category: 'antibiotics'}
         ];
         for(const s of samples){ 
           const newRef = drugsRef.push();
@@ -3684,20 +2855,16 @@
       const r = await rxRef.limitToFirst(1).get();
       if(!r.exists()){
         const samplesRx = [
-          {patientName:'أحمد عبد الله', patientId:'P-1001', drugName:'Paracetamol 500mg', dose:'1 قرص كل 8 ساعات', duration:'5 أيام', status:'new', totalAmount: 12.50, quantityNeeded:15, createdAt: Date.now(), insuranceCovered:true, insurer:'BUPA', schedule:[{time:'08:00', timesPerDay:3, note:'بعد الأكل'},{time:'16:00', timesPerDay:3}]},
-          {patientName:'منى علي', patientId:'P-1002', drugName:'Ibuprofen 200mg', dose:'1 قرص بعد الأكل', duration:'3 أيام', status:'new', totalAmount: 11.25, quantityNeeded:3, createdAt: Date.now(), insuranceCovered:false, insurer:'', schedule:[{time:'12:00', timesPerDay:1, note:'مع الطعام'}]},
-          {patientName:'محمد سالم', patientId:'P-1003', drugName:'Amoxicillin 500mg', dose:'1 قرص كل 8 ساعات', duration:'7 أيام', status:'new', totalAmount: 43.40, quantityNeeded:21, createdAt: Date.now(), insuranceCovered:true, insurer:'Tawuniya', schedule:[{time:'08:00', timesPerDay:3, note:'بعد الأكل'}]},
-          {patientName:'فاطمة أحمد', patientId:'P-1004', drugName:'Metformin 500mg', dose:'1 قرص مرتين يومياً', duration:'30 يوم', status:'new', totalAmount: 135.00, quantityNeeded:60, createdAt: Date.now(), insuranceCovered:true, insurer:'MedGulf', schedule:[{time:'08:00', timesPerDay:2, note:'قبل الأكل'}]},
-          {patientName:'عبد الكريم', patientId:'P-1005', drugName:'Codeine 30mg', dose:'1 قرص عند الحاجة', duration:'5 أيام', status:'new', totalAmount: 62.50, quantityNeeded:5, createdAt: Date.now(), insuranceCovered:false, insurer:'', schedule:[{time:'عند الحاجة', timesPerDay:1, note:'لا تزيد عن الجرعة المحددة'}]}
+          {patientName:'أحمد عبد الله', patientId:'P-1001', drugName:'Paracetamol 500mg', dose:'1 قرص كل 8 ساعات', duration:'5 أيام', status:'new', createdAt: Date.now(), insuranceCovered:true, insurer:'شركة البيان', schedule:[{time:'08:00', timesPerDay:3, note:'بعد الأكل'},{time:'16:00', timesPerDay:3}], quantityNeeded:15},
+          {patientName:'منى علي', patientId:'P-1002', drugName:'Ibuprofen 200mg', dose:'1 قرص بعد الأكل', duration:'3 أيام', status:'new', createdAt: Date.now(), insuranceCovered:false, insurer:'', schedule:[{time:'12:00', timesPerDay:1, note:'مع الطعام'}], quantityNeeded:3}
         ];
         for(const s of samplesRx){ await rxRef.push(s); }
       }
       const s = await suppliersRef.limitToFirst(1).get();
       if(!s.exists()){
         const samplesSuppliers = [
-          {name:'شركة الأدوية المتحدة', contact:'0123456789', email:'info@united-pharma.com', rating: 4.5, createdAt: Date.now()},
-          {name:'المستودعات الطبية', contact:'0987654321', email:'sales@medical-warehouse.com', rating: 4.2, createdAt: Date.now()},
-          {name:'الشركة السعودية للأدوية', contact:'0555111222', email:'info@saudi-pharma.com', rating: 4.8, createdAt: Date.now()}
+          {name:'شركة الأدوية المتحدة', contact:'0123456789', email:'info@united-pharma.com', createdAt: Date.now()},
+          {name:'المستودعات الطبية', contact:'0987654321', email:'sales@medical-warehouse.com', createdAt: Date.now()}
         ];
         for(const s of samplesSuppliers){ await suppliersRef.push(s); }
       }
@@ -3720,44 +2887,12 @@
         for(const o of samplesOrders){ await ordersRef.push(o); }
       }
       
-      // Seed payments
-      const p = await paymentsRef.limitToFirst(1).get();
-      if(!p.exists()){
-        const samplesPayments = [
-          {
-            description: 'بيع Paracetamol 500mg',
-            amountPaid: 12.50,
-            paymentMethod: 'cash',
-            timestamp: Date.now(),
-            patientName: 'أحمد عبد الله',
-            drugName: 'Paracetamol 500mg'
-          },
-          {
-            description: 'بيع Ibuprofen 200mg',
-            amountPaid: 11.25,
-            paymentMethod: 'card',
-            timestamp: Date.now() - 86400000,
-            patientName: 'منى علي',
-            drugName: 'Ibuprofen 200mg'
-          },
-          {
-            description: 'بيع Amoxicillin 500mg',
-            amountPaid: 43.40,
-            paymentMethod: 'insurance',
-            timestamp: Date.now() - 172800000,
-            patientName: 'محمد سالم',
-            drugName: 'Amoxicillin 500mg'
-          }
-        ];
-        for(const p of samplesPayments){ await paymentsRef.push(p); }
-      }
-      
       // Seed medication requests
       const medReq = await medicationRequestsRef.limitToFirst(1).get();
       if(!medReq.exists()){
         const sampleMedRequests = {
-          'P-1006': {
-            name: 'خالد محمد',
+          'P-1003': {
+            name: 'محمد سالم',
             transfers: {
               'transfer1': {
                 department: 'الصيدلية',
@@ -3767,7 +2902,7 @@
                   name: 'Amoxicillin 500mg',
                   dosage: '1 قرص كل 8 ساعات',
                   duration: '7 أيام',
-                  insuranceType: 'BUPA',
+                  insuranceType: 'شركة البيان',
                   dosesCount: 21,
                   administration: 'بعد الأكل',
                   schedule: [
@@ -3793,8 +2928,8 @@
               }
             }
           },
-          'P-1007': {
-            name: 'نورة أحمد',
+          'P-1004': {
+            name: 'فاطمة أحمد',
             transfers: {
               'transfer3': {
                 department: 'الصيدلية',
@@ -3805,7 +2940,7 @@
                   name: 'Ibuprofen 400mg',
                   dosage: '1 قرص كل 12 ساعة',
                   duration: '5 أيام',
-                  insuranceType: 'Tawuniya',
+                  insuranceType: 'شركة التأمين',
                   dosesCount: 10
                 },
                 notes: 'طلب من قسم الباطنة'
@@ -3830,93 +2965,6 @@
     $('#btnRefresh').addEventListener('click', ()=>{ 
       location.reload(); 
     });
-    
-    // Check for stock alerts every 5 minutes
-    setInterval(checkStockAlerts, 300000);
-    
-    async function checkStockAlerts() {
-      const snap = await drugsRef.once('value');
-      const alerts = [];
-      
-      snap.forEach(child => {
-        const drug = child.val();
-        const drugId = child.key;
-        
-        // تنبيه الكمية المنخفضة
-        if(drug.quantity <= drug.lowThreshold) {
-          alerts.push({
-            type: 'low_stock',
-            drugName: drug.name,
-            currentQuantity: drug.quantity,
-            threshold: drug.lowThreshold,
-            drugId
-          });
-        }
-        
-        // تنبيه قرب انتهاء الصلاحية
-        const daysLeft = daysUntil(drug.expiry);
-        if(daysLeft <= 30) {
-          alerts.push({
-            type: 'expiry',
-            drugName: drug.name,
-            expiryDate: drug.expiry,
-            daysLeft,
-            drugId
-          });
-        }
-        
-        // تنبيه إعادة الطلب التلقائي
-        if(drug.quantity <= drug.reorderPoint) {
-          alerts.push({
-            type: 'reorder',
-            drugName: drug.name,
-            currentQuantity: drug.quantity,
-            reorderPoint: drug.reorderPoint,
-            drugId,
-            supplier: drug.supplier
-          });
-        }
-        
-        // تنبيه للمواد المخدرة
-        if(drug.category === 'controlled' && drug.quantity <= 5) {
-          alerts.push({
-            type: 'controlled',
-            drugName: drug.name,
-            currentQuantity: drug.quantity,
-            drugId
-          });
-        }
-      });
-      
-      // عرض التنبيهات
-      if(alerts.length > 0) {
-        alerts.forEach(alert => {
-          let message = '';
-          let action = '';
-          
-          switch(alert.type) {
-            case 'low_stock':
-              message = `الكمية الحالية من ${alert.drugName} (${alert.currentQuantity}) أقل من الحد الأدنى (${alert.threshold})`;
-              action = `window.location.href='#inventory'`;
-              break;
-            case 'expiry':
-              message = `دواء ${alert.drugName} سينتهي خلال ${alert.daysLeft} يوم`;
-              action = `showDrugDetails('${alert.drugId}')`;
-              break;
-            case 'reorder':
-              message = `يحتاج ${alert.drugName} لإعادة طلب (الكمية الحالية: ${alert.currentQuantity})`;
-              action = `createReorderOrder('${alert.drugId}')`;
-              break;
-            case 'controlled':
-              message = `كمية المادة المخدرة ${alert.drugName} منخفضة (${alert.currentQuantity})`;
-              action = `window.location.href='#inventory'`;
-              break;
-          }
-          
-          addNotification('warning', 'تنبيه المخزون', message, action);
-        });
-      }
-    }
     
     // Kickoff
     seedIfEmpty();
