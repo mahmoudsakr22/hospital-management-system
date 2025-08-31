@@ -46,7 +46,6 @@
             <button onclick="window.location.href='index.html'" class="bg-green-500 text-white px-4 py-2 rounded-lg">الرئيسية</button>
         </div>
     </div>
-
     <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
         <div class="bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white flex justify-between items-center">
             <div>
@@ -82,7 +81,8 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- قسم تسجيل التحويلات مع حقول الصيدلية -->
     <div class="bg-white p-4 rounded shadow mb-6">
         <h2 class="text-lg font-semibold mb-2">تسجيل تحويل جديد</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,7 +92,51 @@
                 <option value="التحاليل">التحاليل</option>
                 <option value="العناية المركزة">العناية المركزة</option>
                 <option value="العمليات">العمليات</option>
+                <option value="الصيدلية">🏥 الصيدلية</option>
             </select>
+            
+            <!-- حقول الصيدلية (تظهر فقط عند اختيار الصيدلية) -->
+            <div id="pharmacyFields" class="hidden col-span-2">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-pills"></i>
+                        تفاصيل طلب الدواء
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">اسم الدواء <span class="text-red-500">*</span></label>
+                            <input type="text" id="medicationName" class="border p-2 rounded w-full" placeholder="اكتب اسم الدواء">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">الجرعة <span class="text-red-500">*</span></label>
+                            <input type="text" id="dosage" class="border p-2 rounded w-full" placeholder="مثال: 500 مجم">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">المدة <span class="text-red-500">*</span></label>
+                            <input type="text" id="duration" class="border p-2 rounded w-full" placeholder="مثال: 7 أيام">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">نوع التأمين</label>
+                            <select id="insuranceType" class="border p-2 rounded w-full">
+                                <option value="">اختر نوع التأمين</option>
+                                <option value="تأمين أساسي">تأمين أساسي</option>
+                                <option value="تأمين تكميلي">تأمين تكميلي</option>
+                                <option value="خاص">خاص</option>
+                                <option value="غير مؤمن">غير مؤمن</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">عدد الجرعات</label>
+                            <input type="number" id="dosesCount" class="border p-2 rounded w-full" placeholder="مثال: 3" min="1">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">تعليمات الإعطاء</label>
+                            <input type="text" id="administration" class="border p-2 rounded w-full" placeholder="مثال: بعد الأكل">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <select id="radiologyDevice" class="border p-2 rounded hidden">
                 <option value="">اختر جهاز الأشعة</option>
                 <option value="أشعة عادية">أشعة عادية</option>
@@ -100,24 +144,26 @@
                 <option value="رنين مغناطيسي">رنين مغناطيسي</option>
                 <option value="موجات صوتية">موجات صوتية</option>
             </select>
+            
             <input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="border p-2 rounded" />
-            <textarea id="transferNotes" placeholder="ملاحظات" class="border p-2 rounded col-span-2"></textarea>
+            <textarea id="transferNotes" placeholder="ملاحظات إضافية" class="border p-2 rounded col-span-2"></textarea>
             <button onclick="addTransfer()" class="bg-blue-600 text-white px-4 py-2 rounded col-span-2">تسجيل التحويل</button>
         </div>
     </div>
-
+    
     <div class="bg-white p-4 rounded shadow mb-6" id="transfersContainer">
         <h2 class="text-lg font-semibold mb-2">سجل التحويلات</h2>
-        <ul id="transferList" class="list-disc ml-5 space-y-2 text-sm text-gray-700"></ul>
+        <ul id="transferList" class="space-y-4"></ul>
     </div>
-
+    
     <div class="bg-white p-4 rounded shadow">
         <h2 class="text-lg font-semibold mb-2">سجل الكشوفات الطبية</h2>
         <div id="checkupsList" class="space-y-3">
-            </div>
+        </div>
     </div>
 </div>
 
+<!-- نموذج الكشف الطبي -->
 <div id="checkupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
@@ -235,7 +281,7 @@
             </div>
         </div>
         
-        <div class="flex justify-end gap-3">
+        <div class="flex justify-end gap-3 p-6 bg-gray-50">
             <button onclick="closeCheckupModal()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400">
                 إلغاء
             </button>
@@ -505,7 +551,8 @@ window.saveVisit = async function() {
         }
         
         // حفظ البيانات في Firebase
-        await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
+        const newCheckupRef = await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
+        checkupData.id = newCheckupRef.key;
         
         // تحديث حالة المريض
         await update(ref(db, `patients/emergency/${patientId}`), {
@@ -522,14 +569,29 @@ window.saveVisit = async function() {
     }
 };
 
-// إظهار اختيار الجهاز عند اختيار الأشعة
+// إظهار/إخفاء الحقول حسب القسم المختار
 document.getElementById("transferDepartment").addEventListener("change", function() {
+    const department = this.value;
     const deviceSelect = document.getElementById("radiologyDevice");
-    if (this.value === "radiology") {
+    const pharmacyFields = document.getElementById("pharmacyFields");
+    const transferTypeInput = document.getElementById("transferType");
+    
+    // إخفاء جميع الحقول الخاصة أولاً
+    deviceSelect.classList.add("hidden");
+    pharmacyFields.classList.add("hidden");
+    
+    // إظهار الحقل المناسب حسب القسم
+    if (department === "radiology") {
         deviceSelect.classList.remove("hidden");
+        transferTypeInput.placeholder = "نوع الأشعة";
+    } else if (department === "الصيدلية") {
+        pharmacyFields.classList.remove("hidden");
+        transferTypeInput.placeholder = "طلب دواء";
+        transferTypeInput.value = "طلب صرف دواء"; // قيمة افتراضية
+    } else if (department === "التحاليل") {
+        transferTypeInput.placeholder = "نوع التحليل";
     } else {
-        deviceSelect.classList.add("hidden");
-        deviceSelect.value = "";
+        transferTypeInput.placeholder = "نوع الإجراء";
     }
 });
 
@@ -542,11 +604,29 @@ window.addTransfer = async function() {
     const notes = document.getElementById("transferNotes").value.trim();
     const device = document.getElementById("radiologyDevice").value;
     
+    // بيانات الصيدلية
+    const medicationName = document.getElementById("medicationName").value.trim();
+    const dosage = document.getElementById("dosage").value.trim();
+    const duration = document.getElementById("duration").value.trim();
+    const insuranceType = document.getElementById("insuranceType").value;
+    const dosesCount = document.getElementById("dosesCount").value;
+    const administration = document.getElementById("administration").value.trim();
+    
+    // التحقق من الحقول المطلوبة
     if (!department || !type) {
         Swal.fire("تنبيه", "يرجى ملء جميع الحقول", "warning");
         return;
     }
     
+    // التحقق الخاص بالصيدلية
+    if (department === "الصيدلية") {
+        if (!medicationName || !dosage || !duration) {
+            Swal.fire("تنبيه", "يرجى ملء حقول الدواء الأساسية (الاسم، الجرعة، المدة)", "warning");
+            return;
+        }
+    }
+    
+    // التحقق الخاص بالأشعة
     if (department === "radiology" && !device) {
         Swal.fire("تنبيه", "يرجى اختيار جهاز الأشعة", "warning");
         return;
@@ -557,6 +637,15 @@ window.addTransfer = async function() {
         type,
         notes,
         device: department === "radiology" ? device : "",
+        // بيانات الصيدلية
+        medication: department === "الصيدلية" ? {
+            name: medicationName,
+            dosage: dosage,
+            duration: duration,
+            insuranceType: insuranceType || "غير محدد",
+            dosesCount: dosesCount || null,
+            administration: administration || "حسب إرشادات الطبيب"
+        } : null,
         date: new Date().toLocaleString('ar-EG'),
         status: "قيد الانتظار",
         requestedBy: "د. أحمد محمد" // في نظام حقيقي: استخدم اسم الطبيب من المصادقة
@@ -565,6 +654,22 @@ window.addTransfer = async function() {
     try {
         showLoading("جاري تسجيل التحويل...");
         await push(ref(db, `patients/emergency/${patientId}/transfers`), newTransfer);
+        
+        // إعادة تعيين النموذج
+        document.getElementById("transferDepartment").value = "";
+        document.getElementById("transferType").value = "";
+        document.getElementById("transferNotes").value = "";
+        document.getElementById("radiologyDevice").value = "";
+        document.getElementById("pharmacyFields").classList.add("hidden");
+        
+        // إعادة تعيين حقول الصيدلية
+        document.getElementById("medicationName").value = "";
+        document.getElementById("dosage").value = "";
+        document.getElementById("duration").value = "";
+        document.getElementById("insuranceType").value = "";
+        document.getElementById("dosesCount").value = "";
+        document.getElementById("administration").value = "";
+        
         showResult("تم", "تم تسجيل التحويل بنجاح");
     } catch (error) {
         Swal.fire("خطأ", "حدث خطأ أثناء التسجيل: " + error.message, "error");
@@ -608,6 +713,24 @@ function loadTransfers() {
             const key = child.key;
             let resultText = "";
             
+            // عرض تفاصيل الدواء إذا كان التحويل للصيدلية
+            if (t.department === "الصيدلية" && t.medication) {
+                const med = t.medication;
+                resultText += `
+                    <div class="bg-green-50 p-3 rounded-lg mt-2 border border-green-200">
+                        <div class="font-semibold text-green-800 mb-2">تفاصيل الدواء:</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                            <div><span class="font-medium">الدواء:</span> ${med.name}</div>
+                            <div><span class="font-medium">الجرعة:</span> ${med.dosage}</div>
+                            <div><span class="font-medium">المدة:</span> ${med.duration}</div>
+                            <div><span class="font-medium">التأمين:</span> ${med.insuranceType}</div>
+                            ${med.dosesCount ? `<div><span class="font-medium">عدد الجرعات:</span> ${med.dosesCount}</div>` : ''}
+                            <div><span class="font-medium">طريقة الإعطاء:</span> ${med.administration}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             if (t.report) {
                 resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
             }
@@ -627,14 +750,103 @@ function loadTransfers() {
                     actionBtns += `<button onclick='showRadiologyReport(${JSON.stringify(t)})' class="bg-green-600 text-white px-2 py-1 rounded ml-2">عرض النتيجة</button>`;
                 }
                 actionBtns += `<button onclick='deleteTransfer("${key}")' class="bg-red-600 text-white px-2 py-2 rounded ml-2">حذف</button>`;
+            } else if (t.department === "الصيدلية") {
+                // أزرار خاصة بالصيدلية
+                if (t.status === "قيد الانتظار") {
+                    actionBtns += `
+                        <button onclick='updateMedicationStatus("${key}", "تم الصرف")' class="bg-green-600 text-white px-2 py-1 rounded ml-2">
+                            <i class="fas fa-check mr-1"></i>تأكيد الصرف
+                        </button>
+                        <button onclick='updateMedicationStatus("${key}", "مرفوض")' class="bg-red-600 text-white px-2 py-1 rounded ml-2">
+                            <i class="fas fa-times mr-1"></i>رفض
+                        </button>
+                    `;
+                } else if (t.status === "تم الصرف") {
+                    actionBtns += `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">تم الصرف</span>`;
+                } else if (t.status === "مرفوض") {
+                    actionBtns += `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">مرفوض</span>`;
+                }
+                actionBtns += `<button onclick='deleteTransfer("${key}")' class="bg-red-600 text-white px-2 py-2 rounded ml-2">
+                    <i class="fas fa-trash"></i>
+                </button>`;
             }
             
+            const statusColor = {
+                "قيد الانتظار": "text-yellow-600",
+                "تم التنفيذ": "text-green-600",
+                "تم الصرف": "text-green-600",
+                "مرفوض": "text-red-600"
+            };
+            
             const item = document.createElement("li");
-            item.innerHTML = `📌 ${t.department} - ${t.type} - ${t.date} - الحالة: <span class="font-bold">${t.status}</span>${resultText} ${actionBtns}`;
+            item.className = "mb-4 p-4 border border-gray-200 rounded-lg";
+            item.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="font-semibold text-lg">📌 ${t.department}</span>
+                        <span class="mx-2">-</span>
+                        <span>${t.type}</span>
+                        <span class="mx-2">-</span>
+                        <span>${t.date}</span>
+                    </div>
+                    <div class="font-bold ${statusColor[t.status] || 'text-gray-600'}">${t.status}</div>
+                </div>
+                ${resultText}
+                <div class="mt-3">${actionBtns}</div>
+            `;
             list.appendChild(item);
         });
     });
 }
+
+// دالة لتحديث حالة طلب الدواء
+window.updateMedicationStatus = async function(transferKey, newStatus) {
+    try {
+        showLoading("جاري تحديث الحالة...");
+        await update(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`), {
+            status: newStatus,
+            updatedAt: new Date().toISOString(),
+            processedBy: "موظف الصيدلية" // في نظام حقيقي: استخدم اسم المستخدم من المصادقة
+        });
+        showResult("تم!", `تم تحديث حالة الطلب إلى: ${newStatus}`);
+    } catch (error) {
+        Swal.fire("خطأ", "فشل تحديث الحالة: " + error.message, "error");
+    }
+};
+
+// عرض النتيجة (مودال)
+window.showRadiologyReport = function(transfer) {
+    let fileHtml = '';
+    if (transfer.fileUrl) {
+        const ext = transfer.fileUrl.split('.').pop().toLowerCase();
+        if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext)) {
+            fileHtml = `<img src="${transfer.fileUrl}" alt="صورة الأشعة" style="max-width:100%;max-height:40vh;display:block;margin:10px auto;">`;
+        } else if (ext === "pdf") {
+            fileHtml = `<iframe src="${transfer.fileUrl}" style="width:100%;height:40vh;" frameborder="0"></iframe>`;
+        } else {
+            fileHtml = `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">تحميل الملف</a>`;
+        }
+    } else {
+        fileHtml = `<span class="text-gray-500">لا يوجد ملف مرفق</span>`;
+    }
+    
+    Swal.fire({
+        title: "نتيجة الأشعة",
+        html: `
+            <div class="text-right">
+                <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
+                <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
+                <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
+                <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
+                <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
+                ${fileHtml}
+            </div>
+        `,
+        width: "60vw",
+        showCloseButton: true,
+        confirmButtonText: "إغلاق"
+    });
+};
 
 // عرض سجل الكشوفات الطبية
 function loadCheckups() {
@@ -727,40 +939,6 @@ function loadCheckups() {
     });
 }
 
-// عرض النتيجة (مودال)
-window.showRadiologyReport = function(transfer) {
-    let fileHtml = '';
-    if (transfer.fileUrl) {
-        const ext = transfer.fileUrl.split('.').pop().toLowerCase();
-        if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext)) {
-            fileHtml = `<img src="${transfer.fileUrl}" alt="صورة الأشعة" style="max-width:100%;max-height:40vh;display:block;margin:10px auto;">`;
-        } else if (ext === "pdf") {
-            fileHtml = `<iframe src="${transfer.fileUrl}" style="width:100%;height:40vh;" frameborder="0"></iframe>`;
-        } else {
-            fileHtml = `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">تحميل الملف</a>`;
-        }
-    } else {
-        fileHtml = `<span class="text-gray-500">لا يوجد ملف مرفق</span>`;
-    }
-    
-    Swal.fire({
-        title: "نتيجة الأشعة",
-        html: `
-            <div class="text-right">
-                <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
-                <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
-                <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
-                <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
-                <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
-                ${fileHtml}
-            </div>
-        `,
-        width: "60vw",
-        showCloseButton: true,
-        confirmButtonText: "إغلاق"
-    });
-};
-
 // تحميل البيانات عند فتح الصفحة
 if (patientId) {
     loadPatientData();
@@ -768,7 +946,6 @@ if (patientId) {
     loadCheckups();
 }
 
-// الكود الجديد (تم إضافته هنا)
 // ربط زر عرض المونيتور
 const monitorBtn = document.getElementById('monitorBtn');
 if (monitorBtn && patientId) {
