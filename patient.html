@@ -239,26 +239,58 @@
             gap: 0.5rem;
         }
         
-        /* Save Button Styles */
+        /* Save Button Styles - Enhanced */
+        .save-btn-container {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0 0 12px 12px;
+        }
+        
         .save-btn {
             background: linear-gradient(135deg, var(--success), #10b981);
             color: white;
-            padding: 0.75rem 2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 1rem;
+            padding: 1rem 3rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+            gap: 0.75rem;
+            box-shadow: 0 8px 15px rgba(5, 150, 105, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .save-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .save-btn:hover::before {
+            left: 100%;
         }
         
         .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px -1px rgba(5, 150, 105, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(5, 150, 105, 0.4);
+        }
+        
+        .save-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .save-btn i {
+            font-size: 1.3rem;
         }
         
         /* Responsive adjustments */
@@ -274,6 +306,13 @@
             .modal-content {
                 width: 95%;
                 margin: 1rem;
+            }
+            
+            .save-btn {
+                padding: 0.875rem 2rem;
+                font-size: 1rem;
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -502,7 +541,7 @@
             </div>
         </div>
         
-        <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div class="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
             <form id="checkupForm" onsubmit="return false;">
                 <!-- Visit Type Section -->
                 <div class="checkup-form-section">
@@ -555,30 +594,21 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Attachments Section -->
-                <div class="checkup-form-section">
-                    <h3><i class="fas fa-paperclip"></i> مرفقات (تحاليل / أشعة)</h3>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center file-drop-area">
-                        <input type="file" id="attachments" class="hidden" multiple>
-                        <label for="attachments" class="cursor-pointer">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                            <p class="text-gray-600">اسحب الملفات هنا أو انقر للاختيار</p>
-                            <p class="text-sm text-gray-500">PDF, JPG, PNG (حتى 10MB)</p>
-                        </label>
-                    </div>
-                    <div id="filePreview" class="mt-3"></div>
-                </div>
             </form>
         </div>
         
-        <div class="flex justify-end gap-3 p-6 bg-gray-50">
-            <button onclick="closeCheckupModal()" class="btn bg-gray-300 text-gray-700 hover:bg-gray-400">
-                إلغاء
-            </button>
-            <button onclick="saveVisit()" class="save-btn">
-                <i class="fas fa-save"></i> حفظ الكشف
-            </button>
+        <!-- Enhanced Save Button Section -->
+        <div class="save-btn-container">
+            <div class="flex justify-between items-center">
+                <div class="text-gray-600">
+                    <i class="fas fa-info-circle ml-2"></i>
+                    تأكد من ملء جميع الحقول المطلوبة قبل الحفظ
+                </div>
+                <button onclick="saveVisit()" class="save-btn">
+                    <i class="fas fa-save"></i>
+                    حفظ الكشف الطبي
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -748,7 +778,6 @@ window.doctorCheckup = function() {
     
     // Reset form
     document.getElementById('checkupForm').reset();
-    document.getElementById('filePreview').innerHTML = '';
     
     // Reset medications list
     document.getElementById('medicationsList').innerHTML = '';
@@ -762,37 +791,6 @@ window.doctorCheckup = function() {
 window.closeCheckupModal = function() {
     document.getElementById('checkupModal').classList.remove('active');
 };
-
-// Preview uploaded files
-document.getElementById('attachments').addEventListener('change', function() {
-    const files = this.files;
-    const preview = document.getElementById('filePreview');
-    preview.innerHTML = '';
-    
-    if (files.length > 0) {
-        preview.innerHTML = '<p class="font-semibold mb-2">الملفات المحددة:</p>';
-        
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const fileItem = document.createElement('div');
-            fileItem.className = 'flex items-center gap-2 mb-1 p-2 bg-gray-50 rounded';
-            
-            // Determine icon based on file type
-            let icon = 'fa-file';
-            if (file.type.startsWith('image/')) icon = 'fa-file-image';
-            else if (file.type === 'application/pdf') icon = 'fa-file-pdf';
-            else if (file.type.includes('word')) icon = 'fa-file-word';
-            
-            fileItem.innerHTML = `
-                <i class="fas ${icon} text-blue-600"></i>
-                <span>${file.name}</span>
-                <span class="text-sm text-gray-500">(${(file.size / 1024).toFixed(1)} KB)</span>
-            `;
-            
-            preview.appendChild(fileItem);
-        }
-    }
-});
 
 // Function to add a new medication
 window.addMedication = function() {
@@ -875,7 +873,6 @@ window.saveVisit = async function() {
     const symptoms = document.getElementById('symptoms').value;
     const diagnosis = document.getElementById('diagnosis').value;
     const treatmentPlan = document.getElementById('treatmentPlan').value;
-    const attachments = document.getElementById('attachments').files;
     
     // Collect medications data
     const medications = [];
@@ -919,27 +916,8 @@ window.saveVisit = async function() {
             medications,
             doctorId: "currentDoctorId",
             date: new Date().toISOString(),
-            status: "مكتمل",
-            attachments: []
+            status: "مكتمل"
         };
-        
-        // Upload files if any
-        if (attachments.length > 0) {
-            for (let i = 0; i < attachments.length; i++) {
-                const file = attachments[i];
-                const fileRef = storageRef(storage, `patients/${patientId}/checkups/${Date.now()}_${file.name}`);
-                
-                await uploadBytes(fileRef, file);
-                const downloadURL = await getDownloadURL(fileRef);
-                
-                checkupData.attachments.push({
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    url: downloadURL
-                });
-            }
-        }
         
         // Save data to Firebase
         const newCheckupRef = await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
@@ -1313,24 +1291,6 @@ function loadCheckups() {
                 `;
             }
             
-            // Display attachments
-            let attachmentsHtml = '';
-            if (checkup.attachments && checkup.attachments.length > 0) {
-                attachmentsHtml = `
-                    <div class="mt-3">
-                        <p class="font-medium text-sm text-gray-700 mb-2">المرفقات:</p>
-                        <div class="flex flex-wrap gap-2">
-                            ${checkup.attachments.map(att => `
-                                <a href="${att.url}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100 transition-colors">
-                                    <i class="fas ${att.type.includes('image') ? 'fa-image' : 'fa-file'}"></i>
-                                    ${att.name}
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-            
             checkupEl.innerHTML = `
                 <div class="flex flex-col md:flex-row md:justify-between md:items-start">
                     <div class="flex-1">
@@ -1362,8 +1322,6 @@ function loadCheckups() {
                         </div>
                         
                         ${medicationsHtml}
-                        
-                        ${attachmentsHtml}
                     </div>
                     <div class="text-xs text-gray-500 mt-3 md:mt-0 md:text-right">
                         <i class="fas fa-user-md"></i> ${checkup.doctorId || 'طبيب'}
