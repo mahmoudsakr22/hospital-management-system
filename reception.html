@@ -1,25 +1,69 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مستشفى الحياة الذكية</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>لوحة استقبال المرضى - مستشفى الحياة الذكية</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
     body { font-family: 'Tajawal', sans-serif; }
-    .card-hover {
+    .patient-card {
       transition: all 0.3s ease;
     }
-    .card-hover:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    .patient-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
-    .gradient-bg {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .action-btn {
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .action-btn:hover {
+      transform: scale(1.05);
+    }
+    .action-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+    .action-btn:hover::after {
+      animation: ripple 1s ease-out;
+    }
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20);
+        opacity: 0;
+      }
     }
     .stat-card {
       transition: all 0.3s ease;
@@ -27,77 +71,176 @@
     .stat-card:hover {
       transform: translateY(-5px);
     }
+    .search-box {
+      position: relative;
+    }
+    .search-box input {
+      padding-left: 40px;
+    }
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .chart-container {
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 20px;
+      height: 20px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-  <!-- Header -->
-  <header class="gradient-bg text-white shadow-lg">
-    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-      <div class="flex items-center space-x-3 space-x-reverse">
-        <div class="bg-white rounded-full p-1">
-          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-12 h-12 rounded-full" alt="شعار المستشفى">
-        </div>
-        <div>
-          <h1 class="text-xl font-bold">مستشفى الحياة الذكية</h1>
-          <p class="text-xs opacity-80">SMART HAYAT HOSPITAL</p>
-        </div>
-      </div>
-      <div id="currentDate" class="text-sm"></div>
+  <!-- Loading Overlay -->
+  <div id="loading" class="loading hidden">
+    <div class="text-center">
+      <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-3"></i>
+      <p class="text-blue-800 font-medium">جاري تحميل البيانات...</p>
     </div>
-  </header>
+  </div>
 
-  <main class="container mx-auto px-4 py-6">
-    <!-- Stats Section -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white rounded-xl shadow p-4 text-center stat-card">
-        <i class="fas fa-users text-3xl text-blue-500 mb-2"></i>
-        <h3 class="text-gray-500 text-sm">إجمالي المرضى</h3>
-        <p id="totalPatients" class="text-2xl font-bold text-blue-600">0</p>
+  <!-- Header (دمج الهيدر الاحترافي) -->
+  <div class="flex justify-between items-center p-4 bg-white mb-6 border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">مستشفى الحياة الذكية</h1>
+        <div class="text-blue-900 text-sm font-semibold">SMART HAYAT HOSPITAL</div>
       </div>
-      <div class="bg-white rounded-xl shadow p-4 text-center stat-card">
-        <i class="fas fa-user-plus text-3xl text-green-500 mb-2"></i>
-        <h3 class="text-gray-500 text-sm">المسجلين اليوم</h3>
-        <p id="todayPatients" class="text-2xl font-bold text-green-600">0</p>
+    </div>
+    <div id="currentDate" class="text-sm"></div>
+  </div>
+
+  <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <!-- Dashboard Stats -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+        <div class="flex justify-center mb-3">
+          <i class="fas fa-users text-3xl text-blue-600"></i>
+        </div>
+        <h3 class="text-sm text-gray-500 mb-2">إجمالي المرضى</h3>
+        <div id="totalPatients" class="text-3xl font-bold text-blue-700">0</div>
       </div>
-      <div class="bg-white rounded-xl shadow p-4 text-center stat-card">
-        <i class="fas fa-ambulance text-3xl text-red-500 mb-2"></i>
-        <h3 class="text-gray-500 text-sm">مرضى الطوارئ</h3>
-        <p id="emergencyPatients" class="text-2xl font-bold text-red-600">0</p>
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+        <div class="flex justify-center mb-3">
+          <i class="fas fa-user-plus text-3xl text-green-600"></i>
+        </div>
+        <h3 class="text-sm text-gray-500 mb-2">المسجلين اليوم</h3>
+        <div id="todayPatients" class="text-3xl font-bold text-green-600">0</div>
       </div>
-      <div class="bg-white rounded-xl shadow p-4 text-center stat-card">
-        <i class="fas fa-procedures text-3xl text-purple-500 mb-2"></i>
-        <h3 class="text-gray-500 text-sm">مرضى العمليات</h3>
-        <p id="surgeryPatients" class="text-2xl font-bold text-purple-600">0</p>
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+        <div class="flex justify-center mb-3">
+          <i class="fas fa-ambulance text-3xl text-red-600"></i>
+        </div>
+        <h3 class="text-sm text-gray-500 mb-2">مرضى الطوارئ</h3>
+        <div id="emergencyPatients" class="text-3xl font-bold text-red-600">0</div>
+      </div>
+      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+        <div class="flex justify-center mb-3">
+          <i class="fas fa-procedures text-3xl text-purple-600"></i>
+        </div>
+        <h3 class="text-sm text-gray-500 mb-2">مرضى العمليات</h3>
+        <div id="surgeryPatients" class="text-3xl font-bold text-purple-600">0</div>
       </div>
     </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Patient Form -->
-      <div class="lg:col-span-1">
-        <div class="bg-white rounded-xl shadow-lg p-5 card-hover">
-          <h2 class="text-xl font-bold mb-4 flex items-center">
-            <i class="fas fa-user-plus text-blue-500 ml-2"></i>
-            تسجيل مريض جديد
-          </h2>
-          <form id="patientForm" class="space-y-3">
+    <!-- Charts Section -->
+    <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div class="flex items-center mb-4 md:mb-0">
+          <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+          <h2 class="text-xl font-bold">إحصائيات وتحليلات</h2>
+        </div>
+        <div class="flex space-x-4">
+          <button id="printReportBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center">
+            <i class="fas fa-print mr-2"></i> طباعة التقرير
+          </button>
+          <button id="exportPdfBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center">
+            <i class="fas fa-file-pdf mr-2"></i> تصدير PDF
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-lg font-semibold mb-3 text-gray-700">توزيع المرضى حسب الأقسام</h3>
+          <div class="chart-container">
+            <canvas id="departmentChart"></canvas>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold mb-3 text-gray-700">عدد المرضى المسجلين يومياً</h3>
+          <div class="chart-container">
+            <canvas id="dailyChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-3 text-gray-700">فصائل الدم الأكثر شيوعاً</h3>
+        <div class="chart-container">
+          <canvas id="bloodTypeChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+ <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل مريض - الاستقبال</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<!-- Main Content -->
+<div class="max-w-5xl mx-auto p-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Patient Registration Form -->
+    <div class="lg:col-span-1">
+      <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-600">
+        <div class="flex items-center mb-4">
+          <i class="fas fa-clipboard-list text-blue-600 mr-2"></i>
+          <h2 class="text-xl font-bold">تسجيل مريض جديد</h2>
+        </div>
+        <form id="patientForm" class="space-y-4">
+          <div class="space-y-3">
+            <!-- اسم المريض -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">اسم المريض</label>
-              <input type="text" id="name" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+              <input type="text" id="name" class="w-full border rounded-md p-2" required />
             </div>
+
+            <!-- العمر والرقم القومي -->
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
-                <input type="number" id="age" min="0" max="120" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="number" id="age" min="0" max="120" class="w-full border rounded-md p-2" required />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">الرقم القومي</label>
-                <input type="text" id="nid" maxlength="14" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="text" id="nid" maxlength="14" class="w-full border rounded-md p-2" required />
               </div>
             </div>
+
+            <!-- الجنس وفصيلة الدم -->
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
-                <select id="gender" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <select id="gender" class="w-full border rounded-md p-2" required>
                   <option value="">اختر</option>
                   <option value="male">ذكر</option>
                   <option value="female">أنثى</option>
@@ -105,7 +248,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">فصيلة الدم</label>
-                <select id="bloodType" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <select id="bloodType" class="w-full border rounded-md p-2" required>
                   <option value="">اختر</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
@@ -118,99 +261,200 @@
                 </select>
               </div>
             </div>
+
+            <!-- العنوان -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
-              <input type="text" id="address" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+              <input type="text" id="address" class="w-full border rounded-md p-2" required />
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">القسم</label>
-              <select id="department" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                <option value="">اختر القسم</option>
-                <option value="emergency">الطوارئ</option>
-                <option value="radiology">الأشعة</option>
-                <option value="icu">العناية المركزة</option>
-                <option value="surgery">العمليات</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
-              <textarea id="diseases" rows="2" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              <i class="fas fa-save ml-2"></i> حفظ البيانات
-            </button>
-          </form>
-        </div>
-      </div>
 
-      <!-- Patients List & Charts -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- Patients List -->
-        <div class="bg-white rounded-xl shadow-lg p-5 card-hover">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold flex items-center">
-              <i class="fas fa-list text-blue-500 ml-2"></i>
-              قائمة المرضى
-            </h2>
-            <div class="flex space-x-2 space-x-reverse">
-              <select id="filterDepartment" class="border rounded-lg p-2 text-sm">
+            <!-- الأمراض -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
+              <textarea id="diseases" rows="3" class="w-full border rounded-md p-2"></textarea>
+            </div>
+
+            <!-- اختيار القسم -->
+            <label class="block mb-2 font-medium">اختر القسم</label>
+            <select id="department" class="w-full border rounded p-2 mb-4">
+              <option value="">-- اختر القسم --</option>
+              <option value="emergency">الطوارئ</option>
+              <option value="radiology">الأشعة</option>
+              <option value="icu">العناية المركزة</option>
+              <option value="operations">العمليات</option>
+            </select>
+
+            <!-- اختيار الدكتور -->
+            <label class="block mb-2 font-medium">اختر الدكتور</label>
+            <select id="doctorSelect" class="w-full border rounded p-2 mb-4">
+              <option value="">-- اختر الدكتور --</option>
+            </select>
+
+            <!-- زر التسجيل -->
+            <button type="button" onclick="registerPatient()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">تسجيل المريض</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+ /// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCww7pM0clGr_Nk7Xe3pCnBUJtSaw6nS-k",
+  authDomain: "smart-life-hospital.firebaseapp.com",
+  databaseURL: "https://smart-life-hospital-default-rtdb.firebaseio.com",
+  projectId: "smart-life-hospital",
+  storageBucket: "smart-life-hospital.firebasestorage.app",
+  messagingSenderId: "988240466536",
+  appId: "1:988240466536:web:93e9f945b255cd164361dd",
+  measurementId: "G-GEJF0F0ZJ7"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // دالة لتحديد الوردية بتوقيت مصر
+  function getCurrentShift() {
+    const nowCairo = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+    const date = new Date(nowCairo);
+    const hour = date.getHours();
+
+    if (hour >= 8 && hour < 16) return "Morning";
+    if (hour >= 16 && hour < 24) return "Evening";
+    return "Night";
+  }
+
+  // تحميل الأطباء حسب القسم + الوردية + الحالة
+  document.getElementById("department").addEventListener("change", function () {
+    const dept = this.value;
+    const doctorSelect = document.getElementById("doctorSelect");
+    doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+
+    if (!dept) return;
+
+    const shift = getCurrentShift();
+    const doctorsRef = ref(db, "doctors");
+    onValue(doctorsRef, (snapshot) => {
+      doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
+      snapshot.forEach(child => {
+        const doc = child.val();
+        // شرط: نفس القسم + نفس الوردية + اونلاين
+        if (
+          doc.department.toLowerCase() === dept.toLowerCase() &&
+          doc.shift === shift &&
+          doc.manualStatus === "online"
+        ) {
+          const option = document.createElement("option");
+          option.value = doc.name;
+          option.textContent = `${doc.name} (${doc.shift})`;
+          doctorSelect.appendChild(option);
+        }
+      });
+    });
+  });
+
+  // تسجيل المريض
+  window.registerPatient = function () {
+    const name = document.getElementById("name").value.trim();
+    const age = document.getElementById("age").value.trim();
+    const nid = document.getElementById("nid").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const bloodType = document.getElementById("bloodType").value;
+    const diseases = document.getElementById("diseases").value.trim();
+    const department = document.getElementById("department").value;
+    const doctor = document.getElementById("doctorSelect").value;
+
+    if (!name || !age || !nid || !department || !doctor) {
+      Swal.fire("تنبيه", "يرجى إدخال كل البيانات المطلوبة واختيار الدكتور", "warning");
+      return;
+    }
+
+    const patientData = {
+      name,
+      age,
+      nid,
+      address,
+      bloodType,
+      diseases,
+      department,
+      doctors: doctor,   // تخزين اسم الدكتور
+      timestamp: new Date().toISOString()
+    };
+
+    const patientsRef = ref(db, `patients/${department}`);
+    const newPatientRef = push(patientsRef);
+
+    set(newPatientRef, patientData)
+      .then(() => {
+        Swal.fire("تم الحفظ", "تم تسجيل المريض بنجاح", "success");
+        document.getElementById("patientForm").reset();
+      })
+      .catch(() => {
+        Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
+      });
+  };
+</script>
+</body>
+</html>
+      <!-- Patients List -->
+      <div class="lg:col-span-2">
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div class="flex items-center mb-4 md:mb-0">
+              <i class="fas fa-list-ul text-blue-600 mr-2"></i>
+              <h2 class="text-xl font-bold">قائمة المرضى</h2>
+            </div>
+            <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 w-full">
+              <select id="filterDepartment" class="border border-gray-300 rounded-md p-2 text-sm">
                 <option value="all">جميع الأقسام</option>
                 <option value="emergency">الطوارئ</option>
                 <option value="icu">العناية المركزة</option>
                 <option value="surgery">العمليات</option>
+                <option value="care">الرعاية</option>
+                <option value="admin">الإدارة</option>
                 <option value="radiology">الأشعة</option>
               </select>
-              <div class="relative">
-                <input type="text" id="searchPatient" placeholder="بحث..." class="border rounded-lg p-2 pl-8 text-sm">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+              <div class="search-box relative">
+                <input type="text" id="searchPatient" placeholder="بحث عن مريض..." class="w-full border border-gray-300 rounded-md p-2 pl-8 text-sm" />
+                <i class="fas fa-search absolute left-2 top-3 text-gray-400"></i>
               </div>
             </div>
           </div>
-          <div id="patientsList" class="max-h-96 overflow-y-auto">
+          <div id="patientsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
             <!-- Patients will be loaded here -->
-          </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="bg-white rounded-xl shadow-lg p-5 card-hover">
-          <h2 class="text-xl font-bold mb-4 flex items-center">
-            <i class="fas fa-chart-bar text-blue-500 ml-2"></i>
-            الإحصائيات
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="h-64">
-              <canvas id="departmentChart"></canvas>
-            </div>
-            <div class="h-64">
-              <canvas id="bloodTypeChart"></canvas>
-            </div>
           </div>
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
   <script type="module">
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyCww7pM0clGr_Nk7Xe3pCnBUJtSaw6nS-k",
-      authDomain: "smart-life-hospital.firebaseapp.com",
-      databaseURL: "https://smart-life-hospital-default-rtdb.firebaseio.com",
-      projectId: "smart-life-hospital",
-      storageBucket: "smart-life-hospital.firebasestorage.app",
-      messagingSenderId: "988240466536",
-      appId: "1:988240466536:web:93e9f945b255cd164361dd",
-      measurementId: "G-GEJF0F0ZJ7"
-    };
-
+ // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCww7pM0clGr_Nk7Xe3pCnBUJtSaw6nS-k",
+  authDomain: "smart-life-hospital.firebaseapp.com",
+  databaseURL: "https://smart-life-hospital-default-rtdb.firebaseio.com",
+  projectId: "smart-life-hospital",
+  storageBucket: "smart-life-hospital.firebasestorage.app",
+  messagingSenderId: "988240466536",
+  appId: "1:988240466536:web:93e9f945b255cd164361dd",
+  measurementId: "G-GEJF0F0ZJ7"
+};
+    
     // Initialize Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, remove, update, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
+    
     // DOM Elements
+    const loadingElement = document.getElementById('loading');
     const currentDateElement = document.getElementById('currentDate');
     const patientForm = document.getElementById('patientForm');
     const patientsList = document.getElementById('patientsList');
@@ -220,13 +464,25 @@
     const todayPatientsElement = document.getElementById('todayPatients');
     const emergencyPatientsElement = document.getElementById('emergencyPatients');
     const surgeryPatientsElement = document.getElementById('surgeryPatients');
-
+    const printReportBtn = document.getElementById('printReportBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    
     // Display current date
     const today = new Date();
     currentDateElement.textContent = today.toLocaleDateString("ar-EG", {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
-
+    
+    // Show loading overlay
+    function showLoading() {
+      loadingElement.classList.remove('hidden');
+    }
+    
+    // Hide loading overlay
+    function hideLoading() {
+      loadingElement.classList.add('hidden');
+    }
+    
     // Format date for display
     function formatDate(timestamp) {
       return new Date(timestamp).toLocaleString("ar-EG", {
@@ -234,75 +490,50 @@
         hour: '2-digit', minute: '2-digit'
       });
     }
-
-    // Generate sequential patient ID
-    async function generatePatientID(department) {
-      const counterRef = ref(db, `counters/${department}`);
-      let newID;
-      
-      try {
-        await runTransaction(db, async (transaction) => {
-          const snapshot = await transaction.get(counterRef);
-          let currentCount = 0;
-          if (snapshot.exists()) {
-            currentCount = snapshot.val().count;
-          }
-          const newCount = currentCount + 1;
-          // Update counter
-          transaction.set(counterRef, { count: newCount });
-          // Format the new ID
-          const formattedNumber = String(newCount).padStart(4, '0');
-          newID = `PAT-${department.toUpperCase()}-${formattedNumber}`;
-        });
-      } catch (error) {
-        console.error("Error generating patient ID:", error);
-        throw error;
-      }
-      
-      return newID;
-    }
-
+    
     // Create patient card
     function createPatientCard(patient, id, department) {
       const card = document.createElement('div');
-      card.className = 'bg-gray-50 rounded-lg p-4 mb-3 border border-gray-200 hover:border-blue-300 transition-colors';
+      card.className = 'patient-card bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300';
       
+      // Determine gender text and icon
       const genderText = patient.gender === 'male' ? 'ذكر' : 'أنثى';
       const genderIcon = patient.gender === 'male' ? 'fa-mars' : 'fa-venus';
       
+      // Determine department text and icon
       const departmentInfo = getDepartmentInfo(department);
       
       card.innerHTML = `
-        <div class="flex justify-between">
+        <div class="flex flex-col md:flex-row md:items-between">
           <div class="flex-1">
             <div class="flex items-center mb-2">
-              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 ml-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
                 <i class="fas fa-user"></i>
               </div>
               <div>
-                <h3 class="font-bold text-lg">${patient.name}</h3>
+                <h3 class="font-bold text-lg text-blue-800">${patient.name}</h3>
                 <div class="flex items-center text-sm text-gray-600">
-                  <span class="ml-3"><i class="fas fa-id-card ml-1"></i> ${patient.patientID || id}</span>
-                  <span><i class="fas fa-hospital ml-1"></i> ${departmentInfo.name}</span>
+                  <span class="mr-3"><i class="fas fa-id-card mr-1"></i> ${patient.nid}</span>
+                  <span><i class="fas fa-hospital mr-1"></i> ${departmentInfo.name}</span>
                 </div>
               </div>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
               <div class="flex items-center">
-                <i class="fas fa-birthday-cake text-gray-500 ml-1"></i>
+                <i class="fas fa-birthday-cake text-gray-500 mr-1"></i>
                 <span>${patient.age} سنة</span>
               </div>
               <div class="flex items-center">
-                <i class="fas fa-${genderIcon} text-gray-500 ml-1"></i>
+                <i class="fas fa-${genderIcon} text-gray-500 mr-1"></i>
                 <span>${genderText}</span>
               </div>
               <div class="flex items-center">
-                <i class="fas fa-tint text-gray-500 ml-1"></i>
+                <i class="fas fa-tint text-gray-500 mr-1"></i>
                 <span>${patient.bloodType}</span>
               </div>
               <div class="flex items-center">
-                <i class="fas fa-map-marker-alt text-gray-500 ml-1"></i>
+                <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>
                 <span class="truncate">${patient.address}</span>
               </div>
             </div>
@@ -310,22 +541,22 @@
             ${patient.diseases ? `
             <div class="mt-2 text-sm">
               <div class="font-medium text-gray-700 mb-1">
-                <i class="fas fa-notes-medical ml-1"></i> ملاحظات:
+                <i class="fas fa-notes-medical mr-1"></i> ملاحظات:
               </div>
-              <p class="text-gray-600 bg-gray-100 p-2 rounded">${patient.diseases}</p>
+              <p class="text-gray-600 bg-gray-50 p-2 rounded">${patient.diseases}</p>
             </div>
             ` : ''}
             
             <div class="mt-2 text-xs text-gray-500">
-              <i class="fas fa-clock ml-1"></i> ${formatDate(patient.timestamp)}
+              <i class="fas fa-clock mr-1"></i> سجل في: ${formatDate(patient.timestamp)}
             </div>
           </div>
           
-          <div class="flex space-x-2 space-x-reverse">
-            <button class="edit-btn bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200" data-id="${id}" data-dept="${department}">
+          <div class="mt-3 md:mt-0 flex space-x-2">
+            <button class="edit-btn action-btn bg-blue-100 text-blue-600 p-2 rounded hover:bg-blue-200" data-id="${id}" data-dept="${department}">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="delete-btn bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200" data-id="${id}" data-dept="${department}">
+            <button class="delete-btn action-btn bg-red-100 text-red-600 p-2 rounded hover:bg-red-200" data-id="${id}" data-dept="${department}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -343,19 +574,21 @@
       
       return card;
     }
-
+    
     // Get department information
     function getDepartmentInfo(department) {
       const departments = {
         emergency: { name: 'الطوارئ', icon: 'fa-ambulance', color: 'red' },
         icu: { name: 'العناية المركزة', icon: 'fa-procedures', color: 'purple' },
         surgery: { name: 'العمليات', icon: 'fa-user-md', color: 'blue' },
+        care: { name: 'الرعاية', icon: 'fa-hand-holding-heart', color: 'green' },
+        admin: { name: 'الإدارة', icon: 'fa-building', color: 'gray' },
         radiology: { name: 'الأشعة', icon: 'fa-x-ray', color: 'teal' }
       };
       
       return departments[department] || { name: department, icon: 'fa-hospital', color: 'blue' };
     }
-
+    
     // Render patients list
     function renderPatients(patients, filter = 'all', searchTerm = '') {
       patientsList.innerHTML = '';
@@ -363,8 +596,8 @@
       if (!patients) {
         patientsList.innerHTML = `
           <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-user-slash text-4xl mb-3"></i>
-            <p>لا يوجد مرضى</p>
+            <i class="fas fa-search text-4xl mb-3"></i>
+            <p>لا يوجد مرضى يطابق البحث</p>
           </div>
         `;
         return;
@@ -383,16 +616,15 @@
         filteredPatients = filteredPatients.filter(([_, patient]) => 
           patient.name.toLowerCase().includes(term) || 
           patient.nid.includes(term) || 
-          patient.address.toLowerCase().includes(term) ||
-          (patient.patientID && patient.patientID.toLowerCase().includes(term))
+          patient.address.toLowerCase().includes(term)
         );
       }
       
       if (filteredPatients.length === 0) {
         patientsList.innerHTML = `
           <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-search text-4xl mb-3"></i>
-            <p>لا يوجد مرضى يطابقون البحث</p>
+            <i class="fas fa-user-slash text-4xl mb-3"></i>
+            <p>لا يوجد مرضى في هذا القسم</p>
           </div>
         `;
         return;
@@ -404,7 +636,7 @@
         patientsList.appendChild(card);
       });
     }
-
+    
     // Delete patient
     function deletePatient(id, department) {
       Swal.fire({
@@ -416,62 +648,71 @@
         cancelButtonColor: '#3085d6',
         confirmButtonText: 'نعم، احذفه!',
         cancelButtonText: 'إلغاء'
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          const patientRef = ref(db, `patients/${department}/${id}`);
-          remove(patientRef).then(() => {
+          try {
+            showLoading();
+            const patientRef = ref(db, `patients/${department}/${id}`);
+            await remove(patientRef);
+            hideLoading();
+            
             Swal.fire({
               icon: 'success',
               title: 'تم الحذف',
               text: 'تم حذف المريض بنجاح',
               timer: 1500,
-              showConfirmButton: false
+              showConfirmButton: false,
+              position: 'top-end',
+              toast: true
             });
-          }).catch(() => {
+          } catch (error) {
+            hideLoading();
             Swal.fire({
               icon: 'error',
               title: 'خطأ',
               text: 'حدث خطأ أثناء الحذف'
             });
-          });
+          }
         }
       });
     }
-
-    // Edit patient
+    
+    // Edit patient (FULLY FUNCTIONAL!)
     function editPatient(id, department, patient) {
+      // Create a modal form for editing
       const editForm = document.createElement('form');
       editForm.className = 'space-y-4';
       
+      // Fill form with patient data
       editForm.innerHTML = `
         <h3 class="text-lg font-bold mb-2">تعديل بيانات المريض: ${patient.name}</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الاسم</label>
-            <input type="text" id="edit-name" value="${patient.name}" class="w-full border border-gray-300 rounded-md p-2" required />
+            <input type="text" id="edit-name" value="${patient.name}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
-            <input type="number" id="edit-age" value="${patient.age}" class="w-full border border-gray-300 rounded-md p-2" required />
+            <input type="number" id="edit-age" value="${patient.age}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الرقم القومي</label>
-            <input type="text" id="edit-nid" value="${patient.nid}" class="w-full border border-gray-300 rounded-md p-2" required />
+            <input type="text" id="edit-nid" value="${patient.nid}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
-            <select id="edit-gender" class="w-full border border-gray-300 rounded-md p-2" required>
+            <select id="edit-gender" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
               <option value="male" ${patient.gender === 'male' ? 'selected' : ''}>ذكر</option>
               <option value="female" ${patient.gender === 'female' ? 'selected' : ''}>أنثى</option>
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
-            <input type="text" id="edit-address" value="${patient.address}" class="w-full border border-gray-300 rounded-md p-2" required />
+            <input type="text" id="edit-address" value="${patient.address}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">فصيلة الدم</label>
-            <select id="edit-bloodType" class="w-full border border-gray-300 rounded-md p-2" required>
+            <select id="edit-bloodType" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
               <option value="A+" ${patient.bloodType === 'A+' ? 'selected' : ''}>A+</option>
               <option value="A-" ${patient.bloodType === 'A-' ? 'selected' : ''}>A-</option>
               <option value="B+" ${patient.bloodType === 'B+' ? 'selected' : ''}>B+</option>
@@ -484,18 +725,21 @@
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
-          <textarea id="edit-diseases" rows="3" class="w-full border border-gray-300 rounded-md p-2">${patient.diseases || ''}</textarea>
+          <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
+          <textarea id="edit-diseases" rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">${patient.diseases || ''}</textarea>
         </div>
       `;
       
+      // Show modal with form
       Swal.fire({
         title: 'تعديل بيانات المريض',
         html: editForm,
         showCancelButton: true,
         confirmButtonText: 'حفظ التعديلات',
         cancelButtonText: 'إلغاء',
+        showLoaderOnConfirm: true,
         preConfirm: () => {
+          // Validate form
           const name = document.getElementById('edit-name').value.trim();
           const age = document.getElementById('edit-age').value.trim();
           const nid = document.getElementById('edit-nid').value.trim();
@@ -513,34 +757,87 @@
             diseases: document.getElementById('edit-diseases').value.trim()
           };
         }
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
           const updatedData = result.value;
-          const patientRef = ref(db, `patients/${department}/${id}`);
-          update(patientRef, {
-            ...updatedData,
-            timestamp: new Date().toISOString()
-          }).then(() => {
+          
+          try {
+            showLoading();
+            // Update patient data in Firebase
+            const patientRef = ref(db, `patients/${department}/${id}`);
+            await update(patientRef, {
+              ...updatedData,
+              timestamp: new Date().toISOString() // Update timestamp
+            });
+            
+            hideLoading();
             Swal.fire({
               icon: 'success',
-              title: 'تم التحديث',
-              text: 'تم تحديث بيانات المريض بنجاح',
-              timer: 1500,
-              showConfirmButton: false
+              title: 'تم تحديث البيانات',
+              text: `تم تحديث بيانات المريض ${updatedData.name} بنجاح`,
+              timer: 2000,
+              showConfirmButton: false,
+              position: 'top-end',
+              toast: true
             });
-          }).catch(() => {
+          } catch (error) {
+            hideLoading();
             Swal.fire({
               icon: 'error',
               title: 'خطأ',
-              text: 'حدث خطأ أثناء التحديث'
+              text: 'حدث خطأ أثناء تحديث البيانات'
             });
-          });
+          }
         }
       });
     }
-
+    
+    // Print report function
+    printReportBtn.addEventListener('click', () => {
+      window.print();
+    });
+    
+    // Export PDF function
+    exportPdfBtn.addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFont('Tajawal', 'normal');
+      doc.setFontSize(18);
+      doc.text('تقرير المرضى - مستشفى الحياة الذكية', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`التاريخ: ${new Date().toLocaleDateString("ar-EG")}`, 105, 25, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.text('قائمة المرضى', 20, 40);
+      
+      doc.setFontSize(10);
+      let y = 50;
+      
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        let patientCount = 0;
+        
+        Object.entries(data).forEach(([dept, patients]) => {
+          Object.entries(patients).forEach(([id, patient]) => {
+            if (patientCount > 0) y += 10;
+            doc.text(`${patientCount + 1}. ${patient.name} - ${dept}`, 20, y);
+            doc.text(`   العمر: ${patient.age} | الجنس: ${patient.gender === 'male' ? 'ذكر' : 'أنثى'} | الرقم القومي: ${patient.nid}`, 20, y + 5);
+            patientCount++;
+          });
+        });
+        
+        doc.save('تقرير-المرضى.pdf');
+        hideLoading();
+      });
+      
+      showLoading();
+    });
+    
     // Update statistics
     function updateStats() {
+      showLoading();
       const todayDate = new Date().toDateString();
       let total = 0, today = 0, emergency = 0, surgery = 0;
       
@@ -560,9 +857,11 @@
         todayPatientsElement.textContent = today;
         emergencyPatientsElement.textContent = emergency;
         surgeryPatientsElement.textContent = surgery;
+        
+        hideLoading();
       });
     }
-
+    
     // Initialize charts
     function initializeCharts() {
       // Department distribution chart
@@ -570,22 +869,31 @@
       const deptChart = new Chart(deptCtx, {
         type: 'bar',
         data: {
-          labels: ['الطوارئ', 'العناية المركزة', 'العمليات', 'الأشعة'],
+          labels: ['الطوارئ', 'العناية المركزة', 'العمليات', 'الرعاية', 'الإدارة', 'الأشعة'],
           datasets: [{
             label: 'عدد المرضى',
-            data: [0, 0, 0, 0],
+            data: [0, 0, 0, 0, 0, 0],
             backgroundColor: [
               'rgba(239, 68, 68, 0.7)',
               'rgba(139, 92, 246, 0.7)',
               'rgba(59, 130, 246, 0.7)',
+              'rgba(16, 185, 129, 0.7)',
+              'rgba(107, 114, 128, 0.7)',
               'rgba(14, 165, 233, 0.7)'
+            ],
+            borderColor: [
+              'rgb(239, 68, 68)',
+              'rgb(139, 92, 246)',
+              'rgb(59, 130, 246)',
+              'rgb(16, 185, 129)',
+              'rgb(107, 114, 128)',
+              'rgb(14, 165, 233)'
             ],
             borderWidth: 1
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
           plugins: {
             legend: {
               display: false
@@ -606,6 +914,43 @@
         }
       });
       
+      // Daily patients chart
+      const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+      const dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+          labels: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+          datasets: [{
+            label: 'عدد المرضى المسجلين',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            fill: true,
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            borderColor: 'rgb(59, 130, 246)',
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'المرضى المسجلين يومياً'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+      
       // Blood type distribution chart
       const bloodCtx = document.getElementById('bloodTypeChart').getContext('2d');
       const bloodChart = new Chart(bloodCtx, {
@@ -613,6 +958,7 @@
         data: {
           labels: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
           datasets: [{
+            label: 'فصيلة الدم',
             data: [0, 0, 0, 0, 0, 0, 0, 0],
             backgroundColor: [
               'rgba(239, 68, 68, 0.7)',
@@ -624,19 +970,28 @@
               'rgba(16, 185, 129, 0.7)',
               'rgba(16, 185, 129, 0.5)'
             ],
+            borderColor: [
+              'rgb(239, 68, 68)',
+              'rgb(239, 68, 68)',
+              'rgb(59, 130, 246)',
+              'rgb(59, 130, 246)',
+              'rgb(139, 92, 246)',
+              'rgb(139, 92, 246)',
+              'rgb(16, 185, 129)',
+              'rgb(16, 185, 129)'
+            ],
             borderWidth: 1
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
           plugins: {
             legend: {
               position: 'right'
             },
             title: {
               display: true,
-              text: 'فصائل الدم'
+              text: 'فصائل الدم الأكثر شيوعاً'
             }
           }
         }
@@ -645,19 +1000,17 @@
       // Update charts with real data
       onValue(ref(db, "patients"), (snapshot) => {
         const data = snapshot.val() || {};
-        const deptCounts = [0, 0, 0, 0]; // emergency, icu, surgery, radiology
+        const deptCounts = [0, 0, 0, 0, 0, 0]; // emergency, icu, surgery, care, admin, radiology
         const bloodCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // A+, A-, B+, B-, AB+, AB-, O+, O-
         
         Object.values(data).forEach(dept => {
           Object.values(dept).forEach(patient => {
             // Update department counts
-            if (patient.department === 'emergency') deptCounts[0]++;
-            else if (patient.department === 'icu') deptCounts[1]++;
-            else if (patient.department === 'surgery') deptCounts[2]++;
-            else if (patient.department === 'radiology') deptCounts[3]++;
+            const deptIndex = getDepartmentIndex(patient.department);
+            if (deptIndex !== -1) deptCounts[deptIndex]++;
             
             // Update blood type counts
-            const bloodIndex = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].indexOf(patient.bloodType);
+            const bloodIndex = getBloodTypeIndex(patient.bloodType);
             if (bloodIndex !== -1) bloodCounts[bloodIndex]++;
           });
         });
@@ -666,11 +1019,48 @@
         deptChart.data.datasets[0].data = deptCounts;
         deptChart.update();
         
+        dailyChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0]; // Will be updated below
+        dailyChart.update();
+        
         bloodChart.data.datasets[0].data = bloodCounts;
         bloodChart.update();
+        
+        // Update daily chart with actual data
+        const today = new Date();
+        const todayIndex = today.getDay(); // 0 = Sunday, 6 = Saturday
+        
+        onValue(ref(db, "patients"), (snapshot) => {
+          const data = snapshot.val() || {};
+          const dailyCounts = [0, 0, 0, 0, 0, 0, 0]; // Sunday to Saturday
+          
+          Object.values(data).forEach(dept => {
+            Object.values(dept).forEach(patient => {
+              const patientDate = new Date(patient.timestamp);
+              const patientDay = patientDate.getDay();
+              if (patientDay >= 0 && patientDay <= 6) {
+                dailyCounts[patientDay]++;
+              }
+            });
+          });
+          
+          dailyChart.data.datasets[0].data = dailyCounts;
+          dailyChart.update();
+        });
       });
     }
-
+    
+    // Helper function to get department index
+    function getDepartmentIndex(department) {
+      const departments = ['emergency', 'icu', 'surgery', 'care', 'admin', 'radiology'];
+      return departments.indexOf(department);
+    }
+    
+    // Helper function to get blood type index
+    function getBloodTypeIndex(bloodType) {
+      const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+      return bloodTypes.indexOf(bloodType);
+    }
+    
     // Form submission
     patientForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -693,39 +1083,39 @@
         Swal.fire({
           icon: 'warning',
           title: 'بيانات ناقصة',
-          text: 'يرجى ملء جميع الحقول الإلزامية'
+          text: 'يرجى ملء جميع الحقول الإلزامية',
+          confirmButtonText: 'حسناً'
         });
         return;
       }
       
       try {
-        // Generate sequential patient ID
-        const patientID = await generatePatientID(formData.department);
-        formData.patientID = patientID; // Add patient ID to form data
-        
-        // Save patient data with custom ID
-        const patientRef = ref(db, `patients/${formData.department}/${patientID}`);
-        await set(patientRef, formData);
+        showLoading();
+        const patientsRef = ref(db, `patients/${formData.department}`);
+        await push(patientsRef, formData);
         
         Swal.fire({
           icon: 'success',
-          title: 'تم التسجيل',
+          title: 'تم تسجيل المريض',
           text: `تم تسجيل المريض ${formData.name} بنجاح`,
-          timer: 1500,
-          showConfirmButton: false
+          timer: 2000,
+          showConfirmButton: false,
+          position: 'top-end',
+          toast: true
         });
         
         patientForm.reset();
+        hideLoading();
       } catch (error) {
-        console.error("Error registering patient:", error);
+        hideLoading();
         Swal.fire({
           icon: 'error',
           title: 'خطأ',
-          text: 'حدث خطأ أثناء التسجيل'
+          text: 'حدث خطأ أثناء تسجيل المريض'
         });
       }
     });
-
+    
     // Real-time data listeners
     function setupDataListeners() {
       // Patients list listener
@@ -749,7 +1139,7 @@
       // Stats listener
       updateStats();
     }
-
+    
     // Filter and search listeners
     filterDepartment.addEventListener('change', () => {
       const filter = filterDepartment.value;
@@ -790,7 +1180,7 @@
         renderPatients(allPatients, filter, searchTerm);
       });
     });
-
+    
     // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
       setupDataListeners();
