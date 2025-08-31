@@ -165,20 +165,6 @@
             transform: translateX(-4px);
         }
         
-        /* Vital Sign Styles */
-        .vital-sign {
-            background-color: var(--light);
-            border-radius: 8px;
-            padding: 0.75rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .vital-sign:focus-within {
-            transform: scale(1.02);
-            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.2);
-        }
-        
         /* Modal Styles */
         .modal {
             position: fixed;
@@ -205,7 +191,7 @@
             background: white;
             border-radius: 12px;
             width: 90%;
-            max-width: 1200px;
+            max-width: 900px;
             max-height: 90vh;
             overflow: hidden;
             transform: translateY(20px);
@@ -235,6 +221,46 @@
             border-bottom-color: var(--primary);
         }
         
+        /* Checkup Form Styles */
+        .checkup-form-section {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .checkup-form-section h3 {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Save Button Styles */
+        .save-btn {
+            background: linear-gradient(135deg, var(--success), #10b981);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3);
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(5, 150, 105, 0.4);
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .header {
@@ -243,6 +269,11 @@
             
             .card {
                 margin-bottom: 1rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
             }
         }
     </style>
@@ -298,7 +329,7 @@
                             <i class="fas fa-exchange-alt"></i> تغيير الحالة
                         </button>
                         <button onclick="doctorCheckup()" class="btn btn-primary">
-                            <i class="fas fa-stethoscope"></i> كشف الطبيب
+                            <i class="fas fa-stethoscope"></i> كشف طبي
                         </button>
                         <a href="#" id="monitorBtn" class="btn btn-success">
                             <i class="fas fa-heartbeat"></i> عرض المونيتور
@@ -472,132 +503,81 @@
         </div>
         
         <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="space-y-6">
-                    <div class="bg-gray-50 rounded-xl p-5">
-                        <label class="block mb-3 font-semibold text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-clipboard-list text-blue-600"></i>
-                            نوع الكشف
-                        </label>
-                        <select id="visitType" class="form-input">
-                            <option value="">اختر نوع الكشف</option>
-                            <option value="كشف أولي">كشف أولي</option>
-                            <option value="متابعة">متابعة</option>
-                            <option value="استشارة">استشارة</option>
-                        </select>
-                    </div>
+            <form id="checkupForm" onsubmit="return false;">
+                <!-- Visit Type Section -->
+                <div class="checkup-form-section">
+                    <h3><i class="fas fa-clipboard-list"></i> نوع الكشف</h3>
+                    <select id="visitType" class="form-input" required>
+                        <option value="">اختر نوع الكشف</option>
+                        <option value="كشف أولي">كشف أولي</option>
+                        <option value="متابعة">متابعة</option>
+                        <option value="استشارة">استشارة</option>
+                    </select>
+                </div>
+                
+                <!-- Symptoms Section -->
+                <div class="checkup-form-section">
+                    <h3><i class="fas fa-notes-medical"></i> الأعراض</h3>
+                    <textarea id="symptoms" rows="4" class="form-input" placeholder="اكتب الأعراض التي يشتكي منها المريض..." required></textarea>
+                </div>
+                
+                <!-- Diagnosis Section -->
+                <div class="checkup-form-section">
+                    <h3><i class="fas fa-diagnoses"></i> التشخيص</h3>
+                    <textarea id="diagnosis" rows="4" class="form-input" placeholder="اكتب التشخيص الطبي للحالة..." required></textarea>
+                </div>
+                
+                <!-- Treatment Plan Section -->
+                <div class="checkup-form-section">
+                    <h3><i class="fas fa-pills"></i> الخطة العلاجية والوصفات الطبية</h3>
+                    <textarea id="treatmentPlan" rows="3" class="form-input mb-4" placeholder="الخطة العلاجية العامة..."></textarea>
                     
-                    <div class="bg-gray-50 rounded-xl p-5">
-                        <label class="block mb-3 font-semibold text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-notes-medical text-red-600"></i>
-                            الأعراض
-                        </label>
-                        <textarea id="symptoms" rows="4" class="form-input" placeholder="اكتب الأعراض التي يشتكي منها المريض..."></textarea>
-                    </div>
-                    
-                    <div class="bg-gray-50 rounded-xl p-5">
-                        <label class="block mb-3 font-semibold text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-diagnoses text-purple-600"></i>
-                            التشخيص
-                        </label>
-                        <textarea id="diagnosis" rows="4" class="form-input" placeholder="اكتب التشخيص الطبي للحالة..."></textarea>
+                    <!-- Medications Section -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 mt-3">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-semibold text-gray-700 flex items-center gap-2">
+                                <i class="fas fa-prescription-bottle text-green-600"></i>
+                                الأدوية الموصوفة
+                            </h4>
+                            <button type="button" onclick="addMedication()" class="btn btn-success text-sm">
+                                <i class="fas fa-plus"></i> إضافة دواء
+                            </button>
+                        </div>
+                        
+                        <div id="medicationsList" class="space-y-4">
+                            <!-- Medications will be added dynamically -->
+                        </div>
+                        
+                        <div id="noMedications" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-pills text-4xl mb-2"></i>
+                            <p>لا توجد أدوية مضافة</p>
+                            <p class="text-sm">اضغط على زر "إضافة دواء" لبدء إضافة الأدوية</p>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="space-y-6">
-                    <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5">
-                        <h3 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                            <i class="fas fa-heartbeat text-red-500"></i>
-                            العلامات الحيوية
-                        </h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-1">ضغط الدم</label>
-                                <div class="relative">
-                                    <input type="text" id="bp" class="vital-sign w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-10" placeholder="120/80">
-                                    <i class="fas fa-tint absolute left-3 top-3.5 text-red-500"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-1">معدل النبض</label>
-                                <div class="relative">
-                                    <input type="number" id="pulse" class="vital-sign w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-10" placeholder="75">
-                                    <i class="fas fa-heart absolute left-3 top-3.5 text-pink-500"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-1">درجة الحرارة</label>
-                                <div class="relative">
-                                    <input type="number" id="temp" class="vital-sign w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-10" placeholder="37.5">
-                                    <i class="fas fa-thermometer-half absolute left-3 top-3.5 text-orange-500"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-600 mb-1">نسبة الأكسجين</label>
-                                <div class="relative">
-                                    <input type="number" id="oxygen" class="vital-sign w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-10" placeholder="98">
-                                    <i class="fas fa-lungs absolute left-3 top-3.5 text-blue-500"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-50 rounded-xl p-5">
-                        <label class="block mb-3 font-semibold text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-pills text-green-600"></i>
-                            الخطة العلاجية والوصفات الطبية
+                <!-- Attachments Section -->
+                <div class="checkup-form-section">
+                    <h3><i class="fas fa-paperclip"></i> مرفقات (تحاليل / أشعة)</h3>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center file-drop-area">
+                        <input type="file" id="attachments" class="hidden" multiple>
+                        <label for="attachments" class="cursor-pointer">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">اسحب الملفات هنا أو انقر للاختيار</p>
+                            <p class="text-sm text-gray-500">PDF, JPG, PNG (حتى 10MB)</p>
                         </label>
-                        <textarea id="treatmentPlan" rows="3" class="form-input mb-4" placeholder="الخطة العلاجية العامة..."></textarea>
-                        
-                        <!-- Medications Section -->
-                        <div class="bg-white border border-gray-200 rounded-lg p-4">
-                            <div class="flex justify-between items-center mb-4">
-                                <h4 class="font-semibold text-gray-700 flex items-center gap-2">
-                                    <i class="fas fa-prescription-bottle text-green-600"></i>
-                                    الأدوية الموصوفة
-                                </h4>
-                                <button type="button" onclick="addMedication()" class="btn btn-success text-sm">
-                                    <i class="fas fa-plus"></i> إضافة دواء
-                                </button>
-                            </div>
-                            
-                            <div id="medicationsList" class="space-y-4">
-                                <!-- Medications will be added dynamically -->
-                            </div>
-                            
-                            <div id="noMedications" class="text-center py-8 text-gray-500">
-                                <i class="fas fa-pills text-4xl mb-2"></i>
-                                <p>لا توجد أدوية مضافة</p>
-                                <p class="text-sm">اضغط على زر "إضافة دواء" لبدء إضافة الأدوية</p>
-                            </div>
-                        </div>
                     </div>
-                    
-                    <div class="bg-gray-50 rounded-xl p-5">
-                        <label class="block mb-3 font-semibold text-gray-700 flex items-center gap-2">
-                            <i class="fas fa-paperclip text-indigo-600"></i>
-                            مرفقات (تحاليل / أشعة)
-                        </label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center file-drop-area">
-                            <input type="file" id="attachments" class="hidden" multiple>
-                            <label for="attachments" class="cursor-pointer">
-                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                                <p class="text-gray-600">اسحب الملفات هنا أو انقر للاختيار</p>
-                                <p class="text-sm text-gray-500">PDF, JPG, PNG (حتى 10MB)</p>
-                            </label>
-                        </div>
-                        <div id="filePreview" class="mt-3"></div>
-                    </div>
+                    <div id="filePreview" class="mt-3"></div>
                 </div>
-            </div>
+            </form>
         </div>
         
         <div class="flex justify-end gap-3 p-6 bg-gray-50">
             <button onclick="closeCheckupModal()" class="btn bg-gray-300 text-gray-700 hover:bg-gray-400">
                 إلغاء
             </button>
-            <button onclick="saveVisit()" class="btn btn-primary">
-                <i class="fas fa-save"></i> تسجيل الكشف
+            <button onclick="saveVisit()" class="save-btn">
+                <i class="fas fa-save"></i> حفظ الكشف
             </button>
         </div>
     </div>
@@ -767,15 +747,7 @@ window.doctorCheckup = function() {
     if (!validatePatientId()) return;
     
     // Reset form
-    document.getElementById('visitType').value = '';
-    document.getElementById('symptoms').value = '';
-    document.getElementById('bp').value = '';
-    document.getElementById('pulse').value = '';
-    document.getElementById('temp').value = '';
-    document.getElementById('oxygen').value = '';
-    document.getElementById('diagnosis').value = '';
-    document.getElementById('treatmentPlan').value = '';
-    document.getElementById('attachments').value = '';
+    document.getElementById('checkupForm').reset();
     document.getElementById('filePreview').innerHTML = '';
     
     // Reset medications list
@@ -901,10 +873,6 @@ window.saveVisit = async function() {
     // Collect form data
     const visitType = document.getElementById('visitType').value;
     const symptoms = document.getElementById('symptoms').value;
-    const bp = document.getElementById('bp').value;
-    const pulse = document.getElementById('pulse').value;
-    const temp = document.getElementById('temp').value;
-    const oxygen = document.getElementById('oxygen').value;
     const diagnosis = document.getElementById('diagnosis').value;
     const treatmentPlan = document.getElementById('treatmentPlan').value;
     const attachments = document.getElementById('attachments').files;
@@ -946,12 +914,6 @@ window.saveVisit = async function() {
         const checkupData = {
             visitType,
             symptoms,
-            vitalSigns: {
-                bp,
-                pulse,
-                temp,
-                oxygen
-            },
             diagnosis,
             treatmentPlan,
             medications,
@@ -1324,20 +1286,6 @@ function loadCheckups() {
             const checkupEl = document.createElement("div");
             checkupEl.className = "medical-record-item";
             
-            // Display vital signs
-            let vitalSignsHtml = '';
-            if (checkup.vitalSigns) {
-                const { bp, pulse, temp, oxygen } = checkup.vitalSigns;
-                vitalSignsHtml = `
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 my-3">
-                        ${bp ? `<div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><div class="text-xs text-blue-600 mb-1">ضغط الدم</div><div class="font-medium">${bp}</div></div>` : ''}
-                        ${pulse ? `<div class="bg-green-50 p-3 rounded-lg border border-green-100"><div class="text-xs text-green-600 mb-1">النبض</div><div class="font-medium">${pulse}</div></div>` : ''}
-                        ${temp ? `<div class="bg-yellow-50 p-3 rounded-lg border border-yellow-100"><div class="text-xs text-yellow-600 mb-1">الحرارة</div><div class="font-medium">${temp}°C</div></div>` : ''}
-                        ${oxygen ? `<div class="bg-purple-50 p-3 rounded-lg border border-purple-100"><div class="text-xs text-purple-600 mb-1">الأكسجين</div><div class="font-medium">${oxygen}%</div></div>` : ''}
-                    </div>
-                `;
-            }
-            
             // Display medications
             let medicationsHtml = '';
             if (checkup.medications && checkup.medications.length > 0) {
@@ -1400,8 +1348,6 @@ function loadCheckups() {
                                 <span class="font-medium text-gray-900">الأعراض:</span> ${checkup.symptoms || '-'}
                             </p>
                         </div>
-                        
-                        ${vitalSignsHtml}
                         
                         <div class="mb-3">
                             <p class="text-sm text-gray-700 mb-1">
