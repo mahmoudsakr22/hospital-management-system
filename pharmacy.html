@@ -85,13 +85,15 @@
     }
     .modal-content {
       background-color: #1e293b;
-      margin: 10% auto;
+      margin: 2% auto;
       padding: 20px;
       border: 1px solid #334155;
-      width: 80%;
-      max-width: 800px;
+      width: 90%;
+      max-width: 900px;
       border-radius: 12px;
       color: white;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .close {
       color: #aaa;
@@ -102,6 +104,202 @@
     }
     .close:hover {
       color: white;
+    }
+    
+    /* Official Invoice Styles */
+    .invoice-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border: 2px solid #333;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      color: #333;
+      font-family: 'Tajawal', sans-serif;
+    }
+    
+    .invoice-header {
+      border-bottom: 3px solid #333;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .hospital-logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    
+    .hospital-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .invoice-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+      margin: 15px 0;
+      text-decoration: underline;
+    }
+    
+    .invoice-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin: 15px 0 10px 0;
+      border-bottom: 1px solid #333;
+      padding-bottom: 5px;
+    }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px dotted #ccc;
+    }
+    
+    .info-label {
+      font-weight: 600;
+    }
+    
+    .medicine-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    
+    .medicine-table th,
+    .medicine-table td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: right;
+    }
+    
+    .medicine-table th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    .total-section {
+      margin-top: 20px;
+    }
+    
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+    }
+    
+    .total-row.final {
+      font-weight: bold;
+      font-size: 18px;
+      border-top: 2px solid #333;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    
+    .footer-section {
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    
+    .signature-section {
+      text-align: center;
+      width: 200px;
+    }
+    
+    .signature-line {
+      border-bottom: 1px solid #333;
+      width: 150px;
+      margin: 30px auto 5px;
+    }
+    
+    .stamp-area {
+      text-align: center;
+      width: 150px;
+    }
+    
+    .stamp-circle {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.2;
+    }
+    
+    .qr-section {
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .invoice-footer {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #333;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .action-buttons {
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .action-btn {
+      background: #333;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 0 5px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+    
+    .action-btn:hover {
+      background: #555;
+    }
+    
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      
+      .invoice-container {
+        box-shadow: none;
+        max-width: 100%;
+      }
+      
+      .action-buttons {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -164,6 +362,24 @@
     </div>
   </div>
   
+  <!-- Invoice Modal -->
+  <div id="invoiceModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="invoiceContent">
+        <!-- Invoice will be generated here -->
+      </div>
+      <div class="action-buttons">
+        <button class="action-btn" onclick="window.print()">
+          <i class="fas fa-print"></i> طباعة الفاتورة
+        </button>
+        <button class="action-btn" onclick="document.getElementById('invoiceModal').style.display='none'">
+          <i class="fas fa-times"></i> إغلاق
+        </button>
+      </div>
+    </div>
+  </div>
+  
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
     <!-- Quick Stats -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -189,7 +405,7 @@
         </div>
       </div>
       <div class="card hover:scale-[1.02] transition-transform">
-        <p class="text-xs text-white/60">وصفات جديدة</p>
+        <p class="text-xs text-white/60">طلبات جديدة</p>
         <p id="statNewRx" class="text-2xl font-bold">0</p>
         <div class="mt-2 h-1 bg-indigo-500/30 rounded-full overflow-hidden">
           <div id="rxProgress" class="h-full bg-indigo-500 rounded-full" style="width: 0%"></div>
@@ -233,7 +449,7 @@
     <section class="glass rounded-2xl">
       <div class="flex border-b border-white/10">
         <button id="tabInventory" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-teal-400">المخزن</button>
-        <button id="tabPrescriptions" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الوصفات الطبية</button>
+        <button id="tabRequests" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">طلبات الأقسام</button>
         <button id="tabSuppliers" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الموردون</button>
         <button id="tabOrders" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">الطلبات</button>
         <button id="tabReports" class="flex-1 p-3 md:p-4 text-center font-semibold border-b-2 border-transparent">التقارير</button>
@@ -319,44 +535,8 @@
           </div>
         </div>
         
-        <!-- Prescriptions Panel -->
-        <div id="panelPrescriptions" class="hidden space-y-6">
-          <!-- Regular Prescriptions Table -->
-          <div class="card fade-in">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-3 gap-3">
-              <h2 class="text-lg font-bold">الوصفات الطبية</h2>
-              <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                <select id="filterRx" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                  <option value="all">الكل</option>
-                  <option value="new">جديدة</option>
-                  <option value="dispensed">تم الصرف</option>
-                  <option value="unavailable">غير متوفر</option>
-                </select>
-                <input id="searchRx" placeholder="بحث باسم المريض/الدواء" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-60" />
-              </div>
-            </div>
-            <div class="overflow-auto rounded-xl border border-white/10">
-              <table class="min-w-full text-sm">
-                <thead class="bg-white/5">
-                  <tr class="text-white/80">
-                    <th class="p-3 text-right">المريض</th>
-                    <th class="p-3">ID</th>
-                    <th class="p-3 text-right">الدواء</th>
-                    <th class="p-3">الجرعة</th>
-                    <th class="p-3">المدة</th>
-                    <th class="p-3">التأمين</th>
-                    <th class="p-3">الجرعات</th>
-                    <th class="p-3">السعر (ج.م)</th>
-                    <th class="p-3">الحالة</th>
-                    <th class="p-3 text-center">QR</th>
-                    <th class="p-3 text-center">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyRx" class="divide-y divide-white/10"></tbody>
-              </table>
-            </div>
-          </div>
-          
+        <!-- Medication Requests Panel -->
+        <div id="panelRequests" class="hidden space-y-6">
           <!-- Medication Requests Table -->
           <div id="medRequestsTable" class="card fade-in">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-3 gap-3">
@@ -476,7 +656,7 @@
                 </div>
               </div>
               <div>
-                <h3 class="font-medium mb-3">تقرير الوصفات</h3>
+                <h3 class="font-medium mb-3">تقرير الطلبات</h3>
                 <div class="h-64">
                   <canvas id="prescriptionChart"></canvas>
                 </div>
@@ -582,11 +762,15 @@
     
     $('.close').addEventListener('click', () => {
       barcodeModal.style.display = 'none';
+      document.getElementById('invoiceModal').style.display = 'none';
     });
     
     window.addEventListener('click', (event) => {
       if (event.target == barcodeModal) {
         barcodeModal.style.display = 'none';
+      }
+      if (event.target == document.getElementById('invoiceModal')) {
+        document.getElementById('invoiceModal').style.display = 'none';
       }
     });
     
@@ -758,22 +942,22 @@
     
     // Tabs
     const tabInventory = $('#tabInventory');
-    const tabPrescriptions = $('#tabPrescriptions');
+    const tabRequests = $('#tabRequests');
     const tabSuppliers = $('#tabSuppliers');
     const tabOrders = $('#tabOrders');
     const tabReports = $('#tabReports');
     const panelInventory = $('#panelInventory');
-    const panelPrescriptions = $('#panelPrescriptions');
+    const panelRequests = $('#panelRequests');
     const panelSuppliers = $('#panelSuppliers');
     const panelOrders = $('#panelOrders');
     const panelReports = $('#panelReports');
     
     function switchTab(activeTab, activePanel) {
-      [tabInventory, tabPrescriptions, tabSuppliers, tabOrders, tabReports].forEach(tab => {
+      [tabInventory, tabRequests, tabSuppliers, tabOrders, tabReports].forEach(tab => {
         tab.classList.remove('border-teal-400');
         tab.classList.add('border-transparent');
       });
-      [panelInventory, panelPrescriptions, panelSuppliers, panelOrders, panelReports].forEach(panel => {
+      [panelInventory, panelRequests, panelSuppliers, panelOrders, panelReports].forEach(panel => {
         panel.classList.add('hidden');
       });
       activeTab.classList.add('border-teal-400');
@@ -785,20 +969,192 @@
         initCharts();
       }
       
-      // Load medication requests when prescriptions tab is opened
-      if (activePanel === panelPrescriptions) {
+      // Load medication requests when requests tab is opened
+      if (activePanel === panelRequests) {
         loadMedicationRequests();
       }
     }
     
     tabInventory.addEventListener('click', () => switchTab(tabInventory, panelInventory));
-    tabPrescriptions.addEventListener('click', () => {
-      switchTab(tabPrescriptions, panelPrescriptions);
+    tabRequests.addEventListener('click', () => {
+      switchTab(tabRequests, panelRequests);
       loadMedicationRequests();
     });
     tabSuppliers.addEventListener('click', () => switchTab(tabSuppliers, panelSuppliers));
     tabOrders.addEventListener('click', () => switchTab(tabOrders, panelOrders));
     tabReports.addEventListener('click', () => switchTab(tabReports, panelReports));
+    
+    // =============================
+    // Official Invoice Generation
+    // =============================
+    function generateInvoice(data) {
+      // Generate invoice number
+      const invoiceNumber = `PH-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+      
+      // Create official invoice content
+      const invoiceContent = `
+        <div class="invoice-container">
+          <div class="invoice-header">
+            <div class="hospital-logo">
+              <i class="fas fa-hospital"></i> مستشفى الحياة الذكية
+            </div>
+            <div class="hospital-name">قسم الصيدلية</div>
+            <div>العنوان: القاهرة - جمهورية مصر العربية | الهاتف: 02-12345678</div>
+            
+            <div class="invoice-title">فاتورة رسمية</div>
+            
+            <div class="invoice-info">
+              <div>رقم الفاتورة: ${invoiceNumber}</div>
+              <div>التاريخ: ${new Date(data.date).toLocaleDateString('ar-EG')}</div>
+              <div>الوقت: ${new Date(data.date).toLocaleTimeString('ar-EG')}</div>
+            </div>
+          </div>
+          
+          <div style="padding: 20px;">
+            <div class="section-title">
+              <i class="fas fa-user"></i> بيانات المريض
+            </div>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">اسم المريض:</span>
+                <span>${data.patientName}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">الرقم الطبي:</span>
+                <span>${data.patientId}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">الطبيب المعالج:</span>
+                <span>${data.doctorName || 'د. خالد عبد الله'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">التأمين الطبي:</span>
+                <span>${data.insuranceType || 'شركة التأمين العربية'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">تاريخ الزيارة:</span>
+                <span>${new Date(data.date).toLocaleDateString('ar-EG')}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">القسم:</span>
+                <span>${data.department || 'الباطنة'}</span>
+              </div>
+            </div>
+            
+            <div class="section-title">
+              <i class="fas fa-pills"></i> تفاصيل الأدوية والخدمات
+            </div>
+            
+            <table class="medicine-table">
+              <thead>
+                <tr>
+                  <th>م</th>
+                  <th>اسم الدواء/الخدمة</th>
+                  <th>الشركة المصنعة</th>
+                  <th>التركيز</th>
+                  <th>الكمية</th>
+                  <th>السعر (ج.م)</th>
+                  <th>الإجمالي (ج.م)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.items.map((item, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${item.manufacturer || '-'}</td>
+                    <td>${item.concentration || '-'}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.unitPrice.toFixed(2)}</td>
+                    <td>${item.totalPrice.toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <div class="section-title">
+              <i class="fas fa-calculator"></i> الحسابات
+            </div>
+            
+            <div class="total-section">
+              <div class="total-row">
+                <span>المجموع الفرعي:</span>
+                <span>${data.items.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)} ج.م</span>
+              </div>
+              <div class="total-row">
+                <span>خصم التأمين (${data.insuranceDiscount || 20}%):</span>
+                <span>${(data.items.reduce((sum, item) => sum + item.totalPrice, 0) * (data.insuranceDiscount || 20) / 100).toFixed(2)} ج.م</span>
+              </div>
+              <div class="total-row">
+                <span>ضريبة القيمة المضافة (${data.vatRate || 14}%):</span>
+                <span>${((data.items.reduce((sum, item) => sum + item.totalPrice, 0) - (data.items.reduce((sum, item) => sum + item.totalPrice, 0) * (data.insuranceDiscount || 20) / 100)) * (data.vatRate || 14) / 100).toFixed(2)} ج.م</span>
+              </div>
+              <div class="total-row final">
+                <span>الإجمالي المستحق:</span>
+                <span>${data.totalAmount.toFixed(2)} ج.م</span>
+              </div>
+              <div class="total-row">
+                <span>طريقة الدفع:</span>
+                <span>${data.paymentMethod || 'بطاقة ائتمان'}</span>
+              </div>
+            </div>
+            
+            <div class="footer-section">
+              <div class="signature-section">
+                <div>توقيع الصيدلي المسؤول</div>
+                <div class="signature-line"></div>
+                <div>${data.pharmacistName || 'محمد عبد السلام'}</div>
+                <div>رقم الترخيص: ${data.pharmacistLicense || 'PH-2023-0876'}</div>
+              </div>
+              
+              <div class="stamp-area">
+                <div class="stamp-circle">
+                  ختم المستشفى<br>رسمي<br>ومعتمد
+                </div>
+              </div>
+            </div>
+            
+            <div class="qr-section">
+              <canvas id="qrCode" width="100" height="100"></canvas>
+              <div style="margin-top: 5px; font-size: 12px;">
+                رقم الفاتورة: ${invoiceNumber}
+              </div>
+            </div>
+            
+            <div class="invoice-footer">
+              <p>شكراً لثقتكم بمستشفى الحياة الذكية</p>
+              <p>هذه الفاتورة معتمدة من وزارة الصحة والسكان المصرية</p>
+              <p>للاستفسار: 0800-100-2000 | info@smartlifehospital.com</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Display invoice in modal
+      document.getElementById('invoiceContent').innerHTML = invoiceContent;
+      document.getElementById('invoiceModal').style.display = 'block';
+      
+      // Generate QR code for invoice verification
+      setTimeout(() => {
+        const invoiceData = {
+          invoiceNumber: invoiceNumber,
+          patientName: data.patientName,
+          patientId: data.patientId,
+          date: new Date(data.date).toLocaleDateString('ar-EG'),
+          total: data.totalAmount.toFixed(2)
+        };
+        
+        QRCode.toCanvas(document.getElementById('qrCode'), JSON.stringify(invoiceData), {
+          width: 100,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff'
+          }
+        });
+      }, 100);
+    }
     
     // =============================
     // Inventory Logic
@@ -1005,6 +1361,7 @@
         category: $('#filterCategory').value !== 'all' ? $('#filterCategory').value : 'general',
         supplier: $('#supplierSelect').value,
         barcode: generateBarcode(Date.now().toString()),
+        concentration: $('#concentration').value.trim(),
         createdAt: Date.now()
       };
       if(!data.name || !data.expiry){
@@ -1054,6 +1411,7 @@
             `<input id="swMan" class="swal2-input" placeholder="الشركة" value="${esc(d.manufacturer||'')}">`+
             `<input id="swBatch" class="swal2-input" placeholder="Batch" value="${esc(d.batch||'')}">`+
             `<input id="swExp" type="date" class="swal2-input" value="${(d.expiry||'').slice(0,10)}">`+
+            `<input id="swConc" class="swal2-input" placeholder="التركيز" value="${esc(d.concentration||'')}">`+
             `<input id="swQty" type="number" class="swal2-input" placeholder="الكمية" value="${Number(d.quantity||0)}">`+
             `<input id="swPrice" type="number" step="0.01" class="swal2-input" placeholder="السعر (ج.م)" value="${Number(d.price||0)}">`+
             `<input id="swLow" type="number" class="swal2-input" placeholder="حد التنبيه" value="${Number(d.lowThreshold||LOW_DEFAULT)}">`+
@@ -1070,6 +1428,7 @@
               manufacturer: document.getElementById('swMan').value.trim(),
               batch: document.getElementById('swBatch').value.trim(),
               expiry: document.getElementById('swExp').value,
+              concentration: document.getElementById('swConc').value.trim(),
               quantity: Number(document.getElementById('swQty').value||0),
               price: Number(document.getElementById('swPrice').value||0),
               lowThreshold: Number(document.getElementById('swLow').value||LOW_DEFAULT),
@@ -1082,288 +1441,6 @@
           Swal.fire({icon:'success', title:'تم التحديث'});
           addNotification('success', 'تم التحديث', `تم تحديث بيانات الدواء ${formValues.name}`);
         }
-      }
-    });
-    
-    // =============================
-    // Prescriptions Logic
-    // =============================
-    const rxRef = db.ref('pharmacy/prescriptions');
-    const tbodyRx = $('#tbodyRx');
-    const statNewRx = $('#statNewRx');
-    
-    function badgeInsurance(isCovered, insurer){
-      if(isCovered) return `<span class="px-2 py-1 rounded-full text-xs bg-teal-600">مغطى (${esc(insurer||'التأمين')})</span>`;
-      return `<span class="px-2 py-1 rounded-full text-xs bg-rose-600">غير مغطى</span>`;
-    }
-    
-    function scheduleSummary(schedule){
-      if(!schedule || !Array.isArray(schedule) || schedule.length===0) return '-';
-      // show next 2 doses
-      const next = schedule.slice(0,2).map(s=>`${s.time} × ${s.timesPerDay || 1}`).join('<br>');
-      return next + (schedule.length>2? ' ...' : '');
-    }
-    
-    function rxRow(key, p){
-      const statusBadge = (s)=>{
-        const map = { new:'bg-amber-500', dispensed:'bg-teal-600', unavailable:'bg-rose-600' };
-        const txt = { new:'جديدة', dispensed:'تم الصرف', unavailable:'غير متوفر' };
-        return `<span class="px-2 py-1 rounded-full text-xs ${map[s]||'bg-white/10'}">${txt[s]||s}</span>`
-      };
-      return `
-        <tr data-key="${key}" class="hover:bg-white/5">
-          <td class="p-3 font-semibold">${esc(p.patientName||'-')}</td>
-          <td class="p-3 text-center">${esc(p.patientId||'-')}</td>
-          <td class="p-3">${esc(p.drugName||'-')}</td>
-          <td class="p-3 text-center">${esc(p.dose||'-')}</td>
-          <td class="p-3 text-center">${esc(p.duration||'-')}</td>
-          <td class="p-3 text-center">${badgeInsurance(p.insuranceCovered, p.insurer)}</td>
-          <td class="p-3 text-center">${scheduleSummary(p.schedule)}</td>
-          <td class="p-3 text-center">${p.price ? Number(p.price).toFixed(2) + ' ج.م' : '-'}</td>
-          <td class="p-3 text-center">${statusBadge(p.status||'new')}</td>
-          <td class="p-3 text-center">
-            <canvas data-qrc="${key}" class="mx-auto" width="64" height="64"></canvas>
-          </td>
-          <td class="p-3 text-center">
-            <div class="flex flex-wrap items-center justify-center gap-2">
-              <button class="rx-done btn bg-teal-600 hover:bg-teal-700">صرف الدواء</button>
-              <button class="rx-na btn bg-amber-600 hover:bg-amber-700">غير متوفر</button>
-              <button class="rx-sub btn bg-indigo-600 hover:bg-indigo-700">بدائل</button>
-              <button class="rx-sched btn bg-white/10 hover:bg-white/20">الجرعات</button>
-              <button class="rx-del btn bg-rose-600 hover:bg-rose-700">حذف</button>
-            </div>
-          </td>
-        </tr>`;
-    }
-    
-    function renderQRs(){
-      $$('canvas[data-qrc]').forEach(c => {
-        const id = c.getAttribute('data-qrc');
-        const payload = { type:'rx', id };
-        QRCode.toCanvas(c, JSON.stringify(payload), { width: 64, margin: 1 });
-      });
-    }
-    
-    async function findSubstitutes(drugName){
-      // Strategy: take main token (first word) and search drugs that include it
-      const token = (drugName||'').split(' ')[0].toLowerCase();
-      const snap = await drugsRef.get();
-      const subs = [];
-      snap.forEach(ch=>{
-        const d = ch.val();
-        const name = (d.name||'').toLowerCase();
-        if(name.includes(token) && name !== (drugName||'').toLowerCase()){
-          subs.push({...d, id: ch.key});
-        }
-      });
-      return subs;
-    }
-    
-    function applyRxFilters(snapshot){
-      const filter = $('#filterRx').value;
-      const q = ($('#searchRx').value||'').trim().toLowerCase();
-      let html=''; let newCount=0;
-      snapshot.forEach(ch=>{
-        const k = ch.key, p = ch.val();
-        if(p.status==='new') newCount++;
-        if(filter!=='all' && (p.status||'new')!==filter) return;
-        const rowTxt = [p.patientName,p.patientId,p.drugName].join(' ').toLowerCase();
-        if(q && !rowTxt.includes(q)) return;
-        html += rxRow(k,p);
-      });
-      tbodyRx.innerHTML = html || `<tr><td colspan="11" class="p-4 text-center text-white/60">لا توجد وصفات</td></tr>`;
-      statNewRx.textContent = newCount;
-      $('#rxProgress').style.width = `${Math.min(100, newCount * 10)}%`;
-      renderQRs();
-      
-      // Add notification for new prescriptions
-      if (newCount > 0) {
-        addNotification('info', 'وصفات جديدة', `يوجد ${newCount} وصفات طبية جديدة بانتظار الصرف`);
-      }
-    }
-    
-    rxRef.on('value', (snap)=> applyRxFilters(snap));
-    $('#filterRx').addEventListener('change', ()=> rxRef.once('value', (s)=>applyRxFilters(s)));
-    $('#searchRx').addEventListener('input', ()=> rxRef.once('value', (s)=>applyRxFilters(s)));
-    
-    tbodyRx.addEventListener('click', async (e)=>{
-      const tr = e.target.closest('tr[data-key]');
-      if(!tr) return;
-      const key = tr.getAttribute('data-key');
-      const snap = await rxRef.child(key).get();
-      const p = snap.val();
-      
-      if(e.target.classList.contains('rx-done')){
-        // جلب بيانات الوصفة
-        const prescriptionData = {
-          patientName: p.patientName,
-          patientId: p.patientId,
-          drugName: p.drugName,
-          dose: p.dose,
-          duration: p.duration,
-          insuranceCovered: p.insuranceCovered,
-          insurer: p.insurer,
-          status: p.status,
-          quantityNeeded: p.quantityNeeded || 1
-        };
-        
-        // جلب سعر الدواء من المخزون
-        let drugPrice = 0;
-        try {
-          const drugSnap = await drugsRef.orderByChild('name').equalTo(p.drugName).limitToFirst(1).get();
-          if (drugSnap.exists()) {
-            const drugData = Object.values(drugSnap.val())[0];
-            drugPrice = Number(drugData.price || 0);
-          }
-        } catch (error) {
-          console.error('Error fetching drug price:', error);
-        }
-        
-        // حساب الإجمالي
-        const quantity = Number(p.quantityNeeded || 1);
-        const totalPrice = drugPrice * quantity;
-        
-        // عرض نافذة تأكيد مع تفاصيل الأسعار
-        const { value: confirm } = await Swal.fire({
-          title: 'تأكيد صرف الدواء',
-          html: `
-            <div style="text-align: right; direction: rtl;">
-              <p><strong>المريض:</strong> ${p.patientName}</p>
-              <p><strong>الدواء:</strong> ${p.drugName}</p>
-              <p><strong>الكمية:</strong> ${quantity}</p>
-              <p><strong>سعر الوحدة:</strong> ${drugPrice.toFixed(2)} ج.م</p>
-              <p><strong>الإجمالي:</strong> ${totalPrice.toFixed(2)} ج.م</p>
-              ${p.insuranceCovered === false ? '<p class="text-amber-300">المريض غير مغطى بالتأمين</p>' : ''}
-            </div>
-          `,
-          icon: 'info',
-          showCancelButton: true,
-          confirmButtonText: 'تأكيد الصرف',
-          cancelButtonText: 'إلغاء'
-        });
-        
-        if (confirm) {
-          // If insurance not covered, warn (already handled above)
-          
-          // reduce stock if available
-          const drugSnap = await drugsRef.orderByChild('name').equalTo(p.drugName).limitToFirst(1).get();
-          if(drugSnap.exists()){
-            const dKey = Object.keys(drugSnap.val())[0];
-            const dVal = drugSnap.val()[dKey];
-            const cur = Number(dVal.quantity||0);
-            const need = Number(p.quantityNeeded||1);
-            if(cur >= need){
-              await drugsRef.child(dKey).update({quantity: cur - need});
-              await rxRef.child(key).update({
-                status:'dispensed', 
-                dispensedAt: Date.now(),
-                price: drugPrice,
-                totalPrice: totalPrice
-              });
-              
-              // إنشاء الفاتورة
-              const invoiceData = {
-                patientName: p.patientName,
-                patientId: p.patientId,
-                items: [{
-                  name: p.drugName,
-                  quantity: quantity,
-                  unitPrice: drugPrice,
-                  totalPrice: totalPrice
-                }],
-                totalAmount: totalPrice,
-                date: new Date().toISOString(),
-                hospitalName: 'مستشفى الحياة الذكية - مصر',
-                hospitalContact: '02-12345678',
-                hospitalAddress: 'القاهرة، جمهورية مصر العربية'
-              };
-              
-              generateInvoice(invoiceData);
-              
-              Swal.fire({icon:'success', title:'تم صرف الوصفة'});
-              addNotification('success', 'تم الصرف', `تم صرف وصفة ${p.drugName} للمريض ${p.patientName}`);
-            } else {
-              await rxRef.child(key).update({status:'unavailable'});
-              Swal.fire({icon:'error', title:'الكمية غير كافية في المخزون'});
-              addNotification('error', 'نقص المخزون', `الكمية المتوفرة من ${p.drugName} غير كافية`);
-            }
-          } else {
-            await rxRef.child(key).update({status:'unavailable'});
-            Swal.fire({icon:'error', title:'لم يتم العثور على الدواء في المخزون'});
-            addNotification('error', 'دواء غير متوفر', `${p.drugName} غير متوفر في المخزون`);
-          }
-        }
-      } else if(e.target.classList.contains('rx-na')){
-        await rxRef.child(key).update({status:'unavailable'});
-        Swal.fire({icon:'info', title:'تم تحديدها كغير متوفرة'});
-        addNotification('info', 'غير متوفر', `تم تحديد ${p.drugName} كغير متوفر`);
-      } else if(e.target.classList.contains('rx-del')){
-        const confirm = await Swal.fire({icon:'warning', title:'حذف الوصفة؟', text:'لا يمكن التراجع', showCancelButton:true, confirmButtonText:'نعم', cancelButtonText:'إلغاء'});
-        if(confirm.isConfirmed){ 
-          await rxRef.child(key).remove(); 
-          Swal.fire({icon:'success', title:'تم الحذف'});
-          addNotification('info', 'تم الحذف', 'تم حذف الوصفة الطبية');
-        }
-      } else if(e.target.classList.contains('rx-sub')){
-        // Suggest substitutes
-        const subs = await findSubstitutes(p.drugName);
-        if(subs.length===0) return Swal.fire({icon:'info', title:'لا توجد بدائل مقترحة'});
-        const list = subs.map(s => `<div class="p-2 border-b border-white/5"><b>${esc(s.name)}</b> — الكمية: ${s.quantity||0} — السعر: ${Number(s.price||0).toFixed(2)} ج.م</div>`).join('');
-        Swal.fire({
-          title: 'بدائل مقترحة',
-          html: `<div style="text-align:right">${list}</div>`,
-          width: 600,
-          showCancelButton: true,
-          confirmButtonText: 'استعمل كبديل'
-        }).then(async (r)=>{
-          if(r.isConfirmed){
-            // take first substitute
-            const chosen = subs[0];
-            // update prescription drugName to substitute and mark dispensed if quantity ok
-            await rxRef.child(key).update({drugName: chosen.name});
-            
-            // جلب سعر الدواء البديل
-            const drugPrice = Number(chosen.price || 0);
-            const quantity = Number(p.quantityNeeded || 1);
-            const totalPrice = drugPrice * quantity;
-            
-            // تحديث الوصفة بالسعر الجديد
-            await rxRef.child(key).update({
-              price: drugPrice,
-              totalPrice: totalPrice
-            });
-            
-            // إنشاء الفاتورة
-            const invoiceData = {
-              patientName: p.patientName,
-              patientId: p.patientId,
-              items: [{
-                name: chosen.name,
-                quantity: quantity,
-                unitPrice: drugPrice,
-                totalPrice: totalPrice
-              }],
-              totalAmount: totalPrice,
-              date: new Date().toISOString(),
-              hospitalName: 'مستشفى الحياة الذكية - مصر',
-              hospitalContact: '02-12345678',
-              hospitalAddress: 'القاهرة، جمهورية مصر العربية'
-            };
-            
-            generateInvoice(invoiceData);
-            
-            Swal.fire({icon:'success', title:'تم تعيين البديل'});
-            addNotification('success', 'تم تعيين بديل', `تم تعيين ${chosen.name} كبديل لـ ${p.drugName}`);
-            // refresh list
-            rxRef.once('value', sn=>applyRxFilters(sn));
-          }
-        });
-      } else if(e.target.classList.contains('rx-sched')){
-        // Show schedule details
-        const sched = p.schedule || [];
-        if(sched.length===0) return Swal.fire({icon:'info', title:'لا يوجد جدول جرعات'});
-        const html = sched.map(s=>`<div class="p-2 border-b border-white/5 text-right"><b>الوقت:</b> ${esc(s.time)} — <b>مرات/يوم:</b> ${esc(s.timesPerDay||1)} — <b>تعليمات:</b> ${esc(s.note||'-')}</div>`).join('');
-        Swal.fire({title:'تفاصيل جدول الجرعات', html:`<div style="text-align:right">${html}</div>`, width:600});
       }
     });
     
@@ -1405,6 +1482,9 @@
               ${transfer.status === 'قيد الانتظار' ? `
                 <button class="med-req-dispense btn bg-teal-600 hover:bg-teal-700">تم الصرف</button>
                 <button class="med-req-unavailable btn bg-amber-600 hover:bg-amber-700">غير متوفر</button>
+              ` : ''}
+              ${transfer.status === 'تم الصرف' ? `
+                <button class="med-req-view-invoice btn bg-indigo-600 hover:bg-indigo-700">عرض الفاتورة</button>
               ` : ''}
               <button class="med-req-substitute btn bg-indigo-600 hover:bg-indigo-700">بدائل</button>
               <button class="med-req-schedule btn bg-white/10 hover:bg-white/20">الجرعات</button>
@@ -1521,13 +1601,16 @@
           // جلب بيانات التحويل
           const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
           const transfer = transferSnap.val();
+          const patientSnap = await medicationRequestsRef.child(patientId).get();
+          const patientData = patientSnap.val();
           
           // جلب سعر الدواء من المخزون
           let drugPrice = 0;
+          let drugData = null;
           try {
             const drugSnap = await drugsRef.orderByChild('name').equalTo(transfer.medication.name).limitToFirst(1).get();
             if (drugSnap.exists()) {
-              const drugData = Object.values(drugSnap.val())[0];
+              drugData = Object.values(drugSnap.val())[0];
               drugPrice = Number(drugData.price || 0);
             }
           } catch (error) {
@@ -1549,21 +1632,31 @@
               totalPrice: totalPrice
             });
           
-          // إنشاء الفاتورة
+          // إنشاء الفاتورة الرسمية
           const invoiceData = {
-            patientName: transfer.patientName,
+            patientName: patientData.name || 'غير محدد',
             patientId: patientId,
+            doctorName: transfer.doctorName || 'غير محدد',
+            insuranceType: transfer.medication.insuranceType || 'غير محدد',
+            department: transfer.department || 'غير محدد',
             items: [{
               name: transfer.medication.name,
+              manufacturer: drugData ? drugData.manufacturer : 'غير محدد',
+              concentration: drugData ? drugData.concentration || 'غير محدد' : 'غير محدد',
               quantity: quantity,
               unitPrice: drugPrice,
               totalPrice: totalPrice
             }],
             totalAmount: totalPrice,
             date: new Date().toISOString(),
-            hospitalName: 'مستشفى الحياة الذكية - مصر',
+            hospitalName: 'مستشفى الحياة الذكية',
             hospitalContact: '02-12345678',
-            hospitalAddress: 'القاهرة، جمهورية مصر العربية'
+            hospitalAddress: 'القاهرة، جمهورية مصر العربية',
+            paymentMethod: 'بطاقة ائتمان',
+            pharmacistName: 'محمد عبد السلام',
+            pharmacistLicense: 'PH-2023-0876',
+            insuranceDiscount: 20,
+            vatRate: 14
           };
           
           generateInvoice(invoiceData);
@@ -1576,6 +1669,66 @@
         } catch (error) {
           console.error('Error:', error);
           Swal.fire('خطأ', 'فشل تحديث حالة الطلب: ' + error.message, 'error');
+        }
+      }
+      
+      // عرض الفاتورة
+      if (e.target.classList.contains('med-req-view-invoice')) {
+        const tr = e.target.closest('tr[data-patient-id]');
+        if (!tr) return;
+        
+        const patientId = tr.getAttribute('data-patient-id');
+        const transferKey = tr.getAttribute('data-transfer-key');
+        
+        try {
+          // جلب بيانات التحويل
+          const transferSnap = await medicationRequestsRef.child(`${patientId}/transfers/${transferKey}`).get();
+          const transfer = transferSnap.val();
+          const patientSnap = await medicationRequestsRef.child(patientId).get();
+          const patientData = patientSnap.val();
+          
+          // جلب بيانات الدواء من المخزون
+          let drugData = null;
+          try {
+            const drugSnap = await drugsRef.orderByChild('name').equalTo(transfer.medication.name).limitToFirst(1).get();
+            if (drugSnap.exists()) {
+              drugData = Object.values(drugSnap.val())[0];
+            }
+          } catch (error) {
+            console.error('Error fetching drug data:', error);
+          }
+          
+          // إنشاء الفاتورة
+          const invoiceData = {
+            patientName: patientData.name || 'غير محدد',
+            patientId: patientId,
+            doctorName: transfer.doctorName || 'غير محدد',
+            insuranceType: transfer.medication.insuranceType || 'غير محدد',
+            department: transfer.department || 'غير محدد',
+            items: [{
+              name: transfer.medication.name,
+              manufacturer: drugData ? drugData.manufacturer : 'غير محدد',
+              concentration: drugData ? drugData.concentration || 'غير محدد' : 'غير محدد',
+              quantity: Number(transfer.medication.dosesCount || 1),
+              unitPrice: Number(transfer.price || 0),
+              totalPrice: Number(transfer.totalPrice || 0)
+            }],
+            totalAmount: Number(transfer.totalPrice || 0),
+            date: transfer.processedAt || new Date().toISOString(),
+            hospitalName: 'مستشفى الحياة الذكية',
+            hospitalContact: '02-12345678',
+            hospitalAddress: 'القاهرة، جمهورية مصر العربية',
+            paymentMethod: 'بطاقة ائتمان',
+            pharmacistName: 'محمد عبد السلام',
+            pharmacistLicense: 'PH-2023-0876',
+            insuranceDiscount: 20,
+            vatRate: 14
+          };
+          
+          generateInvoice(invoiceData);
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire('خطأ', 'فشل عرض الفاتورة: ' + error.message, 'error');
         }
       }
       
@@ -1678,7 +1831,7 @@
                 }],
                 totalAmount: Number(chosen.price || 0) * Number(med.dosesCount || 1),
                 date: new Date().toISOString(),
-                hospitalName: 'مستشفى الحياة الذكية - مصر',
+                hospitalName: 'مستشفى الحياة الذكية',
                 hospitalContact: '02-12345678',
                 hospitalAddress: 'القاهرة، جمهورية مصر العربية'
               };
@@ -2117,259 +2270,6 @@
     });
     
     // =============================
-    // Invoice Generation
-    // =============================
-    function generateInvoice(data) {
-      // إنشاء محتوى الفاتورة
-      const invoiceContent = `
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>فاتورة - ${data.hospitalName}</title>
-          <style>
-            body {
-              font-family: 'Tahoma', Arial, sans-serif;
-              margin: 0;
-              padding: 20px;
-              background-color: #f5f5f5;
-              color: #333;
-            }
-            .invoice-container {
-              max-width: 800px;
-              margin: 0 auto;
-              background-color: white;
-              padding: 30px;
-              border-radius: 10px;
-              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            }
-            .invoice-header {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #eee;
-              padding-bottom: 20px;
-            }
-            .invoice-title {
-              font-size: 24px;
-              font-weight: bold;
-              color: #2c3e50;
-            }
-            .invoice-info {
-              text-align: left;
-            }
-            .invoice-info div {
-              margin-bottom: 5px;
-            }
-            .invoice-details {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 30px;
-            }
-            .patient-info, .hospital-info {
-              width: 48%;
-            }
-            .patient-info h3, .hospital-info h3 {
-              margin-bottom: 10px;
-              color: #2c3e50;
-              border-bottom: 1px solid #eee;
-              padding-bottom: 5px;
-            }
-            .invoice-items {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 30px;
-            }
-            .invoice-items th, .invoice-items td {
-              border: 1px solid #ddd;
-              padding: 12px;
-              text-align: right;
-            }
-            .invoice-items th {
-              background-color: #f2f2f2;
-              font-weight: bold;
-            }
-            .invoice-total {
-              text-align: left;
-              margin-top: 20px;
-            }
-            .invoice-total table {
-              width: 300px;
-              border-collapse: collapse;
-              float: left;
-            }
-            .invoice-total td {
-              padding: 8px;
-              border: none;
-            }
-            .invoice-total .total-row {
-              border-top: 2px solid #ddd;
-              font-weight: bold;
-              font-size: 18px;
-            }
-            .invoice-footer {
-              margin-top: 50px;
-              text-align: center;
-              color: #777;
-              font-size: 14px;
-            }
-            .barcode {
-              margin: 20px 0;
-              text-align: center;
-            }
-            .qr-code {
-              text-align: center;
-              margin: 20px 0;
-            }
-            @media print {
-              body {
-                background-color: white;
-                padding: 0;
-              }
-              .invoice-container {
-                box-shadow: none;
-                padding: 20px;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="invoice-container">
-            <div class="invoice-header">
-              <div class="invoice-title">فاتورة</div>
-              <div class="invoice-info">
-                <div><strong>التاريخ:</strong> ${new Date(data.date).toLocaleDateString('ar-EG', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  weekday: 'long'
-                })}</div>
-                <div><strong>الوقت:</strong> ${new Date(data.date).toLocaleTimeString('ar-EG')}</div>
-                <div><strong>الرقم المرجعي:</strong> #${data.patientId}-${Date.now().toString().slice(-6)}</div>
-              </div>
-            </div>
-            
-            <div class="invoice-details">
-              <div class="patient-info">
-                <h3>بيانات المريض</h3>
-                <div><strong>الاسم:</strong> ${data.patientName}</div>
-                <div><strong>الرقم:</strong> ${data.patientId}</div>
-              </div>
-              <div class="hospital-info">
-                <h3>بيانات المستشفى</h3>
-                <div><strong>المستشفى:</strong> ${data.hospitalName}</div>
-                <div><strong>الهاتف:</strong> ${data.hospitalContact}</div>
-                <div><strong>العنوان:</strong> ${data.hospitalAddress}</div>
-              </div>
-            </div>
-            
-            <table class="invoice-items">
-              <thead>
-                <tr>
-                  <th>الوصف</th>
-                  <th>الكمية</th>
-                  <th>السعر (ج.م)</th>
-                  <th>الإجمالي (ج.م)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${data.items.map(item => `
-                  <tr>
-                    <td>${item.name}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.unitPrice.toFixed(2)}</td>
-                    <td>${item.totalPrice.toFixed(2)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-            
-            <div class="invoice-total">
-              <table>
-                <tr>
-                  <td>المجموع:</td>
-                  <td>${data.items.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)} ج.م</td>
-                </tr>
-                <tr>
-                  <td>الضريبة (0%):</td>
-                  <td>0.00 ج.م</td>
-                </tr>
-                <tr class="total-row">
-                  <td>الإجمالي:</td>
-                  <td>${data.totalAmount.toFixed(2)} ج.م</td>
-                </tr>
-              </table>
-            </div>
-            
-            <div class="barcode">
-              <!-- يمكن إضافة الباركود هنا -->
-              <div style="font-family: monospace; font-size: 18px; margin: 10px 0;">
-                ${data.patientId}-${Date.now().toString().slice(-6)}
-              </div>
-            </div>
-            
-            <div class="qr-code">
-              <!-- يمكن إضافة رمز QR هنا -->
-            </div>
-            
-            <div class="invoice-footer">
-              <p>شكراً لثقتكم بـ ${data.hospitalName}</p>
-              <p>هذه الفاتورة تم إنشاؤها إلكترونياً ولا تتطلب توقيعاً</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-      
-      // فتح الفاتورة في نافذة جديدة
-      const invoiceWindow = window.open('', '_blank');
-      invoiceWindow.document.write(invoiceContent);
-      invoiceWindow.document.close();
-      
-      // طباعة الفاتورة تلقائياً
-      setTimeout(() => {
-        invoiceWindow.print();
-      }, 500);
-    }
-    
-    function generateMultiplePrescriptionsInvoice(prescriptions) {
-      // تجميع الأدوية
-      const items = [];
-      let totalAmount = 0;
-      
-      prescriptions.forEach(prescription => {
-        const quantity = Number(prescription.quantityNeeded || 1);
-        const unitPrice = Number(prescription.price || 0);
-        const totalPrice = unitPrice * quantity;
-        
-        items.push({
-          name: prescription.drugName,
-          quantity: quantity,
-          unitPrice: unitPrice,
-          totalPrice: totalPrice
-        });
-        
-        totalAmount += totalPrice;
-      });
-      
-      // إنشاء بيانات الفاتورة
-      const invoiceData = {
-        patientName: prescriptions[0].patientName,
-        patientId: prescriptions[0].patientId,
-        items: items,
-        totalAmount: totalAmount,
-        date: new Date().toISOString(),
-        hospitalName: 'مستشفى الحياة الذكية - مصر',
-        hospitalContact: '02-12345678',
-        hospitalAddress: 'القاهرة، جمهورية مصر العربية'
-      };
-      
-      // إنشاء الفاتورة
-      generateInvoice(invoiceData);
-    }
-    
-    // =============================
     // Charts Logic
     // =============================
     function initCharts() {
@@ -2434,7 +2334,7 @@
       prescriptionChart = new Chart(prescriptionCtx, {
         type: 'doughnut',
         data: {
-          labels: ['جديدة', 'تم الصرف', 'غير متوفر'],
+          labels: ['قيد الانتظار', 'تم الصرف', 'غير متوفر'],
           datasets: [{
             data: [0, 0, 0],
             backgroundColor: [
@@ -2503,24 +2403,32 @@
       
       // Update prescription chart
       const statuses = {
-        'new': 0,
-        'dispensed': 0,
-        'unavailable': 0
+        'قيد الانتظار': 0,
+        'تم الصرف': 0,
+        'غير متوفر': 0
       };
       
-      rxRef.once('value', (snap) => {
-        snap.forEach(ch => {
-          const p = ch.val();
-          const status = p.status || 'new';
-          if (statuses.hasOwnProperty(status)) {
-            statuses[status]++;
-          }
+      medicationRequestsRef.once('value', (snap) => {
+        snap.forEach(patientSnap => {
+          const transfers = patientSnap.child('transfers');
+          
+          transfers.forEach(transferSnap => {
+            const transfer = transferSnap.val();
+            
+            // عرض فقط تحويلات الصيدلية
+            if (transfer.department !== 'الصيدلية') return;
+            
+            const status = transfer.status || 'قيد الانتظار';
+            if (statuses.hasOwnProperty(status)) {
+              statuses[status]++;
+            }
+          });
         });
         
         prescriptionChart.data.datasets[0].data = [
-          statuses.new,
-          statuses.dispensed,
-          statuses.unavailable
+          statuses['قيد الانتظار'],
+          statuses['تم الصرف'],
+          statuses['غير متوفر']
         ];
         prescriptionChart.update();
       });
@@ -2799,7 +2707,6 @@
     // Export to Excel
     $('#btnExportExcel').addEventListener('click', async () => {
       const drugsSnap = await drugsRef.once('value');
-      const rxSnap = await rxRef.once('value');
       const ordersSnap = await ordersRef.once('value');
       
       // Create workbook
@@ -2824,27 +2731,6 @@
       
       const drugsSheet = XLSX.utils.json_to_sheet(drugsData);
       XLSX.utils.book_append_sheet(wb, drugsSheet, 'Drugs');
-      
-      // Prescriptions sheet
-      const rxData = [];
-      rxSnap.forEach(ch => {
-        const p = ch.val();
-        rxData.push({
-          'Patient Name': p.patientName || '',
-          'Patient ID': p.patientId || '',
-          'Drug Name': p.drugName || '',
-          'Dose': p.dose || '',
-          'Duration': p.duration || '',
-          'Insurance Covered': p.insuranceCovered ? 'Yes' : 'No',
-          'Insurer': p.insurer || '',
-          'Status': p.status || 'new',
-          'Price (EGP)': p.price || 0,
-          'Created At': p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''
-        });
-      });
-      
-      const rxSheet = XLSX.utils.json_to_sheet(rxData);
-      XLSX.utils.book_append_sheet(wb, rxSheet, 'Prescriptions');
       
       // Orders sheet
       const ordersData = [];
@@ -2871,7 +2757,6 @@
     // Export to PDF
     $('#btnExportPdf').addEventListener('click', async () => {
       const drugsSnap = await drugsRef.once('value');
-      const rxSnap = await rxRef.once('value');
       const ordersSnap = await ordersRef.once('value');
       
       const { jsPDF } = window.jspdf;
@@ -2888,30 +2773,22 @@
       
       // Summary stats
       let totalDrugs = 0;
-      let totalRx = 0;
-      let newRx = 0;
       let totalOrders = 0;
       let pendingOrders = 0;
       
       drugsSnap.forEach(() => totalDrugs++);
-      rxSnap.forEach(ch => {
-        totalRx++;
-        if (ch.val().status === 'new') newRx++;
-      });
       ordersSnap.forEach(ch => {
         totalOrders++;
         if (ch.val().status === 'pending') pendingOrders++;
       });
       
       doc.text(`Total Drugs: ${totalDrugs}`, 20, 40);
-      doc.text(`Total Prescriptions: ${totalRx}`, 20, 50);
-      doc.text(`New Prescriptions: ${newRx}`, 20, 60);
-      doc.text(`Total Orders: ${totalOrders}`, 20, 70);
-      doc.text(`Pending Orders: ${pendingOrders}`, 20, 80);
+      doc.text(`Total Orders: ${totalOrders}`, 20, 50);
+      doc.text(`Pending Orders: ${pendingOrders}`, 20, 60);
       
       // Drugs table
       doc.setFontSize(14);
-      doc.text('Drugs Inventory', 20, 95);
+      doc.text('Drugs Inventory', 20, 75);
       
       let drugsData = [];
       drugsSnap.forEach(ch => {
@@ -2928,35 +2805,7 @@
       doc.autoTable({
         head: [['Drug Name', 'Manufacturer', 'Quantity', 'Price (EGP)', 'Expiry Date']],
         body: drugsData,
-        startY: 105,
-        styles: { font: 'helvetica', fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] }
-      });
-      
-      // Add new page for prescriptions
-      doc.addPage();
-      
-      // Prescriptions table
-      doc.setFontSize(14);
-      doc.text('Prescriptions', 20, 15);
-      
-      let rxData = [];
-      rxSnap.forEach(ch => {
-        const p = ch.val();
-        rxData.push([
-          p.patientName || '-',
-          p.patientId || '-',
-          p.drugName || '-',
-          p.dose || '-',
-          p.duration || '-',
-          p.status || 'new'
-        ]);
-      });
-      
-      doc.autoTable({
-        head: [['Patient Name', 'Patient ID', 'Drug Name', 'Dose', 'Duration', 'Status']],
-        body: rxData,
-        startY: 25,
+        startY: 85,
         styles: { font: 'helvetica', fontSize: 10 },
         headStyles: { fillColor: [41, 128, 185] }
       });
@@ -3004,22 +2853,14 @@
       const d = await drugsRef.limitToFirst(1).get();
       if(!d.exists()){
         const samples = [
-          {name:'Paracetamol 500mg', manufacturer:'GSK', batch:'PA123', expiry: addDaysISO(120), quantity: 25, lowThreshold: 10, reorderPoint: 5, price: 15.50, category: 'painkillers'},
-          {name:'Ibuprofen 200mg', manufacturer:'Bayer', batch:'IB420', expiry: addDaysISO(20), quantity: 8, lowThreshold: 10, reorderPoint: 5, price: 22.75, category: 'painkillers'},
-          {name:'Amoxicillin 500mg', manufacturer:'Pfizer', batch:'AMX77', expiry: addDaysISO(300), quantity: 50, lowThreshold: 15, reorderPoint: 10, price: 35.20, category: 'antibiotics'}
+          {name:'Paracetamol 500mg', manufacturer:'GSK', batch:'PA123', expiry: addDaysISO(120), quantity: 25, lowThreshold: 10, reorderPoint: 5, price: 15.50, category: 'painkillers', concentration: '500mg'},
+          {name:'Ibuprofen 200mg', manufacturer:'Bayer', batch:'IB420', expiry: addDaysISO(20), quantity: 8, lowThreshold: 10, reorderPoint: 5, price: 22.75, category: 'painkillers', concentration: '200mg'},
+          {name:'Amoxicillin 500mg', manufacturer:'Pfizer', batch:'AMX77', expiry: addDaysISO(300), quantity: 50, lowThreshold: 15, reorderPoint: 10, price: 35.20, category: 'antibiotics', concentration: '500mg'}
         ];
         for(const s of samples){ 
           const newRef = drugsRef.push();
           await newRef.set({...s, barcode: generateBarcode(newRef.key), createdAt: Date.now()}); 
         }
-      }
-      const r = await rxRef.limitToFirst(1).get();
-      if(!r.exists()){
-        const samplesRx = [
-          {patientName:'أحمد عبد الله', patientId:'P-1001', drugName:'Paracetamol 500mg', dose:'1 قرص كل 8 ساعات', duration:'5 أيام', status:'new', createdAt: Date.now(), insuranceCovered:true, insurer:'شركة البيان', schedule:[{time:'08:00', timesPerDay:3, note:'بعد الأكل'},{time:'16:00', timesPerDay:3}], quantityNeeded:15, price: 15.50},
-          {patientName:'منى علي', patientId:'P-1002', drugName:'Ibuprofen 200mg', dose:'1 قرص بعد الأكل', duration:'3 أيام', status:'new', createdAt: Date.now(), insuranceCovered:false, insurer:'', schedule:[{time:'12:00', timesPerDay:1, note:'مع الطعام'}], quantityNeeded:3, price: 22.75}
-        ];
-        for(const s of samplesRx){ await rxRef.push(s); }
       }
       const s = await suppliersRef.limitToFirst(1).get();
       if(!s.exists()){
@@ -3053,7 +2894,7 @@
       if(!medReq.exists()){
         const sampleMedRequests = {
           'P-1003': {
-            name: 'محمد سالم',
+            name: 'أحمد محمد علي',
             transfers: {
               'transfer1': {
                 department: 'الصيدلية',
@@ -3078,12 +2919,16 @@
                 department: 'الصيدلية',
                 date: new Date().toISOString(),
                 status: 'تم الصرف',
+                processedAt: Date.now(),
+                processedBy: 'موظف الصيدلية',
+                price: 15.50,
+                totalPrice: 465.00,
                 medication: {
                   name: 'Paracetamol 500mg',
                   dosage: '1 قرص عند الحاجة',
                   duration: '3 أيام',
                   insuranceType: 'خاص',
-                  dosesCount: 6,
+                  dosesCount: 30,
                   administration: 'مع كوب ماء',
                   price: 15.50
                 },
