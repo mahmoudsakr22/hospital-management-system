@@ -7,9 +7,12 @@
     <meta name="description" data-i18n="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
+        /* CSS Variables for Themes */
         :root {
+            /* Default Theme */
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
             --secondary: #10b981;
@@ -18,40 +21,224 @@
             --info: #3b82f6;
             --dark: #1e293b;
             --light: #f8fafc;
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --direction: rtl;
             --left: left;
             --right: right;
             --text-align: right;
+            --border-radius: 12px;
+            --font-weight-bold: 700;
+            --font-weight-normal: 500;
         }
-        
+
+        /* Dark Mode Theme */
+        [data-theme="dark-mode"] {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border-color: #475569;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Vibrant Theme */
+        [data-theme="vibrant"] {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #fef3c7;
+            --bg-primary: #fef9c3;
+            --bg-secondary: #fef3c7;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #4b5563;
+            --border-color: #fbbf24;
+            --shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Minimalist Theme */
+        [data-theme="minimalist"] {
+            --primary: #000000;
+            --primary-dark: #333333;
+            --secondary: #666666;
+            --danger: #cc0000;
+            --warning: #ff9900;
+            --info: #0066cc;
+            --dark: #333333;
+            --light: #ffffff;
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --border-radius: 4px;
+        }
+
+        /* Medical Theme */
+        [data-theme="medical"] {
+            --primary: #0066cc;
+            --primary-dark: #0052a3;
+            --secondary: #2e8b57;
+            --danger: #dc143c;
+            --warning: #ff8c00;
+            --info: #4682b4;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Nature Theme */
+        [data-theme="nature"] {
+            --primary: #2d6a4f;
+            --primary-dark: #1b5e3f;
+            --secondary: #52b788;
+            --danger: #e63946;
+            --warning: #f77f00;
+            --info: #457b9d;
+            --dark: #1d3557;
+            --light: #f1faee;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1d3557;
+            --text-secondary: #457b9d;
+            --border-color: #a8dadc;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 16px;
+        }
+
+        /* Modern Rounded Theme */
+        [data-theme="modern-rounded"] {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            --border-radius: 24px;
+        }
+
+        /* Bold Typography Theme */
+        [data-theme="bold-typography"] {
+            --primary: #000000;
+            --primary-dark: #333333;
+            --secondary: #666666;
+            --danger: #cc0000;
+            --warning: #ff9900;
+            --info: #0066cc;
+            --dark: #333333;
+            --light: #ffffff;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-card: #ffffff;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --font-weight-bold: 800;
+            --font-weight-normal: 600;
+        }
+
+        /* Futuristic Theme */
+        [data-theme="futuristic"] {
+            --primary: #00d9ff;
+            --primary-dark: #0099cc;
+            --secondary: #00ff88;
+            --danger: #ff0066;
+            --warning: #ffcc00;
+            --info: #0066ff;
+            --dark: #0a0e27;
+            --light: #f0f4f8;
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-card: #1e2139;
+            --text-primary: #00d9ff;
+            --text-secondary: #8892b0;
+            --border-color: #233554;
+            --shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+            --glow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        /* RTL/LTR Support */
         [dir="ltr"] {
             --direction: ltr;
             --left: right;
             --right: left;
             --text-align: left;
         }
-        
+
+        /* Global Styles */
         body {
             font-family: 'Cairo', 'Roboto', sans-serif;
-            background-color: #f1f5f9;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             direction: var(--direction);
             text-align: var(--text-align);
+            font-weight: var(--font-weight-normal);
+            transition: all 0.3s ease;
         }
-        
+
         :lang(en) {
             font-family: 'Roboto', 'Arial', sans-serif;
         }
-        
+
+        [data-theme="futuristic"] body {
+            font-family: 'Orbitron', 'Rajdhani', sans-serif;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: var(--font-weight-bold);
+        }
+
+        /* Emergency Header */
         .emergency-header {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.3);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
-        
+
         .emergency-header::before {
             content: "";
             position: absolute;
@@ -63,27 +250,40 @@
             border-radius: 50%;
             transform: translate(30%, -30%);
         }
-        
+
         [dir="ltr"] .emergency-header::before {
             right: auto;
             left: 0;
             transform: translate(-30%, -30%);
         }
-        
+
+        /* Patient Cards */
         .patient-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
             transition: all 0.3s ease;
             overflow: hidden;
             position: relative;
+            animation: fadeInUp 0.5s ease-out;
         }
-        
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .patient-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
         }
-        
+
         .patient-card::before {
             content: "";
             position: absolute;
@@ -92,28 +292,29 @@
             width: 6px;
             height: 100%;
         }
-        
+
         [dir="ltr"] .patient-card::before {
             left: auto;
             right: 0;
         }
-        
+
         .patient-card.critical::before {
             background: var(--danger);
         }
-        
+
         .patient-card.stable::before {
             background: var(--secondary);
         }
-        
+
         .patient-card.improving::before {
             background: var(--warning);
         }
-        
+
         .patient-card.deteriorating::before {
             background: #f97316;
         }
-        
+
+        /* Status Badges */
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
@@ -123,101 +324,76 @@
             align-items: center;
             gap: 6px;
         }
-        
+
         .status-badge.critical {
             background: rgba(239, 68, 68, 0.15);
             color: #ef4444;
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
-        
+
         .status-badge.stable {
             background: rgba(16, 185, 129, 0.15);
             color: #10b981;
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
-        
+
         .status-badge.improving {
             background: rgba(245, 158, 11, 0.15);
             color: #f59e0b;
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
-        
+
         .status-badge.deteriorating {
             background: rgba(249, 115, 22, 0.15);
             color: #f97316;
             border: 1px solid rgba(249, 115, 22, 0.3);
         }
-        
-        .search-container {
-            position: relative;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+        /* Search and Filters */
+        .search-container, .filter-container {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
             padding: 1rem;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
             transition: all 0.3s ease;
         }
-        
+
+        .search-input, .filter-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
         [dir="ltr"] .search-input {
             padding: 0.75rem 3rem 0.75rem 1rem;
         }
-        
-        .search-input:focus {
+
+        .search-input:focus, .filter-input:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
         }
-        
+
         .search-icon {
             position: absolute;
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 1.25rem;
         }
-        
+
         [dir="ltr"] .search-icon {
             left: auto;
             right: 1rem;
         }
-        
-        .filter-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 1rem;
-        }
-        
-        .filter-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-        
-        .filter-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        }
-        
+
+        /* Buttons */
         .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
@@ -227,56 +403,61 @@
             gap: 8px;
             transition: all 0.3s ease;
             cursor: pointer;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text-primary);
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
         }
-        
+
         .btn-secondary {
-            background: #f1f5f9;
-            color: #475569;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
-        
+
         .btn-secondary:hover {
-            background: #e2e8f0;
+            background: var(--border-color);
             transform: translateY(-2px);
         }
-        
+
+        /* Patient Info */
         .patient-info {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             margin-bottom: 0.75rem;
             padding-bottom: 0.75rem;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--border-color);
         }
-        
+
         .patient-info:last-child {
             border-bottom: none;
             margin-bottom: 0;
             padding-bottom: 0;
         }
-        
+
         .patient-info i {
             width: 24px;
             height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f1f5f9;
+            background: var(--bg-secondary);
             border-radius: 50%;
-            color: #64748b;
+            color: var(--text-secondary);
         }
-        
+
+        /* Loading State */
         .loading-container {
             display: flex;
             flex-direction: column;
@@ -284,21 +465,22 @@
             justify-content: center;
             padding: 3rem;
         }
-        
+
         .loading-spinner {
             width: 60px;
             height: 60px;
-            border: 5px solid #e2e8f0;
+            border: 5px solid var(--border-color);
             border-top: 5px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
+        /* Empty State */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -307,53 +489,55 @@
             padding: 3rem;
             text-align: center;
         }
-        
+
         .empty-state i {
             font-size: 4rem;
-            color: #cbd5e1;
+            color: var(--border-color);
             margin-bottom: 1.5rem;
         }
-        
+
+        /* Header Container */
         .header-container {
             background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
             color: white;
             padding: 1rem 1.5rem;
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.3);
         }
-        
+
+        /* Footer */
         .footer-section {
-            background: #0f172a;
-            color: #cbd5e1;
+            background: var(--dark);
+            color: var(--light);
             padding: 3rem 0;
         }
-        
+
         .footer-title {
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 1.5rem;
             color: white;
         }
-        
+
         .footer-link {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             transition: all 0.3s ease;
             margin-bottom: 0.75rem;
             text-decoration: none;
         }
-        
+
         .footer-link:hover {
             color: white;
             transform: translateX(5px);
         }
-        
+
         [dir="ltr"] .footer-link:hover {
             transform: translateX(-5px);
         }
-        
+
         .social-icon {
             width: 40px;
             height: 40px;
@@ -366,46 +550,30 @@
             transition: all 0.3s ease;
             margin-right: 0.75rem;
         }
-        
+
         [dir="ltr"] .social-icon {
             margin-right: 0;
             margin-left: 0.75rem;
         }
-        
+
         .social-icon:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-3px);
         }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-            100% {
-                opacity: 1;
-            }
-        }
-        
-        /* New styles for statistics sidebar */
+
+        /* Stats Sidebar */
         .stats-sidebar {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
             padding: 1.5rem;
             height: fit-content;
             position: sticky;
             top: 1.5rem;
         }
-        
+
         .stats-card {
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             padding: 1.25rem;
             margin-bottom: 1rem;
             display: flex;
@@ -415,7 +583,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .stats-card::before {
             content: "";
             position: absolute;
@@ -424,43 +592,43 @@
             width: 6px;
             height: 100%;
         }
-        
+
         [dir="ltr"] .stats-card::before {
             left: auto;
             right: 0;
         }
-        
+
         .stats-card.critical::before {
             background: var(--danger);
         }
-        
+
         .stats-card.stable::before {
             background: var(--secondary);
         }
-        
+
         .stats-card.improving::before {
             background: var(--warning);
         }
-        
+
         .stats-card.deteriorating::before {
             background: #f97316;
         }
-        
+
         .stats-card.total::before {
             background: var(--primary);
         }
-        
+
         .stats-number {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.25rem;
         }
-        
+
         .stats-label {
             font-size: 0.875rem;
-            color: #64748b;
+            color: var(--text-secondary);
         }
-        
+
         .stats-icon {
             width: 50px;
             height: 50px;
@@ -470,62 +638,38 @@
             border-radius: 12px;
             font-size: 1.5rem;
         }
-        
+
         .stats-card.critical .stats-icon {
             background: rgba(239, 68, 68, 0.15);
             color: #ef4444;
         }
-        
+
         .stats-card.stable .stats-icon {
             background: rgba(16, 185, 129, 0.15);
             color: #10b981;
         }
-        
+
         .stats-card.improving .stats-icon {
             background: rgba(245, 158, 11, 0.15);
             color: #f59e0b;
         }
-        
+
         .stats-card.deteriorating .stats-icon {
             background: rgba(249, 115, 22, 0.15);
             color: #f97316;
         }
-        
+
         .stats-card.total .stats-icon {
             background: rgba(37, 99, 235, 0.15);
             color: var(--primary);
         }
-        
-        .stats-change {
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        
-        .stats-change.positive {
-            color: #10b981;
-        }
-        
-        .stats-change.negative {
-            color: #ef4444;
-        }
-        
-        .stats-change.neutral {
-            color: #64748b;
-        }
-        
+
         .stats-divider {
             height: 1px;
-            background: #e2e8f0;
+            background: var(--border-color);
             margin: 1rem 0;
         }
-        
-        .chart-container {
-            height: 200px;
-            margin-top: 1.5rem;
-        }
-        
+
         /* Animation for statistics update */
         @keyframes countUp {
             from {
@@ -537,58 +681,158 @@
                 transform: translateY(0);
             }
         }
-        
+
         .stats-number.updated {
             animation: countUp 0.5s ease-out forwards;
         }
-        
-        /* Language selector styles */
+
+        /* Language Selector */
         .language-selector {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
-            background: white;
+            background: var(--bg-card);
             border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
             padding: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         [dir="ltr"] .language-selector {
             right: auto;
             left: 20px;
         }
-        
+
         .language-selector select {
             border: none;
             background: transparent;
             font-size: 0.875rem;
             font-weight: 500;
-            color: #475569;
+            color: var(--text-secondary);
             cursor: pointer;
             outline: none;
         }
-        
+
         .language-selector i {
-            color: #64748b;
+            color: var(--text-secondary);
         }
-        
+
+        /* Theme Selector */
+        .theme-selector {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        [dir="ltr"] .theme-selector {
+            right: auto;
+            left: 20px;
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+        }
+
+        .theme-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Patient Avatar */
         .patient-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             overflow: hidden;
             margin-bottom: 1rem;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--border-color);
         }
-        
+
         .patient-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* Futuristic Theme Specific */
+        [data-theme="futuristic"] .patient-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: glow 2s infinite;
+        }
+
+        [data-theme="futuristic"] .stats-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            box-shadow: var(--glow);
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-sidebar {
+                position: relative;
+                top: 0;
+                margin-bottom: 2rem;
+            }
+            
+            .theme-selector {
+                position: relative;
+                top: 0;
+                right: 0;
+                flex-direction: row;
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
+            
+            .language-selector {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
         }
     </style>
 </head>
@@ -602,6 +846,37 @@
             <option value="fr">Français</option>
             <option value="es">Español</option>
         </select>
+    </div>
+    
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <button class="theme-btn active" data-theme="default" title="Default">
+            <i class="fas fa-palette"></i>
+        </button>
+        <button class="theme-btn" data-theme="dark-mode" title="Dark Mode">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button class="theme-btn" data-theme="vibrant" title="Vibrant">
+            <i class="fas fa-rainbow"></i>
+        </button>
+        <button class="theme-btn" data-theme="minimalist" title="Minimalist">
+            <i class="fas fa-minus"></i>
+        </button>
+        <button class="theme-btn" data-theme="medical" title="Medical">
+            <i class="fas fa-stethoscope"></i>
+        </button>
+        <button class="theme-btn" data-theme="nature" title="Nature">
+            <i class="fas fa-leaf"></i>
+        </button>
+        <button class="theme-btn" data-theme="modern-rounded" title="Modern Rounded">
+            <i class="fas fa-circle"></i>
+        </button>
+        <button class="theme-btn" data-theme="bold-typography" title="Bold Typography">
+            <i class="fas fa-font"></i>
+        </button>
+        <button class="theme-btn" data-theme="futuristic" title="Futuristic">
+            <i class="fas fa-rocket"></i>
+        </button>
     </div>
     
     <!-- Header Section -->
@@ -891,9 +1166,9 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+        import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        // Firebase Configuration
         const firebaseConfig = {
           apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
           authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
@@ -908,6 +1183,103 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         let allPatients = {};
+        
+        // Initialize sample data if database is empty
+        function initializeSampleData() {
+            const samplePatients = {
+                "patient1": {
+                    name: "أحمد محمد",
+                    nid: "12345678901234",
+                    age: 45,
+                    status: "critical",
+                    timestamp: Date.now() - 86400000, // 1 day ago
+                    gender: "male",
+                    phone: "0501234567",
+                    address: "الرياض، المملكة العربية السعودية",
+                    symptoms: "ألم صدر شديد، ضيق تنفس",
+                    bloodPressure: "160/100",
+                    heartRate: 120,
+                    temperature: 38.5,
+                    doctor: "د. محمد علي",
+                    notes: "حالة طارئة تحتاج إلى تدخل فوري"
+                },
+                "patient2": {
+                    name: "فاطمة عبدالله",
+                    nid: "98765432109876",
+                    age: 32,
+                    status: "stable",
+                    timestamp: Date.now() - 172800000, // 2 days ago
+                    gender: "female",
+                    phone: "0559876543",
+                    address: "جدة، المملكة العربية السعودية",
+                    symptoms: "صداع خفيف، غثيان",
+                    bloodPressure: "120/80",
+                    heartRate: 75,
+                    temperature: 37.2,
+                    doctor: "د. سارة أحمد",
+                    notes: "حالة مستقرة، تحت المراقبة"
+                },
+                "patient3": {
+                    name: "محمد خالد",
+                    nid: "45678901234567",
+                    age: 28,
+                    status: "improving",
+                    timestamp: Date.now() - 259200000, // 3 days ago
+                    gender: "male",
+                    phone: "0512345678",
+                    address: "الدمام، المملكة العربية السعودية",
+                    symptoms: "كسر في الذراع الأيمن",
+                    bloodPressure: "110/70",
+                    heartRate: 80,
+                    temperature: 36.8,
+                    doctor: "د. عبدالله محمد",
+                    notes: "الحالة في تحسن مستمر"
+                },
+                "patient4": {
+                    name: "نورة سعد",
+                    nid: "32109876543210",
+                    age: 55,
+                    status: "deteriorating",
+                    timestamp: Date.now() - 345600000, // 4 days ago
+                    gender: "female",
+                    phone: "0567890123",
+                    address: "مكة، المملكة العربية السعودية",
+                    symptoms: "سكر مرتفع، دوخة",
+                    bloodPressure: "180/110",
+                    heartRate: 95,
+                    temperature: 37.5,
+                    doctor: "د. فاطمة حسن",
+                    notes: "الحالة في تدهور، تحتاج إلى مراجعة العلاج"
+                },
+                "patient5": {
+                    name: "عبدالرحمن علي",
+                    nid: "76543210987654",
+                    age: 40,
+                    status: "stable",
+                    timestamp: Date.now() - 432000000, // 5 days ago
+                    gender: "male",
+                    phone: "0534567890",
+                    address: "المدينة المنورة، المملكة العربية السعودية",
+                    symptoms: "آلام في الظهر",
+                    bloodPressure: "130/85",
+                    heartRate: 72,
+                    temperature: 36.9,
+                    doctor: "د. علي عبدالله",
+                    notes: "حالة مستقرة، علاج طبيعي"
+                }
+            };
+            
+            // Check if database is empty
+            const emergencyRef = ref(db, "patients/emergency");
+            onValue(emergencyRef, (snapshot) => {
+                if (!snapshot.exists()) {
+                    // Add sample data
+                    Object.entries(samplePatients).forEach(([id, patient]) => {
+                        set(ref(db, `patients/emergency/${id}`), patient);
+                    });
+                }
+            }, { onlyOnce: true });
+        }
         
         // Translations
         const translations = {
@@ -965,7 +1337,8 @@
                 nationalId: "الرقم القومي",
                 age: "العمر",
                 registrationDate: "تاريخ التسجيل",
-                time: "الوقت"
+                time: "الوقت",
+                for: "لـ"
             },
             en: {
                 title: "Emergency Department - Smart Life Hospital",
@@ -1021,7 +1394,8 @@
                 nationalId: "National ID",
                 age: "Age",
                 registrationDate: "Registration Date",
-                time: "Time"
+                time: "Time",
+                for: "for"
             },
             fr: {
                 title: "Département d'Urgence - Hôpital Smart Life",
@@ -1077,7 +1451,8 @@
                 nationalId: "ID National",
                 age: "Âge",
                 registrationDate: "Date d'Enregistrement",
-                time: "Heure"
+                time: "Heure",
+                for: "pour"
             },
             es: {
                 title: "Departamento de Emergencias - Hospital Smart Life",
@@ -1133,7 +1508,8 @@
                 nationalId: "ID Nacional",
                 age: "Edad",
                 registrationDate: "Fecha de Registro",
-                time: "Hora"
+                time: "Hora",
+                for: "para"
             }
         };
         
@@ -1223,6 +1599,33 @@
             renderPatients(allPatients);
         }
         
+        // Theme change functionality
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        
+        // Set initial theme from localStorage or default to 'default'
+        let currentTheme = localStorage.getItem('theme') || 'default';
+        html.setAttribute('data-theme', currentTheme);
+        updateThemeButtons();
+        
+        themeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const theme = this.getAttribute('data-theme');
+                localStorage.setItem('theme', theme);
+                html.setAttribute('data-theme', theme);
+                updateThemeButtons();
+            });
+        });
+        
+        function updateThemeButtons() {
+            themeButtons.forEach(button => {
+                if (button.getAttribute('data-theme') === currentTheme) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+        
         // Format date based on language
         function formatDate(timestamp, lang) {
             const date = new Date(timestamp);
@@ -1280,6 +1683,9 @@
                 });
             }
         }
+        
+        // Initialize sample data
+        initializeSampleData();
         
         window.addEventListener("DOMContentLoaded", () => {
             const emergencyRef = ref(db, "patients/emergency");
