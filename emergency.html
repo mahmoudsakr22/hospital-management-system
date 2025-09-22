@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>قسم الطوارئ - مستشفى الحياة الذكية</title>
-    <meta name="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
+    <title data-i18n="title">قسم الطوارئ - مستشفى الحياة الذكية</title>
+    <meta name="description" data-i18n="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2563eb;
@@ -18,12 +18,28 @@
             --info: #3b82f6;
             --dark: #1e293b;
             --light: #f8fafc;
+            --direction: rtl;
+            --left: left;
+            --right: right;
+            --text-align: right;
+        }
+        
+        [dir="ltr"] {
+            --direction: ltr;
+            --left: right;
+            --right: left;
+            --text-align: left;
         }
         
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', 'Roboto', sans-serif;
             background-color: #f1f5f9;
-            direction: rtl;
+            direction: var(--direction);
+            text-align: var(--text-align);
+        }
+        
+        :lang(en) {
+            font-family: 'Roboto', 'Arial', sans-serif;
         }
         
         .emergency-header {
@@ -48,6 +64,12 @@
             transform: translate(30%, -30%);
         }
         
+        [dir="ltr"] .emergency-header::before {
+            right: auto;
+            left: 0;
+            transform: translate(-30%, -30%);
+        }
+        
         .patient-card {
             background: white;
             border-radius: 12px;
@@ -69,6 +91,11 @@
             left: 0;
             width: 6px;
             height: 100%;
+        }
+        
+        [dir="ltr"] .patient-card::before {
+            left: auto;
+            right: 0;
         }
         
         .patient-card.critical::before {
@@ -138,6 +165,10 @@
             transition: all 0.3s ease;
         }
         
+        [dir="ltr"] .search-input {
+            padding: 0.75rem 3rem 0.75rem 1rem;
+        }
+        
         .search-input:focus {
             outline: none;
             border-color: var(--primary);
@@ -151,6 +182,11 @@
             transform: translateY(-50%);
             color: #94a3b8;
             font-size: 1.25rem;
+        }
+        
+        [dir="ltr"] .search-icon {
+            left: auto;
+            right: 1rem;
         }
         
         .filter-container {
@@ -314,6 +350,10 @@
             transform: translateX(5px);
         }
         
+        [dir="ltr"] .footer-link:hover {
+            transform: translateX(-5px);
+        }
+        
         .social-icon {
             width: 40px;
             height: 40px;
@@ -325,6 +365,11 @@
             color: white;
             transition: all 0.3s ease;
             margin-right: 0.75rem;
+        }
+        
+        [dir="ltr"] .social-icon {
+            margin-right: 0;
+            margin-left: 0.75rem;
         }
         
         .social-icon:hover {
@@ -378,6 +423,11 @@
             left: 0;
             width: 6px;
             height: 100%;
+        }
+        
+        [dir="ltr"] .stats-card::before {
+            left: auto;
+            right: 0;
         }
         
         .stats-card.critical::before {
@@ -491,9 +541,69 @@
         .stats-number.updated {
             animation: countUp 0.5s ease-out forwards;
         }
+        
+        /* Language selector styles */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        [dir="ltr"] .language-selector {
+            right: auto;
+            left: 20px;
+        }
+        
+        .language-selector select {
+            border: none;
+            background: transparent;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            outline: none;
+        }
+        
+        .language-selector i {
+            color: #64748b;
+        }
+        
+        .patient-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .patient-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <i class="fas fa-globe"></i>
+        <select id="languageSelect">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+        </select>
+    </div>
+    
     <!-- Header Section -->
     <header class="container mx-auto px-4 py-6">
         <div class="header-container flex justify-between items-center">
@@ -504,25 +614,25 @@
                     class="h-14 w-auto rounded-lg shadow-md"
                 />
                 <div>
-                    <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
-                    <p class="text-sm text-blue-100">رعاية طبية متكاملة باستخدام أحدث التقنيات</p>
+                    <h1 class="text-2xl font-bold" data-i18n="hospitalName">مستشفى الحياة الذكية</h1>
+                    <p class="text-sm text-blue-100" data-i18n="hospitalSubtitle">رعاية طبية متكاملة باستخدام أحدث التقنيات</p>
                 </div>
             </div>
             <nav>
                 <ul class="flex space-x-6 space-x-reverse">
                     <li>
                         <a href="index.html" class="text-white hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-home"></i> الرئيسية</a
+                            ><i class="fas fa-home"></i> <span data-i18n="home">الرئيسية</span></a
                         >
                     </li>
                     <li>
                         <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-hospital"></i> الأقسام</a
+                            ><i class="fas fa-hospital"></i> <span data-i18n="departments">الأقسام</span></a
                         >
                     </li>
                     <li>
                         <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-chart-bar"></i> الإحصائيات</a
+                            ><i class="fas fa-chart-bar"></i> <span data-i18n="statistics">الإحصائيات</span></a
                         >
                     </li>
                 </ul>
@@ -536,7 +646,7 @@
             <!-- Statistics Sidebar -->
             <div class="lg:col-span-1">
                 <div class="stats-sidebar">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">إحصائيات قسم الطوارئ</h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-4" data-i18n="emergencyStats">إحصائيات قسم الطوارئ</h2>
                     
                     <!-- Total Patients Card -->
                     <div class="stats-card total">
@@ -545,7 +655,7 @@
                         </div>
                         <div>
                             <div class="stats-number" id="totalPatients">0</div>
-                            <div class="stats-label">إجمالي المرضى</div>
+                            <div class="stats-label" data-i18n="totalPatients">إجمالي المرضى</div>
                         </div>
                     </div>
                     
@@ -556,7 +666,7 @@
                         </div>
                         <div>
                             <div class="stats-number" id="criticalPatients">0</div>
-                            <div class="stats-label">حالات حرجة</div>
+                            <div class="stats-label" data-i18n="criticalPatients">حالات حرجة</div>
                         </div>
                     </div>
                     
@@ -567,7 +677,7 @@
                         </div>
                         <div>
                             <div class="stats-number" id="deterioratingPatients">0</div>
-                            <div class="stats-label">في تدهور</div>
+                            <div class="stats-label" data-i18n="deterioratingPatients">في تدهور</div>
                         </div>
                     </div>
                     
@@ -578,7 +688,7 @@
                         </div>
                         <div>
                             <div class="stats-number" id="improvingPatients">0</div>
-                            <div class="stats-label">في تحسن</div>
+                            <div class="stats-label" data-i18n="improvingPatients">في تحسن</div>
                         </div>
                     </div>
                     
@@ -589,7 +699,7 @@
                         </div>
                         <div>
                             <div class="stats-number" id="stablePatients">0</div>
-                            <div class="stats-label">حالات مستقرة</div>
+                            <div class="stats-label" data-i18n="stablePatients">حالات مستقرة</div>
                         </div>
                     </div>
                     
@@ -597,7 +707,7 @@
                     
                     <!-- Status Change -->
                     <div class="flex justify-between items-center">
-                        <div class="text-sm text-gray-600">آخر تحديث</div>
+                        <div class="text-sm text-gray-600" data-i18n="lastUpdate">آخر تحديث</div>
                         <div class="text-sm text-gray-600" id="lastUpdate">-</div>
                     </div>
                 </div>
@@ -610,16 +720,16 @@
                         <div>
                             <h1 class="text-3xl font-bold flex items-center">
                                 <i class="fas fa-ambulance mr-3"></i>
-                                قسم الطوارئ
+                                <span data-i18n="emergency">قسم الطوارئ</span>
                             </h1>
-                            <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
+                            <p class="text-white text-opacity-90 mt-1" data-i18n="emergencySubtitle">إدارة حالات الطوارئ بكفاءة واحترافية</p>
                         </div>
                         <button
                             class="btn btn-primary"
                             onclick="window.location.href='add_patient.html'"
                         >
                             <i class="fas fa-plus"></i>
-                            إضافة مريض جديد
+                            <span data-i18n="addPatient">إضافة مريض جديد</span>
                         </button>
                     </div>
                 </div>
@@ -628,12 +738,13 @@
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                     <div class="lg:col-span-1">
                         <div class="search-container">
-                            <div class="filter-label">البحث عن مريض</div>
+                            <div class="filter-label" data-i18n="searchPatient">البحث عن مريض</div>
                             <div class="relative">
                                 <i class="fas fa-search search-icon"></i>
                                 <input
                                     id="searchInput"
                                     type="text"
+                                    data-i18n-placeholder="searchPlaceholder"
                                     placeholder="ابحث باسم المريض أو الرقم القومي..."
                                     class="search-input"
                                 />
@@ -642,7 +753,7 @@
                     </div>
                     <div>
                         <div class="filter-container">
-                            <div class="filter-label">التاريخ</div>
+                            <div class="filter-label" data-i18n="date">التاريخ</div>
                             <input
                                 id="dateFilter"
                                 type="date"
@@ -652,23 +763,23 @@
                     </div>
                     <div>
                         <div class="filter-container">
-                            <div class="filter-label">الحالة</div>
+                            <div class="filter-label" data-i18n="status">الحالة</div>
                             <select id="statusFilter" class="filter-input">
-                                <option value="">جميع الحالات</option>
-                                <option value="critical">حالات حرجة</option>
-                                <option value="stable">حالات مستقرة</option>
-                                <option value="improving">في تحسن</option>
-                                <option value="deteriorating">في تدهور</option>
+                                <option value="" data-i18n="allStatuses">جميع الحالات</option>
+                                <option value="critical" data-i18n="critical">حالات حرجة</option>
+                                <option value="stable" data-i18n="stable">حالات مستقرة</option>
+                                <option value="improving" data-i18n="improving">في تحسن</option>
+                                <option value="deteriorating" data-i18n="deteriorating">في تدهور</option>
                             </select>
                         </div>
                     </div>
                     <div>
                         <div class="filter-container">
-                            <div class="filter-label">ترتيب حسب</div>
+                            <div class="filter-label" data-i18n="sortBy">ترتيب حسب</div>
                             <select id="sortFilter" class="filter-input">
-                                <option value="newest">الأحدث أولاً</option>
-                                <option value="oldest">الأقدم أولاً</option>
-                                <option value="critical">الأكثر أهمية</option>
+                                <option value="newest" data-i18n="newest">الأحدث أولاً</option>
+                                <option value="oldest" data-i18n="oldest">الأقدم أولاً</option>
+                                <option value="critical" data-i18n="mostCritical">الأكثر أهمية</option>
                             </select>
                         </div>
                     </div>
@@ -680,8 +791,8 @@
                     <div class="col-span-full">
                         <div class="loading-container">
                             <div class="loading-spinner"></div>
-                            <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                            <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+                            <h3 class="text-xl font-bold text-gray-700 mt-4" data-i18n="loadingPatients">جاري تحميل بيانات المرضى...</h3>
+                            <p class="text-gray-500" data-i18n="pleaseWait">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
                         </div>
                     </div>
                 </div>
@@ -694,8 +805,8 @@
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                 <div>
-                    <h3 class="footer-title">مستشفى الحياة الذكية</h3>
-                    <p class="text-gray-400 mb-4">
+                    <h3 class="footer-title" data-i18n="hospitalName">مستشفى الحياة الذكية</h3>
+                    <p class="text-gray-400 mb-4" data-i18n="hospitalDescription">
                         نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية
                         والكوادر الطبية المتخصصة.
                     </p>
@@ -715,26 +826,26 @@
                     </div>
                 </div>
                 <div>
-                    <h3 class="footer-title">روابط سريعة</h3>
+                    <h3 class="footer-title" data-i18n="quickLinks">روابط سريعة</h3>
                     <a href="#" class="footer-link">
                         <i class="fas fa-calendar-alt"></i>
-                        <span>المواعيد</span>
+                        <span data-i18n="appointments">المواعيد</span>
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-user-md"></i>
-                        <span>الأطباء</span>
+                        <span data-i18n="doctors">الأطباء</span>
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-hand-holding-usd"></i>
-                        <span>الأسعار</span>
+                        <span data-i18n="prices">الأسعار</span>
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-info-circle"></i>
-                        <span>عن المستشفى</span>
+                        <span data-i18n="about">عن المستشفى</span>
                     </a>
                 </div>
                 <div>
-                    <h3 class="footer-title">اتصل بنا</h3>
+                    <h3 class="footer-title" data-i18n="contact">اتصل بنا</h3>
                     <a href="#" class="footer-link">
                         <i class="fas fa-phone-alt"></i>
                         <span>1234</span>
@@ -745,35 +856,35 @@
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span>شارع الطبيعة، الرياض</span>
+                        <span data-i18n="address">شارع الطبيعة، الرياض</span>
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-clock"></i>
-                        <span>24 ساعة طوال أيام الأسبوع</span>
+                        <span data-i18n="workingHours">24 ساعة طوال أيام الأسبوع</span>
                     </a>
                 </div>
                 <div>
-                    <h3 class="footer-title">خدماتنا</h3>
+                    <h3 class="footer-title" data-i18n="services">خدماتنا</h3>
                     <a href="#" class="footer-link">
                         <i class="fas fa-procedures"></i>
-                        <span>الطوارئ</span>
+                        <span data-i18n="emergency">الطوارئ</span>
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-stethoscope"></i>
-                        <span>العيادات الخارجية</span>
+                        <span data-i18n="outpatient">العيادات الخارجية</span>
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-x-ray"></i>
-                        <span>الأشعة والتصوير</span>
+                        <span data-i18n="radiology">الأشعة والتصوير</span>
                     </a>
                     <a href="#" class="footer-link">
                         <i class="fas fa-flask"></i>
-                        <span>المختبرات الطبية</span>
+                        <span data-i18n="laboratory">المختبرات الطبية</span>
                     </a>
                 </div>
             </div>
             <div class="border-t border-gray-700 pt-6 text-center">
-                <p class="text-gray-400">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
+                <p class="text-gray-400" data-i18n="copyright">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
@@ -782,21 +893,393 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
-  authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
-  databaseURL: "https://smart-life-hospital-ef64c-default-rtdb.firebaseio.com",
-  projectId: "smart-life-hospital-ef64c",
-  storageBucket: "smart-life-hospital-ef64c.firebasestorage.app",
-  messagingSenderId: "851045891087",
-  appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
-  measurementId: "G-QE5BL3MTY7"
-};
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
+          authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
+          databaseURL: "https://smart-life-hospital-ef64c-default-rtdb.firebaseio.com",
+          projectId: "smart-life-hospital-ef64c",
+          storageBucket: "smart-life-hospital-ef64c.firebasestorage.app",
+          messagingSenderId: "851045891087",
+          appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
+          measurementId: "G-QE5BL3MTY7"
+        };
         
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         let allPatients = {};
+        
+        // Translations
+        const translations = {
+            ar: {
+                title: "قسم الطوارئ - مستشفى الحياة الذكية",
+                description: "نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية",
+                hospitalName: "مستشفى الحياة الذكية",
+                hospitalSubtitle: "رعاية طبية متكاملة باستخدام أحدث التقنيات",
+                home: "الرئيسية",
+                departments: "الأقسام",
+                statistics: "الإحصائيات",
+                emergencyStats: "إحصائيات قسم الطوارئ",
+                totalPatients: "إجمالي المرضى",
+                criticalPatients: "حالات حرجة",
+                deterioratingPatients: "في تدهور",
+                improvingPatients: "في تحسن",
+                stablePatients: "حالات مستقرة",
+                lastUpdate: "آخر تحديث",
+                emergency: "قسم الطوارئ",
+                emergencySubtitle: "إدارة حالات الطوارئ بكفاءة واحترافية",
+                addPatient: "إضافة مريض جديد",
+                searchPatient: "البحث عن مريض",
+                searchPlaceholder: "ابحث باسم المريض أو الرقم القومي...",
+                date: "التاريخ",
+                status: "الحالة",
+                allStatuses: "جميع الحالات",
+                critical: "حالات حرجة",
+                stable: "حالات مستقرة",
+                improving: "في تحسن",
+                deteriorating: "في تدهور",
+                sortBy: "ترتيب حسب",
+                newest: "الأحدث أولاً",
+                oldest: "الأقدم أولاً",
+                mostCritical: "الأكثر أهمية",
+                loadingPatients: "جاري تحميل بيانات المرضى...",
+                pleaseWait: "يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات",
+                hospitalDescription: "نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية والكوادر الطبية المتخصصة.",
+                quickLinks: "روابط سريعة",
+                appointments: "المواعيد",
+                doctors: "الأطباء",
+                prices: "الأسعار",
+                about: "عن المستشفى",
+                contact: "اتصل بنا",
+                address: "شارع الطبيعة، الرياض",
+                workingHours: "24 ساعة طوال أيام الأسبوع",
+                services: "خدماتنا",
+                outpatient: "العيادات الخارجية",
+                radiology: "الأشعة والتصوير",
+                laboratory: "المختبرات الطبية",
+                copyright: "© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.",
+                viewDetails: "عرض التفاصيل",
+                print: "طباعة",
+                noResults: "لا توجد نتائج مطابقة",
+                noResultsDesc: "لم نتمكن من العثور على مرضى يطابقون معايير البحث.",
+                nationalId: "الرقم القومي",
+                age: "العمر",
+                registrationDate: "تاريخ التسجيل",
+                time: "الوقت"
+            },
+            en: {
+                title: "Emergency Department - Smart Life Hospital",
+                description: "Emergency Department Patient Management System at Smart Life Hospital",
+                hospitalName: "Smart Life Hospital",
+                hospitalSubtitle: "Comprehensive medical care using the latest technologies",
+                home: "Home",
+                departments: "Departments",
+                statistics: "Statistics",
+                emergencyStats: "Emergency Department Statistics",
+                totalPatients: "Total Patients",
+                criticalPatients: "Critical Cases",
+                deterioratingPatients: "Deteriorating",
+                improvingPatients: "Improving",
+                stablePatients: "Stable Cases",
+                lastUpdate: "Last Update",
+                emergency: "Emergency Department",
+                emergencySubtitle: "Efficient and professional emergency case management",
+                addPatient: "Add New Patient",
+                searchPatient: "Search Patient",
+                searchPlaceholder: "Search by patient name or national ID...",
+                date: "Date",
+                status: "Status",
+                allStatuses: "All Statuses",
+                critical: "Critical Cases",
+                stable: "Stable Cases",
+                improving: "Improving",
+                deteriorating: "Deteriorating",
+                sortBy: "Sort By",
+                newest: "Newest First",
+                oldest: "Oldest First",
+                mostCritical: "Most Critical",
+                loadingPatients: "Loading patient data...",
+                pleaseWait: "Please wait while we load the data",
+                hospitalDescription: "We provide comprehensive medical care using the latest medical technologies and specialized medical staff.",
+                quickLinks: "Quick Links",
+                appointments: "Appointments",
+                doctors: "Doctors",
+                prices: "Prices",
+                about: "About Us",
+                contact: "Contact Us",
+                address: "Nature Street, Riyadh",
+                workingHours: "24 hours a day, 7 days a week",
+                services: "Our Services",
+                outpatient: "Outpatient Clinics",
+                radiology: "Radiology & Imaging",
+                laboratory: "Medical Laboratories",
+                copyright: "© 2025 Smart Life Hospital. All rights reserved.",
+                viewDetails: "View Details",
+                print: "Print",
+                noResults: "No matching results",
+                noResultsDesc: "We couldn't find patients matching your search criteria.",
+                nationalId: "National ID",
+                age: "Age",
+                registrationDate: "Registration Date",
+                time: "Time"
+            },
+            fr: {
+                title: "Département d'Urgence - Hôpital Smart Life",
+                description: "Système de Gestion des Patients du Département d'Urgence à l'Hôpital Smart Life",
+                hospitalName: "Hôpital Smart Life",
+                hospitalSubtitle: "Soins médicaux complets utilisant les dernières technologies",
+                home: "Accueil",
+                departments: "Départements",
+                statistics: "Statistiques",
+                emergencyStats: "Statistiques du Département d'Urgence",
+                totalPatients: "Total Patients",
+                criticalPatients: "Cas Critiques",
+                deterioratingPatients: "En Détérioration",
+                improvingPatients: "En Amélioration",
+                stablePatients: "Cas Stables",
+                lastUpdate: "Dernière Mise à Jour",
+                emergency: "Département d'Urgence",
+                emergencySubtitle: "Gestion efficace et professionnelle des cas d'urgence",
+                addPatient: "Ajouter Nouveau Patient",
+                searchPatient: "Rechercher Patient",
+                searchPlaceholder: "Rechercher par nom ou ID national...",
+                date: "Date",
+                status: "Statut",
+                allStatuses: "Tous les Statuts",
+                critical: "Cas Critiques",
+                stable: "Cas Stables",
+                improving: "En Amélioration",
+                deteriorating: "En Détérioration",
+                sortBy: "Trier Par",
+                newest: "Plus Récent D'abord",
+                oldest: "Plus Ancien D'abord",
+                mostCritical: "Plus Critique",
+                loadingPatients: "Chargement des données patients...",
+                pleaseWait: "Veuillez patienter pendant le chargement des données",
+                hospitalDescription: "Nous fournissons des soins médicaux complets en utilisant les dernières technologies médicales et un personnel médical spécialisé.",
+                quickLinks: "Liens Rapides",
+                appointments: "Rendez-vous",
+                doctors: "Médecins",
+                prices: "Tarifs",
+                about: "À Propos",
+                contact: "Contactez-nous",
+                address: "Rue de la Nature, Riyad",
+                workingHours: "24 heures sur 24, 7 jours sur 7",
+                services: "Nos Services",
+                outpatient: "Cliniques Externes",
+                radiology: "Radiologie et Imagerie",
+                laboratory: "Laboratoires Médicaux",
+                copyright: "© 2025 Hôpital Smart Life. Tous droits réservés.",
+                viewDetails: "Voir les Détails",
+                print: "Imprimer",
+                noResults: "Aucun résultat correspondant",
+                noResultsDesc: "Nous n'avons pas pu trouver de patients correspondant à vos critères de recherche.",
+                nationalId: "ID National",
+                age: "Âge",
+                registrationDate: "Date d'Enregistrement",
+                time: "Heure"
+            },
+            es: {
+                title: "Departamento de Emergencias - Hospital Smart Life",
+                description: "Sistema de Gestión de Pacientes del Departamento de Emergencias en el Hospital Smart Life",
+                hospitalName: "Hospital Smart Life",
+                hospitalSubtitle: "Atención médica integral utilizando las últimas tecnologías",
+                home: "Inicio",
+                departments: "Departamentos",
+                statistics: "Estadísticas",
+                emergencyStats: "Estadísticas del Departamento de Emergencias",
+                totalPatients: "Total de Pacientes",
+                criticalPatients: "Casos Críticos",
+                deterioratingPatients: "En Deterioro",
+                improvingPatients: "En Mejora",
+                stablePatients: "Casos Estables",
+                lastUpdate: "Última Actualización",
+                emergency: "Departamento de Emergencias",
+                emergencySubtitle: "Gestión eficiente y profesional de casos de emergencia",
+                addPatient: "Agregar Nuevo Paciente",
+                searchPatient: "Buscar Paciente",
+                searchPlaceholder: "Buscar por nombre o ID nacional...",
+                date: "Fecha",
+                status: "Estado",
+                allStatuses: "Todos los Estados",
+                critical: "Casos Críticos",
+                stable: "Casos Estables",
+                improving: "En Mejora",
+                deteriorating: "En Deterioro",
+                sortBy: "Ordenar Por",
+                newest: "Más Reciente Primero",
+                oldest: "Más Antiguo Primero",
+                mostCritical: "Más Crítico",
+                loadingPatients: "Cargando datos de pacientes...",
+                pleaseWait: "Por favor espere mientras cargamos los datos",
+                hospitalDescription: "Ofrecemos atención médica integral utilizando las últimas tecnologías médicas y personal médico especializado.",
+                quickLinks: "Enlaces Rápidos",
+                appointments: "Citas",
+                doctors: "Médicos",
+                prices: "Precios",
+                about: "Acerca de",
+                contact: "Contáctenos",
+                address: "Calle de la Naturaleza, Riad",
+                workingHours: "24 horas al día, 7 días a la semana",
+                services: "Nuestros Servicios",
+                outpatient: "Clínicas Ambulatorias",
+                radiology: "Radiología e Imágenes",
+                laboratory: "Laboratorios Médicos",
+                copyright: "© 2025 Hospital Smart Life. Todos los derechos reservados.",
+                viewDetails: "Ver Detalles",
+                print: "Imprimir",
+                noResults: "No hay resultados coincidentes",
+                noResultsDesc: "No pudimos encontrar pacientes que coincidan con sus criterios de búsqueda.",
+                nationalId: "ID Nacional",
+                age: "Edad",
+                registrationDate: "Fecha de Registro",
+                time: "Hora"
+            }
+        };
+        
+        // Status translations
+        const statusTranslations = {
+            ar: {
+                critical: "حالة حرجة",
+                stable: "حالة مستقرة",
+                improving: "في تحسن",
+                deteriorating: "في تدهور"
+            },
+            en: {
+                critical: "Critical Case",
+                stable: "Stable Case",
+                improving: "Improving",
+                deteriorating: "Deteriorating"
+            },
+            fr: {
+                critical: "Cas Critique",
+                stable: "Cas Stable",
+                improving: "En Amélioration",
+                deteriorating: "En Détérioration"
+            },
+            es: {
+                critical: "Caso Crítico",
+                stable: "Caso Estable",
+                improving: "En Mejora",
+                deteriorating: "En Deterioro"
+            }
+        };
+        
+        // Status icons
+        const statusIcons = {
+            critical: "fa-heartbeat",
+            stable: "fa-check-circle",
+            improving: "fa-arrow-trend-up",
+            deteriorating: "fa-arrow-trend-down"
+        };
+        
+        // Language change functionality
+        const languageSelect = document.getElementById('languageSelect');
+        const html = document.documentElement;
+        
+        // Set initial language from localStorage or default to Arabic
+        let currentLanguage = localStorage.getItem('language') || 'ar';
+        languageSelect.value = currentLanguage;
+        updateLanguage(currentLanguage);
+        
+        languageSelect.addEventListener('change', function() {
+            const selectedLanguage = this.value;
+            localStorage.setItem('language', selectedLanguage);
+            updateLanguage(selectedLanguage);
+        });
+        
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update HTML lang and dir attributes
+            html.setAttribute('lang', lang);
+            html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+            
+            // Update all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+            
+            // Update select options
+            document.querySelectorAll('option[data-i18n]').forEach(option => {
+                const key = option.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    option.textContent = translations[lang][key];
+                }
+            });
+            
+            // Re-render patients to update their content
+            renderPatients(allPatients);
+        }
+        
+        // Format date based on language
+        function formatDate(timestamp, lang) {
+            const date = new Date(timestamp);
+            
+            if (lang === 'ar') {
+                return date.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } else if (lang === 'fr') {
+                return date.toLocaleDateString('fr-FR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } else if (lang === 'es') {
+                return date.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } else {
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+        }
+        
+        // Format time based on language
+        function formatTime(timestamp, lang) {
+            const date = new Date(timestamp);
+            
+            if (lang === 'ar') {
+                return date.toLocaleTimeString('ar-EG', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else if (lang === 'fr') {
+                return date.toLocaleTimeString('fr-FR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else if (lang === 'es') {
+                return date.toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else {
+                return date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
         
         window.addEventListener("DOMContentLoaded", () => {
             const emergencyRef = ref(db, "patients/emergency");
@@ -819,8 +1302,8 @@ const firebaseConfig = {
                 <div class="col-span-full">
                     <div class="loading-container">
                         <div class="loading-spinner"></div>
-                        <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                        <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
+                        <h3 class="text-xl font-bold text-gray-700 mt-4" data-i18n="loadingPatients">${translations[currentLanguage].loadingPatients}</h3>
+                        <p class="text-gray-500" data-i18n="pleaseWait">${translations[currentLanguage].pleaseWait}</p>
                     </div>
                 </div>
             `;
@@ -865,7 +1348,9 @@ const firebaseConfig = {
                 };
                 
                 Object.values(patients).forEach(patient => {
-                    counts[patient.status]++;
+                    if (counts[patient.status] !== undefined) {
+                        counts[patient.status]++;
+                    }
                 });
                 
                 // Add animation class before updating
@@ -893,7 +1378,7 @@ const firebaseConfig = {
                 
                 // Update last update time
                 const now = new Date();
-                lastUpdateEl.textContent = now.toLocaleTimeString("ar-EG");
+                lastUpdateEl.textContent = formatTime(now, currentLanguage);
             }
             
             function applyFilters() {
@@ -950,8 +1435,8 @@ const firebaseConfig = {
                         <div class="col-span-full">
                             <div class="empty-state">
                                 <i class="fas fa-search text-5xl"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mb-2">لا توجد نتائج مطابقة</h3>
-                                <p class="text-gray-500">لم نتمكن من العثور على مرضى يطابقون معايير البحث.</p>
+                                <h3 class="text-xl font-bold text-gray-700 mb-2">${translations[currentLanguage].noResults}</h3>
+                                <p class="text-gray-500">${translations[currentLanguage].noResultsDesc}</p>
                             </div>
                         </div>
                     `;
@@ -962,56 +1447,45 @@ const firebaseConfig = {
                     const card = document.createElement("div");
                     card.className = `patient-card ${patient.status}`;
                     
-                    const statusText = {
-                        critical: "حالة حرجة",
-                        stable: "حالة مستقرة",
-                        improving: "في تحسن",
-                        deteriorating: "في تدهور"
-                    };
-                    
-                    const statusIcon = {
-                        critical: "fa-heartbeat",
-                        stable: "fa-check-circle",
-                        improving: "fa-arrow-trend-up",
-                        deteriorating: "fa-arrow-trend-down"
-                    };
-                    
                     card.innerHTML = `
                         <div class="p-6">
+                            <div class="patient-avatar mb-4">
+                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name)}&background=3b82f6&color=fff&format=svg" alt="${patient.name}" />
+                            </div>
                             <div class="flex justify-between items-start mb-4">
                                 <div>
                                     <h2 class="text-xl font-bold text-gray-800">${patient.name}</h2>
-                                    <p class="text-sm text-gray-500">الرقم القومي: ${patient.nid}</p>
+                                    <p class="text-sm text-gray-500">${translations[currentLanguage].nationalId}: ${patient.nid}</p>
                                 </div>
                                 <span class="status-badge ${patient.status}">
-                                    <i class="fas ${statusIcon[patient.status]}"></i>
-                                    ${statusText[patient.status]}
+                                    <i class="fas ${statusIcons[patient.status]}"></i>
+                                    ${statusTranslations[currentLanguage][patient.status]}
                                 </span>
                             </div>
                             
                             <div class="space-y-3 text-gray-600 mb-4">
                                 <div class="patient-info">
                                     <i class="fas fa-birthday-cake"></i>
-                                    <span>العمر: ${patient.age} سنة</span>
+                                    <span>${translations[currentLanguage].age}: ${patient.age} ${currentLanguage === 'ar' ? 'سنة' : (currentLanguage === 'fr' ? 'ans' : (currentLanguage === 'es' ? 'años' : 'years'))}</span>
                                 </div>
                                 <div class="patient-info">
                                     <i class="fas fa-calendar-day"></i>
-                                    <span>تاريخ التسجيل: ${new Date(patient.timestamp).toLocaleDateString("ar-EG")}</span>
+                                    <span>${translations[currentLanguage].registrationDate}: ${formatDate(patient.timestamp, currentLanguage)}</span>
                                 </div>
                                 <div class="patient-info">
                                     <i class="fas fa-clock"></i>
-                                    <span>الوقت: ${new Date(patient.timestamp).toLocaleTimeString("ar-EG")}</span>
+                                    <span>${translations[currentLanguage].time}: ${formatTime(patient.timestamp, currentLanguage)}</span>
                                 </div>
                             </div>
                             
                             <div class="mt-4 flex justify-end space-x-3 space-x-reverse">
                                 <button onclick="viewPatient('${id}')" class="btn btn-primary">
                                     <i class="fas fa-eye"></i>
-                                    عرض التفاصيل
+                                    ${translations[currentLanguage].viewDetails}
                                 </button>
                                 <button onclick="printCard('${id}')" class="btn btn-secondary">
                                     <i class="fas fa-print"></i>
-                                    طباعة
+                                    ${translations[currentLanguage].print}
                                 </button>
                             </div>
                         </div>
@@ -1023,11 +1497,11 @@ const firebaseConfig = {
         });
         
         window.viewPatient = function (id) {
-            window.location.href = `patient.html?id=${id}`;
+            window.location.href = `patient.html?id=${id}&lang=${currentLanguage}`;
         };
         
         window.printCard = function (id) {
-            alert("ميزة الطباعة سيتم تنفيذها مستقبلاً للبطاقة ID: " + id);
+            alert(`${translations[currentLanguage].print} ${translations[currentLanguage].for} ID: ${id}`);
         };
     </script>
 </body>
