@@ -497,6 +497,49 @@
                 margin-bottom: 2rem;
             }
         }
+        
+        /* Additional styles for new fields */
+        .patient-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        
+        .patient-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .patient-detail-item i {
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-gray);
+            border-radius: 50%;
+            color: var(--gray);
+            font-size: 0.75rem;
+        }
+        
+        .chronic-diseases {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f1f5f9;
+        }
+        
+        .disease-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #f1f5f9;
+            color: var(--gray);
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin: 0.25rem 0.25rem 0.25rem 0;
+        }
     </style>
 </head>
 <body>
@@ -918,7 +961,9 @@
                         const matchSearch = 
                             (patient.name && patient.name.toLowerCase().includes(term)) ||
                             id.toLowerCase().includes(term) ||
-                            (patient.nid && patient.nid.toLowerCase().includes(term));
+                            (patient.nid && patient.nid.toLowerCase().includes(term)) ||
+                            (patient.doctor && patient.doctor.toLowerCase().includes(term)) ||
+                            (patient.address && patient.address.toLowerCase().includes(term));
                             
                         const matchDate = selectedDate && patient.timestamp
                             ? new Date(patient.timestamp).toISOString().split("T")[0] === selectedDate
@@ -987,6 +1032,26 @@
                         deteriorating: "fa-arrow-trend-down"
                     };
                     
+                    // Get gender icon
+                    const genderIcon = patient.gender === 'male' ? 'fa-mars' : (patient.gender === 'female' ? 'fa-venus' : 'fa-genderless');
+                    const genderText = patient.gender === 'male' ? 'ذكر' : (patient.gender === 'female' ? 'أنثى' : 'غير محدد');
+                    
+                    // Format chronic diseases
+                    let diseasesHtml = '';
+                    if (patient.chronicDiseases && Array.isArray(patient.chronicDiseases) && patient.chronicDiseases.length > 0) {
+                        diseasesHtml = `
+                            <div class="chronic-diseases">
+                                <div class="patient-info">
+                                    <i class="fas fa-notes-medical"></i>
+                                    <span><strong>الأمراض المزمنة:</strong></span>
+                                </div>
+                                <div class="mt-2">
+                                    ${patient.chronicDiseases.map(disease => `<span class="disease-tag">${disease}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
                     card.innerHTML = `
                         <div class="p-6">
                             <div class="flex justify-between items-start mb-4">
@@ -1014,6 +1079,28 @@
                                     <span>الوقت: ${patient.timestamp ? new Date(patient.timestamp).toLocaleTimeString("ar-EG") : 'غير متوفر'}</span>
                                 </div>
                             </div>
+                            
+                            <!-- New patient details grid -->
+                            <div class="patient-details-grid mb-4">
+                                <div class="patient-detail-item">
+                                    <i class="fas ${genderIcon}"></i>
+                                    <span>${genderText}</span>
+                                </div>
+                                <div class="patient-detail-item">
+                                    <i class="fas fa-tint"></i>
+                                    <span>${patient.bloodType || 'غير محدد'}</span>
+                                </div>
+                                <div class="patient-detail-item" style="grid-column: 1 / -1;">
+                                    <i class="fas fa-user-md"></i>
+                                    <span>الدكتور: ${patient.doctor || 'غير محدد'}</span>
+                                </div>
+                                <div class="patient-detail-item" style="grid-column: 1 / -1;">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>${patient.address || 'غير محدد'}</span>
+                                </div>
+                            </div>
+                            
+                            ${diseasesHtml}
                             
                             <div class="mt-4 flex justify-end space-x-3 space-x-reverse">
                                 <button onclick="viewPatient('${id}')" class="btn btn-primary">
