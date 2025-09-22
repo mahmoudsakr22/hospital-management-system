@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>قسم الطوارئ - مستشفى الحياة الذكية</title>
+    <meta name="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -444,7 +445,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-        // **مهم:** يجب تغيير هذه البيانات بمعلومات مشروعك الحقيقية
+        // **مهم جداً:** يجب استبدال هذه البيانات بمعلومات مشروعك الحقيقية من Firebase.
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -461,7 +462,6 @@
         let allPatients = {};
         let currentPatientKey = null;
 
-        // العناصر الرئيسية
         const container = document.getElementById("patientsList");
         const searchInput = document.getElementById("searchInput");
         const dateFilter = document.getElementById("dateFilter");
@@ -490,7 +490,6 @@
             statusFilter.addEventListener("change", applyFilters);
         });
 
-        // فتح النافذة المنبثقة وعرض بيانات المريض
         window.openModal = function(patientKey) {
             currentPatientKey = patientKey;
             const patient = allPatients[patientKey];
@@ -518,14 +517,6 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>تاريخ الدخول: ${patient.date}</span>
                 </div>
-                <div class="patient-info">
-                    <i class="fas fa-user-circle"></i>
-                    <span>الجهة المحولة: ${patient.referral || 'غير محدد'}</span>
-                </div>
-                <div class="patient-info">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>ملاحظات: ${patient.notes || 'لا توجد'}</span>
-                </div>
             `;
             const statusButtons = document.querySelectorAll('.status-update-buttons .btn');
             statusButtons.forEach(btn => {
@@ -538,13 +529,11 @@
             modal.classList.add("show");
         };
 
-        // إغلاق النافذة المنبثقة
         window.closeModal = function() {
             modal.classList.remove("show");
             currentPatientKey = null;
         };
 
-        // تحديث حالة المريض في قاعدة البيانات
         window.updatePatientStatus = function(newStatus) {
             if (!currentPatientKey) return;
             const updates = {};
