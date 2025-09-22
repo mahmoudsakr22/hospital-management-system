@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>قسم الطوارئ - مستشفى الحياة الذكية</title>
-    <meta name="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -43,13 +42,14 @@
             transition: all 0.3s ease;
             overflow: hidden;
             position: relative;
+            cursor: pointer;
         }
 
         .patient-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
         }
-        
+
         .patient-card::before {
             content: "";
             position: absolute;
@@ -79,52 +79,6 @@
         .status-badge.improving { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
         .status-badge.deteriorating { background: rgba(249, 115, 22, 0.1); color: #f97316; }
 
-        .search-container, .filter-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 1rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.2);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 1.25rem;
-        }
-
-        .filter-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.2);
-        }
-
         .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
@@ -148,38 +102,101 @@
             box-shadow: 0 8px 12px rgba(26, 86, 219, 0.3);
         }
 
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #475569;
-            box-shadow: none;
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease;
         }
 
-        .btn-secondary:hover {
-            background: #cbd5e1;
-            transform: translateY(-2px);
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
         }
-        
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            font-size: 1.5rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #475569;
+        }
+
+        .status-update-buttons .btn {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .status-update-buttons .btn.active {
+            color: white;
+        }
+
+        .status-update-buttons .btn.critical { background-color: var(--danger); }
+        .status-update-buttons .btn.stable { background-color: var(--secondary); }
+        .status-update-buttons .btn.improving { background-color: var(--warning); }
+        .status-update-buttons .btn.deteriorating { background-color: #f97316; }
+
+        .patient-info i, .stats-icon i {
+            color: var(--primary);
+        }
+
+        .search-container, .filter-container, .stats-sidebar {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+        }
+
+        .search-input, .filter-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
         .patient-info {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             margin-bottom: 0.75rem;
             padding-bottom: 0.75rem;
-            border-bottom: 1px dashed #f1f5f9;
+            border-bottom: 1px dashed #e2e8f0;
         }
 
-        .patient-info i {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f1f5f9;
-            border-radius: 50%;
-            color: #64748b;
-        }
-
-        .loading-container {
+        .loading-container, .empty-state {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -202,141 +219,10 @@
             100% { transform: rotate(360deg); }
         }
 
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            text-align: center;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: #cbd5e1;
-            margin-bottom: 1.5rem;
-        }
-
-        .stats-sidebar {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            padding: 1.5rem;
-            height: fit-content;
-            position: sticky;
-            top: 1.5rem;
-        }
-
-        .stats-card {
-            border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            background: #f8fafc;
-        }
-        
-        .stats-card:last-child {
-            margin-bottom: 0;
-        }
-
-        .stats-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 6px;
-            height: 100%;
-        }
-
-        .stats-card.critical::before { background: var(--danger); }
-        .stats-card.stable::before { background: var(--secondary); }
-        .stats-card.improving::before { background: var(--warning); }
-        .stats-card.deteriorating::before { background: #f97316; }
-        .stats-card.total::before { background: var(--primary); }
-
-        .stats-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            color: #1e293b;
-        }
-
-        .stats-label {
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-
-        .stats-icon {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            font-size: 1.5rem;
-        }
-
-        .stats-card.critical .stats-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-        .stats-card.stable .stats-icon { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
-        .stats-card.improving .stats-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-        .stats-card.deteriorating .stats-icon { background: rgba(249, 115, 22, 0.1); color: #f97316; }
-        .stats-card.total .stats-icon { background: rgba(26, 86, 219, 0.1); color: var(--primary); }
-
-        .stats-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 1rem 0;
-        }
-        
         .footer-section {
             background: #0f172a;
             color: #cbd5e1;
             padding: 3rem 0;
-        }
-        
-        .footer-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: white;
-        }
-        
-        .footer-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #94a3b8;
-            transition: all 0.3s ease;
-            margin-bottom: 0.75rem;
-            text-decoration: none;
-        }
-        
-        .footer-link:hover {
-            color: white;
-            transform: translateX(5px);
-        }
-        
-        .social-icon {
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.3s ease;
-            margin-right: 0.75rem;
-        }
-        
-        .social-icon:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-3px);
         }
     </style>
 </head>
@@ -379,7 +265,7 @@
             <div class="lg:col-span-1">
                 <div class="stats-sidebar">
                     <h2 class="text-2xl font-bold text-gray-800 mb-6">إحصائيات قسم الطوارئ</h2>
-                    
+
                     <div class="stats-card total">
                         <div class="stats-icon"><i class="fas fa-users"></i></div>
                         <div>
@@ -387,7 +273,7 @@
                             <div class="stats-label">إجمالي المرضى</div>
                         </div>
                     </div>
-                    
+
                     <div class="stats-card critical">
                         <div class="stats-icon"><i class="fas fa-heartbeat"></i></div>
                         <div>
@@ -395,7 +281,7 @@
                             <div class="stats-label">حالات حرجة</div>
                         </div>
                     </div>
-                    
+
                     <div class="stats-card deteriorating">
                         <div class="stats-icon"><i class="fas fa-arrow-trend-down"></i></div>
                         <div>
@@ -403,7 +289,7 @@
                             <div class="stats-label">في تدهور</div>
                         </div>
                     </div>
-                    
+
                     <div class="stats-card improving">
                         <div class="stats-icon"><i class="fas fa-arrow-trend-up"></i></div>
                         <div>
@@ -411,7 +297,7 @@
                             <div class="stats-label">في تحسن</div>
                         </div>
                     </div>
-                    
+
                     <div class="stats-card stable">
                         <div class="stats-icon"><i class="fas fa-check-circle"></i></div>
                         <div>
@@ -419,16 +305,16 @@
                             <div class="stats-label">حالات مستقرة</div>
                         </div>
                     </div>
-                    
+
                     <div class="stats-divider"></div>
-                    
+
                     <div class="flex justify-between items-center">
                         <div class="text-sm text-gray-600">آخر تحديث</div>
                         <div class="text-sm text-gray-600" id="lastUpdate">-</div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="lg:col-span-3">
                 <div class="emergency-header mb-8">
                     <div class="flex justify-between items-center">
@@ -439,39 +325,30 @@
                             </h1>
                             <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
                         </div>
-                        <button
+                        <a
+                            href="add_patient.html"
                             class="btn btn-primary"
-                            onclick="window.location.href='add_patient.html'"
                         >
                             <i class="fas fa-plus"></i>
                             إضافة مريض جديد
-                        </button>
+                        </a>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="lg:col-span-2">
                         <div class="search-container">
                             <div class="filter-label text-gray-600 mb-2">البحث عن مريض</div>
                             <div class="relative">
                                 <i class="fas fa-search search-icon"></i>
-                                <input
-                                    id="searchInput"
-                                    type="text"
-                                    placeholder="ابحث باسم المريض أو الرقم القومي..."
-                                    class="search-input"
-                                />
+                                <input id="searchInput" type="text" placeholder="ابحث باسم المريض أو الرقم القومي..." class="search-input" />
                             </div>
                         </div>
                     </div>
                     <div>
                         <div class="filter-container">
                             <div class="filter-label text-gray-600 mb-2">التاريخ</div>
-                            <input
-                                id="dateFilter"
-                                type="date"
-                                class="filter-input"
-                            />
+                            <input id="dateFilter" type="date" class="filter-input" />
                         </div>
                     </div>
                     <div>
@@ -487,7 +364,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="col-span-full">
                         <div class="loading-container">
@@ -500,6 +377,24 @@
             </div>
         </div>
     </main>
+
+    <div id="patientModal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-times modal-close" onclick="closeModal()"></i>
+            <h2 id="modal-patient-name" class="text-2xl font-bold mb-4 text-gray-800"></h2>
+            <div id="modal-patient-details" class="space-y-3 text-gray-600">
+            </div>
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">تغيير الحالة:</h3>
+                <div class="status-update-buttons flex gap-3">
+                    <button class="btn critical active" onclick="updatePatientStatus('critical')"><i class="fas fa-heartbeat"></i> حرج</button>
+                    <button class="btn stable" onclick="updatePatientStatus('stable')"><i class="fas fa-check-circle"></i> مستقر</button>
+                    <button class="btn improving" onclick="updatePatientStatus('improving')"><i class="fas fa-arrow-trend-up"></i> تحسن</button>
+                    <button class="btn deteriorating" onclick="updatePatientStatus('deteriorating')"><i class="fas fa-arrow-trend-down"></i> تدهور</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer class="footer-section">
         <div class="container mx-auto px-4">
@@ -547,11 +442,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-        // **مهم جداً:** يرجى تغيير هذه البيانات ببيانات مشروعك الحقيقية.
-        // ولأسباب أمنية، لا يُنصح بترك مفاتيح API ظاهرة في كود الواجهة الأمامية.
-        // يفضل استخدام خادم وسيط (backend) لحماية البيانات.
+        // **مهم:** يجب تغيير هذه البيانات بمعلومات مشروعك الحقيقية
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -561,173 +454,215 @@
             messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
-        
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const emergencyRef = ref(db, "patients/emergency");
         let allPatients = {};
-        
+        let currentPatientKey = null;
+
+        // العناصر الرئيسية
+        const container = document.getElementById("patientsList");
+        const searchInput = document.getElementById("searchInput");
+        const dateFilter = document.getElementById("dateFilter");
+        const statusFilter = document.getElementById("statusFilter");
+        const modal = document.getElementById("patientModal");
+        const modalName = document.getElementById("modal-patient-name");
+        const modalDetails = document.getElementById("modal-patient-details");
+        const statsElements = {
+            total: document.getElementById("totalPatients"),
+            critical: document.getElementById("criticalPatients"),
+            deteriorating: document.getElementById("deterioratingPatients"),
+            improving: document.getElementById("improvingPatients"),
+            stable: document.getElementById("stablePatients"),
+            lastUpdate: document.getElementById("lastUpdate")
+        };
+
         window.addEventListener("DOMContentLoaded", () => {
-            const emergencyRef = ref(db, "patients/emergency");
-            const container = document.getElementById("patientsList");
-            const searchInput = document.getElementById("searchInput");
-            const dateFilter = document.getElementById("dateFilter");
-            const statusFilter = document.getElementById("statusFilter");
-            const sortFilter = document.getElementById("sortFilter");
-            
-            const totalPatientsEl = document.getElementById("totalPatients");
-            const criticalPatientsEl = document.getElementById("criticalPatients");
-            const deterioratingPatientsEl = document.getElementById("deterioratingPatients");
-            const improvingPatientsEl = document.getElementById("improvingPatients");
-            const stablePatientsEl = document.getElementById("stablePatients");
-            const lastUpdateEl = document.getElementById("lastUpdate");
-            
-            container.innerHTML = `
-                <div class="col-span-full">
-                    <div class="loading-container">
-                        <div class="loading-spinner"></div>
-                        <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                        <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
-                    </div>
-                </div>
-            `;
-            
-            updateStatistics(allPatients);
-            
             onValue(emergencyRef, (snapshot) => {
                 allPatients = snapshot.val() || {};
                 updateStatistics(allPatients);
                 applyFilters();
             });
-            
+
             searchInput.addEventListener("input", applyFilters);
             dateFilter.addEventListener("change", applyFilters);
             statusFilter.addEventListener("change", applyFilters);
-            
-            function updateStatistics(patients) {
-                const counts = {
-                    total: Object.keys(patients).length,
-                    critical: 0,
-                    deteriorating: 0,
-                    improving: 0,
-                    stable: 0
-                };
-                
-                Object.values(patients).forEach(patient => {
-                    counts[patient.status]++;
-                });
-                
-                const statsElements = [
-                    totalPatientsEl, criticalPatientsEl, deterioratingPatientsEl, improvingPatientsEl, stablePatientsEl
-                ];
-                
-                statsElements.forEach(el => {
-                    el.classList.add('updated');
-                    setTimeout(() => { el.classList.remove('updated'); }, 500);
-                });
-                
-                totalPatientsEl.textContent = counts.total;
-                criticalPatientsEl.textContent = counts.critical;
-                deterioratingPatientsEl.textContent = counts.deteriorating;
-                improvingPatientsEl.textContent = counts.improving;
-                stablePatientsEl.textContent = counts.stable;
-                
-                const now = new Date();
-                lastUpdateEl.textContent = now.toLocaleTimeString("ar-EG");
-            }
-            
-            function applyFilters() {
-                const term = searchInput.value.toLowerCase();
-                const selectedDate = dateFilter.value;
-                const selectedStatus = statusFilter.value;
-                
-                const filteredPatients = Object.entries(allPatients).filter(([key, patient]) => {
-                    const matchesSearch = patient.name.toLowerCase().includes(term) || patient.nationalId.includes(term);
-                    const matchesDate = !selectedDate || patient.date === selectedDate;
-                    const matchesStatus = !selectedStatus || patient.status === selectedStatus;
-                    
-                    return matchesSearch && matchesDate && matchesStatus;
-                });
-                
-                renderPatients(Object.fromEntries(filteredPatients));
-            }
-            
-            function renderPatients(patients) {
-                const patientsArray = Object.values(patients);
-                
-                if (patientsArray.length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full">
-                            <div class="empty-state">
-                                <i class="fas fa-folder-open"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mt-4">لا توجد حالات مرضى حالياً.</h3>
-                                <p class="text-gray-500">يمكنك إضافة مريض جديد بالضغط على الزر أعلاه.</p>
-                            </div>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                let patientCardsHTML = "";
-                patientsArray.forEach((patient) => {
-                    const statusClass = patient.status;
-                    const statusText = {
-                        critical: "حالة حرجة",
-                        stable: "حالة مستقرة",
-                        improving: "في تحسن",
-                        deteriorating: "في تدهور"
-                    };
-                    const statusIcon = {
-                        critical: "fas fa-heartbeat pulse",
-                        stable: "fas fa-check-circle",
-                        improving: "fas fa-arrow-trend-up",
-                        deteriorating: "fas fa-arrow-trend-down"
-                    };
-
-                    patientCardsHTML += `
-                        <div class="patient-card ${statusClass}">
-                            <div class="p-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-800">${patient.name}</h3>
-                                    <span class="status-badge ${statusClass}">
-                                        <i class="${statusIcon[statusClass]}"></i>
-                                        ${statusText[statusClass]}
-                                    </span>
-                                </div>
-                                <div class="space-y-3 text-gray-600 text-sm">
-                                    <div class="patient-info">
-                                        <i class="fas fa-id-card"></i>
-                                        <span>رقم الهوية: ${patient.nationalId}</span>
-                                    </div>
-                                    <div class="patient-info">
-                                        <i class="fas fa-user-tag"></i>
-                                        <span>العمر: ${patient.age} سنة</span>
-                                    </div>
-                                    <div class="patient-info">
-                                        <i class="fas fa-notes-medical"></i>
-                                        <span>التشخيص: ${patient.diagnosis}</span>
-                                    </div>
-                                    <div class="patient-info">
-                                        <i class="fas fa-clock"></i>
-                                        <span>وقت الوصول: ${patient.time}</span>
-                                    </div>
-                                    <div class="patient-info">
-                                        <i class="fas fa-calendar-alt"></i>
-                                        <span>تاريخ الدخول: ${patient.date}</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-end mt-6">
-                                    <button class="btn btn-primary btn-sm">
-                                        <i class="fas fa-file-medical"></i> عرض الملف
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                container.innerHTML = patientCardsHTML;
-            }
         });
+
+        // فتح النافذة المنبثقة وعرض بيانات المريض
+        window.openModal = function(patientKey) {
+            currentPatientKey = patientKey;
+            const patient = allPatients[patientKey];
+            if (!patient) return;
+
+            modalName.textContent = patient.name;
+            modalDetails.innerHTML = `
+                <div class="patient-info">
+                    <i class="fas fa-id-card"></i>
+                    <span>رقم الهوية: ${patient.nationalId}</span>
+                </div>
+                <div class="patient-info">
+                    <i class="fas fa-user-tag"></i>
+                    <span>العمر: ${patient.age} سنة</span>
+                </div>
+                <div class="patient-info">
+                    <i class="fas fa-notes-medical"></i>
+                    <span>التشخيص: ${patient.diagnosis}</span>
+                </div>
+                <div class="patient-info">
+                    <i class="fas fa-clock"></i>
+                    <span>وقت الوصول: ${patient.time}</span>
+                </div>
+                <div class="patient-info">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>تاريخ الدخول: ${patient.date}</span>
+                </div>
+                <div class="patient-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span>الجهة المحولة: ${patient.referral || 'غير محدد'}</span>
+                </div>
+                <div class="patient-info">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>ملاحظات: ${patient.notes || 'لا توجد'}</span>
+                </div>
+            `;
+            const statusButtons = document.querySelectorAll('.status-update-buttons .btn');
+            statusButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.classList.contains(patient.status)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            modal.classList.add("show");
+        };
+
+        // إغلاق النافذة المنبثقة
+        window.closeModal = function() {
+            modal.classList.remove("show");
+            currentPatientKey = null;
+        };
+
+        // تحديث حالة المريض في قاعدة البيانات
+        window.updatePatientStatus = function(newStatus) {
+            if (!currentPatientKey) return;
+            const updates = {};
+            updates['/patients/emergency/' + currentPatientKey + '/status'] = newStatus;
+
+            update(ref(db), updates)
+                .then(() => {
+                    console.log("Status updated successfully!");
+                    closeModal();
+                })
+                .catch((error) => {
+                    console.error("Error updating status:", error);
+                    alert("حدث خطأ أثناء تحديث الحالة.");
+                });
+        };
+
+        function updateStatistics(patients) {
+            const counts = {
+                total: Object.keys(patients).length,
+                critical: 0,
+                deteriorating: 0,
+                improving: 0,
+                stable: 0
+            };
+
+            Object.values(patients).forEach(patient => {
+                counts[patient.status]++;
+            });
+
+            statsElements.total.textContent = counts.total;
+            statsElements.critical.textContent = counts.critical;
+            statsElements.deteriorating.textContent = counts.deteriorating;
+            statsElements.improving.textContent = counts.improving;
+            statsElements.stable.textContent = counts.stable;
+
+            const now = new Date();
+            statsElements.lastUpdate.textContent = now.toLocaleTimeString("ar-EG");
+        }
+
+        function applyFilters() {
+            const term = searchInput.value.toLowerCase();
+            const selectedDate = dateFilter.value;
+            const selectedStatus = statusFilter.value;
+
+            const filteredPatients = Object.entries(allPatients).filter(([key, patient]) => {
+                const matchesSearch = patient.name.toLowerCase().includes(term) || patient.nationalId.includes(term);
+                const matchesDate = !selectedDate || patient.date === selectedDate;
+                const matchesStatus = !selectedStatus || patient.status === selectedStatus;
+
+                return matchesSearch && matchesDate && matchesStatus;
+            });
+
+            renderPatients(Object.fromEntries(filteredPatients));
+        }
+
+        function renderPatients(patients) {
+            const patientsArray = Object.entries(patients).map(([key, value]) => ({...value, key}));
+
+            if (patientsArray.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full">
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <h3 class="text-xl font-bold text-gray-700 mt-4">لا توجد حالات مرضى حالياً.</h3>
+                            <p class="text-gray-500">يمكنك إضافة مريض جديد بالضغط على الزر أعلاه.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let patientCardsHTML = "";
+            patientsArray.forEach((patient) => {
+                const statusClass = patient.status;
+                const statusText = {
+                    critical: "حالة حرجة",
+                    stable: "حالة مستقرة",
+                    improving: "في تحسن",
+                    deteriorating: "في تدهور"
+                };
+                const statusIcon = {
+                    critical: "fas fa-heartbeat pulse",
+                    stable: "fas fa-check-circle",
+                    improving: "fas fa-arrow-trend-up",
+                    deteriorating: "fas fa-arrow-trend-down"
+                };
+
+                patientCardsHTML += `
+                    <div class="patient-card ${statusClass}" onclick="openModal('${patient.key}')">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">${patient.name}</h3>
+                                <span class="status-badge ${statusClass}">
+                                    <i class="${statusIcon[statusClass]}"></i>
+                                    ${statusText[statusClass]}
+                                </span>
+                            </div>
+                            <div class="space-y-3 text-gray-600 text-sm">
+                                <div class="patient-info">
+                                    <i class="fas fa-id-card"></i>
+                                    <span>رقم الهوية: ${patient.nationalId}</span>
+                                </div>
+                                <div class="patient-info">
+                                    <i class="fas fa-notes-medical"></i>
+                                    <span>التشخيص: ${patient.diagnosis}</span>
+                                </div>
+                                <div class="patient-info">
+                                    <i class="fas fa-clock"></i>
+                                    <span>وقت الوصول: ${patient.time}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = patientCardsHTML;
+        }
     </script>
 </body>
 </html>
