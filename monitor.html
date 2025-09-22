@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
     <style>
         html, body { font-family: 'Cairo', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
         .card { @apply rounded-2xl shadow-lg p-5 bg-white; }
@@ -409,12 +408,11 @@ const firebaseConfig = {
   appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
   measurementId: "G-QE5BL3MTY7"
 };
-        let fb = { enabled: false, app: null, db: null, auth: null };
+        let fb = { enabled: false, app: null, db: null };
         try {
             if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.databaseURL) {
                 fb.app = firebase.initializeApp(firebaseConfig);
                 fb.db = firebase.database();
-                fb.auth = firebase.auth();
                 fb.enabled = true;
                 document.getElementById('connBadge').textContent = 'Firebase';
                 document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
@@ -1971,251 +1969,11 @@ const firebaseConfig = {
             }
         }
 
-        // =============== نظام المصادقة المتقدم ===============
-        class AdvancedAuthSystem {
-            constructor() {
-                this.currentUser = null;
-                this.permissions = {
-                    admin: ['read', 'write', 'delete', 'manage_users', 'export', 'import'],
-                    doctor: ['read', 'write', 'export'],
-                    nurse: ['read', 'write'],
-                    technician: ['read'],
-                    guest: ['read_limited']
-                };
-                this.sessionTimeout = 30 * 60 * 1000; // 30 دقيقة
-                this.sessionTimer = null;
-            }
-
-            async initialize() {
-                // تحقق من وجود جلسة نشطة
-                const savedSession = localStorage.getItem('authSession');
-                if (savedSession) {
-                    try {
-                        const session = JSON.parse(savedSession);
-                        if (session.expires > Date.now()) {
-                            this.currentUser = session.user;
-                            this.startSessionTimer();
-                            this.updateUI();
-                            return;
-                        }
-                    } catch (e) {
-                        localStorage.removeItem('authSession');
-                    }
-                }
-                
-                // إذا لم تكن هناك جلسة نشطة، عرض شاشة تسجيل الدخول
-                this.showLoginScreen();
-            }
-
-            async login(email, password) {
-                try {
-                    // محاكاة المصادقة - في التطبيق الحقيقي، استخدم Firebase Auth
-                    const user = await this.authenticateUser(email, password);
-                    
-                    if (user) {
-                        this.currentUser = user;
-                        const session = {
-                            user,
-                            expires: Date.now() + this.sessionTimeout
-                        };
-                        
-                        localStorage.setItem('authSession', JSON.stringify(session));
-                        this.startSessionTimer();
-                        this.updateUI();
-                        
-                        return true;
-                    }
-                    
-                    return false;
-                } catch (error) {
-                    console.error('Login error:', error);
-                    return false;
-                }
-            }
-
-            async authenticateUser(email, password) {
-                // محاكاة قاعدة بيانات المستخدمين
-                const users = [
-                    { email: 'admin@hospital.com', password: 'admin123', role: 'admin', name: 'مدير النظام' },
-                    { email: 'doctor@hospital.com', password: 'doctor123', role: 'doctor', name: 'د. أحمد محمد' },
-                    { email: 'nurse@hospital.com', password: 'nurse123', role: 'nurse', name: 'ممرضة فاطمة علي' },
-                    { email: 'tech@hospital.com', password: 'tech123', role: 'technician', name: 'فني biomedical' },
-                    { email: 'guest@hospital.com', password: 'guest123', role: 'guest', name: 'زائر' }
-                ];
-                
-                const user = users.find(u => u.email === email && u.password === password);
-                
-                if (user) {
-                    // في التطبيق الحقيقي، استخدم Firebase Auth
-                    if (fb.enabled) {
-                        try {
-                            await fb.auth.signInWithEmailAndPassword(email, password);
-                        } catch (e) {
-                            console.warn('Firebase auth failed, using local auth');
-                        }
-                    }
-                    
-                    return {
-                        email: user.email,
-                        role: user.role,
-                        name: user.name,
-                        permissions: this.permissions[user.role]
-                    };
-                }
-                
-                return null;
-            }
-
-            logout() {
-                this.currentUser = null;
-                localStorage.removeItem('authSession');
-                
-                if (this.sessionTimer) {
-                    clearTimeout(this.sessionTimer);
-                    this.sessionTimer = null;
-                }
-                
-                if (fb.enabled) {
-                    fb.auth.signOut();
-                }
-                
-                this.showLoginScreen();
-            }
-
-            startSessionTimer() {
-                if (this.sessionTimer) {
-                    clearTimeout(this.sessionTimer);
-                }
-                
-                this.sessionTimer = setTimeout(() => {
-                    this.logout();
-                }, this.sessionTimeout);
-            }
-
-            refreshSession() {
-                if (this.currentUser) {
-                    const session = {
-                        user: this.currentUser,
-                        expires: Date.now() + this.sessionTimeout
-                    };
-                    
-                    localStorage.setItem('authSession', JSON.stringify(session));
-                    this.startSessionTimer();
-                }
-            }
-
-            hasPermission(permission) {
-                if (!this.currentUser) return false;
-                return this.currentUser.permissions.includes(permission);
-            }
-
-            checkPermission(permission) {
-                if (!this.hasPermission(permission)) {
-                    Swal.fire('غير مصرح', 'ليس لديك صلاحية للقيام بهذا الإجراء', 'error');
-                    return false;
-                }
-                return true;
-            }
-
-            showLoginScreen() {
-                const loginHTML = `
-                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg p-8 max-w-md w-full">
-                            <h2 class="text-2xl font-bold mb-6 text-center">تسجيل الدخول</h2>
-                            <form id="loginForm">
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium mb-2">البريد الإلكتروني</label>
-                                    <input type="email" id="loginEmail" class="w-full border rounded-lg p-2" required>
-                                </div>
-                                <div class="mb-6">
-                                    <label class="block text-sm font-medium mb-2">كلمة المرور</label>
-                                    <input type="password" id="loginPassword" class="w-full border rounded-lg p-2" required>
-                                </div>
-                                <button type="submit" class="w-full bg-blue-600 text-white rounded-lg p-2 hover:bg-blue-700">تسجيل الدخول</button>
-                            </form>
-                            <div class="mt-4 text-sm text-gray-600">
-                                <p>حسابات تجريبية:</p>
-                                <p>admin@hospital.com / admin123 (مدير)</p>
-                                <p>doctor@hospital.com / doctor123 (طبيب)</p>
-                                <p>nurse@hospital.com / nurse123 (ممرضة)</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.insertAdjacentHTML('beforeend', loginHTML);
-                
-                document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    
-                    const email = document.getElementById('loginEmail').value;
-                    const password = document.getElementById('loginPassword').value;
-                    
-                    const success = await this.login(email, password);
-                    
-                    if (success) {
-                        document.querySelector('.fixed.inset-0').remove();
-                    } else {
-                        Swal.fire('خطأ', 'البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error');
-                    }
-                });
-            }
-
-            updateUI() {
-                // تحديث واجهة المستخدم بناءً على صلاحيات المستخدم
-                const userInfo = document.getElementById('userInfo');
-                if (userInfo) {
-                    userInfo.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span>${this.currentUser.name}</span>
-                            <span class="badge badge-ok">${this.getRoleLabel(this.currentUser.role)}</span>
-                            <button id="logoutBtn" class="text-sm text-red-600 hover:text-red-800">خروج</button>
-                        </div>
-                    `;
-                    
-                    document.getElementById('logoutBtn').addEventListener('click', () => {
-                        this.logout();
-                    });
-                }
-                
-                // إخفاء/إظهار العناصر بناءً على الصلاحيات
-                this.updateUIPermissions();
-            }
-
-            updateUIPermissions() {
-                // مثال: إخفاء أزرار التصدير للمستخدمين غير المصرح لهم
-                const exportBtn = document.getElementById('exportBtn');
-                if (exportBtn && !this.hasPermission('export')) {
-                    exportBtn.style.display = 'none';
-                }
-                
-                // مثال: تعطيل حقول التعديل للمستخدمين غير المصرح لهم
-                const editInputs = document.querySelectorAll('.edit-input');
-                if (!this.hasPermission('write')) {
-                    editInputs.forEach(input => {
-                        input.disabled = true;
-                    });
-                }
-            }
-
-            getRoleLabel(role) {
-                const labels = {
-                    admin: 'مدير',
-                    doctor: 'طبيب',
-                    nurse: 'ممرضة',
-                    technician: 'فني',
-                    guest: 'زائر'
-                };
-                return labels[role] || role;
-            }
-        }
-
         // =============== تهيئة الأنظمة ===============
         const patternRecognition = new MedicalPatternRecognition();
         const notificationSystem = new AdvancedNotificationSystem();
         const visualizationSystem = new AdvancedVisualizationSystem();
         const dataExportImport = new DataExportImportSystem();
-        const authSystem = new AdvancedAuthSystem();
 
         // =============== الاتصال بالأجهزة ===============
         let deviceConnected = false;
@@ -3038,7 +2796,6 @@ const firebaseConfig = {
         // =============== بدء التشغيل ===============
         window.addEventListener('load', async () => {
             // تهيئة الأنظمة
-            await authSystem.initialize();
             notificationSystem.loadSettings();
             visualizationSystem.initializeCharts();
             
