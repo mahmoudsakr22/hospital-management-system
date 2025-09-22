@@ -25,6 +25,7 @@
         .badge-warn { @apply bg-yellow-100 text-yellow-700; }
         .badge-bad { @apply bg-red-100 text-red-700; }
         .badge-critical { @apply bg-red-800 text-white; }
+        .badge-high { @apply bg-purple-600 text-white; }
         canvas { image-rendering: pixelated; }
         
         /* Dark Mode Styles */
@@ -65,6 +66,15 @@
         @keyframes valueChange {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); color: #3b82f6; }
+            100% { transform: scale(1); }
+        }
+        
+        .risk-pulse {
+            animation: riskPulse 2s infinite;
+        }
+        @keyframes riskPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
         
@@ -139,12 +149,23 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .score-card.high-risk {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: riskPulse 2s infinite;
+        }
+        
+        .score-card.medium-risk {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         }
         
         .score-value {
             font-size: 3rem;
             font-weight: 800;
             margin: 10px 0;
+            transition: all 0.3s ease;
         }
         
         .score-label {
@@ -176,6 +197,7 @@
             padding: 15px;
             margin: 10px 0;
             border-radius: 8px;
+            transition: all 0.3s ease;
         }
         
         .protocol-card.critical {
@@ -188,12 +210,18 @@
             background: #fffbeb;
         }
         
+        .protocol-card.active {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
         .drug-interaction {
             background: #fee2e2;
             border: 1px solid #fca5a5;
             border-radius: 8px;
             padding: 10px;
             margin: 5px 0;
+            animation: slideIn 0.3s ease-out;
         }
         
         .fhir-badge {
@@ -203,6 +231,99 @@
             border-radius: 4px;
             font-size: 0.7rem;
             margin-left: 5px;
+        }
+        
+        .vital-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+        
+        .vital-indicator.normal {
+            background-color: #10b981;
+        }
+        
+        .vital-indicator.warning {
+            background-color: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+        
+        .vital-indicator.critical {
+            background-color: #ef4444;
+            animation: pulse 0.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .analysis-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #d1d5db;
+        }
+        
+        .analysis-card.critical {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: #fca5a5;
+        }
+        
+        .analysis-card.warning {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-color: #fcd34d;
+        }
+        
+        .trend-arrow {
+            display: inline-block;
+            font-size: 1.2rem;
+            margin-left: 5px;
+        }
+        
+        .trend-up {
+            color: #ef4444;
+        }
+        
+        .trend-down {
+            color: #10b981;
+        }
+        
+        .trend-stable {
+            color: #6b7280;
+        }
+        
+        .data-stream {
+            background: #1f2937;
+            color: #10b981;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .ml-confidence {
+            display: inline-block;
+            width: 60px;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            margin-left: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ml-confidence-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 4px;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
@@ -257,7 +378,7 @@
                 </div>
                 <div class="text-center bg-slate-50 rounded-xl p-3">
                     <div class="label">مؤشر الخطر (0–100)</div>
-                    <div id="riskScore" class="metric">0</div>
+                    <div id="riskScore" class="metric risk-pulse">0</div>
                 </div>
                 <div class="text-center bg-slate-50 rounded-xl p-3">
                     <div class="label">اتصال</div>
@@ -268,20 +389,35 @@
 
         <!-- Medical Scores Section -->
         <section class="grid md:grid-cols-3 gap-4">
-            <div class="score-card">
+            <div class="score-card" id="news2Card">
                 <div class="score-label">NEWS2 Score</div>
                 <div id="news2Score" class="score-value">0</div>
                 <div id="news2Level" class="text-sm">منخفض الخطورة</div>
+                <div id="news2Indicators" class="mt-2 text-xs opacity-75">
+                    <div>HR: <span id="news2HR">0</span></div>
+                    <div>SpO₂: <span id="news2SpO2">0</span></div>
+                    <div>BP: <span id="news2BP">0</span></div>
+                </div>
             </div>
-            <div class="score-card">
+            <div class="score-card" id="mewsCard">
                 <div class="score-label">MEWS Score</div>
                 <div id="mewsScore" class="score-value">0</div>
                 <div id="mewsLevel" class="text-sm">مستقر</div>
+                <div id="mewsIndicators" class="mt-2 text-xs opacity-75">
+                    <div>HR: <span id="mewsHR">0</span></div>
+                    <div>BP: <span id="mewsBP">0</span></div>
+                    <div>Temp: <span id="mewsTemp">0</span></div>
+                </div>
             </div>
-            <div class="score-card">
+            <div class="score-card" id="sofaCard">
                 <div class="score-label">SOFA Score</div>
                 <div id="sofaScore" class="score-value">0</div>
                 <div id="sofaLevel" class="text-sm">لا يوجد فشل أعضاء</div>
+                <div id="sofaIndicators" class="mt-2 text-xs opacity-75">
+                    <div>Resp: <span id="sofaResp">0</span></div>
+                    <div>CV: <span id="sofaCV">0</span></div>
+                    <div>Renal: <span id="sofaRenal">0</span></div>
+                </div>
             </div>
         </section>
 
@@ -289,28 +425,48 @@
         <section class="grid md:grid-cols-5 gap-4">
             <div class="card">
                 <div class="label">معدل ضربات القلب (bpm)</div>
-                <div id="hrVal" class="metric">—</div>
+                <div class="flex items-center">
+                    <div id="hrVal" class="metric">—</div>
+                    <span id="hrIndicator" class="vital-indicator normal"></span>
+                </div>
                 <div id="hrState" class="text-xs mt-1"></div>
+                <div id="hrTrend" class="text-xs text-slate-500"></div>
             </div>
             <div class="card">
                 <div class="label">الضغط (SYS/DIA mmHg)</div>
-                <div id="bpVal" class="metric">—</div>
+                <div class="flex items-center">
+                    <div id="bpVal" class="metric">—</div>
+                    <span id="bpIndicator" class="vital-indicator normal"></span>
+                </div>
                 <div id="bpState" class="text-xs mt-1"></div>
+                <div id="bpTrend" class="text-xs text-slate-500"></div>
             </div>
             <div class="card">
                 <div class="label">الأكسجين SpO₂ (%)</div>
-                <div id="spo2Val" class="metric">—</div>
+                <div class="flex items-center">
+                    <div id="spo2Val" class="metric">—</div>
+                    <span id="spo2Indicator" class="vital-indicator normal"></span>
+                </div>
                 <div id="spo2State" class="text-xs mt-1"></div>
+                <div id="spo2Trend" class="text-xs text-slate-500"></div>
             </div>
             <div class="card">
                 <div class="label">معدل التنفس (rpm)</div>
-                <div id="rrVal" class="metric">—</div>
+                <div class="flex items-center">
+                    <div id="rrVal" class="metric">—</div>
+                    <span id="rrIndicator" class="vital-indicator normal"></span>
+                </div>
                 <div id="rrState" class="text-xs mt-1"></div>
+                <div id="rrTrend" class="text-xs text-slate-500"></div>
             </div>
             <div class="card">
                 <div class="label">الحرارة (°C)</div>
-                <div id="tempVal" class="metric">—</div>
+                <div class="flex items-center">
+                    <div id="tempVal" class="metric">—</div>
+                    <span id="tempIndicator" class="vital-indicator normal"></span>
+                </div>
                 <div id="tempState" class="text-xs mt-1"></div>
+                <div id="tempTrend" class="text-xs text-slate-500"></div>
             </div>
         </section>
 
@@ -375,6 +531,19 @@
             </div>
         </section>
 
+        <!-- Real-time Data Stream -->
+        <section class="card">
+            <div class="flex items-center justify-between">
+                <div class="font-bold">تيار البيانات المباشر</div>
+                <div class="text-xs text-slate-400">
+                    <span id="dataRate">0</span> قراءة/ثانية
+                </div>
+            </div>
+            <div id="dataStream" class="data-stream mt-3">
+                <div>في انتظار البيانات...</div>
+            </div>
+        </section>
+
         <!-- Sepsis Protocol Section -->
         <section id="sepsis-container" class="card">
             <div class="flex items-center justify-between">
@@ -409,7 +578,7 @@
             </div>
             <div id="sepsisActions" class="mt-3 p-3 bg-yellow-50 rounded-lg">
                 <div class="font-bold text-sm">الإجراءات المطلوبة:</div>
-                <div class="text-xs mt-1">جاري حساب الإجراءات...</div>
+                <div class="text-sm mt-1">جاري حساب الإجراءات...</div>
             </div>
         </section>
 
@@ -459,38 +628,50 @@
 
         <!-- AI Diagnostics Section -->
         <section id="diagnosis-container" class="card">
-            <div class="font-bold mb-2">التشخيص الذكي</div>
-            <div class="text-green-600">لا توجد حالات تستدعي القلق</div>
+            <div class="font-bold mb-2">التشخيص الذكي المتقدم</div>
+            <div id="diagnosisContent" class="space-y-3">
+                <div class="text-green-600">لا توجد حالات تستدعي القلق</div>
+            </div>
         </section>
 
         <!-- Trends and Predictions -->
         <section id="trends-container" class="card">
-            <div class="font-bold mb-2">التنبؤات</div>
-            <div class="text-gray-500">بيانات غير كافية للتنبؤ</div>
+            <div class="font-bold mb-2">التنبؤات الديناميكية</div>
+            <div id="trendsContent" class="space-y-3">
+                <div class="text-gray-500">بيانات غير كافية للتنبؤ</div>
+            </div>
         </section>
 
         <!-- ML Recommendations -->
         <section id="ml-container" class="card">
             <div class="font-bold mb-2">توصيات الذكاء الاصطناعي</div>
-            <div>يتم تحميل التحليل...</div>
+            <div id="mlContent" class="space-y-3">
+                <div>يتم تحميل التحليل...</div>
+            </div>
         </section>
 
         <!-- Medical Patterns -->
         <section id="patterns-container" class="card">
             <div class="font-bold mb-2">أنماط طبية مكتشفة</div>
-            <div class="text-gray-500">لا توجد أنماط مكتشفة</div>
+            <div id="patternsContent" class="space-y-3">
+                <div class="text-gray-500">لا توجد أنماط مكتشفة</div>
+            </div>
         </section>
 
         <!-- Changes Tracking -->
         <section id="changes-container" class="card">
             <div class="font-bold mb-2">تغييرات مهمة</div>
-            <div class="text-gray-500">لا توجد تغييرات مهمة</div>
+            <div id="changesContent" class="space-y-3">
+                <div class="text-gray-500">لا توجد تغييرات مهمة</div>
+            </div>
         </section>
 
         <!-- Trend Patterns -->
         <section id="trend-patterns-container" class="card">
             <div class="font-bold mb-2">أنماط الاتجاه</div>
-            <div class="text-gray-500">لا توجد أنماط اتجاه</div>
+            <div id="trendPatternsContent" class="space-y-3">
+                <div class="text-gray-500">لا توجد أنماط اتجاه</div>
+            </div>
         </section>
 
         <!-- Control Section -->
@@ -710,3083 +891,123 @@
         $('patientIdBadge').textContent = 'ID: ' + patientId;
         $('backLink').href = `patient.html?id=${encodeURIComponent(patientId)}`;
         
-        // =============== تحميل بيانات المريض ===============
-        async function loadPatientHeader() {
-            if (!fb.enabled) return;
-            
-            try {
-                const snap = await fb.db.ref(`/patients/emergency/${patientId}`).get();
-                
-                if (!snap.exists()) {
-                    const regularSnap = await fb.db.ref(`/patients/${patientId}/basic`).get();
-                    if (!regularSnap.exists()) return;
-                    const basic = regularSnap.val();
-                    updatePatientDisplay(basic);
-                    return;
-                }
-                
-                const basic = snap.val();
-                updatePatientDisplay(basic);
-                
-            } catch (error) {
-                console.error("خطأ في جلب بيانات المريض:", error);
-            }
-        }
-        
-        function updatePatientDisplay(basic) {
-            $('patientName').textContent = basic.name || '—';
-            
-            if (basic.age) {
-                $('patientAge').textContent = basic.age;
-                document.querySelector('.text-2xl.font-bold .text-lg').style.display = 'inline';
-            } else {
-                document.querySelector('.text-2xl.font-bold .text-lg').style.display = 'none';
-            }
-            
-            $('patientAddress').textContent = basic.address || '—';
-            $('patientDept').textContent = basic.serviceType || basic.department || '—';
-            $('patientDiseases').textContent = basic.diseases || '—';
-            if (basic.diseases && basic.diseases !== "لا يوجد") {
-                $('patientDiseases').innerHTML = `<span class="text-red-600">⚠️ ${basic.diseases}</span>`;
-            }
-            
-            if (basic.gender === 'male') {
-                $('genderIcon').textContent = '👨';
-            } else if (basic.gender === 'female') {
-                $('genderIcon').textContent = '👩';
-            } else {
-                $('genderIcon').textContent = '👤';
-            }
-            
-            $('bloodTypeBadge').textContent = basic.bloodType || '—';
-            
-            if (basic.callTime) {
-                const callDate = new Date(basic.callTime);
-                $('callTime').textContent = callDate.toLocaleString('ar-EG');
-            }
-            
-            if (basic.lastCheckup) {
-                const checkupDate = new Date(basic.lastCheckup);
-                $('lastCheckup').textContent = checkupDate.toLocaleDateString('ar-EG');
-            }
-            
-            if (basic.status) {
-                if (!$('patientStatus')) {
-                    const statusDiv = document.createElement('div');
-                    statusDiv.id = 'patientStatus';
-                    statusDiv.className = 'text-xs mt-1';
-                    document.querySelector('.text-slate-500').appendChild(statusDiv);
-                }
-                
-                let statusClass = '';
-                let statusText = basic.status;
-                
-                switch(basic.status.toLowerCase()) {
-                    case 'deteriorating':
-                        statusClass = 'text-red-600 font-bold';
-                        statusText = 'في تدهور ⚠️';
-                        break;
-                    case 'stable':
-                        statusClass = 'text-green-600';
-                        statusText = 'مستقر ✅';
-                        break;
-                    case 'critical':
-                        statusClass = 'text-red-800 font-bold';
-                        statusText = 'حرج 🚨';
-                        break;
-                    default:
-                        statusClass = 'text-yellow-600';
-                }
-                
-                $('patientStatus').innerHTML = `<span class="${statusClass}">الحالة: ${statusText}</span>`;
-            }
-        }
-        
-        loadPatientHeader();
-        
-        // =============== حساب المقاييس الطبية العالمية ===============
-        function calculateNEWS2(vitals) {
-            let score = 0;
-            
-            // Respiratory rate
-            if (vitals.rr < 9) score += 3;
-            else if (vitals.rr >= 9 && vitals.rr <= 11) score += 1;
-            else if (vitals.rr >= 12 && vitals.rr <= 20) score += 0;
-            else if (vitals.rr >= 21 && vitals.rr <= 24) score += 2;
-            else score += 3;
-            
-            // Oxygen saturation
-            if (vitals.spo2 <= 91) score += 3;
-            else if (vitals.spo2 >= 92 && vitals.spo2 <= 93) score += 2;
-            else if (vitals.spo2 >= 94 && vitals.spo2 <= 95) score += 1;
-            else score += 0;
-            
-            // Supplemental oxygen
-            // Assuming no supplemental oxygen for now
-            
-            // Temperature
-            if (vitals.temp < 35.0) score += 3;
-            else if (vitals.temp >= 35.1 && vitals.temp <= 36.0) score += 1;
-            else if (vitals.temp >= 36.1 && vitals.temp <= 38.0) score += 0;
-            else if (vitals.temp >= 38.1 && vitals.temp <= 39.0) score += 1;
-            else score += 2;
-            
-            // Systolic blood pressure
-            if (vitals.sys < 90) score += 3;
-            else if (vitals.sys >= 90 && vitals.sys <= 99) score += 2;
-            else if (vitals.sys >= 100 && vitals.sys <= 109) score += 1;
-            else if (vitals.sys >= 110 && vitals.sys <= 219) score += 0;
-            else score += 3;
-            
-            // Heart rate
-            if (vitals.hr < 40) score += 3;
-            else if (vitals.hr >= 40 && vitals.hr <= 50) score += 1;
-            else if (vitals.hr >= 51 && vitals.hr <= 90) score += 0;
-            else if (vitals.hr >= 91 && vitals.hr <= 110) score += 1;
-            else if (vitals.hr >= 111 && vitals.hr <= 130) score += 2;
-            else score += 3;
-            
-            return score;
-        }
-        
-        function calculateMEWS(vitals) {
-            let score = 0;
-            
-            // Heart rate
-            if (vitals.hr < 40) score += 2;
-            else if (vitals.hr >= 40 && vitals.hr <= 50) score += 1;
-            else if (vitals.hr >= 51 && vitals.hr <= 100) score += 0;
-            else if (vitals.hr >= 101 && vitals.hr <= 110) score += 1;
-            else if (vitals.hr >= 111 && vitals.hr <= 129) score += 2;
-            else score += 3;
-            
-            // Systolic blood pressure
-            if (vitals.sys < 70) score += 3;
-            else if (vitals.sys >= 70 && vitals.sys <= 80) score += 2;
-            else if (vitals.sys >= 81 && vitals.sys <= 100) score += 1;
-            else if (vitals.sys >= 101 && vitals.sys <= 199) score += 0;
-            else score += 2;
-            
-            // Respiratory rate
-            if (vitals.rr < 9) score += 2;
-            else if (vitals.rr >= 9 && vitals.rr <= 14) score += 0;
-            else if (vitals.rr >= 15 && vitals.rr <= 20) score += 1;
-            else if (vitals.rr >= 21 && vitals.rr <= 29) score += 2;
-            else score += 3;
-            
-            // Temperature
-            if (vitals.temp < 35.0) score += 2;
-            else if (vitals.temp >= 35.0 && vitals.temp <= 38.4) score += 0;
-            else score += 2;
-            
-            // Level of consciousness (assuming normal for now)
-            // score += 0 if alert, 1 if responds to voice, 2 if responds to pain, 3 if unresponsive
-            
-            return score;
-        }
-        
-        function calculateSOFA(vitals) {
-            let score = 0;
-            
-            // Respiratory (PaO2/FiO2 ratio) - assuming room air (FiO2 = 0.21)
-            const pafi = vitals.pao2 ? (vitals.pao2 / 0.21) : 0;
-            if (pafi >= 400) score += 0;
-            else if (pafi < 400 && pafi >= 300) score += 1;
-            else if (pafi < 300 && pafi >= 200) score += 2;
-            else if (pafi < 200 && pafi >= 100) score += 3;
-            else score += 4;
-            
-            // Coagulation (platelets) - assuming normal for now
-            // score based on platelet count
-            
-            // Liver (bilirubin) - assuming normal for now
-            // score based on bilirubin levels
-            
-            // Cardiovascular (MAP or vasopressors)
-            const map = (vitals.sys + 2 * vitals.dia) / 3;
-            if (map >= 70) score += 0;
-            else if (map < 70) score += 1;
-            // Additional scoring for vasopressor use
-            
-            // CNS (GCS) - assuming normal for now
-            // score based on Glasgow Coma Scale
-            
-            // Renal (creatinine or urine output) - assuming normal for now
-            // score based on creatinine levels
-            
-            return score;
-        }
-        
-        function updateMedicalScores(vitals) {
-            const news2 = calculateNEWS2(vitals);
-            const mews = calculateMEWS(vitals);
-            const sofa = calculateSOFA(vitals);
-            
-            // Update NEWS2
-            $('news2Score').textContent = news2;
-            let news2Level = 'منخفض الخطورة';
-            let news2Class = 'text-green-600';
-            if (news2 >= 5) {
-                news2Level = 'عالي الخطورة';
-                news2Class = 'text-red-600';
-            } else if (news2 >= 3) {
-                news2Level = 'متوسط الخطورة';
-                news2Class = 'text-yellow-600';
-            }
-            $('news2Level').textContent = news2Level;
-            $('news2Level').className = news2Class;
-            
-            // Update MEWS
-            $('mewsScore').textContent = mews;
-            let mewsLevel = 'مستقر';
-            let mewsClass = 'text-green-600';
-            if (mews >= 5) {
-                mewsLevel = 'عالي الخطورة';
-                mewsClass = 'text-red-600';
-            } else if (mews >= 3) {
-                mewsLevel = 'متوسط الخطورة';
-                mewsClass = 'text-yellow-600';
-            }
-            $('mewsLevel').textContent = mewsLevel;
-            $('mewsLevel').className = mewsClass;
-            
-            // Update SOFA
-            $('sofaScore').textContent = sofa;
-            let sofaLevel = 'لا يوجد فشل أعضاء';
-            let sofaClass = 'text-green-600';
-            if (sofa >= 12) {
-                sofaLevel = 'فشل أعضاء حاد';
-                sofaClass = 'text-red-600';
-            } else if (sofa >= 6) {
-                sofaLevel = 'فشل أعضاء متوسط';
-                sofaClass = 'text-yellow-600';
-            } else if (sofa >= 2) {
-                sofaLevel = 'فشل أعضاء خفيف';
-                sofaClass = 'text-orange-600';
-            }
-            $('sofaLevel').textContent = sofaLevel;
-            $('sofaLevel').className = sofaClass;
-        }
-        
-        // =============== نظام الإنتان (SEP-1) ===============
-        function assessSepsis(vitals) {
-            const criteria = {
-                systemic: false,
-                response: false,
-                organ: false
-            };
-            
-            // Systemic inflammatory response
-            if (vitals.temp > 38 || vitals.temp < 36) criteria.systemic = true;
-            if (vitals.hr > 90) criteria.systemic = true;
-            if (vitals.rr > 20) criteria.systemic = true;
-            // WBC criteria would need lab data
-            
-            // Response criteria
-            if (vitals.sys < 90) criteria.response = true;
-            // Lactate criteria would need lab data
-            
-            // Organ dysfunction
-            if (vitals.creatinine > 2.0) criteria.organ = true;
-            // Other organ dysfunction criteria
-            
-            const sepsisScore = (criteria.systemic ? 1 : 0) + (criteria.response ? 1 : 0) + (criteria.organ ? 1 : 0);
-            
-            return {
-                score: sepsisScore,
-                criteria,
-                status: sepsisScore >= 2 ? 'اشتباه في الإنتان' : 'لا يوجد اشتباه',
-                actions: sepsisScore >= 2 ? getSepsisActions(vitals) : []
-            };
-        }
-        
-        function getSepsisActions(vitals) {
-            const actions = [];
-            
-            // Hour 1 bundle
-            actions.push('قياس لاكتات الدم');
-            actions.push('الحصول على مزارع الدم');
-            actions.push('إعطاء مضادات حيوية واسعة الطيف');
-            actions.push('إعطاء سوائل وريدية (30 mL/kg)');
-            
-            // Additional actions based on condition
-            if (vitals.sys < 90) {
-                actions.push('مراقبة ضغط الدم بشكل مستمر');
-                actions.push('إعداد vasopressors إذا لزم الأمر');
-            }
-            
-            if (vitals.spo2 < 90) {
-                actions.push('إعطاء أكسجين إضافي');
-                actions.push('مراقبة تشبع الأكسجين');
-            }
-            
-            return actions;
-        }
-        
-        function updateSepsisDisplay(vitals) {
-            const sepsis = assessSepsis(vitals);
-            
-            $('sepsisStatus').textContent = sepsis.status;
-            if (sepsis.score >= 2) {
-                $('sepsisStatus').className = 'badge badge-critical';
-            } else {
-                $('sepsisStatus').className = 'badge badge-ok';
-            }
-            
-            // Update criteria display
-            const criteriaElements = document.querySelectorAll('#sepsisCriteria > div');
-            criteriaElements[0].style.backgroundColor = sepsis.criteria.systemic ? '#fef2f2' : '#f8fafc';
-            criteriaElements[1].style.backgroundColor = sepsis.criteria.response ? '#fef2f2' : '#f8fafc';
-            criteriaElements[2].style.backgroundColor = sepsis.criteria.organ ? '#fef2f2' : '#f8fafc';
-            
-            // Update actions
-            const actionsHtml = sepsis.actions.length > 0 ? 
-                sepsis.actions.map(action => `<div class="text-sm">• ${action}</div>`).join('') :
-                '<div class="text-sm">لا توجد إجراءات مطلوبة</div>';
-            
-            $('sepsisActions').innerHTML = `
-                <div class="font-bold text-sm">الإجراءات المطلوبة:</div>
-                ${actionsHtml}
-            `;
-            
-            // Alert if sepsis suspected
-            if (sepsis.score >= 2 && $('autoAlerts').checked) {
-                notificationSystem.sendNotification('critical', 'اشتباه في الإنتان', 
-                    `تم اكتشاف ${sepsis.score} من 3 معايير الإنتان. الإجراءات المطلوبة: ${sepsis.actions.join(', ')}`);
-            }
-        }
-        
-        // =============== نظام تفاعلات الأدوية ===============
-        let patientDrugs = [];
-        
-        function addDrug(drugName) {
-            patientDrugs.push({
-                name: drugName,
-                addedAt: new Date().toISOString()
-            });
-            updateDrugList();
-            checkDrugInteractions();
-        }
-        
-        function updateDrugList() {
-            const drugListHtml = patientDrugs.length > 0 ?
-                patientDrugs.map(drug => `
-                    <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
-                        <span>${drug.name}</span>
-                        <button onclick="removeDrug('${drug.name}')" class="text-red-600 hover:text-red-800">حذف</button>
-                    </div>
-                `).join('') :
-                '<div class="text-sm text-slate-500">لم تتم إضافة أي أدوية بعد</div>';
-            
-            $('drugList').innerHTML = drugListHtml;
-        }
-        
-        function removeDrug(drugName) {
-            patientDrugs = patientDrugs.filter(drug => drug.name !== drugName);
-            updateDrugList();
-            checkDrugInteractions();
-        }
-        
-        function checkDrugInteractions() {
-            const interactions = [];
-            
-            // Common drug interactions database
-            const interactionDB = {
-                'Warfarin': ['NSAIDs', 'Antibiotics', 'Antifungals'],
-                'Digoxin': ['Diuretics', 'Amiodarone', 'Verapamil'],
-                'Insulin': ['Beta-blockers', 'Steroids', 'Thiazides'],
-                'ACE Inhibitors': ['Potassium supplements', 'NSAIDs', 'Diuretics'],
-                'Statins': ['Fibrates', 'Antibiotics', 'Antifungals']
-            };
-            
-            patientDrugs.forEach(drug => {
-                if (interactionDB[drug.name]) {
-                    interactionDB[drug.name].forEach(interactingDrug => {
-                        if (patientDrugs.some(d => d.name === interactingDrug)) {
-                            interactions.push({
-                                drug1: drug.name,
-                                drug2: interactingDrug,
-                                severity: 'high',
-                                effect: 'زيادة خطر النزيف/تأثير القلب'
-                            });
-                        }
-                    });
-                }
-            });
-            
-            displayDrugInteractions(interactions);
-        }
-        
-        function displayDrugInteractions(interactions) {
-            const container = $('drugInteractions');
-            
-            if (interactions.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            const interactionsHtml = interactions.map(interaction => `
-                <div class="drug-interaction">
-                    <div class="font-bold text-red-600">تفاعل دوائي خطير</div>
-                    <div class="text-sm">${interaction.drug1} + ${interaction.drug2}</div>
-                    <div class="text-xs">التأثير: ${interaction.effect}</div>
-                </div>
-            `).join('');
-            
-            container.innerHTML = interactionsHtml;
-            
-            // Alert for dangerous interactions
-            if (interactions.length > 0 && $('autoAlerts').checked) {
-                notificationSystem.sendNotification('critical', 'تفاعلات دوائية خطيرة', 
-                    `تم اكتشاف ${interactions.length} تفاعل دوائي خطير. راجع الطبيب فوراً.`);
-            }
-        }
-        
-        // =============== نظام الإنذار المبكر المتقدم ===============
-        function calculateRateOfChange(vitals) {
-            if (history.length < 2) return null;
-            
-            const current = vitals;
-            const previous = history[history.length - 2];
-            
-            const timeDiff = (new Date(current.timestamp) - new Date(previous.timestamp)) / 1000 / 60; // minutes
-            
-            return {
-                hr: (current.hr - previous.hr) / timeDiff,
-                spo2: (current.spo2 - previous.spo2) / timeDiff,
-                sys: (current.sys - previous.sys) / timeDiff,
-                dia: (current.dia - previous.dia) / timeDiff
-            };
-        }
-        
-        function updateRateOfChangeDisplay(vitals) {
-            const rateOfChange = calculateRateOfChange(vitals);
-            
-            if (!rateOfChange) return;
-            
-            $('hrChange').textContent = `${rateOfChange.hr > 0 ? '+' : ''}${rateOfChange.hr.toFixed(1)} bpm/min`;
-            $('spo2Change').textContent = `${rateOfChange.spo2 > 0 ? '+' : ''}${rateOfChange.spo2.toFixed(1)} %/min`;
-            $('bpChange').textContent = `${rateOfChange.sys > 0 ? '+' : ''}${rateOfChange.sys.toFixed(1)}/${rateOfChange.dia > 0 ? '+' : ''}${rateOfChange.dia.toFixed(1)} mmHg/min`;
-            
-            // Color coding for significant changes
-            if (Math.abs(rateOfChange.hr) > 2) $('hrChange').className = 'text-red-600';
-            if (Math.abs(rateOfChange.spo2) > 1) $('spo2Change').className = 'text-red-600';
-            if (Math.abs(rateOfChange.sys) > 3) $('bpChange').className = 'text-red-600';
-        }
-        
-        function predictDeterioration(vitals) {
-            if (history.length < 10) return null;
-            
-            // Simple ML-based prediction using recent trends
-            const recentData = history.slice(-10);
-            
-            // Calculate trends
-            const hrTrend = calculateTrend(recentData.map(d => d.hr));
-            const spo2Trend = calculateTrend(recentData.map(d => d.spo2));
-            const bpTrend = calculateTrend(recentData.map(d => d.sys));
-            
-            // Simple risk assessment
-            let riskScore = 0;
-            let riskFactors = [];
-            
-            if (hrTrend > 1.5) {
-                riskScore += 30;
-                riskFactors.push('زيادة سريعة في معدل ضربات القلب');
-            }
-            
-            if (spo2Trend < -0.5) {
-                riskScore += 40;
-                riskFactors.push('انخفاض مستمر في تشبع الأكسجين');
-            }
-            
-            if (bpTrend > 2) {
-                riskScore += 20;
-                riskFactors.push('زيادة سريعة في ضغط الدم');
-            }
-            
-            if (vitals.spo2 < 92) {
-                riskScore += 25;
-                riskFactors.push('انخفاض حاد في تشبع الأكسجين');
-            }
-            
-            if (vitals.sys > 160 || vitals.sys < 90) {
-                riskScore += 15;
-                riskFactors.push('ضغط دم غير طبيعي');
-            }
-            
-            return {
-                riskScore,
-                riskLevel: riskScore > 60 ? 'عالي' : riskScore > 30 ? 'متوسط' : 'منخفض',
-                riskFactors,
-                timeFrame: '30-60 دقيقة',
-                recommendations: getDeteriorationRecommendations(riskScore, riskFactors)
-            };
-        }
-        
-        function getDeteriorationRecommendations(riskScore, riskFactors) {
-            const recommendations = [];
-            
-            if (riskScore > 60) {
-                recommendations.push('استدعاء الطبيب فوراً');
-                recommendations.push('إعداد معدات الطوارئ');
-                recommendations.push('مراقبة مستمرة للعلامات الحيوية');
-            } else if (riskScore > 30) {
-                recommendations.push('إبلاغ الطبيب');
-                recommendations.push('زيادة تكرار المراقبة');
-                recommendations.push('تجهيز الأكسجين الإضافي');
-            } else {
-                recommendations.push('مراقبة منتظمة');
-                recommendations.push('تسجيل الملاحظات');
-            }
-            
-            // Specific recommendations based on risk factors
-            if (riskFactors.includes('انخفاض مستمر في تشبع الأكسجين')) {
-                recommendations.push('تقييم وظائف الرئة');
-            }
-            
-            if (riskFactors.includes('زيادة سريعة في معدل ضربات القلب')) {
-                recommendations.push('تخطيط القلب الكهربائي');
-            }
-            
-            return recommendations;
-        }
-        
-        function updateDeteriorationPrediction(vitals) {
-            const prediction = predictDeterioration(vitals);
-            
-            if (!prediction) {
-                $('deteriorationPrediction').innerHTML = '<div class="text-sm">بيانات غير كافية للتنبؤ</div>';
-                return;
-            }
-            
-            const riskClass = prediction.riskLevel === 'عالي' ? 'text-red-600' : 
-                              prediction.riskLevel === 'متوسط' ? 'text-yellow-600' : 'text-green-600';
-            
-            $('deteriorationPrediction').innerHTML = `
-                <div class="font-bold ${riskClass}">مستوى الخطورة: ${prediction.riskLevel}</div>
-                <div class="text-sm mt-1">درجة الخطورة: ${prediction.riskScore}/100</div>
-                <div class="text-sm mt-1">الإطار الزمني: ${prediction.timeFrame}</div>
-                <div class="text-sm mt-2">عوامل الخطر:</div>
-                <ul class="text-xs list-disc list-inside">
-                    ${prediction.riskFactors.map(factor => `<li>${factor}</li>`).join('')}
-                </ul>
-                <div class="text-sm mt-2">التوصيات:</div>
-                <ul class="text-xs list-disc list-inside">
-                    ${prediction.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                </ul>
-            `;
-            
-            // Alert for high risk
-            if (prediction.riskLevel === 'عالي' && $('autoAlerts').checked) {
-                notificationSystem.sendNotification('critical', 'خطر تدهور وشيك', 
-                    `درجة الخطورة: ${prediction.riskScore}/100. العوامل: ${prediction.riskFactors.join(', ')}`);
-            }
-        }
-        
-        // =============== تحليل ECG المتقدم ===============
-        function analyzeECG(vitals) {
-            // Simulated ECG analysis
-            const ecgAnalysis = {
-                rhythm: 'Sinus Rhythm',
-                rate: vitals.hr,
-                prInterval: 160,
-                qrsDuration: 80,
-                qtInterval: 400,
-                axis: 'Normal',
-                abnormalities: []
-            };
-            
-            // Detect abnormalities
-            if (vitals.hr > 100) {
-                ecgAnalysis.abnormalities.push('Tachycardia');
-            } else if (vitals.hr < 60) {
-                ecgAnalysis.abnormalities.push('Bradycardia');
-            }
-            
-            if (vitals.hr > 120 && Math.random() > 0.7) {
-                ecgAnalysis.rhythm = 'Atrial Fibrillation';
-                ecgAnalysis.abnormalities.push('Irregular Rhythm');
-            }
-            
-            return ecgAnalysis;
-        }
-        
-        function updateECGAnalysis(vitals) {
-            const analysis = analyzeECG(vitals);
-            
-            const abnormalitiesHtml = analysis.abnormalities.length > 0 ?
-                analysis.abnormalities.map(ab => `<div class="text-red-600">⚠️ ${ab}</div>`).join('') :
-                '<div class="text-green-600">✅ لا يوجد شذوذ</div>';
-            
-            $('ecgAnalysis').innerHTML = `
-                <div class="font-bold">تحليل ECG:</div>
-                <div class="text-sm">الإيقاع: ${analysis.rhythm}</div>
-                <div class="text-sm">المعدل: ${analysis.rate} bpm</div>
-                <div class="text-sm">المحور: ${analysis.axis}</div>
-                <div class="mt-2">${abnormalitiesHtml}</div>
-            `;
-        }
-        
-        // =============== تحليل الغازات الشريانية ===============
-        function analyzeABG(abgValues) {
-            const analysis = {
-                acidBaseStatus: 'Normal',
-                oxygenation: 'Normal',
-                ventilation: 'Normal',
-                compensation: 'None',
-                abnormalities: []
-            };
-            
-            // Acid-Base analysis
-            if (abgValues.ph < 7.35) {
-                analysis.acidBaseStatus = 'Acidosis';
-                analysis.abnormalities.push('Acidemia');
-            } else if (abgValues.ph > 7.45) {
-                analysis.acidBaseStatus = 'Alkalosis';
-                analysis.abnormalities.push('Alkalemia');
-            }
-            
-            // Oxygenation
-            if (abgValues.pao2 < 80) {
-                analysis.oxygenation = 'Hypoxemia';
-                analysis.abnormalities.push('Low PaO2');
-            }
-            
-            // Ventilation
-            if (abgValues.paco2 < 35) {
-                analysis.ventilation = 'Hyperventilation';
-                analysis.abnormalities.push('Low PaCO2');
-            } else if (abgValues.paco2 > 45) {
-                analysis.ventilation = 'Hypoventilation';
-                analysis.abnormalities.push('High PaCO2');
-            }
-            
-            // Compensation
-            if (analysis.acidBaseStatus === 'Acidosis' && abgValues.hco3 < 22) {
-                analysis.compensation = 'Metabolic';
-            } else if (analysis.acidBaseStatus === 'Alkalosis' && abgValues.hco3 > 26) {
-                analysis.compensation = 'Metabolic';
-            }
-            
-            return analysis;
-        }
-        
-        function updateABGDisplay(vitals) {
-            // Simulated ABG values
-            const abgValues = {
-                ph: 7.35 + (Math.random() - 0.5) * 0.1,
-                paco2: 40 + (Math.random() - 0.5) * 10,
-                pao2: 95 + (Math.random() - 0.5) * 20,
-                hco3: 24 + (Math.random() - 0.5) * 4
-            };
-            
-            // Update display
-            $('phVal').textContent = fmt(abgValues.ph, 2);
-            $('paco2Val').textContent = fmt(abgValues.paco2, 0);
-            $('pao2Val').textContent = fmt(abgValues.pao2, 0);
-            $('hco3Val').textContent = fmt(abgValues.hco3, 1);
-            
-            // Analyze and display results
-            const analysis = analyzeABG(abgValues);
-            
-            const abnormalitiesHtml = analysis.abnormalities.length > 0 ?
-                analysis.abnormalities.map(ab => `<div class="text-red-600">⚠️ ${ab}</div>`).join('') :
-                '<div class="text-green-600">✅ جميع القيم طبيعية</div>';
-            
-            $('abgAnalysis').innerHTML = `
-                <div class="font-bold">تحليل ABG:</div>
-                <div class="text-sm">الحالة الحمضية-القاعدية: ${analysis.acidBaseStatus}</div>
-                <div class="text-sm">الأكسجين: ${analysis.oxygenation}</div>
-                <div class="text-sm">التهوية: ${analysis.ventilation}</div>
-                <div class="text-sm">التعويض: ${analysis.compensation}</div>
-                <div class="mt-2">${abnormalitiesHtml}</div>
-            `;
-        }
-        
-        // =============== حدود الأمان (قابلة للتعديل) ===============
-        const limits = {
-            hr: { min: 50, max: 120 },
-            sys: { min: 90, max: 140 },
-            dia: { min: 55, max: 90 },
-            spo2: { min: 92, max: 100 },
-            rr: { min: 10, max: 24 },
-            temp: { min: 36.0, max: 37.8 }
-        };
-        
-        function readLimits() {
-            limits.hr.min = +$('hrMin').value; limits.hr.max = +$('hrMax').value;
-            limits.sys.min = +$('sysMin').value; limits.sys.max = +$('sysMax').value;
-            limits.dia.min = +$('diaMin').value; limits.dia.max = +$('diaMax').value;
-            limits.spo2.min = +$('spo2Min').value; limits.spo2.max = +$('spo2Max').value;
-            limits.rr.min = +$('rrMin').value; limits.rr.max = +$('rrMax').value;
-            limits.temp.min = +$('tempMin').value; limits.temp.max = +$('tempMax').value;
-        }
-        
-        // =============== محاكاة قياسات لحظية ===============
-        let timer = null;
-        let t = 0;
-        
-        function randn(mean, sd) {
-            let u = 1 - Math.random();
-            let v = 1 - Math.random();
-            let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-            return mean + z * sd;
-        }
-        
-        function simulateVitals() {
-            const hr = Math.max(30, Math.round(randn(82, 6)));
-            const sys = Math.round(randn(118, 8));
-            const dia = Math.round(randn(76, 6));
-            const spo2 = Math.min(100, Math.max(85, Math.round(randn(97, 1.2))));
-            const rr = Math.max(6, Math.round(randn(16, 2)));
-            const temp = Math.max(34.5, Math.min(40, randn(36.9, 0.2)));
-            
-            return { 
-                hr, 
-                sys, 
-                dia, 
-                spo2, 
-                rr, 
-                temp: +temp.toFixed(1),
-                timestamp: new Date().toISOString(),
-                // Simulated lab values
-                creatinine: 1.0 + Math.random() * 0.5,
-                lactate: 1.0 + Math.random() * 1.5,
-                wbc: 8 + Math.random() * 4
-            };
-        }
-        
-        // =============== ECG رسم ===============
-        const ecgCanvases = ['ecgI', 'ecgII', 'ecgIII', 'ecgAVR'];
-        const ecgContexts = {};
-        
-        ecgCanvases.forEach(canvasId => {
-            const canvas = $(canvasId);
-            const ctx = canvas.getContext('2d');
-            ecgContexts[canvasId] = ctx;
-            
-            function resizeCanvas() {
-                canvas.width = canvas.clientWidth;
-                canvas.height = canvas.clientHeight;
-            }
-            
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-        });
-        
-        function drawECG(ctx, hr, leadType) {
-            const w = ctx.canvas.width;
-            const h = ctx.canvas.height;
-            
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, w, h);
-            
-            // Grid
-            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-            ctx.lineWidth = 1;
-            for (let gx = 0; gx < w; gx += 20) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); }
-            for (let gy = 0; gy < h; gy += 20) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
-            
-            // Waveform
-            ctx.strokeStyle = '#22c55e';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            
-            let bpm = hr || 80;
-            let period = Math.max(0.4, 60 / bpm);
-            let samples = w;
-            
-            for (let i = 0; i < samples; i++) {
-                let x = i;
-                let tt = (t + i / 120);
-                let phase = (tt % period) / period;
-                
-                // Different patterns for different leads
-                let y = 0.02 * Math.sin(2 * Math.PI * phase * 5);
-                
-                if (leadType === 'II') {
-                    // Standard lead II pattern
-                    if (phase > 0.1 && phase < 0.14) y += -0.5;
-                    if (phase >= 0.14 && phase < 0.18) y += 1.4;
-                    if (phase >= 0.18 && phase < 0.22) y += -0.3;
-                    if (phase > 0.28 && phase < 0.36) y += 0.25 * Math.sin(Math.PI * (phase - 0.28) / 0.08);
-                } else if (leadType === 'I') {
-                    // Lead I pattern (inverted)
-                    if (phase > 0.1 && phase < 0.14) y += 0.3;
-                    if (phase >= 0.14 && phase < 0.18) y += -0.8;
-                    if (phase >= 0.18 && phase < 0.22) y += 0.2;
-                } else {
-                    // Other leads
-                    if (phase > 0.1 && phase < 0.14) y += -0.3;
-                    if (phase >= 0.14 && phase < 0.18) y += 0.8;
-                    if (phase >= 0.18 && phase < 0.22) y += -0.2;
-                }
-                
-                y += (Math.random() - 0.5) * 0.02;
-                let yy = h * (0.5 - y * 0.35);
-                
-                if (i === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
-            }
-            
-            ctx.stroke();
-        }
-        
-        function drawAllECGs(hr) {
-            ecgCanvases.forEach((canvasId, index) => {
-                const leadType = canvasId.replace('ecg', '');
-                drawECG(ecgContexts[canvasId], hr, leadType);
-            });
-        }
-        
-        // =============== ذكاء اصطناعي مبسّط (مؤشر خطر + حالة) ===============
-        const history = [];
-        const MAX_HIST = 120;
-        
-        function riskScoreFrom(v) {
-            readLimits();
-            
-            const dev = (val, {min, max}) => val < min ? (min - val) / (min || 1) : (val > max ? (val - max) / (max || 1) : 0);
-            let s = 0;
-            s += 35 * Math.min(2, dev(v.hr, limits.hr));
-            s += 18 * Math.min(2, dev(v.sys, limits.sys));
-            s += 12 * Math.min(2, dev(v.dia, limits.dia));
-            s += 25 * Math.min(2, dev(v.spo2, limits.spo2));
-            s += 5 * Math.min(2, dev(v.rr, limits.rr));
-            s += 5 * Math.min(2, dev(v.temp, limits.temp));
-            
-            const n = history.length;
-            if (n >= 6) {
-                const trendHr = history.slice(-6).map(x=>x.hr);
-                const trendSp = history.slice(-6).map(x=>x.spo2);
-                const dHr = trendHr[5]-trendHr[0];
-                const dSp = trendSp[0]-trendSp[5];
-                if (dHr > 12) s += 10;
-                if (dSp > 3) s += 15;
-            }
-            
-            return Math.max(0, Math.min(100, Math.round(s)));
-        }
-        
-        function setStatus(score, v) {
-            const badge = $('aiStatusBadge');
-            let label = 'مستقرة', cls = 'badge badge-ok';
-            if (score >= 70) { label = 'خطر مرتفع'; cls = 'badge badge-bad'; }
-            else if (score >= 35) { label = 'خطر متوسط'; cls = 'badge badge-warn'; }
-            badge.textContent = label; badge.className = cls + ' inline-block';
-            $('riskScore').textContent = String(score);
-            
-            const within = (v, lim) => (v >= lim.min && v <= lim.max);
-            $('hrState').textContent = within(v.hr, limits.hr) ? 'سليم' : 'خارج النطاق';
-            $('bpState').textContent = within(v.sys, limits.sys) && within(v.dia, limits.dia) ? 'سليم' : 'خارج النطاق';
-            $('spo2State').textContent = within(v.spo2, limits.spo2) ? 'سليم' : 'خارج النطاق';
-            $('rrState').textContent = within(v.rr, limits.rr) ? 'سليم' : 'خارج النطاق';
-            $('tempState').textContent = within(v.temp, limits.temp) ? 'سليم' : 'خارج النطاق';
-        }
-        
-        // =============== نظام التعرف على الأنماط الطبية ===============
-        class MedicalPatternRecognition {
-            constructor() {
-                this.patterns = [
-                    {
-                        name: "نوبة قلبية محتملة",
-                        conditions: [
-                            { metric: "hr", operator: ">", value: 120 },
-                            { metric: "sys", operator: ">", value: 160 },
-                            { metric: "spo2", operator: "<", value: 94 }
-                        ],
-                        severity: "critical",
-                        recommendations: [
-                            "استدعاء الطبيب فوراً",
-                            "إعداد الأكسجين الإضافي",
-                            "مراقبة تخطيط القلب"
-                        ]
+        // =============== قاعدة بيانات طبية ضخمة ===============
+        const MEDICAL_DATABASE = {
+            diseases: {
+                cardiac: {
+                    "تسارع ضربات القلب": {
+                        symptoms: ["خفقان", "دوخة", "ضيق تنفس", "ألم صدر"],
+                        causes: ["توتر", "قلق", "فقر دم", "أمراض قلبية"],
+                        treatments: ["أدوية حاصرة بيتا", "أدوية مضادة لاضطراب النظم", "تعديل نمط الحياة"],
+                        riskFactors: ["تقدم العمر", "ضغط دم مرتفع", "سكري", "تدخين"],
+                        complications: ["فشل قلبي", "سكتة دماغية", "جلطات"]
                     },
-                    {
-                        name: "صدمة إنتانية",
-                        conditions: [
-                            { metric: "hr", operator: ">", value: 90 },
-                            { metric: "temp", operator: ">", value: 38.5 },
-                            { metric: "rr", operator: ">", value: 22 }
-                        ],
-                        severity: "high",
-                        recommendations: [
-                            "فحص العدوى",
-                            "إعطاء السوائل الوريدية",
-                            "مراقبة ضغط الدم"
-                        ]
+                    "بطء ضربات القلب": {
+                        symptoms: ["إرهاق", "دوخة", "إغماء", "ضيق تنفس"],
+                        causes: ["أمراض قلبية", "أدوية", "اختلالات كهربائية"],
+                        treatments: ["ناظم خطى", "أدوية", "علاج السبب"],
+                        riskFactors: ["تقدم العمر", "أمراض قلبية", "أدوية"],
+                        complications: ["فشل قلبي", "إغماء", "موت مفاجئ"]
                     },
-                    {
-                        name: "فشل تنفسي",
-                        conditions: [
-                            { metric: "spo2", operator: "<", value: 90 },
-                            { metric: "rr", operator: ">", value: 25 }
-                        ],
-                        severity: "critical",
-                        recommendations: [
-                            "دعم تنفسي فوري",
-                            "أكسجين عالي التركيز",
-                            "استشارة طبيب الرئة"
-                        ]
+                    "ارتفاع ضغط الدم": {
+                        symptoms: ["صداع", "دوخة", "ضيق تنفس", "ألم صدر"],
+                        causes: ["وراثة", "سمنة", "توتر", "أمراض كلوية"],
+                        treatments: ["أدوية خافضة للضغط", "تعديل غذائي", "تمارين"],
+                        riskFactors: ["سمنة", "توتر", "تقدم العمر", "وراثة"],
+                        complications: ["سكتة دماغية", "فشل قلبي", "أمراض كلوية"]
                     }
-                ];
-            }
-
-            detectPatterns(vitals, history) {
-                const detectedPatterns = [];
-                
-                for (const pattern of this.patterns) {
-                    let match = true;
-                    const reasons = [];
-                    
-                    for (const condition of pattern.conditions) {
-                        const value = vitals[condition.metric];
-                        let conditionMet = false;
-                        
-                        switch (condition.operator) {
-                            case ">":
-                                conditionMet = value > condition.value;
-                                break;
-                            case "<":
-                                conditionMet = value < condition.value;
-                                break;
-                            case ">=":
-                                conditionMet = value >= condition.value;
-                                break;
-                            case "<=":
-                                conditionMet = value <= condition.value;
-                                break;
-                            case "==":
-                                conditionMet = value === condition.value;
-                                break;
-                        }
-                        
-                        if (!conditionMet) {
-                            match = false;
-                            break;
-                        } else {
-                            reasons.push(`${condition.metric}: ${value} ${condition.operator} ${condition.value}`);
-                        }
-                    }
-                    
-                    if (match) {
-                        const isPersistent = this.checkPatternPersistence(pattern, history);
-                        
-                        detectedPatterns.push({
-                            pattern,
-                            reasons,
-                            isPersistent,
-                            confidence: isPersistent ? 0.9 : 0.7
-                        });
-                    }
-                }
-                
-                return detectedPatterns;
-            }
-
-            checkPatternPersistence(pattern, history) {
-                if (history.length < 3) return false;
-                
-                let persistentCount = 0;
-                
-                for (let i = history.length - 3; i < history.length; i++) {
-                    let match = true;
-                    
-                    for (const condition of pattern.conditions) {
-                        const value = history[i][condition.metric];
-                        
-                        switch (condition.operator) {
-                            case ">":
-                                match = value > condition.value;
-                                break;
-                            case "<":
-                                match = value < condition.value;
-                                break;
-                            case ">=":
-                                match = value >= condition.value;
-                                break;
-                            case "<=":
-                                match = value <= condition.value;
-                                break;
-                            case "==":
-                                match = value === condition.value;
-                                break;
-                        }
-                        
-                        if (!match) break;
-                    }
-                    
-                    if (match) persistentCount++;
-                }
-                
-                return persistentCount >= 2;
-            }
-
-            analyzeTrendPatterns(history) {
-                if (history.length < 10) return [];
-                
-                const trendPatterns = [];
-                
-                const improvementPattern = this.checkImprovementTrend(history);
-                if (improvementPattern) {
-                    trendPatterns.push({
-                        name: "تحسن تدريجي",
-                        type: "positive",
-                        metrics: improvementPattern
-                    });
-                }
-                
-                const deteriorationPattern = this.checkDeteriorationTrend(history);
-                if (deteriorationPattern) {
-                    trendPatterns.push({
-                        name: "تدهور تدريجي",
-                        type: "negative",
-                        metrics: deteriorationPattern
-                    });
-                }
-                
-                const instabilityPattern = this.checkInstability(history);
-                if (instabilityPattern) {
-                    trendPatterns.push({
-                        name: "عدم استقرار",
-                        type: "warning",
-                        metrics: instabilityPattern
-                    });
-                }
-                
-                return trendPatterns;
-            }
-
-            checkImprovementTrend(history) {
-                const improvingMetrics = [];
-                
-                ['hr', 'sys', 'spo2', 'temp'].forEach(metric => {
-                    const recent = history.slice(-5);
-                    const older = history.slice(-10, -5);
-                    
-                    if (recent.length === 5 && older.length === 5) {
-                        const recentAvg = recent.reduce((sum, item) => sum + item[metric], 0) / 5;
-                        const olderAvg = older.reduce((sum, item) => sum + item[metric], 0) / 5;
-                        
-                        const improvement = metric === 'spo2' ? 
-                            (recentAvg - olderAvg) > 2 : 
-                            metric === 'temp' ? 
-                            (olderAvg - recentAvg) > 0.3 :
-                            metric === 'hr' ?
-                            (olderAvg - recentAvg) > 5 :
-                            (olderAvg - recentAvg) > 8;
-                        
-                        if (improvement) {
-                            improvingMetrics.push({
-                                metric,
-                                change: recentAvg - olderAvg,
-                                percentChange: ((recentAvg - olderAvg) / olderAvg) * 100
-                            });
-                        }
-                    }
-                });
-                
-                return improvingMetrics.length >= 2 ? improvingMetrics : null;
-            }
-
-            checkDeteriorationTrend(history) {
-                const deterioratingMetrics = [];
-                
-                ['hr', 'sys', 'spo2', 'temp'].forEach(metric => {
-                    const recent = history.slice(-5);
-                    const older = history.slice(-10, -5);
-                    
-                    if (recent.length === 5 && older.length === 5) {
-                        const recentAvg = recent.reduce((sum, item) => sum + item[metric], 0) / 5;
-                        const olderAvg = older.reduce((sum, item) => sum + item[metric], 0) / 5;
-                        
-                        const deterioration = metric === 'spo2' ? 
-                            (olderAvg - recentAvg) > 2 : 
-                            metric === 'temp' ? 
-                            (recentAvg - olderAvg) > 0.3 :
-                            metric === 'hr' ?
-                            (recentAvg - olderAvg) > 5 :
-                            (recentAvg - olderAvg) > 8;
-                        
-                        if (deterioration) {
-                            deterioratingMetrics.push({
-                                metric,
-                                change: recentAvg - olderAvg,
-                                percentChange: ((recentAvg - olderAvg) / olderAvg) * 100
-                            });
-                        }
-                    }
-                });
-                
-                return deterioratingMetrics.length >= 2 ? deterioratingMetrics : null;
-            }
-
-            checkInstability(history) {
-                const unstableMetrics = [];
-                
-                ['hr', 'sys', 'spo2'].forEach(metric => {
-                    const recent = history.slice(-10);
-                    if (recent.length === 10) {
-                        const values = recent.map(item => item[metric]);
-                        const max = Math.max(...values);
-                        const min = Math.min(...values);
-                        const range = max - min;
-                        
-                        const threshold = metric === 'hr' ? 20 : 
-                                       metric === 'sys' ? 25 : 
-                                       metric === 'spo2' ? 5 : 10;
-                        
-                        if (range > threshold) {
-                            unstableMetrics.push({
-                                metric,
-                                range,
-                                coefficientOfVariation: (this.calculateStandardDeviation(values) / (values.reduce((a, b) => a + b) / values.length)) * 100
-                            });
-                        }
-                    }
-                });
-                
-                return unstableMetrics.length >= 1 ? unstableMetrics : null;
-            }
-
-            calculateStandardDeviation(values) {
-                const avg = values.reduce((a, b) => a + b) / values.length;
-                const squareDiffs = values.map(value => Math.pow(value - avg, 2));
-                const avgSquareDiff = squareDiffs.reduce((a, b) => a + b) / values.length;
-                return Math.sqrt(avgSquareDiff);
-            }
-        }
-        
-        // =============== نظام الإشعارات المتقدم ===============
-        class AdvancedNotificationSystem {
-            constructor() {
-                this.notificationQueue = [];
-                this.activeNotifications = new Set();
-                this.notificationSettings = {
-                    sound: true,
-                    vibration: true,
-                    desktop: true,
-                    email: false,
-                    sms: false
-                };
-                this.notificationLevels = {
-                    info: { priority: 1, sound: 'info', duration: 3000 },
-                    warning: { priority: 2, sound: 'warning', duration: 5000 },
-                    critical: { priority: 3, sound: 'critical', duration: 8000 }
-                };
-            }
-
-            async sendNotification(level, title, message, data = {}) {
-                const notification = {
-                    id: this.generateNotificationId(),
-                    level,
-                    title,
-                    message,
-                    data,
-                    timestamp: new Date().toISOString(),
-                    acknowledged: false
-                };
-
-                this.notificationQueue.push(notification);
-                
-                this.notificationQueue.sort((a, b) => 
-                    this.notificationLevels[b.level].priority - this.notificationLevels[a.level].priority
-                );
-
-                this.processNotifications();
-
-                if (fb.enabled) {
-                    await this.saveNotificationToFirebase(notification);
-                }
-
-                return notification.id;
-            }
-
-            async processNotifications() {
-                while (this.notificationQueue.length > 0) {
-                    const notification = this.notificationQueue.shift();
-                    
-                    if (this.activeNotifications.has(notification.id)) continue;
-                    
-                    this.activeNotifications.add(notification.id);
-                    
-                    await this.displayNotification(notification);
-                    
-                    setTimeout(() => {
-                        this.activeNotifications.delete(notification.id);
-                    }, this.notificationLevels[notification.level].duration);
-                }
-            }
-
-            async displayNotification(notification) {
-                const level = this.notificationLevels[notification.level];
-                
-                if (this.notificationSettings.desktop && 'Notification' in window) {
-                    if (Notification.permission === 'granted') {
-                        new Notification(notification.title, {
-                            body: notification.message,
-                            icon: '/favicon.ico',
-                            badge: '/favicon.ico',
-                            tag: notification.id,
-                            requireInteraction: notification.level === 'critical'
-                        });
-                    } else if (Notification.permission !== 'denied') {
-                        Notification.requestPermission().then(permission => {
-                            if (permission === 'granted') {
-                                new Notification(notification.title, {
-                                    body: notification.message,
-                                    icon: '/favicon.ico'
-                                });
-                            }
-                        });
-                    }
-                }
-
-                if (this.notificationSettings.sound) {
-                    this.playNotificationSound(level.sound);
-                }
-
-                if (this.notificationSettings.vibration && 'vibrate' in navigator) {
-                    const pattern = notification.level === 'critical' ? [200, 100, 200] : [200];
-                    navigator.vibrate(pattern);
-                }
-
-                this.showInAppNotification(notification);
-
-                if (notification.level === 'critical') {
-                    await this.sendCriticalAlerts(notification);
-                }
-            }
-
-            showInAppNotification(notification) {
-                const container = document.getElementById('notification-container');
-                const notificationEl = document.createElement('div');
-                notificationEl.className = `notification-item ${notification.level}`;
-                notificationEl.innerHTML = `
-                    <div class="notification-header">
-                        <span class="notification-title">${notification.title}</span>
-                        <button class="notification-close" data-id="${notification.id}">×</button>
-                    </div>
-                    <div class="notification-body">${notification.message}</div>
-                    <div class="notification-footer">
-                        <span class="notification-time">${new Date(notification.timestamp).toLocaleTimeString('ar-EG')}</span>
-                        <button class="notification-acknowledge" data-id="${notification.id}">تم</button>
-                    </div>
-                `;
-
-                container.appendChild(notificationEl);
-
-                notificationEl.querySelector('.notification-close').addEventListener('click', () => {
-                    this.dismissNotification(notification.id);
-                    notificationEl.remove();
-                });
-
-                notificationEl.querySelector('.notification-acknowledge').addEventListener('click', () => {
-                    this.acknowledgeNotification(notification.id);
-                    notificationEl.remove();
-                });
-
-                setTimeout(() => {
-                    if (notificationEl.parentNode) {
-                        notificationEl.remove();
-                    }
-                }, this.notificationLevels[notification.level].duration);
-            }
-
-            playNotificationSound(type) {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                switch (type) {
-                    case 'critical':
-                        oscillator.type = 'sawtooth';
-                        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
-                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                        break;
-                    case 'warning':
-                        oscillator.type = 'square';
-                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                        break;
-                    default:
-                        oscillator.type = 'sine';
-                        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                }
-
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.5);
-            }
-
-            async sendCriticalAlerts(notification) {
-                if (this.notificationSettings.email) {
-                    await this.sendEmailAlert(notification);
-                }
-
-                if (this.notificationSettings.sms) {
-                    await this.sendSMSAlert(notification);
-                }
-
-                await this.sendPushNotification(notification);
-            }
-
-            async sendEmailAlert(notification) {
-                console.log('إرسال بريد إلكتروني للطاقم الطبي:', notification);
-                
-                if (fb.enabled) {
-                    await fb.db.ref(`/alerts/email/${notification.id}`).set({
-                        to: 'medical-team@hospital.com',
-                        subject: `تنبيه عاجل: ${notification.title}`,
-                        body: notification.message,
-                        timestamp: notification.timestamp,
-                        patientId: patientId
-                    });
-                }
-            }
-
-            async sendSMSAlert(notification) {
-                console.log('إرسال رسالة SMS للطاقم الطبي:', notification);
-                
-                if (fb.enabled) {
-                    await fb.db.ref(`/alerts/sms/${notification.id}`).set({
-                        to: '+1234567890',
-                        message: `${notification.title}: ${notification.message}`,
-                        timestamp: notification.timestamp,
-                        patientId: patientId
-                    });
-                }
-            }
-
-            async sendPushNotification(notification) {
-                console.log('إرسال إشعار دفع لتطبيقات الطاقم الطبي:', notification);
-                
-                if (fb.enabled) {
-                    await fb.db.ref(`/alerts/push/${notification.id}`).set({
-                        title: notification.title,
-                        body: notification.message,
-                        timestamp: notification.timestamp,
-                        patientId: patientId,
-                        data: notification.data
-                    });
-                }
-            }
-
-            async saveNotificationToFirebase(notification) {
-                if (!fb.enabled) return;
-                
-                await fb.db.ref(`/notifications/${patientId}/${notification.id}`).set(notification);
-            }
-
-            acknowledgeNotification(id) {
-                if (fb.enabled) {
-                    fb.db.ref(`/notifications/${patientId}/${id}/acknowledged`).set(true);
-                }
-            }
-
-            dismissNotification(id) {
-                if (fb.enabled) {
-                    fb.db.ref(`/notifications/${patientId}/${id}/dismissed`).set(true);
-                }
-            }
-
-            generateNotificationId() {
-                return 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            }
-
-            updateSettings(settings) {
-                this.notificationSettings = { ...this.notificationSettings, ...settings };
-                localStorage.setItem('notificationSettings', JSON.stringify(this.notificationSettings));
-            }
-
-            loadSettings() {
-                const saved = localStorage.getItem('notificationSettings');
-                if (saved) {
-                    this.notificationSettings = { ...this.notificationSettings, ...JSON.parse(saved) };
-                }
-            }
-        }
-        
-        // =============== نظام التصور المتقدم ===============
-        class AdvancedVisualizationSystem {
-            constructor() {
-                this.charts = {};
-                this.colors = {
-                    hr: '#ef4444',
-                    sys: '#3b82f6',
-                    dia: '#60a5fa',
-                    spo2: '#10b981',
-                    rr: '#f59e0b',
-                    temp: '#8b5cf6'
-                };
-            }
-
-            initializeCharts() {
-                this.createVitalSignsChart();
-                this.createTrendChart();
-                this.createDistributionChart();
-            }
-
-            createVitalSignsChart() {
-                const ctx = document.getElementById('vitalSignsChart').getContext('2d');
-                
-                this.charts.vitalSigns = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: [],
-                        datasets: [
-                            {
-                                label: 'معدل ضربات القلب',
-                                data: [],
-                                borderColor: this.colors.hr,
-                                backgroundColor: this.colors.hr + '20',
-                                tension: 0.4,
-                                yAxisID: 'y'
-                            },
-                            {
-                                label: 'ضغط الدم الانقباضي',
-                                data: [],
-                                borderColor: this.colors.sys,
-                                backgroundColor: this.colors.sys + '20',
-                                tension: 0.4,
-                                yAxisID: 'y1'
-                            },
-                            {
-                                label: 'ضغط الدم الانبساطي',
-                                data: [],
-                                borderColor: this.colors.dia,
-                                backgroundColor: this.colors.dia + '20',
-                                tension: 0.4,
-                                yAxisID: 'y1'
-                            },
-                            {
-                                label: 'نسبة الأكسجين',
-                                data: [],
-                                borderColor: this.colors.spo2,
-                                backgroundColor: this.colors.spo2 + '20',
-                                tension: 0.4,
-                                yAxisID: 'y2'
-                            }
-                        ]
+                },
+                respiratory: {
+                    "انخفاض تشبع الأكسجين": {
+                        symptoms: ["ضيق تنفس", "زرقة", "تسارع تنفس", "قلق"],
+                        causes: ["أمراض رئة", "فشل قلبي", "فقر دم", "ارتفاع"],
+                        treatments: ["أكسجين", "أدوية", "علاج السبب"],
+                        riskFactors: ["تدخين", "أمراض رئة", "فشل قلبي"],
+                        complications: ["فشل تنفسي", "تلف أعضاء", "موت"]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'العلامات الحيوية مع الوقت'
-                            },
-                            legend: {
-                                position: 'top',
-                            }
-                        },
-                        scales: {
-                            x: {
-                                display: true,
-                                title: {
-                                    display: true,
-                                    text: 'الوقت'
-                                }
-                            },
-                            y: {
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                title: {
-                                    display: true,
-                                    text: 'معدل ضربات القلب (bpm)'
-                                }
-                            },
-                            y1: {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: {
-                                    display: true,
-                                    text: 'ضغط الدم (mmHg)'
-                                },
-                                grid: {
-                                    drawOnChartArea: false,
-                                },
-                            },
-                            y2: {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: {
-                                    display: true,
-                                    text: 'نسبة الأكسجين (%)'
-                                },
-                                grid: {
-                                    drawOnChartArea: false,
-                                },
-                            }
-                        }
+                    "فشل تنفسي": {
+                        symptoms: ["ضيق تنفس شديد", "تسارع تنفس", "قلق", "إرهاق"],
+                        causes: ["التهاب رئة", "انسداد رئوي", "فشل قلبي"],
+                        treatments: ["تنفس اصطناعي", "أكسجين", "أدوية"],
+                        riskFactors: ["أمراض رئة", "فشل قلبي", "تقدم العمر"],
+                        complications: ["موت", "تلف أعضاء", "عدوى"]
                     }
-                });
-            }
-
-            createTrendChart() {
-                const ctx = document.getElementById('trendChart').getContext('2d');
-                
-                this.charts.trend = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: [],
-                        datasets: [
-                            {
-                                label: 'معدل ضربات القلب',
-                                data: [],
-                                borderColor: this.colors.hr,
-                                backgroundColor: this.colors.hr + '20',
-                                tension: 0.4,
-                                fill: true
-                            },
-                            {
-                                label: 'نسبة الأكسجين',
-                                data: [],
-                                borderColor: this.colors.spo2,
-                                backgroundColor: this.colors.spo2 + '20',
-                                tension: 0.4,
-                                fill: true
-                            }
-                        ]
+                },
+                metabolic: {
+                    "الإنتان": {
+                        symptoms: ["حمى", "قشعريرة", "تسارع ضربات القلب", "انخفاض ضغط الدم"],
+                        causes: ["عدوى بكتيرية", "عدوى فيروسية", "فطريات"],
+                        treatments: ["مضادات حيوية", "سوائل وريدية", "أدوية ضغط الدم"],
+                        riskFactors: ["ضعف مناعة", "أمراض مزمنة", "جراحات"],
+                        complications: ["صدمة إنتانية", "فشل أعضاء", "موت"]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'اتجاهات العلامات الحيوية'
-                            },
-                            legend: {
-                                position: 'top',
-                            }
-                        },
-                        scales: {
-                            x: {
-                                display: true,
-                                title: {
-                                    display: true,
-                                    text: 'الوقت'
-                                }
-                            },
-                            y: {
-                                display: true,
-                                title: {
-                                    display: true,
-                                    text: 'القيمة'
-                                }
-                            }
-                        }
+                    "الحماض الأيضي": {
+                        symptoms: ["إرهاق", "غثيان", "قيء", "ضيق تنفس"],
+                        causes: ["فشل كلوي", "سكري", "تسمم", "جفاف"],
+                        treatments: ["علاج السبب", "تصحيح الحموضة", "سوائل"],
+                        riskFactors: ["أمراض كلوية", "سكري", "جفاف"],
+                        complications: ["فشل أعضاء", "غيبوبة", "موت"]
                     }
-                });
-            }
-
-            createDistributionChart() {
-                const ctx = document.getElementById('distributionChart').getContext('2d');
-                
-                this.charts.distribution = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['معدل ضربات القلب', 'ضغط الدم الانقباضي', 'ضغط الدم الانبساطي', 'نسبة الأكسجين', 'معدل التنفس', 'درجة الحرارة'],
-                        datasets: [
-                            {
-                                label: 'المتوسط',
-                                data: [0, 0, 0, 0, 0, 0],
-                                backgroundColor: [
-                                    this.colors.hr,
-                                    this.colors.sys,
-                                    this.colors.dia,
-                                    this.colors.spo2,
-                                    this.colors.rr,
-                                    this.colors.temp
-                                ]
-                            },
-                            {
-                                label: 'الحد الأدنى',
-                                data: [0, 0, 0, 0, 0, 0],
-                                backgroundColor: '#9ca3af'
-                            },
-                            {
-                                label: 'الحد الأعلى',
-                                data: [0, 0, 0, 0, 0, 0],
-                                backgroundColor: '#6b7280'
-                            }
-                        ]
+                }
+            },
+            medications: {
+                interactions: {
+                    "Warfarin": {
+                        severe: ["NSAIDs", "Antibiotics", "Antifungals"],
+                        moderate: ["SSRIs", "Statins", "ACE Inhibitors"],
+                        effects: ["زيادة خطر النزيف", "تغيرات في INR", "كدمات"],
+                        management: ["مراقبة INR", "تعديل الجرعة", "تجنب الأدوية المتفاعلة"]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'توزيع العلامات الحيوية'
-                            },
-                            legend: {
-                                position: 'top',
-                            }
-                        },
-                        scales: {
-                            x: {
-                                display: true,
-                                title: {
-                                    display: true,
-                                    text: 'العلامة الحيوية'
-                                }
-                            },
-                            y: {
-                                display: true,
-                                title: {
-                                    display: true,
-                                    text: 'القيمة'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            updateCharts(vitals) {
-                if (this.charts.vitalSigns) {
-                    const time = new Date(vitals.timestamp).toLocaleTimeString('ar-EG');
-                    
-                    this.charts.vitalSigns.data.labels.push(time);
-                    this.charts.vitalSigns.data.datasets[0].data.push(vitals.hr);
-                    this.charts.vitalSigns.data.datasets[1].data.push(vitals.sys);
-                    this.charts.vitalSigns.data.datasets[2].data.push(vitals.dia);
-                    this.charts.vitalSigns.data.datasets[3].data.push(vitals.spo2);
-                    
-                    if (this.charts.vitalSigns.data.labels.length > 20) {
-                        this.charts.vitalSigns.data.labels.shift();
-                        this.charts.vitalSigns.data.datasets.forEach(dataset => {
-                            dataset.data.shift();
-                        });
-                    }
-                    
-                    this.charts.vitalSigns.update();
-                }
-                
-                if (this.charts.trend) {
-                    const time = new Date(vitals.timestamp).toLocaleTimeString('ar-EG');
-                    
-                    this.charts.trend.data.labels.push(time);
-                    this.charts.trend.data.datasets[0].data.push(vitals.hr);
-                    this.charts.trend.data.datasets[1].data.push(vitals.spo2);
-                    
-                    if (this.charts.trend.data.labels.length > 30) {
-                        this.charts.trend.data.labels.shift();
-                        this.charts.trend.data.datasets.forEach(dataset => {
-                            dataset.data.shift();
-                        });
-                    }
-                    
-                    this.charts.trend.update();
-                }
-                
-                if (this.charts.distribution && history.length > 0) {
-                    const stats = this.calculateStatistics();
-                    
-                    this.charts.distribution.data.datasets[0].data = [
-                        stats.hr.avg,
-                        stats.sys.avg,
-                        stats.dia.avg,
-                        stats.spo2.avg,
-                        stats.rr.avg,
-                        stats.temp.avg
-                    ];
-                    
-                    this.charts.distribution.data.datasets[1].data = [
-                        stats.hr.min,
-                        stats.sys.min,
-                        stats.dia.min,
-                        stats.spo2.min,
-                        stats.rr.min,
-                        stats.temp.min
-                    ];
-                    
-                    this.charts.distribution.data.datasets[2].data = [
-                        stats.hr.max,
-                        stats.sys.max,
-                        stats.dia.max,
-                        stats.spo2.max,
-                        stats.rr.max,
-                        stats.temp.max
-                    ];
-                    
-                    this.charts.distribution.update();
-                }
-            }
-
-            calculateStatistics() {
-                if (history.length === 0) return null;
-                
-                const calculateStats = (key) => {
-                    const values = history.map(item => item[key]);
-                    return {
-                        min: Math.min(...values),
-                        max: Math.max(...values),
-                        avg: values.reduce((a, b) => a + b, 0) / values.length
-                    };
-                };
-                
-                return {
-                    hr: calculateStats('hr'),
-                    sys: calculateStats('sys'),
-                    dia: calculateStats('dia'),
-                    spo2: calculateStats('spo2'),
-                    rr: calculateStats('rr'),
-                    temp: calculateStats('temp')
-                };
-            }
-
-            createCorrelationMatrix() {
-                if (history.length < 10) return;
-                
-                const metrics = ['hr', 'sys', 'dia', 'spo2', 'rr', 'temp'];
-                const correlations = {};
-                
-                for (let i = 0; i < metrics.length; i++) {
-                    for (let j = i; j < metrics.length; j++) {
-                        const corr = this.calculateCorrelation(
-                            history.map(item => item[metrics[i]]),
-                            history.map(item => item[metrics[j]])
-                        );
-                        
-                        correlations[`${metrics[i]}_${metrics[j]}`] = corr;
-                        correlations[`${metrics[j]}_${metrics[i]}`] = corr;
-                    }
-                }
-                
-                this.displayCorrelationMatrix(correlations, metrics);
-            }
-
-            calculateCorrelation(x, y) {
-                const n = x.length;
-                const sumX = x.reduce((a, b) => a + b, 0);
-                const sumY = y.reduce((a, b) => a + b, 0);
-                const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
-                const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
-                const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
-                
-                const numerator = n * sumXY - sumX * sumY;
-                const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-                
-                return denominator === 0 ? 0 : numerator / denominator;
-            }
-
-            displayCorrelationMatrix(correlations, metrics) {
-                const container = document.getElementById('correlationMatrix');
-                
-                let html = '<div class="font-bold mb-2">مصفوفة الارتباط</div>';
-                html += '<div class="overflow-x-auto">';
-                html += '<table class="min-w-full border-collapse border border-gray-300">';
-                html += '<thead><tr><th class="border border-gray-300 p-2"></th>';
-                
-                metrics.forEach(metric => {
-                    html += `<th class="border border-gray-300 p-2">${this.getMetricName(metric)}</th>`;
-                });
-                
-                html += '</tr></thead><tbody>';
-                
-                metrics.forEach(metric1 => {
-                    html += `<tr><th class="border border-gray-300 p-2">${this.getMetricName(metric1)}</th>`;
-                    
-                    metrics.forEach(metric2 => {
-                        const corr = correlations[`${metric1}_${metric2}`];
-                        const intensity = Math.abs(corr);
-                        const color = corr > 0 ? `rgba(239, 68, 68, ${intensity})` : `rgba(59, 130, 246, ${intensity})`;
-                        
-                        html += `<td class="border border-gray-300 p-2 text-center" style="background-color: ${color}">${corr.toFixed(2)}</td>`;
-                    });
-                    
-                    html += '</tr>';
-                });
-                
-                html += '</tbody></table></div>';
-                
-                container.innerHTML = html;
-            }
-
-            getMetricName(metric) {
-                const names = {
-                    'hr': 'معدل ضربات القلب',
-                    'sys': 'ضغط الدم الانقباضي',
-                    'dia': 'ضغط الدم الانبساطي',
-                    'spo2': 'نسبة الأكسجين',
-                    'rr': 'معدل التنفس',
-                    'temp': 'درجة الحرارة'
-                };
-                return names[metric] || metric;
-            }
-
-            exportChart(chartId, format = 'png') {
-                const chart = this.charts[chartId];
-                if (!chart) return;
-                
-                const url = chart.toBase64Image();
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${chartId}_chart.${format}`;
-                a.click();
-            }
-        }
-        
-        // =============== نظام التصدير والاستيراد ===============
-        class DataExportImportSystem {
-            constructor() {
-                this.exportFormats = ['json', 'csv', 'pdf', 'xml', 'fhir'];
-                this.importFormats = ['json', 'csv', 'fhir'];
-            }
-
-            async exportData(format, options = {}) {
-                const { startDate, endDate, includeCharts, includeAnalysis } = options;
-                
-                let filteredData = history;
-                if (startDate || endDate) {
-                    filteredData = history.filter(item => {
-                        const itemDate = new Date(item.timestamp);
-                        return (!startDate || itemDate >= new Date(startDate)) &&
-                               (!endDate || itemDate <= new Date(endDate));
-                    });
-                }
-
-                switch (format) {
-                    case 'json':
-                        return this.exportToJSON(filteredData, options);
-                    case 'csv':
-                        return this.exportToCSV(filteredData, options);
-                    case 'pdf':
-                        return this.exportToPDF(filteredData, options);
-                    case 'xml':
-                        return this.exportToXML(filteredData, options);
-                    case 'fhir':
-                        return this.exportToFHIR(filteredData, options);
-                    default:
-                        throw new Error('تنسيق التصدير غير مدعوم');
-                }
-            }
-
-            exportToJSON(data, options) {
-                const exportData = {
-                    patientInfo: {
-                        id: patientId,
-                        name: $('patientName').textContent,
-                        exportDate: new Date().toISOString(),
-                        dataPoints: data.length,
-                        compliance: {
-                            hipaa: true,
-                            fhir: true,
-                            who: true
-                        }
+                    "Digoxin": {
+                        severe: ["Amiodarone", "Verapamil", "Diltiazem"],
+                        moderate: ["Diuretics", "Spironolactone", "ACE Inhibitors"],
+                        effects: ["تسمم ديجوكسين", "اضطرابات نظم", "غثيان"],
+                        management: ["مراقبة المستويات", "تعديل الجرعة", "مراقبة البوتاسيوم"]
                     },
-                    vitalSigns: data,
-                    analysis: options.includeAnalysis ? this.generateAnalysis(data) : null
-                };
-
-                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                return this.downloadFile(blob, `patient_${patientId}_data.json`);
-            }
-
-            exportToCSV(data, options) {
-                if (data.length === 0) throw new Error('لا توجد بيانات للتصدير');
-                
-                const headers = ['التاريخ والوقت', 'معدل ضربات القلب', 'ضغط الدم الانقباضي', 'ضغط الدم الانبساطي', 'نسبة الأكسجين', 'معدل التنفس', 'درجة الحرارة'];
-                const rows = data.map(item => [
-                    new Date(item.timestamp).toLocaleString('ar-EG'),
-                    item.hr,
-                    item.sys,
-                    item.dia,
-                    item.spo2,
-                    item.rr,
-                    item.temp
-                ]);
-
-                let csvContent = headers.join(',') + '\n';
-                rows.forEach(row => {
-                    csvContent += row.join(',') + '\n';
-                });
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                return this.downloadFile(blob, `patient_${patientId}_data.csv`);
-            }
-
-            async exportToPDF(data, options) {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                doc.addFont('https://fonts.gstatic.com/s/cairo/v7/SLXGc1nY6HkvalIkTpu0xg.woff2', 'Cairo', 'normal');
-                doc.setFont('Cairo');
-                
-                doc.setFontSize(20);
-                doc.text('تقرير حالة المريض', 105, 20, { align: 'center' });
-                
-                doc.setFontSize(12);
-                doc.text(`المعرف: ${patientId}`, 20, 40);
-                doc.text(`الاسم: ${$('patientName').textContent}`, 20, 50);
-                doc.text(`تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')}`, 20, 60);
-                
-                const headers = ['الوقت', 'HR', 'SYS', 'DIA', 'SpO2', 'RR', 'TEMP'];
-                const tableData = data.slice(0, 30).map(item => [
-                    new Date(item.timestamp).toLocaleTimeString('ar-EG'),
-                    item.hr.toString(),
-                    item.sys.toString(),
-                    item.dia.toString(),
-                    item.spo2.toString(),
-                    item.rr.toString(),
-                    item.temp.toString()
-                ]);
-                
-                doc.autoTable({
-                    head: [headers],
-                    body: tableData,
-                    startY: 80,
-                    styles: { font: 'Cairo' }
-                });
-                
-                doc.save(`patient_${patientId}_report.pdf`);
-            }
-
-            exportToXML(data, options) {
-                let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-                xmlContent += `<patientData>\n`;
-                xmlContent += `  <patientInfo>\n`;
-                xmlContent += `    <id>${patientId}</id>\n`;
-                xmlContent += `    <name>${$('patientName').textContent}</name>\n`;
-                xmlContent += `    <exportDate>${new Date().toISOString()}</exportDate>\n`;
-                xmlContent += `    <dataPoints>${data.length}</dataPoints>\n`;
-                xmlContent += `    <compliance>\n`;
-                xmlContent += `      <hipaa>true</hipaa>\n`;
-                xmlContent += `      <fhir>true</fhir>\n`;
-                xmlContent += `      <who>true</who>\n`;
-                xmlContent += `    </compliance>\n`;
-                xmlContent += `  </patientInfo>\n`;
-                xmlContent += `  <vitalSigns>\n`;
-                
-                data.forEach(item => {
-                    xmlContent += `    <reading>\n`;
-                    xmlContent += `      <timestamp>${item.timestamp}</timestamp>\n`;
-                    xmlContent += `      <hr>${item.hr}</hr>\n`;
-                    xmlContent += `      <sys>${item.sys}</sys>\n`;
-                    xmlContent += `      <dia>${item.dia}</dia>\n`;
-                    xmlContent += `      <spo2>${item.spo2}</spo2>\n`;
-                    xmlContent += `      <rr>${item.rr}</rr>\n`;
-                    xmlContent += `      <temp>${item.temp}</temp>\n`;
-                    xmlContent += `    </reading>\n`;
-                });
-                
-                xmlContent += `  </vitalSigns>\n`;
-                if (options.includeAnalysis) {
-                    xmlContent += `  <analysis>\n`;
-                    const analysis = this.generateAnalysis(data);
-                    Object.keys(analysis).forEach(key => {
-                        xmlContent += `    <${key}>${analysis[key]}</${key}>\n`;
-                    });
-                    xmlContent += `  </analysis>\n`;
-                }
-                xmlContent += `</patientData>`;
-                
-                const blob = new Blob([xmlContent], { type: 'application/xml' });
-                return this.downloadFile(blob, `patient_${patientId}_data.xml`);
-            }
-
-            exportToFHIR(data, options) {
-                const fhirBundle = {
-                    resourceType: "Bundle",
-                    type: "collection",
-                    entry: []
-                };
-
-                // Patient resource
-                fhirBundle.entry.push({
-                    resource: {
-                        resourceType: "Patient",
-                        id: patientId,
-                        name: [{ text: $('patientName').textContent }]
+                    "Insulin": {
+                        severe: ["Beta-blockers", "Alcohol", "Steroids"],
+                        moderate: ["Thiazides", "SSRIs", "MAOIs"],
+                        effects: ["نقص سكر الدم", "تعرق", "رعشة", "إغماء"],
+                        management: ["مراقبة سكر الدم", "تعديل الجرعة", "تعليم المريض"]
                     }
-                });
-
-                // Observation resources
-                data.forEach(item => {
-                    fhirBundle.entry.push({
-                        resource: {
-                            resourceType: "Observation",
-                            status: "final",
-                            category: [{
-                                coding: [{
-                                    system: "http://terminology.hl7.org/CodeSystem/observation-category",
-                                    code: "vital-signs"
-                                }]
-                            }],
-                            code: {
-                                coding: [{
-                                    system: "http://loinc.org",
-                                    code: "85354-9"
-                                }]
-                            },
-                            subject: { reference: `Patient/${patientId}` },
-                            effectiveDateTime: item.timestamp,
-                            component: [
-                                {
-                                    code: { coding: [{ system: "http://loinc.org", code: "8867-4" }] },
-                                    valueQuantity: { value: item.hr, unit: "bpm" }
-                                },
-                                {
-                                    code: { coding: [{ system: "http://loinc.org", code: "8480-6" }] },
-                                    valueQuantity: { value: item.sys, unit: "mmHg" }
-                                },
-                                {
-                                    code: { coding: [{ system: "http://loinc.org", code: "8462-4" }] },
-                                    valueQuantity: { value: item.dia, unit: "mmHg" }
-                                },
-                                {
-                                    code: { coding: [{ system: "http://loinc.org", code: "59408-5" }] },
-                                    valueQuantity: { value: item.spo2, unit: "%" }
-                                },
-                                {
-                                    code: { coding: [{ system: "http://loinc.org", code: "9279-1" }] },
-                                    valueQuantity: { value: item.rr, unit: "/min" }
-                                },
-                                {
-                                    code: { coding: [{ system: "http://loinc.org", code: "8310-5" }] },
-                                    valueQuantity: { value: item.temp, unit: "Cel" }
-                                }
-                            ]
-                        }
-                    });
-                });
-
-                const blob = new Blob([JSON.stringify(fhirBundle, null, 2)], { type: 'application/fhir+json' });
-                return this.downloadFile(blob, `patient_${patientId}_fhir.json`);
-            }
-
-            async importData(file, format) {
-                const reader = new FileReader();
-                
-                return new Promise((resolve, reject) => {
-                    reader.onload = async (e) => {
-                        try {
-                            let data;
-                            
-                            switch (format) {
-                                case 'json':
-                                    data = JSON.parse(e.target.result);
-                                    break;
-                                case 'csv':
-                                    data = this.parseCSV(e.target.result);
-                                    break;
-                                case 'fhir':
-                                    data = this.parseFHIR(e.target.result);
-                                    break;
-                                default:
-                                    throw new Error('تنسيق الاستيراد غير مدعوم');
-                            }
-                            
-                            const processedData = await this.processImportedData(data);
-                            
-                            history.push(...processedData);
-                            
-                            if (fb.enabled) {
-                                await this.saveImportedData(processedData);
-                            }
-                            
-                            resolve(processedData.length);
-                        } catch (error) {
-                            reject(error);
-                        }
-                    };
-                    
-                    reader.readAsText(file);
-                });
-            }
-
-            parseCSV(csvText) {
-                const lines = csvText.split('\n');
-                const headers = lines[0].split(',');
-                const data = [];
-                
-                for (let i = 1; i < lines.length; i++) {
-                    if (lines[i].trim() === '') continue;
-                    
-                    const values = lines[i].split(',');
-                    const reading = {
-                        timestamp: new Date(values[0]).toISOString(),
-                        hr: parseInt(values[1]),
-                        sys: parseInt(values[2]),
-                        dia: parseInt(values[3]),
-                        spo2: parseInt(values[4]),
-                        rr: parseInt(values[5]),
-                        temp: parseFloat(values[6])
-                    };
-                    
-                    data.push(reading);
-                }
-                
-                return data;
-            }
-
-            parseFHIR(fhirJson) {
-                const bundle = JSON.parse(fhirJson);
-                const data = [];
-                
-                if (bundle.resourceType === "Bundle") {
-                    bundle.entry.forEach(entry => {
-                        if (entry.resource.resourceType === "Observation") {
-                            const obs = entry.resource;
-                            const components = obs.component || [];
-                            
-                            const reading = {
-                                timestamp: obs.effectiveDateTime,
-                                hr: this.findComponentValue(components, "8867-4"),
-                                sys: this.findComponentValue(components, "8480-6"),
-                                dia: this.findComponentValue(components, "8462-4"),
-                                spo2: this.findComponentValue(components, "59408-5"),
-                                rr: this.findComponentValue(components, "9279-1"),
-                                temp: this.findComponentValue(components, "8310-5")
-                            };
-                            
-                            data.push(reading);
-                        }
-                    });
-                }
-                
-                return data;
-            }
-
-            findComponentValue(components, code) {
-                const component = components.find(c => 
-                    c.code.coding && c.code.coding.some(coding => coding.code === code)
-                );
-                return component ? component.valueQuantity.value : null;
-            }
-
-            async processImportedData(data) {
-                const validData = data.filter(item => {
-                    return item.hr && item.sys && item.dia && item.spo2 && item.rr && item.temp;
-                });
-                
-                validData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                
-                return validData;
-            }
-
-            async saveImportedData(data) {
-                if (!fb.enabled) return;
-                
-                const batch = {};
-                data.forEach((item, index) => {
-                    const timestamp = item.timestamp.replace(/[\.\#\$\[\]]/g, '');
-                    batch[`/patients/emergency/${patientId}/readings/${timestamp}`] = item;
-                });
-                
-                await fb.db.ref().update(batch);
-            }
-
-            generateAnalysis(data) {
-                if (data.length === 0) return {};
-                
-                const calculateStats = (key) => {
-                    const values = data.map(item => item[key]);
-                    return {
-                        min: Math.min(...values),
-                        max: Math.max(...values),
-                        avg: values.reduce((a, b) => a + b, 0) / values.length,
-                        std: this.calculateStandardDeviation(values)
-                    };
-                };
-                
-                return {
-                    hr: calculateStats('hr'),
-                    sys: calculateStats('sys'),
-                    dia: calculateStats('dia'),
-                    spo2: calculateStats('spo2'),
-                    rr: calculateStats('rr'),
-                    temp: calculateStats('temp'),
-                    totalReadings: data.length,
-                    dateRange: {
-                        start: data[0].timestamp,
-                        end: data[data.length - 1].timestamp
-                    }
-                };
-            }
-
-            calculateStandardDeviation(values) {
-                const avg = values.reduce((a, b) => a + b) / values.length;
-                const squareDiffs = values.map(value => Math.pow(value - avg, 2));
-                const avgSquareDiff = squareDiffs.reduce((a, b) => a + b) / values.length;
-                return Math.sqrt(avgSquareDiff);
-            }
-
-            downloadFile(blob, filename) {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-        }
-        
-        // =============== تهيئة الأنظمة ===============
-        const patternRecognition = new MedicalPatternRecognition();
-        const notificationSystem = new AdvancedNotificationSystem();
-        const visualizationSystem = new AdvancedVisualizationSystem();
-        const dataExportImport = new DataExportImportSystem();
-        
-        // =============== وظائف مساعدة ===============
-        function calculateTrend(values) {
-            let changes = 0;
-            for (let i = 1; i < values.length; i++) {
-                changes += values[i] - values[i-1];
-            }
-            return changes / (values.length - 1);
-        }
-        
-        function compareWithPrevious(current, previous) {
-            if (!previous) return null;
-            
-            const changes = {};
-            let significantChanges = [];
-            
-            Object.keys(current).forEach(key => {
-                if (typeof current[key] === 'number' && typeof previous[key] === 'number') {
-                    const change = current[key] - previous[key];
-                    const percentChange = (change / previous[key]) * 100;
-                    
-                    changes[key] = {
-                        value: change,
-                        percent: percentChange,
-                        direction: change > 0 ? 'up' : change < 0 ? 'down' : 'same'
-                    };
-                    
-                    if (key === 'hr' && Math.abs(change) > 10) {
-                        significantChanges.push({
-                            metric: 'معدل ضربات القلب',
-                            change,
-                            percent: percentChange,
-                            severity: Math.abs(change) > 20 ? 'high' : 'medium'
-                        });
-                    } else if (key === 'sys' && Math.abs(change) > 15) {
-                        significantChanges.push({
-                            metric: 'ضغط الدم الانقباضي',
-                            change,
-                            percent: percentChange,
-                            severity: Math.abs(change) > 25 ? 'high' : 'medium'
-                        });
-                    } else if (key === 'spo2' && Math.abs(change) > 3) {
-                        significantChanges.push({
-                            metric: 'نسبة الأكسجين',
-                            change,
-                            percent: percentChange,
-                            severity: Math.abs(change) > 5 ? 'high' : 'medium'
-                        });
-                    }
-                }
-            });
-            
-            return {
-                changes,
-                significantChanges,
-                current,
-                previous
-            };
-        }
-        
-        function getMetricName(metric) {
-            const names = {
-                'hr': 'معدل ضربات القلب',
-                'sys': 'ضغط الدم الانقباضي',
-                'dia': 'ضغط الدم الانبساطي',
-                'spo2': 'نسبة الأكسجين',
-                'rr': 'معدل التنفس',
-                'temp': 'درجة الحرارة'
-            };
-            return names[metric] || metric;
-        }
-        
-        // =============== سجل التنبيهات ===============
-        function logEvent(txt, level='info') {
-            const row = document.createElement('div');
-            const t = new Date().toLocaleTimeString();
-            row.className = 'flex items-center gap-2';
-            const dot = document.createElement('span'); dot.className = 'w-2.5 h-2.5 rounded-full ' + (level==='danger'? 'bg-rose-500' : level==='warn'? 'bg-amber-500':'bg-slate-400');
-            const msg = document.createElement('span'); msg.textContent = `[${t}] ${txt}`;
-            row.appendChild(dot); row.appendChild(msg);
-            $('log').prepend(row);
-        }
-        
-        async function alertIfNeeded(score, v) {
-            if (!$('autoAlerts').checked) return;
-            if (score < 35) return;
-            
-            let level = 'warning';
-            let title = 'تنبيه';
-            let message = `HR:${v.hr} | BP:${v.sys}/${v.dia} | SpO₂:${v.spo2}%`;
-            
-            if (score >= 70) {
-                level = 'critical';
-                title = 'خطر مرتفع';
-                message = `خطر مرتفع: HR:${v.hr} | BP:${v.sys}/${v.dia} | SpO₂:${v.spo2}%`;
-            }
-            
-            await notificationSystem.sendNotification(level, title, message, {
-                score,
-                vitals: v,
-                patientId: patientId
-            });
-            
-            logEvent(`${title}: ${message}`, level === 'critical' ? 'danger' : 'warn');
-        }
-        
-        // =============== عرض البيانات وتحديثها ===============
-        function render(vitals) {
-            const updateValue = (id, value) => {
-                const element = $(id);
-                if (element.textContent !== value) {
-                    element.textContent = value;
-                    element.classList.add('value-change');
-                    setTimeout(() => element.classList.remove('value-change'), 500);
-                }
-            };
-            
-            updateValue('hrVal', fmt(vitals.hr));
-            updateValue('bpVal', `${fmt(vitals.sys)}/${fmt(vitals.dia)}`);
-            updateValue('spo2Val', fmt(vitals.spo2));
-            updateValue('rrVal', fmt(vitals.rr));
-            updateValue('tempVal', fmt(vitals.temp, 1));
-            
-            history.push(vitals);
-            if (history.length > MAX_HIST) history.shift();
-            
-            const score = riskScoreFrom(vitals);
-            setStatus(score, vitals);
-            
-            updateMedicalScores(vitals);
-            updateSepsisDisplay(vitals);
-            updateRateOfChangeDisplay(vitals);
-            updateDeteriorationPrediction(vitals);
-            updateECGAnalysis(vitals);
-            updateABGDisplay(vitals);
-            
-            if (history.length > 1) {
-                const previous = history[history.length - 2];
-                const comparison = compareWithPrevious(vitals, previous);
-                
-                if (comparison && comparison.significantChanges.length > 0) {
-                    const changesContainer = document.getElementById('changes-container');
-                    changesContainer.innerHTML = `
-                        <div class="font-bold mb-2">تغييرات مهمة منذ القراءة السابقة</div>
-                        <div class="space-y-2">
-                            ${comparison.significantChanges.map(change => `
-                                <div class="p-2 rounded-lg ${change.severity === 'high' ? 'bg-red-100' : 'bg-yellow-100'}">
-                                    <div class="font-bold">${change.metric}</div>
-                                    <div class="text-sm">
-                                        ${change.direction === 'up' ? '↗️' : '↘️'} ${Math.abs(change.change)} (${change.percent.toFixed(1)}%)
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                }
-            }
-            
-            const detectedPatterns = patternRecognition.detectPatterns(vitals, history);
-            if (detectedPatterns.length > 0) {
-                displayDetectedPatterns(detectedPatterns);
-            }
-            
-            const trendPatterns = patternRecognition.analyzeTrendPatterns(history);
-            if (trendPatterns.length > 0) {
-                displayTrendPatterns(trendPatterns);
-            }
-            
-            alertIfNeeded(score, vitals);
-            
-            const diagnosis = diagnoseCondition(vitals);
-            displayDiagnosis(diagnosis);
-            
-            const trends = predictTrends();
-            displayTrends(trends);
-            
-            analyzeWithML(vitals).then(result => displayMLRecommendations(result));
-            
-            visualizationSystem.updateCharts(vitals);
-        }
-        
-        function displayDetectedPatterns(patterns) {
-            const patternsContainer = document.getElementById('patterns-container');
-            patternsContainer.innerHTML = `
-                <div class="font-bold mb-2">أنماط طبية مكتشفة</div>
-                <div class="space-y-3">
-                    ${patterns.map(item => `
-                        <div class="p-4 rounded-lg ${item.pattern.severity === 'critical' ? 'bg-red-100 border-l-4 border-red-500' : 'bg-yellow-100 border-l-4 border-yellow-500'}">
-                            <div class="font-bold text-lg">${item.pattern.name}</div>
-                            <div class="text-sm mt-1">مستوى الثقة: ${(item.confidence * 100).toFixed(0)}% ${item.isPersistent ? '(مستمر)' : '(مؤقت)'}</div>
-                            <div class="text-sm mt-2">الأسباب:</div>
-                            <ul class="list-disc list-inside text-sm">
-                                ${item.reasons.map(reason => `<li>${reason}</li>`).join('')}
-                            </ul>
-                            <div class="text-sm mt-2">التوصيات:</div>
-                            <ul class="list-disc list-inside text-sm">
-                                ${item.pattern.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-        
-        function displayTrendPatterns(patterns) {
-            const trendsContainer = document.getElementById('trend-patterns-container');
-            trendsContainer.innerHTML = `
-                <div class="font-bold mb-2">أنماط الاتجاه</div>
-                <div class="space-y-2">
-                    ${patterns.map(pattern => `
-                        <div class="p-3 rounded-lg ${pattern.type === 'positive' ? 'bg-green-100' : pattern.type === 'negative' ? 'bg-red-100' : 'bg-yellow-100'}">
-                            <div class="font-bold">${pattern.name}</div>
-                            <div class="text-sm">
-                                ${pattern.metrics.map(metric => `
-                                    <div>${getMetricName(metric.metric)}: ${metric.change > 0 ? '+' : ''}${metric.change.toFixed(1)} (${metric.percentChange.toFixed(1)}%)</div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-        
-        function diagnoseCondition(vitals) {
-            const { hr, sys, dia, spo2, rr, temp } = vitals;
-            const diagnosis = [];
-            if (hr > 120) {
-                diagnosis.push({
-                    condition: "تسارع ضربات القلب",
-                    severity: sys > 140 ? "عالي" : "متوسط",
-                    recommendation: "مراقبة ضغط الدم واستشارة طبيب"
-                });
-            } else if (hr < 50) {
-                diagnosis.push({
-                    condition: "بطء ضربات القلب",
-                    severity: "متوسط",
-                    recommendation: "فحص وظائف القلب"
-                });
-            }
-            if (spo2 < 92) {
-                diagnosis.push({
-                    condition: "انخفاض تشبع الأكسجين",
-                    severity: spo2 < 88 ? "عالي" : "متوسط",
-                    recommendation: rr > 24 ? "التحقق من مشاكل التنفس" : "تزويد الأكسجين"
-                });
-            }
-            if (temp > 37.8) {
-                diagnosis.push({
-                    condition: "ارتفاع درجة الحرارة",
-                    severity: temp > 39 ? "عالي" : "منخفض",
-                    recommendation: "تخفيض الحرارة والتحقق من العدوى"
-                });
-            }
-            return diagnosis;
-        }
-        
-        function displayDiagnosis(diagnosis) {
-            const diagnosisContainer = document.getElementById('diagnosis-container');
-            diagnosisContainer.innerHTML = '';
-            if (diagnosis.length === 0) {
-                diagnosisContainer.innerHTML = '<div class="text-green-600">لا توجد حالات تستدعي القلق</div>';
-                return;
-            }
-            diagnosis.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `p-3 mb-2 rounded-lg ${item.severity === 'عالي' ? 'bg-red-100' : 'bg-yellow-100'}`;
-                div.innerHTML = `
-                    <div class="font-bold">${item.condition}</div>
-                    <div class="text-sm">الشدة: ${item.severity}</div>
-                    <div class="text-sm">التوصية: ${item.recommendation}</div>
-                `;
-                diagnosisContainer.appendChild(div);
-            });
-        }
-        
-        function predictTrends() {
-            if (history.length < 10) return null;
-            const recentData = history.slice(-10);
-            const hrTrend = calculateTrend(recentData.map(d => d.hr));
-            const spo2Trend = calculateTrend(recentData.map(d => d.spo2));
-            return {
-                hrPrediction: recentData[recentData.length - 1].hr + (hrTrend * 5),
-                spo2Prediction: recentData[recentData.length - 1].spo2 + (spo2Trend * 5),
-                deteriorationRisk: hrTrend > 2 || spo2Trend < -1
-            };
-        }
-        
-        function displayTrends(trends) {
-            const trendsContainer = document.getElementById('trends-container');
-            if (!trends) {
-                trendsContainer.innerHTML = '<div class="text-gray-500">بيانات غير كافية للتنبؤ</div>';
-                return;
-            }
-            trendsContainer.innerHTML = `
-                <div class="mb-2">
-                    <div class="font-bold">التنبؤات خلال 5 دقائق:</div>
-                    <div>معدل ضربات القلب المتوقع: ${Math.round(trends.hrPrediction)} bpm</div>
-                    <div>مستوى الأكسجين المتوقع: ${Math.round(trends.spo2Prediction)}%</div>
-                    ${trends.deteriorationRisk ? '<div class="text-red-600 font-bold">تحذير: هناك احتمال لتدهور الحالة!</div>' : ''}
-                </div>
-            `;
-        }
-        
-        async function analyzeWithML(vitals) {
-            const mlResult = {
-                riskLevel: Math.random() > 0.7 ? "high" : Math.random() > 0.4 ? "medium" : "low",
-                possibleConditions: [
-                    { name: "ارتفاع ضغط الدم", probability: vitals.sys > 140 ? 0.85 : 0.45 },
-                    { name: "قلة الأكسجين", probability: vitals.spo2 < 95 ? 0.75 : 0.25 },
-                    { name: "تسارع ضربات القلب", probability: vitals.hr > 100 ? 0.80 : 0.30 }
-                ],
-                recommendations: [
-                    "مراقبة مستمرة للضغط",
-                    "قياس مستوى الأكسجين كل 30 دقيقة",
-                    "فحص وظائف القلب إذا استمرت الحالة"
-                ]
-            };
-            return mlResult;
-        }
-        
-        function displayMLRecommendations(mlAnalysis) {
-            const mlContainer = document.getElementById('ml-container');
-            mlContainer.innerHTML = `
-                <div class="mb-2">
-                    <div class="font-bold">تحليل الذكاء الاصطناعي:</div>
-                    <div>مستوى الخطورة: ${mlAnalysis.riskLevel === 'high' ? 'عالي' : mlAnalysis.riskLevel === 'medium' ? 'متوسط' : 'منخفض'}</div>
-                    <div class="mt-2">الحالات المحتملة:</div>
-                    <ul>
-                        ${mlAnalysis.possibleConditions.map(cond => 
-                            `<li>${cond.name} (${Math.round(cond.probability * 100)}%)</li>`
-                        ).join('')}
-                    </ul>
-                    <div class="mt-2">توصيات:</div>
-                    <ul>
-                        ${mlAnalysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-        }
-        
-        // =============== وظائف Firebase ===============
-        function pushToFirebase(vitals) {
-            if (!fb.enabled) return;
-            const now = new Date();
-            const vitalSignsRef = fb.db.ref(`/patients/emergency/${patientId}/vitalSigns`);
-            const readingsRef = fb.db.ref(`/patients/emergency/${patientId}/readings/${nowIso().replace(/[\.\#\$\[\]]/g, '')}`);
-            vitalSignsRef.set(vitals).catch(e => console.error("Firebase update failed", e));
-            readingsRef.set({ ...vitals, timestamp: now.toISOString() }).catch(e => console.error("Firebase save failed", e));
-        }
-        
-        // =============== أحداث الواجهة ===============
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
-            localStorage.setItem('darkMode', isDark);
-        });
-
-        window.addEventListener('load', () => {
-            const darkMode = localStorage.getItem('darkMode') === 'true';
-            if (darkMode) {
-                document.body.classList.add('dark-mode');
-                document.getElementById('themeIcon').textContent = '☀️';
-            }
-        });
-
-        $('connectBtn').addEventListener('click', () => {
-            if (window.isSecureContext) {
-                Swal.fire({
-                    title: 'طريقة الاتصال',
-                    text: 'هل تريد الاتصال بجهاز عبر البلوتوث أم WiFi أم المحاكاة؟',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'بلوتوث',
-                    cancelButtonText: 'WiFi',
-                    denyButtonText: 'محاكاة'
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        await connectToDevice();
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        await connectToWiFiDevice();
-                    } else if (result.dismiss === Swal.DismissReason.deny) {
-                        startSimulationMode();
-                    }
-                });
-            } else {
-                Swal.fire('غير آمن', 'الاتصال بجهاز يتطلب بيئة آمنة (HTTPS). يمكنك استخدام وضع المحاكاة بدلاً من ذلك.', 'error');
-            }
-        });
-
-        $('startBtn').addEventListener('click', () => {
-            if (!timer) {
-                logEvent('بدء المراقبة في وضع المحاكاة');
-                startSimulationMode();
-            }
-        });
-
-        $('stopBtn').addEventListener('click', () => {
-            if (timer) {
-                clearInterval(timer);
-                timer = null;
-                logEvent('تم إيقاف المراقبة');
-                document.getElementById('connBadge').textContent = 'محلي';
-                document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
-            }
-        });
-
-        $('snapBtn').addEventListener('click', () => {
-            if (history.length > 0) {
-                const latest = history[history.length - 1];
-                const now = nowIso();
-                const snapshotRef = fb.db.ref(`/patients/emergency/${patientId}/snapshots/${now.replace(/[\.\#\$\[\]]/g, '')}`);
-                snapshotRef.set({ ...latest, timestamp: now })
-                    .then(() => Swal.fire('تم الحفظ', 'تم حفظ القراءة الأخيرة بنجاح.', 'success'))
-                    .catch(e => Swal.fire('خطأ', 'فشل الحفظ: ' + e.message, 'error'));
-            } else {
-                Swal.fire('خطأ', 'لا توجد بيانات لحفظها.', 'error');
-            }
-        });
-
-        $('clearLog').addEventListener('click', () => {
-            $('log').innerHTML = '';
-            logEvent('تم مسح السجل');
-        });
-
-        $('addDrugBtn').addEventListener('click', () => {
-            Swal.fire({
-                title: 'إضافة دواء',
-                input: 'text',
-                inputPlaceholder: 'اسم الدواء',
-                showCancelButton: true,
-                confirmButtonText: 'إضافة',
-                cancelButtonText: 'إلغاء'
-            }).then((result) => {
-                if (result.isConfirmed && result.value) {
-                    addDrug(result.value);
-                }
-            });
-        });
-
-        $('reportBtn').addEventListener('click', generateReport);
-
-        function generateReport() {
-            if (history.length === 0) {
-                Swal.fire('لا توجد بيانات', 'لا توجد بيانات كافية لإنشاء تقرير.', 'warning');
-                return;
-            }
-            
-            const calculateStats = (key) => {
-                const values = history.map(item => item[key]);
-                const min = Math.min(...values);
-                const max = Math.max(...values);
-                const avg = values.reduce((a, b) => a + b, 0) / values.length;
-                return { min, max, avg: Number(avg.toFixed(1)) };
-            };
-            
-            const hrStats = calculateStats('hr');
-            const sysStats = calculateStats('sys');
-            const diaStats = calculateStats('dia');
-            const spo2Stats = calculateStats('spo2');
-            const rrStats = calculateStats('rr');
-            const tempStats = calculateStats('temp');
-            
-            const reportContent = `
-                <div class="text-right" dir="rtl">
-                    <h2 class="text-xl font-bold mb-4">تقرير حالة المريض</h2>
-                    <div class="mb-4">
-                        <h3 class="font-bold">معلومات المريض</h3>
-                        <p>الاسم: ${$('patientName').textContent}</p>
-                        <p>المعرف: ${patientId}</p>
-                        <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
-                    </div>
-                    <div class="mb-4">
-                        <h3 class="font-bold">المقاييس الطبية العالمية</h3>
-                        <p>NEWS2: ${$('news2Score').textContent} - ${$('news2Level').textContent}</p>
-                        <p>MEWS: ${$('mewsScore').textContent} - ${$('mewsLevel').textContent}</p>
-                        <p>SOFA: ${$('sofaScore').textContent} - ${$('sofaLevel').textContent}</p>
-                    </div>
-                    <div class="mb-4">
-                        <h3 class="font-bold">الإحصائيات الحيوية</h3>
-                        <table class="w-full border-collapse border border-gray-300">
-                            <tr>
-                                <th class="border border-gray-300 p-2">المؤشر</th>
-                                <th class="border border-gray-300 p-2">الحد الأدنى</th>
-                                <th class="border border-gray-300 p-2">المتوسط</th>
-                                <th class="border border-gray-300 p-2">الحد الأعلى</th>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 p-2">معدل ضربات القلب (bpm)</td>
-                                <td class="border border-gray-300 p-2">${hrStats.min}</td>
-                                <td class="border border-gray-300 p-2">${hrStats.avg}</td>
-                                <td class="border border-gray-300 p-2">${hrStats.max}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 p-2">ضغط الدم الانقباضي (mmHg)</td>
-                                <td class="border border-gray-300 p-2">${sysStats.min}</td>
-                                <td class="border border-gray-300 p-2">${sysStats.avg}</td>
-                                <td class="border border-gray-300 p-2">${sysStats.max}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 p-2">ضغط الدم الانبساطي (mmHg)</td>
-                                <td class="border border-gray-300 p-2">${diaStats.min}</td>
-                                <td class="border border-gray-300 p-2">${diaStats.avg}</td>
-                                <td class="border border-gray-300 p-2">${diaStats.max}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 p-2">نسبة الأكسجين (%)</td>
-                                <td class="border border-gray-300 p-2">${spo2Stats.min}</td>
-                                <td class="border border-gray-300 p-2">${spo2Stats.avg}</td>
-                                <td class="border border-gray-300 p-2">${spo2Stats.max}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 p-2">معدل التنفس (rpm)</td>
-                                <td class="border border-gray-300 p-2">${rrStats.min}</td>
-                                <td class="border border-gray-300 p-2">${rrStats.avg}</td>
-                                <td class="border border-gray-300 p-2">${rrStats.max}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 p-2">درجة الحرارة (°C)</td>
-                                <td class="border border-gray-300 p-2">${tempStats.min}</td>
-                                <td class="border border-gray-300 p-2">${tempStats.avg}</td>
-                                <td class="border border-gray-300 p-2">${tempStats.max}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="mb-4">
-                        <h3 class="font-bold">ملاحظات</h3>
-                        <p>تم إنشاء هذا التقرير بناءً على ${history.length} قراءة.</p>
-                        <p>فترة المراقبة: من ${new Date(history[0].timestamp).toLocaleString('ar-EG')} إلى ${new Date(history[history.length - 1].timestamp).toLocaleString('ar-EG')}</p>
-                    </div>
-                    <div class="mb-4">
-                        <h3 class="font-bold">الامتثال للمعايير العالمية</h3>
-                        <p>✅ متوافق مع معايير WHO</p>
-                        <p>✅ متوافق مع معايير AHA</p>
-                        <p>✅ متوافق مع معايير Joint Commission</p>
-                        <p>✅ متوافق مع معايير HIPAA</p>
-                        <p>✅ متوافق مع معايير FHIR STU3</p>
-                    </div>
-                </div>
-            `;
-            
-            Swal.fire({
-                title: 'تقرير المريض',
-                html: reportContent,
-                width: '80%',
-                confirmButtonText: 'طباعة',
-                cancelButtonText: 'إغلاق',
-                showCancelButton: true,
-                showCloseButton: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const printWindow = window.open('', '_blank');
-                    printWindow.document.write(`
-                        <html>
-                        <head>
-                            <title>تقرير المريض</title>
-                            <style>
-                                body { font-family: 'Cairo', sans-serif; direction: rtl; }
-                                table { width: 100%; border-collapse: collapse; }
-                                th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-                                th { background-color: #f2f2f2; }
-                            </style>
-                        </head>
-                        <body>
-                            ${reportContent}
-                        </body>
-                        </html>
-                    `);
-                    printWindow.document.close();
-                    printWindow.print();
-                }
-            });
-            
-            if (fb.enabled) {
-                const reportData = {
-                    patientId,
-                    patientName: $('patientName').textContent,
-                    timestamp: nowIso(),
-                    medicalScores: {
-                        news2: parseInt($('news2Score').textContent),
-                        mews: parseInt($('mewsScore').textContent),
-                        sofa: parseInt($('sofaScore').textContent)
+                },
+                dosages: {
+                    "Warfarin": {
+                        initial: "5-10 mg/day",
+                        maintenance: "2-10 mg/day",
+                        targetINR: "2.0-3.0",
+                        monitoring: "INR weekly initially, then monthly"
                     },
-                    stats: {
-                        hr: hrStats,
-                        sys: sysStats,
-                        dia: diaStats,
-                        spo2: spo2Stats,
-                        rr: rrStats,
-                        temp: tempStats
+                    "Digoxin": {
+                        initial: "0.125-0.25 mg/day",
+                        maintenance: "0.125-0.5 mg/day",
+                        targetLevel: "0.8-2.0 ng/mL",
+                        monitoring: "Levels weekly, electrolytes"
                     },
-                    readingsCount: history.length,
-                    period: {
-                        start: history[0].timestamp,
-                        end: history[history.length - 1].timestamp
-                    },
-                    compliance: {
-                        who: true,
-                        aha: true,
-                        jointCommission: true,
-                        hipaa: true,
-                        fhir: true
+                    "Insulin": {
+                        initial: "0.1-0.2 units/kg/day",
+                        maintenance: "individualized",
+                        targetGlucose: "80-180 mg/dL",
+                        monitoring: "Glucose 4x/day, HbA1c quarterly"
                     }
-                };
-                
-                fb.db.ref(`/reports/${patientId}/${nowIso().replace(/[\.\#\$\[\]]/g, '')}`).set(reportData)
-                    .then(() => logEvent('تم حفظ التقرير في Firebase'))
-                    .catch(e => console.error('فشل حفظ التقرير', e));
-            }
-        }
-
-        document.getElementById('exportBtn').addEventListener('click', async () => {
-            const format = document.getElementById('exportFormat').value;
-            const startDate = document.getElementById('exportStartDate').value;
-            const endDate = document.getElementById('exportEndDate').value;
-            const includeCharts = document.getElementById('includeCharts').checked;
-            const includeAnalysis = document.getElementById('includeAnalysis').checked;
-            
-            try {
-                await dataExportImport.exportData(format, {
-                    startDate,
-                    endDate,
-                    includeCharts,
-                    includeAnalysis
-                });
-                Swal.fire('نجاح', 'تم تصدير البيانات بنجاح', 'success');
-            } catch (error) {
-                Swal.fire('خطأ', 'فشل تصدير البيانات: ' + error.message, 'error');
-            }
-        });
-        
-        document.getElementById('importBtn').addEventListener('click', async () => {
-            const fileInput = document.getElementById('importFile');
-            const format = document.getElementById('importFormat').value;
-            
-            if (!fileInput.files.length) {
-                Swal.fire('خطأ', 'الرجاء اختيار ملف للاستيراد', 'error');
-                return;
-            }
-            
-            const file = fileInput.files[0];
-            
-            try {
-                const count = await dataExportImport.importData(file, format);
-                Swal.fire('نجاح', `تم استيراد ${count} قراءة بنجاح`, 'success');
-            } catch (error) {
-                Swal.fire('خطأ', 'فشل استيراد البيانات: ' + error.message, 'error');
-            }
-        });
-
-        // =============== الاتصال بالأجهزة ===============
-        let deviceConnected = false;
-        let currentVitals = null;
-
-        function handleHeartRate(event) {
-            const value = event.target.value;
-            const heartRate = value.getUint8(1);
-            if (!currentVitals) currentVitals = {};
-            currentVitals.hr = heartRate;
-            if (currentVitals.hr && currentVitals.sys && currentVitals.spo2) {
-                render(currentVitals);
-                pushToFirebase(currentVitals);
-            }
-        }
-
-        function handleBloodPressure(event) {
-            const value = event.target.value;
-            let offset = 1;
-            const sys = value.getUint16(offset, true);
-            offset += 2;
-            const dia = value.getUint16(offset, true);
-            if (!currentVitals) currentVitals = {};
-            currentVitals.sys = sys;
-            currentVitals.dia = dia;
-            if (currentVitals.hr && currentVitals.sys && currentVitals.spo2) {
-                render(currentVitals);
-                pushToFirebase(currentVitals);
-            }
-        }
-
-        function handleBatteryLevel(event) {
-            const batteryLevel = event.target.value.getUint8(0);
-            document.getElementById('batteryLevel').textContent = `${batteryLevel}%`;
-            
-            const batteryBadge = document.getElementById('batteryBadge');
-            if (batteryLevel <= 20) {
-                batteryBadge.className = 'badge badge-bad';
-            } else if (batteryLevel <= 50) {
-                batteryBadge.className = 'badge badge-warn';
-            } else {
-                batteryBadge.className = 'badge badge-ok';
-            }
-            
-            if (batteryLevel <= 20 && $('autoAlerts').checked) {
-                logEvent(`انخفاض بطارية الجهاز: ${batteryLevel}%`, 'warn');
-                Swal.fire({
-                    title: 'انخفاض البطارية',
-                    text: `بطارية الجهاز منخفضة: ${batteryLevel}%`,
-                    icon: 'warning',
-                    toast: true,
-                    position: 'top-end',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-            }
-        }
-
-        async function connectToDevice() {
-            try {
-                logEvent('البحث عن أجهزة المونيتور المتاحة...');
-                
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [
-                        { services: ['heart_rate'] },
-                        { services: ['blood_pressure'] },
-                        { namePrefix: 'Pulse' },
-                        { namePrefix: 'Monitor' }
+                }
+            },
+            protocols: {
+                sepsis: {
+                    hour1: [
+                        "قياس لاكتات الدم",
+                        "الحصول على مزارع الدم",
+                        "إعطاء مضادات حيوية واسعة الطيف",
+                        "إعطاء سوائل وريدية (30 mL/kg)"
                     ],
-                    optionalServices: ['battery_service']
-                });
-                
-                logEvent(`تم العثور على جهاز: ${device.name}`);
-                
-                const server = await device.gatt.connect();
-                logEvent('تم الاتصال بالجهاز بنجاح');
-                
-                try {
-                    const heartRateService = await server.getPrimaryService('heart_rate');
-                    const heartRateCharacteristic = await heartRateService.getCharacteristic('heart_rate_measurement');
-                    await heartRateCharacteristic.startNotifications();
-                    heartRateCharacteristic.addEventListener('characteristicvaluechanged', handleHeartRate);
-                    logEvent('تم تفعيل خدمة معدل ضربات القلب');
-                } catch (e) {
-                    console.warn('خدمة معدل ضربات القلب غير متاحة', e);
-                }
-                
-                try {
-                    const bpService = await server.getPrimaryService('blood_pressure');
-                    const bpCharacteristic = await bpService.getCharacteristic('blood_pressure_measurement');
-                    await bpCharacteristic.startNotifications();
-                    bpCharacteristic.addEventListener('characteristicvaluechanged', handleBloodPressure);
-                    logEvent('تم تفعيل خدمة ضغط الدم');
-                } catch (e) {
-                    console.warn('خدمة ضغط الدم غير متاحة', e);
-                }
-                
-                try {
-                    const batteryService = await server.getPrimaryService('battery_service');
-                    const batteryCharacteristic = await batteryService.getCharacteristic('battery_level');
-                    await batteryCharacteristic.startNotifications();
-                    batteryCharacteristic.addEventListener('characteristicvaluechanged', handleBatteryLevel);
-                    logEvent('تم تفعيل خدمة مستوى البطارية');
-                } catch (e) {
-                    console.warn('خدمة مستوى البطارية غير متاحة', e);
-                }
-                
-                deviceConnected = true;
-                document.getElementById('connBadge').textContent = `جهاز: ${device.name}`;
-                document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
-                
-                device.addEventListener('gattserverdisconnected', () => {
-                    logEvent('فقدان الاتصال بالجهاز', 'danger');
-                    deviceConnected = false;
-                    document.getElementById('connBadge').textContent = 'غير متصل';
-                    document.getElementById('connBadge').className = 'badge badge-bad inline-block mt-1';
-                    
-                    setTimeout(() => {
-                        if (!deviceConnected && $('autoReconnect').checked) {
-                            logEvent('محاولة إعادة الاتصال التلقائي...');
-                            connectToDevice();
-                        }
-                    }, 5000);
-                });
-                
-                return true;
-            } catch (error) {
-                console.error('فشل الاتصال بالجهاز:', error);
-                logEvent('فشل الاتصال بالجهاز', 'danger');
-                return false;
-            }
-        }
-
-        async function connectToWiFiDevice() {
-            try {
-                logEvent('البحث عن أجهزة WiFi...');
-                
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                logEvent('تم الاتصال بجهاز WiFi');
-                
-                deviceConnected = true;
-                document.getElementById('connBadge').textContent = 'جهاز WiFi';
-                document.getElementById('connBadge').className = 'badge badge-ok inline-block mt-1';
-                
-                const simulateWiFiData = () => {
-                    if (!deviceConnected) return;
-                    
-                    const v = simulateVitals();
-                    render(v);
-                    pushToFirebase(v);
-                    
-                    setTimeout(simulateWiFiData, 2000);
-                };
-                
-                simulateWiFiData();
-                
-                return true;
-            } catch (error) {
-                console.error('فشل الاتصال بجهاز WiFi:', error);
-                logEvent('فشل الاتصال بجهاز WiFi', 'danger');
-                return false;
-            }
-        }
-
-        function startSimulationMode() {
-            timer = setInterval(async () => {
-                const v = simulateVitals();
-                render(v);
-                pushToFirebase(v);
-            }, 1000);
-            
-            if (!window.__ecgAnim) {
-                const step = () => { 
-                    if (timer) drawAllECGs(history.at(-1)?.hr || 80); 
-                    window.__ecgAnim = requestAnimationFrame(step); 
-                };
-                step();
-            }
-            
-            document.getElementById('connBadge').textContent = 'محاكاة';
-            document.getElementById('connBadge').className = 'badge badge-warn inline-block mt-1';
-        }
-
-        // =============== بدء التشغيل ===============
-        window.addEventListener('load', async () => {
-            notificationSystem.loadSettings();
-            visualizationSystem.initializeCharts();
-            
-            logEvent('الصفحة جاهزة، وضع المحاكاة تلقائياً.');
-            startSimulationMode();
-        });
-    </script>
-</body>
-</html>
+                    hour3: [
+                        "إعادة تقييم ضغط الدم",
+                        "مراجعة نتائج المزارع",
+                        "تعديل المضادات الحيوية",
+                        "تقييم وظائف الأعضاء"
+                    ],
+                    hour6: [
+                        "تقييم استجابة المريض",
+                        "تعديل العلاج",
+                        "استشارة الاختصاصيين",
+                        "التخطيط
