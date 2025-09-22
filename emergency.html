@@ -5,831 +5,1043 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>قسم الطوارئ - مستشفى الحياة الذكية</title>
     <meta name="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
+    
+    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
     <style>
         :root {
-            --primary: #0c4a6e;
-            --primary-light: #0284c7;
-            --secondary: #059669;
-            --danger: #dc2626;
-            --warning: #d97706;
-            --info: #0284c7;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --light-gray: #f1f5f9;
+            --primary: #0066ff;
+            --primary-light: #4285f4;
+            --secondary: #34a853;
+            --danger: #ea4335;
+            --warning: #fbbc04;
+            --dark: #1a1a1a;
+            --light: #ffffff;
+            --gray: #5f6368;
+            --light-gray: #f8f9fa;
+            --dark-gray: #202124;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f8fafc;
-            direction: rtl;
-            color: #0f172a;
-        }
-        
-        /* Modern Header */
-        .header-container {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 1.25rem 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(12, 74, 110, 0.2);
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: var(--light);
+            overflow-x: hidden;
             position: relative;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
             overflow: hidden;
         }
-        
-        .header-container::after {
-            content: "";
+
+        .animated-bg::before {
+            content: '';
             position: absolute;
             top: -50%;
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);
-            transform: rotate(45deg);
-        }
-        
-        .header-container > * {
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Emergency Section */
-        .emergency-header {
-            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(185, 28, 28, 0.25);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .emergency-header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjEiLz48L3N2Zz4=');
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
             opacity: 0.1;
+            animation: pulse 15s ease-in-out infinite;
         }
-        
-        .emergency-header > * {
-            position: relative;
-            z-index: 1;
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
         }
-        
-        /* Patient Cards */
-        .patient-card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .patient-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .patient-card::before {
-            content: "";
-            position: absolute;
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
             top: 0;
-            right: 0;
-            width: 6px;
+            left: 0;
+            width: 100%;
             height: 100%;
+            z-index: -1;
         }
-        
-        .patient-card.critical::before {
-            background: var(--danger);
-        }
-        
-        .patient-card.stable::before {
-            background: var(--secondary);
-        }
-        
-        .patient-card.improving::before {
-            background: var(--warning);
-        }
-        
-        .patient-card.deteriorating::before {
-            background: #ea580c;
-        }
-        
-        /* Status Badges */
-        .status-badge {
-            padding: 0.375rem 0.875rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-        }
-        
-        .status-badge.critical {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(220, 38, 38, 0.2);
-        }
-        
-        .status-badge.stable {
-            background: rgba(5, 150, 105, 0.1);
-            color: var(--secondary);
-            border: 1px solid rgba(5, 150, 105, 0.2);
-        }
-        
-        .status-badge.improving {
-            background: rgba(217, 119, 6, 0.1);
-            color: var(--warning);
-            border: 1px solid rgba(217, 119, 6, 0.2);
-        }
-        
-        .status-badge.deteriorating {
-            background: rgba(234, 88, 12, 0.1);
-            color: #ea580c;
-            border: 1px solid rgba(234, 88, 12, 0.2);
-        }
-        
-        /* Search and Filters */
-        .search-container, .filter-container {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            padding: 1.25rem;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            background: #f8fafc;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-            background: white;
-        }
-        
-        .search-icon {
+
+        .particle {
             position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-            font-size: 1.125rem;
-        }
-        
-        .filter-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--gray);
-            margin-bottom: 0.5rem;
-        }
-        
-        .filter-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            background: #f8fafc;
-        }
-        
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-            background: white;
-        }
-        
-        /* Buttons */
-        .btn {
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            font-size: 0.875rem;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(12, 74, 110, 0.2);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(12, 74, 110, 0.3);
-        }
-        
-        .btn-secondary {
-            background: white;
-            color: var(--gray);
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-        }
-        
-        .btn-secondary:hover {
-            background: var(--light-gray);
-            transform: translateY(-2px);
-        }
-        
-        /* Patient Info */
-        .patient-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        
-        .patient-info:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .patient-info i {
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--light-gray);
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
             border-radius: 50%;
-            color: var(--gray);
+            opacity: 0.5;
+            animation: float 20s infinite;
         }
-        
-        /* Loading State */
-        .loading-container {
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Glass Morphism Navigation */
+        .glass-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            padding: 4rem 2rem;
         }
-        
-        .loading-spinner {
-            width: 3rem;
-            height: 3rem;
-            border: 3px solid #e2e8f0;
-            border-top: 3px solid var(--primary-light);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            color: #cbd5e1;
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Statistics Sidebar */
-        .stats-sidebar {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            padding: 1.5rem;
-            border: 1px solid #e2e8f0;
-            height: fit-content;
-            position: sticky;
-            top: 1.5rem;
-        }
-        
-        .stats-card {
-            border-radius: 0.75rem;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
+
+        .nav-logo {
             display: flex;
             align-items: center;
             gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--light);
+            text-decoration: none;
             transition: all 0.3s ease;
+        }
+
+        .nav-logo:hover {
+            transform: translateX(-5px);
+        }
+
+        .nav-logo i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            transition: all 0.3s ease;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-light);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 0 4rem;
             position: relative;
             overflow: hidden;
-            border: 1px solid #f1f5f9;
         }
-        
-        .stats-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 6px;
-            height: 100%;
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 2;
         }
-        
-        .stats-card.critical::before {
-            background: var(--danger);
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--light) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out;
         }
-        
-        .stats-card.stable::before {
-            background: var(--secondary);
+
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 3rem;
+            font-weight: 300;
+            animation: fadeInUp 1s ease-out 0.2s;
+            animation-fill-mode: both;
         }
-        
-        .stats-card.improving::before {
-            background: var(--warning);
-        }
-        
-        .stats-card.deteriorating::before {
-            background: #ea580c;
-        }
-        
-        .stats-card.total::before {
-            background: var(--primary);
-        }
-        
-        .stats-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        
-        .stats-label {
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-        
-        .stats-icon {
-            width: 3rem;
-            height: 3rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.75rem;
-            font-size: 1.25rem;
-        }
-        
-        .stats-card.critical .stats-icon {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--danger);
-        }
-        
-        .stats-card.stable .stats-icon {
-            background: rgba(5, 150, 105, 0.1);
-            color: var(--secondary);
-        }
-        
-        .stats-card.improving .stats-icon {
-            background: rgba(217, 119, 6, 0.1);
-            color: var(--warning);
-        }
-        
-        .stats-card.deteriorating .stats-icon {
-            background: rgba(234, 88, 12, 0.1);
-            color: #ea580c;
-        }
-        
-        .stats-card.total .stats-icon {
-            background: rgba(12, 74, 110, 0.1);
-            color: var(--primary);
-        }
-        
-        .stats-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 1.5rem 0;
-        }
-        
-        /* Footer */
-        .footer-section {
-            background: var(--dark);
-            color: #cbd5e1;
-            padding: 3rem 0 1.5rem;
-            margin-top: 4rem;
-        }
-        
-        .footer-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: white;
-        }
-        
-        .footer-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #94a3b8;
-            transition: all 0.2s ease;
-            margin-bottom: 0.75rem;
-            text-decoration: none;
-            font-size: 0.875rem;
-        }
-        
-        .footer-link:hover {
-            color: white;
-            transform: translateX(4px);
-        }
-        
-        .social-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.2s ease;
-            margin-left: 0.5rem;
-        }
-        
-        .social-icon:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-3px);
-        }
-        
-        /* Animations */
-        @keyframes countUp {
+
+        @keyframes fadeInUp {
             from {
-                opacity: 0.5;
-                transform: translateY(8px);
+                opacity: 0;
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
-        .stats-number.updated {
-            animation: countUp 0.5s ease-out forwards;
-        }
-        
-        /* Responsive improvements */
-        @media (max-width: 1024px) {
-            .stats-sidebar {
-                position: static;
-                margin-bottom: 2rem;
-            }
-        }
-        
-        /* Additional styles for new fields */
-        .patient-details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+
+        /* 3D Buttons */
+        .btn-3d {
+            display: inline-flex;
+            align-items: center;
             gap: 0.75rem;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        
-        .patient-detail-item {
+
+        .btn-3d::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-3d:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            transform: translateZ(0);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) translateZ(20px);
+            box-shadow: 0 15px 40px rgba(0, 102, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--light);
+            border: 2px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            transform: translateY(-3px) translateZ(20px);
+            box-shadow: 0 15px 40px rgba(0, 102, 255, 0.3);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        .stats-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 102, 255, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--light) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Search Section */
+        .search-section {
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .search-wrapper {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 0.5rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--gray);
+            transition: all 0.3s ease;
         }
-        
-        .patient-detail-item i {
-            width: 1.5rem;
-            height: 1.5rem;
+
+        .search-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 102, 255, 0.3);
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1rem 1rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--light);
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-chip:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Patients Section */
+        .patients-section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        .patients-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--light) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .patients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2.5rem;
+        }
+
+        /* Patient Card */
+        .patient-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+
+        .patient-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+        .patient-card:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        .patient-card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 25px 50px rgba(0, 102, 255, 0.3);
+            border-color: var(--primary);
+        }
+
+        .patient-card-header {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .patient-card-body {
+            padding: 2rem;
+        }
+
+        .patient-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+        }
+
+        .patient-id {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge.critical {
+            background: rgba(234, 67, 53, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(234, 67, 53, 0.3);
+        }
+
+        .status-badge.stable {
+            background: rgba(52, 168, 83, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(52, 168, 83, 0.3);
+        }
+
+        .status-badge.improving {
+            background: rgba(251, 188, 4, 0.2);
+            color: #facc15;
+            border: 1px solid rgba(251, 188, 4, 0.3);
+        }
+
+        .status-badge.deteriorating {
+            background: rgba(251, 188, 4, 0.3);
+            color: #f97316;
+            border: 1px solid rgba(251, 188, 4, 0.4);
+        }
+
+        .patient-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        .patient-info i {
+            width: 2rem;
+            height: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--light-gray);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            color: var(--gray);
-            font-size: 0.75rem;
+            color: var(--primary);
         }
-        
-        .chronic-diseases {
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #f1f5f9;
+
+        .patient-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
-        
-        .disease-tag {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: #f1f5f9;
-            color: var(--gray);
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            margin: 0.25rem 0.25rem 0.25rem 0;
+
+        .action-btn {
+            flex: 1;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 10px 20px rgba(0, 102, 255, 0.3);
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 4rem 0 2rem;
+            margin-top: 8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--light);
+            font-weight: 700;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+            transform: translateX(-5px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        /* Loading State */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 2rem;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 2rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--light);
+        }
+
+        .empty-state p {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .patients-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background: var(--primary);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 15px 40px rgba(0, 102, 255, 0.5);
+        }
+
+        .fab i {
+            font-size: 1.5rem;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <!-- Header Section -->
-    <header class="container mx-auto px-4 py-6">
-        <div class="header-container flex flex-col md:flex-row justify-between items-center">
-            <div class="flex items-center space-x-4 space-x-reverse mb-4 md:mb-0">
-                <div class="bg-white p-1 rounded-lg shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="#0c4a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
-                        <path d="M9 12l2 2 4-4"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
-                    <p class="text-sm text-blue-100">رعاية طبية متكاملة باستخدام أحدث التقنيات</p>
-                </div>
-            </div>
-            <nav>
-                <ul class="flex space-x-6 space-x-reverse">
-                    <li>
-                        <a href="index.html" class="text-white hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-home"></i> الرئيسية</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-hospital"></i> الأقسام</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-chart-bar"></i> الإحصائيات</a
-                        >
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
     
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Statistics Sidebar -->
-            <div class="lg:col-span-1">
-                <div class="stats-sidebar">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <i class="fas fa-chart-pie text-blue-600"></i>
-                        إحصائيات قسم الطوارئ
-                    </h2>
-                    
-                    <!-- Total Patients Card -->
-                    <div class="stats-card total">
-                        <div class="stats-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="totalPatients">0</div>
-                            <div class="stats-label">إجمالي المرضى</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Critical Patients Card -->
-                    <div class="stats-card critical">
-                        <div class="stats-icon">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="criticalPatients">0</div>
-                            <div class="stats-label">حالات حرجة</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Deteriorating Patients Card -->
-                    <div class="stats-card deteriorating">
-                        <div class="stats-icon">
-                            <i class="fas fa-arrow-trend-down"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="deterioratingPatients">0</div>
-                            <div class="stats-label">في تدهور</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Improving Patients Card -->
-                    <div class="stats-card improving">
-                        <div class="stats-icon">
-                            <i class="fas fa-arrow-trend-up"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="improvingPatients">0</div>
-                            <div class="stats-label">في تحسن</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Stable Patients Card -->
-                    <div class="stats-card stable">
-                        <div class="stats-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="stablePatients">0</div>
-                            <div class="stats-label">حالات مستقرة</div>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-divider"></div>
-                    
-                    <!-- Status Change -->
-                    <div class="flex justify-between items-center">
-                        <div class="text-sm text-gray-600">آخر تحديث</div>
-                        <div class="text-sm text-gray-600" id="lastUpdate">-</div>
-                    </div>
-                </div>
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Glass Navigation -->
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <i class="fas fa-heartbeat"></i>
+                مستشفى الحياة الذكية
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="#">الأقسام</a></li>
+                <li><a href="#">الإحصائيات</a></li>
+                <li><a href="#">عن المستشفى</a></li>
+                <li><a href="#">اتصل بنا</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title" data-aos="fade-up">قسم الطوارئ</h1>
+            <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="100">رعاية طبية فورية وحالات طارئة على مدار الساعة</p>
+            <div data-aos="fade-up" data-aos-delay="200">
+                <a href="add_patient.html" class="btn-3d btn-primary">
+                    <i class="fas fa-plus"></i>
+                    إضافة مريض جديد
+                </a>
+                <a href="#" class="btn-3d btn-secondary" style="margin-right: 1rem;">
+                    <i class="fas fa-chart-line"></i>
+                    عرض الإحصائيات
+                </a>
             </div>
-            
-            <!-- Patients List Section -->
-            <div class="lg:col-span-3">
-                <div class="emergency-header mb-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center">
-                        <div class="mb-4 md:mb-0">
-                            <h1 class="text-3xl font-bold flex items-center">
-                                <i class="fas fa-ambulance ml-3"></i>
-                                قسم الطوارئ
-                            </h1>
-                            <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
-                        </div>
-                        <button
-                            class="btn btn-primary"
-                            onclick="window.location.href='add_patient.html'"
-                        >
-                            <i class="fas fa-plus"></i>
-                            إضافة مريض جديد
-                        </button>
-                    </div>
+        </div>
+    </section>
+    
+    <!-- Statistics Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stats-grid">
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                    <i class="fas fa-users stat-icon"></i>
+                    <div class="stat-number" id="totalPatients">0</div>
+                    <div class="stat-label">إجمالي المرضى</div>
                 </div>
-                
-                <!-- Filters Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="lg:col-span-1">
-                        <div class="search-container">
-                            <div class="filter-label">البحث عن مريض</div>
-                            <div class="relative">
-                                <i class="fas fa-search search-icon"></i>
-                                <input
-                                    id="searchInput"
-                                    type="text"
-                                    placeholder="ابحث باسم المريض أو الرقم القومي..."
-                                    class="search-input"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="filter-container">
-                            <div class="filter-label">التاريخ</div>
-                            <input
-                                id="dateFilter"
-                                type="date"
-                                class="filter-input"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <div class="filter-container">
-                            <div class="filter-label">الحالة</div>
-                            <select id="statusFilter" class="filter-input">
-                                <option value="">جميع الحالات</option>
-                                <option value="critical">حالات حرجة</option>
-                                <option value="stable">حالات مستقرة</option>
-                                <option value="improving">في تحسن</option>
-                                <option value="deteriorating">في تدهور</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="filter-container">
-                            <div class="filter-label">ترتيب حسب</div>
-                            <select id="sortFilter" class="filter-input">
-                                <option value="newest">الأحدث أولاً</option>
-                                <option value="oldest">الأقدم أولاً</option>
-                                <option value="critical">الأكثر أهمية</option>
-                            </select>
-                        </div>
-                    </div>
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                    <i class="fas fa-heartbeat stat-icon"></i>
+                    <div class="stat-number" id="criticalPatients">0</div>
+                    <div class="stat-label">حالات حرجة</div>
                 </div>
-                
-                <!-- Patients List -->
-                <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Patient cards will be dynamically inserted here -->
-                    <div class="col-span-full">
-                        <div class="loading-container">
-                            <div class="loading-spinner"></div>
-                            <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                            <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
-                        </div>
-                    </div>
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fas fa-check-circle stat-icon"></i>
+                    <div class="stat-number" id="stablePatients">0</div>
+                    <div class="stat-label">حالات مستقرة</div>
+                </div>
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="400">
+                    <i class="fas fa-arrow-trend-up stat-icon"></i>
+                    <div class="stat-number" id="improvingPatients">0</div>
+                    <div class="stat-label">في تحسن</div>
                 </div>
             </div>
         </div>
-    </main>
+    </section>
     
-    <!-- Footer Section -->
-    <footer class="footer-section">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 class="footer-title">مستشفى الحياة الذكية</h3>
-                    <p class="text-gray-400 mb-4">
-                        نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية
-                        والكوادر الطبية المتخصصة.
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <div class="search-wrapper" data-aos="fade-up">
+                <i class="fas fa-search search-icon"></i>
+                <input
+                    id="searchInput"
+                    type="text"
+                    placeholder="ابحث عن مريض بالاسم أو الرقم القومي..."
+                    class="search-input"
+                />
+            </div>
+            <div class="search-filters" data-aos="fade-up" data-aos-delay="100">
+                <div class="filter-chip active" data-filter="all">الكل</div>
+                <div class="filter-chip" data-filter="critical">حالات حرجة</div>
+                <div class="filter-chip" data-filter="stable">حالات مستقرة</div>
+                <div class="filter-chip" data-filter="improving">في تحسن</div>
+                <div class="filter-chip" data-filter="deteriorating">في تدهور</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Patients Section -->
+    <section class="patients-section">
+        <div class="patients-container">
+            <div class="section-header" data-aos="fade-up">
+                <h2 class="section-title">المرضى المسجلين</h2>
+                <p class="section-subtitle">جميع المرضى في قسم الطوارئ</p>
+            </div>
+            <div id="patientsList" class="patients-grid">
+                <!-- Patient cards will be dynamically inserted here -->
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <h3 class="text-xl font-bold">جاري تحميل بيانات المرضى...</h3>
+                    <p class="text-gray-500">يرجى الانتظار قليلاً</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-column" data-aos="fade-up">
+                    <h3>مستشفى الحياة الذكية</h3>
+                    <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1.5rem;">
+                        نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات
                     </p>
-                    <div class="flex">
-                        <a href="#" class="social-icon">
+                    <div class="flex gap-3">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-10 flex items-center justify-center hover:bg-opacity-20 transition-all">
                             <i class="fab fa-facebook-f"></i>
                         </a>
-                        <a href="#" class="social-icon">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-10 flex items-center justify-center hover:bg-opacity-20 transition-all">
                             <i class="fab fa-twitter"></i>
                         </a>
-                        <a href="#" class="social-icon">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-10 flex items-center justify-center hover:bg-opacity-20 transition-all">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="#" class="social-icon">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-10 flex items-center justify-center hover:bg-opacity-20 transition-all">
                             <i class="fab fa-linkedin-in"></i>
                         </a>
                     </div>
                 </div>
-                <div>
-                    <h3 class="footer-title">روابط سريعة</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>المواعيد</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-user-md"></i>
-                        <span>الأطباء</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-hand-holding-usd"></i>
-                        <span>الأسعار</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-info-circle"></i>
-                        <span>عن المستشفى</span>
-                    </a>
+                <div class="footer-column" data-aos="fade-up" data-aos-delay="100">
+                    <h3>روابط سريعة</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-home"></i> الرئيسية</a></li>
+                        <li><a href="#"><i class="fas fa-hospital"></i> الأقسام</a></li>
+                        <li><a href="#"><i class="fas fa-user-md"></i> الأطباء</a></li>
+                        <li><a href="#"><i class="fas fa-calendar-alt"></i> المواعيد</a></li>
+                    </ul>
                 </div>
-                <div>
-                    <h3 class="footer-title">اتصل بنا</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-phone-alt"></i>
-                        <span>1234</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-envelope"></i>
-                        <span>info@alhayah-smart.com</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>شارع الطبيعة، الرياض</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-clock"></i>
-                        <span>24 ساعة طوال أيام الأسبوع</span>
-                    </a>
+                <div class="footer-column" data-aos="fade-up" data-aos-delay="200">
+                    <h3>الخدمات</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-procedures"></i> الطوارئ</a></li>
+                        <li><a href="#"><i class="fas fa-stethoscope"></i> العيادات</a></li>
+                        <li><a href="#"><i class="fas fa-x-ray"></i> الأشعة</a></li>
+                        <li><a href="#"><i class="fas fa-flask"></i> المختبرات</a></li>
+                    </ul>
                 </div>
-                <div>
-                    <h3 class="footer-title">خدماتنا</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-procedures"></i>
-                        <span>الطوارئ</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-stethoscope"></i>
-                        <span>العيادات الخارجية</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-x-ray"></i>
-                        <span>الأشعة والتصوير</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-flask"></i>
-                        <span>المختبرات الطبية</span>
-                    </a>
+                <div class="footer-column" data-aos="fade-up" data-aos-delay="300">
+                    <h3>اتصل بنا</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-phone"></i> 1234</a></li>
+                        <li><a href="#"><i class="fas fa-envelope"></i> info@hospital.com</a></li>
+                        <li><a href="#"><i class="fas fa-map-marker-alt"></i> الرياض، السعودية</a></li>
+                        <li><a href="#"><i class="fas fa-clock"></i> 24/7</a></li>
+                    </ul>
                 </div>
             </div>
-            <div class="border-t border-gray-700 pt-6 text-center">
-                <p class="text-gray-400">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
+            <div class="footer-bottom">
+                <p>&copy; 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
+    
+    <!-- Theme Toggle -->
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+    </div>
+    
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="window.location.href='add_patient.html'">
+        <i class="fas fa-plus"></i>
+    </div>
+    
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
@@ -849,71 +1061,89 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         let allPatients = {};
+        let currentFilter = 'all';
+        
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+        
+        // Create particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 20 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        createParticles();
         
         window.addEventListener("DOMContentLoaded", () => {
             const emergencyRef = ref(db, "patients/emergency");
             const container = document.getElementById("patientsList");
             const searchInput = document.getElementById("searchInput");
-            const dateFilter = document.getElementById("dateFilter");
-            const statusFilter = document.getElementById("statusFilter");
-            const sortFilter = document.getElementById("sortFilter");
             
             // Statistics elements
             const totalPatientsEl = document.getElementById("totalPatients");
             const criticalPatientsEl = document.getElementById("criticalPatients");
-            const deterioratingPatientsEl = document.getElementById("deterioratingPatients");
-            const improvingPatientsEl = document.getElementById("improvingPatients");
             const stablePatientsEl = document.getElementById("stablePatients");
-            const lastUpdateEl = document.getElementById("lastUpdate");
+            const improvingPatientsEl = document.getElementById("improvingPatients");
+            
+            // Filter chips
+            const filterChips = document.querySelectorAll('.filter-chip');
             
             // Initialize with loading state
             container.innerHTML = `
-                <div class="col-span-full">
-                    <div class="loading-container">
-                        <div class="loading-spinner"></div>
-                        <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                        <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
-                    </div>
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <h3 class="text-xl font-bold">جاري تحميل بيانات المرضى...</h3>
+                    <p class="text-gray-500">يرجى الانتظار قليلاً</p>
                 </div>
             `;
-            
-            // Initialize statistics
-            updateStatistics(allPatients);
             
             // Listen for changes in the database
             onValue(emergencyRef, (snapshot) => {
                 allPatients = snapshot.val() || {};
                 
-                // Update statistics first
+                // Update statistics
                 updateStatistics(allPatients);
                 
-                // Then render patients list
+                // Render patients
                 renderPatients(allPatients);
             });
             
+            // Search functionality
             searchInput.addEventListener("input", () => {
                 applyFilters();
             });
             
-            dateFilter.addEventListener("change", () => {
-                applyFilters();
-            });
-            
-            statusFilter.addEventListener("change", () => {
-                applyFilters();
-            });
-            
-            sortFilter.addEventListener("change", () => {
-                applyFilters();
+            // Filter functionality
+            filterChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    filterChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentFilter = chip.dataset.filter;
+                    applyFilters();
+                });
             });
             
             function updateStatistics(patients) {
                 const counts = {
                     total: Object.keys(patients).length,
                     critical: 0,
-                    deteriorating: 0,
+                    stable: 0,
                     improving: 0,
-                    stable: 0
+                    deteriorating: 0
                 };
                 
                 Object.values(patients).forEach(patient => {
@@ -922,78 +1152,43 @@
                     }
                 });
                 
-                // Add animation class before updating
-                const statsElements = [
-                    totalPatientsEl,
-                    criticalPatientsEl,
-                    deterioratingPatientsEl,
-                    improvingPatientsEl,
-                    stablePatientsEl
-                ];
+                // Animate number changes
+                animateValue(totalPatientsEl, parseInt(totalPatientsEl.textContent), counts.total, 1000);
+                animateValue(criticalPatientsEl, parseInt(criticalPatientsEl.textContent), counts.critical, 1000);
+                animateValue(stablePatientsEl, parseInt(stablePatientsEl.textContent), counts.stable, 1000);
+                animateValue(improvingPatientsEl, parseInt(improvingPatientsEl.textContent), counts.improving, 1000);
+            }
+            
+            function animateValue(element, start, end, duration) {
+                const range = end - start;
+                const increment = range / (duration / 16);
+                let current = start;
                 
-                statsElements.forEach(el => {
-                    el.classList.add('updated');
-                    setTimeout(() => {
-                        el.classList.remove('updated');
-                    }, 500);
-                });
-                
-                // Update statistics
-                totalPatientsEl.textContent = counts.total;
-                criticalPatientsEl.textContent = counts.critical;
-                deterioratingPatientsEl.textContent = counts.deteriorating;
-                improvingPatientsEl.textContent = counts.improving;
-                stablePatientsEl.textContent = counts.stable;
-                
-                // Update last update time
-                const now = new Date();
-                lastUpdateEl.textContent = now.toLocaleTimeString("ar-EG");
+                const timer = setInterval(() => {
+                    current += increment;
+                    if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                        current = end;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.round(current);
+                }, 16);
             }
             
             function applyFilters() {
                 const term = searchInput.value.toLowerCase();
-                const selectedDate = dateFilter.value;
-                const selectedStatus = statusFilter.value;
-                const sortOption = sortFilter.value;
                 
                 let filtered = Object.fromEntries(
                     Object.entries(allPatients).filter(([id, patient]) => {
                         const matchSearch = 
                             (patient.name && patient.name.toLowerCase().includes(term)) ||
                             id.toLowerCase().includes(term) ||
-                            (patient.nid && patient.nid.toLowerCase().includes(term)) ||
-                            (patient.doctor && patient.doctor.toLowerCase().includes(term)) ||
-                            (patient.address && patient.address.toLowerCase().includes(term));
+                            (patient.nid && patient.nid.toLowerCase().includes(term));
                             
-                        const matchDate = selectedDate && patient.timestamp
-                            ? new Date(patient.timestamp).toISOString().split("T")[0] === selectedDate
-                            : true;
-                            
-                        const matchStatus = selectedStatus
-                            ? patient.status === selectedStatus
-                            : true;
-                            
-                        return matchSearch && matchDate && matchStatus;
+                        const matchFilter = currentFilter === 'all' || patient.status === currentFilter;
+                        
+                        return matchSearch && matchFilter;
                     })
                 );
-                
-                // Sort the results
-                if (sortOption === 'newest') {
-                    filtered = Object.fromEntries(
-                        Object.entries(filtered).sort(([, a], [, b]) => b.timestamp - a.timestamp)
-                    );
-                } else if (sortOption === 'oldest') {
-                    filtered = Object.fromEntries(
-                        Object.entries(filtered).sort(([, a], [, b]) => a.timestamp - b.timestamp)
-                    );
-                } else if (sortOption === 'critical') {
-                    filtered = Object.fromEntries(
-                        Object.entries(filtered).sort(([, a], [, b]) => {
-                            const statusOrder = { critical: 0, deteriorating: 1, improving: 2, stable: 3 };
-                            return statusOrder[a.status] - statusOrder[b.status];
-                        })
-                    );
-                }
                 
                 renderPatients(filtered);
             }
@@ -1005,18 +1200,20 @@
                     container.innerHTML = `
                         <div class="col-span-full">
                             <div class="empty-state">
-                                <i class="fas fa-search text-5xl"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mb-2">لا توجد نتائج مطابقة</h3>
-                                <p class="text-gray-500">لم نتمكن من العثور على مرضى يطابقون معايير البحث.</p>
+                                <i class="fas fa-search"></i>
+                                <h3>لا توجد نتائج</h3>
+                                <p>لم نتمكن من العثور على مرضى يطابقون معايير البحث</p>
                             </div>
                         </div>
                     `;
                     return;
                 }
                 
-                Object.entries(data).forEach(([id, patient]) => {
+                Object.entries(data).forEach(([id, patient], index) => {
                     const card = document.createElement("div");
-                    card.className = `patient-card ${patient.status}`;
+                    card.className = "patient-card";
+                    card.setAttribute('data-aos', 'fade-up');
+                    card.setAttribute('data-aos-delay', (index * 100).toString());
                     
                     const statusText = {
                         critical: "حالة حرجة",
@@ -1032,82 +1229,38 @@
                         deteriorating: "fa-arrow-trend-down"
                     };
                     
-                    // Get gender icon
-                    const genderIcon = patient.gender === 'male' ? 'fa-mars' : (patient.gender === 'female' ? 'fa-venus' : 'fa-genderless');
-                    const genderText = patient.gender === 'male' ? 'ذكر' : (patient.gender === 'female' ? 'أنثى' : 'غير محدد');
-                    
-                    // Format chronic diseases
-                    let diseasesHtml = '';
-                    if (patient.chronicDiseases && Array.isArray(patient.chronicDiseases) && patient.chronicDiseases.length > 0) {
-                        diseasesHtml = `
-                            <div class="chronic-diseases">
-                                <div class="patient-info">
-                                    <i class="fas fa-notes-medical"></i>
-                                    <span><strong>الأمراض المزمنة:</strong></span>
-                                </div>
-                                <div class="mt-2">
-                                    ${patient.chronicDiseases.map(disease => `<span class="disease-tag">${disease}</span>`).join('')}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
                     card.innerHTML = `
-                        <div class="p-6">
-                            <div class="flex justify-between items-start mb-4">
+                        <div class="patient-card-header">
+                            <div class="flex justify-between items-start">
                                 <div>
-                                    <h2 class="text-xl font-bold text-gray-800">${patient.name || 'غير معروف'}</h2>
-                                    <p class="text-sm text-gray-500">الرقم القومي: ${patient.nid || 'غير متوفر'}</p>
+                                    <h3 class="patient-name">${patient.name || 'غير معروف'}</h3>
+                                    <p class="patient-id">${patient.nid || 'غير متوفر'}</p>
                                 </div>
                                 <span class="status-badge ${patient.status}">
                                     <i class="fas ${statusIcon[patient.status]}"></i>
                                     ${statusText[patient.status]}
                                 </span>
                             </div>
-                            
-                            <div class="space-y-3 text-gray-600 mb-4">
-                                <div class="patient-info">
-                                    <i class="fas fa-birthday-cake"></i>
-                                    <span>العمر: ${patient.age || 'غير متوفر'} سنة</span>
-                                </div>
-                                <div class="patient-info">
-                                    <i class="fas fa-calendar-day"></i>
-                                    <span>تاريخ التسجيل: ${patient.timestamp ? new Date(patient.timestamp).toLocaleDateString("ar-EG") : 'غير متوفر'}</span>
-                                </div>
-                                <div class="patient-info">
-                                    <i class="fas fa-clock"></i>
-                                    <span>الوقت: ${patient.timestamp ? new Date(patient.timestamp).toLocaleTimeString("ar-EG") : 'غير متوفر'}</span>
-                                </div>
+                        </div>
+                        <div class="patient-card-body">
+                            <div class="patient-info">
+                                <i class="fas fa-birthday-cake"></i>
+                                <span>العمر: ${patient.age || 'غير متوفر'} سنة</span>
                             </div>
-                            
-                            <!-- New patient details grid -->
-                            <div class="patient-details-grid mb-4">
-                                <div class="patient-detail-item">
-                                    <i class="fas ${genderIcon}"></i>
-                                    <span>${genderText}</span>
-                                </div>
-                                <div class="patient-detail-item">
-                                    <i class="fas fa-tint"></i>
-                                    <span>${patient.bloodType || 'غير محدد'}</span>
-                                </div>
-                                <div class="patient-detail-item" style="grid-column: 1 / -1;">
-                                    <i class="fas fa-user-md"></i>
-                                    <span>الدكتور: ${patient.doctors || 'غير محدد'}</span>
-                                </div>
-                                <div class="patient-detail-item" style="grid-column: 1 / -1;">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>${patient.address || 'غير محدد'}</span>
-                                </div>
+                            <div class="patient-info">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>${patient.timestamp ? new Date(patient.timestamp).toLocaleDateString("ar-EG") : 'غير متوفر'}</span>
                             </div>
-                            
-                            ${diseasesHtml}
-                            
-                            <div class="mt-4 flex justify-end space-x-3 space-x-reverse">
-                                <button onclick="viewPatient('${id}')" class="btn btn-primary">
+                            <div class="patient-info">
+                                <i class="fas fa-user-md"></i>
+                                <span>الدكتور: ${patient.doctors || 'غير محدد'}</span>
+                            </div>
+                            <div class="patient-actions">
+                                <button onclick="viewPatient('${id}')" class="action-btn primary">
                                     <i class="fas fa-eye"></i>
                                     عرض التفاصيل
                                 </button>
-                                <button onclick="printCard('${id}')" class="btn btn-secondary">
+                                <button onclick="printCard('${id}')" class="action-btn">
                                     <i class="fas fa-print"></i>
                                     طباعة
                                 </button>
@@ -1117,6 +1270,9 @@
                     
                     container.appendChild(card);
                 });
+                
+                // Refresh AOS
+                AOS.refresh();
             }
         });
         
@@ -1126,6 +1282,19 @@
         
         window.printCard = function (id) {
             alert("ميزة الطباعة سيتم تنفيذها مستقبلاً للبطاقة ID: " + id);
+        };
+        
+        // Theme toggle function
+        window.toggleTheme = function() {
+            document.body.classList.toggle('light-theme');
+            const icon = document.querySelector('.theme-toggle i');
+            if (document.body.classList.contains('light-theme')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
         };
     </script>
 </body>
