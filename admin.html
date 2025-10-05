@@ -888,13 +888,856 @@
                 if (!patient.department || patient.department.trim() === '') errors.push('القسم مطلوب');
                 return errors;
             }
-            
-            // باقي كود Firebase كما هو في النص الأصلي
-            // ... (الأطباء، الأقسام، الموظفين، الحضور، المخزون)
-            
-            // Initialize with Dashboard
+            // ===== الأطباء =====
+            const doctorsTable = document.getElementById("doctorsTable");
+            const availableDoctorsTable = document.getElementById("availableDoctorsTable");
+            const filterShift = document.getElementById("filterShift");
+            const addDoctorBtn = document.getElementById("addDoctorBtn");
+            let allDoctors = [];
+            const doctorsRef = ref(db, "doctors");
+
+            onValue(doctorsRef, (snapshot) => {
+                const data = snapshot.val();
+                allDoctors = [];
+                if (data) {
+                    Object.entries(data).forEach(([id, doctor]) => {
+                        allDoctors.push({ id, ...doctor });
+                    });
+                    renderDoctors(allDoctors);
+                    renderAvailableDoctors(allDoctors.filter(d => d.status === "متاح"));
+                    statsDoctorsOnline.textContent = allDoctors.filter(d => d.status === "متاح").length;
+                    statsDoctors.textContent = allDoctors.length;
+                }
+            });
+
+            filterShift.addEventListener("change", () => {
+                const shift = filterShift.value;
+                if (shift === "all") {
+                    renderAvailableDoctors(allDoctors.filter(d => d.status === "متاح"));
+                } else {
+                    renderAvailableDoctors(allDoctors.filter(d => d.status === "متاح" && d.shift === shift));
+                }
+            });
+
+            function renderDoctors(doctors) {
+                doctorsTable.innerHTML = "";
+                if (doctors.length === 0) {
+                    doctorsTable.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">لا توجد نتائج</td></tr>';
+                    return;
+                }
+                doctors.forEach((doctor) => {
+                    const row = document.createElement("tr");
+                    row.className = "hover:bg-gray-50";
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">${doctor.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${doctor.department}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${doctor.shift}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${doctor.status === "متاح" ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${doctor.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                            <div class="flex justify-center space-x-2 space-x-reverse">
+                                <button class="editDoctorBtn text-primary-600 hover:text-primary-900 flex items-center" data-id="${doctor.id}">
+                                    <i data-feather="edit" class="w-4 h-4 mr-1"></i>
+                                    تعديل
+                                </button>
+                                <button class="deleteDoctorBtn text-red-600 hover:text-red-900 flex items-center" data-id="${doctor.id}">
+                                    <i data-feather="trash-2" class="w-4 h-4 mr-1"></i>
+                                    حذف
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    doctorsTable.appendChild(row);
+                });
+                feather.replace();
+                attachDoctorEvents();
+            }
+
+            function renderAvailableDoctors(doctors) {
+                availableDoctorsTable.innerHTML = "";
+                if (doctors.length === 0) {
+                    availableDoctorsTable.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-gray-500">لا توجد نتائج</td></tr>';
+                    return;
+                }
+                doctors.forEach((doctor) => {
+                    const row = document.createElement("tr");
+                    row.className = "hover:bg-gray-50";
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">${doctor.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${doctor.department}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${doctor.shift}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                ${doctor.status}
+                            </span>
+                        </td>
+                    `;
+                    availableDoctorsTable.appendChild(row);
+                });
+                feather.replace();
+            }
+
+            // إضافة طبيب جديد
+            addDoctorBtn.addEventListener("click", () => {
+                Swal.fire({
+                    title: "إضافة طبيب جديد",
+                    html: `
+                        <div class="space-y-3">
+                            <input id="doctorName" class="swal2-input" placeholder="الاسم الكامل">
+                            <input id="doctorSpecialty" class="swal2-input" placeholder="التخصص">
+                            <select id="doctorDepartment" class="swal2-select">
+                                <option value="الطوارئ">الطوارئ</option>
+                                <option value="الباطنة">الباطنة</option>
+                                <option value="الجراحة">الجراحة</option>
+                                <option value="الأطفال">الأطفال</option>
+                                <option value="العظام">العظام</option>
+                            </select>
+                            <select id="doctorShift" class="swal2-select">
+                                <option value="صباحي">صباحي</option>
+                                <option value="مسائي">مسائي</option>
+                                <option value="ليلي">ليلي</option>
+                            </select>
+                            <input id="doctorPhone" class="swal2-input" placeholder="رقم الهاتف">
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const name = document.getElementById("doctorName").value;
+                        const specialty = document.getElementById("doctorSpecialty").value;
+                        const department = document.getElementById("doctorDepartment").value;
+                        const shift = document.getElementById("doctorShift").value;
+                        const phone = document.getElementById("doctorPhone").value;
+                        
+                        if (!name || !specialty || !department || !shift) {
+                            Swal.showValidationMessage("الرجاء إدخال جميع الحقول المطلوبة");
+                            return false;
+                        }
+                        
+                        const newDoctorRef = push(doctorsRef);
+                        return set(newDoctorRef, {
+                            name,
+                            specialty,
+                            department,
+                            shift,
+                            phone: phone || "-",
+                            status: "متاح",
+                            timestamp: Date.now()
+                        });
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        Swal.fire("تم", "تمت إضافة الطبيب بنجاح", "success");
+                    }
+                });
+            });
+
+            function attachDoctorEvents() {
+                document.querySelectorAll(".editDoctorBtn").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        const id = btn.dataset.id;
+                        const doctor = allDoctors.find(d => d.id === id);
+                        if (doctor) {
+                            Swal.fire({
+                                title: "تعديل بيانات الطبيب",
+                                html: `
+                                    <div class="space-y-3">
+                                        <input id="editDoctorName" class="swal2-input" placeholder="الاسم الكامل" value="${doctor.name}">
+                                        <input id="editDoctorSpecialty" class="swal2-input" placeholder="التخصص" value="${doctor.specialty}">
+                                        <select id="editDoctorDepartment" class="swal2-select">
+                                            <option value="الطوارئ" ${doctor.department === "الطوارئ" ? "selected" : ""}>الطوارئ</option>
+                                            <option value="الباطنة" ${doctor.department === "الباطنة" ? "selected" : ""}>الباطنة</option>
+                                            <option value="الجراحة" ${doctor.department === "الجراحة" ? "selected" : ""}>الجراحة</option>
+                                            <option value="الأطفال" ${doctor.department === "الأطفال" ? "selected" : ""}>الأطفال</option>
+                                            <option value="العظام" ${doctor.department === "العظام" ? "selected" : ""}>العظام</option>
+                                        </select>
+                                        <select id="editDoctorShift" class="swal2-select">
+                                            <option value="صباحي" ${doctor.shift === "صباحي" ? "selected" : ""}>صباحي</option>
+                                            <option value="مسائي" ${doctor.shift === "مسائي" ? "selected" : ""}>مسائي</option>
+                                            <option value="ليلي" ${doctor.shift === "ليلي" ? "selected" : ""}>ليلي</option>
+                                        </select>
+                                        <select id="editDoctorStatus" class="swal2-select">
+                                            <option value="متاح" ${doctor.status === "متاح" ? "selected" : ""}>متاح</option>
+                                            <option value="غير متاح" ${doctor.status === "غير متاح" ? "selected" : ""}>غير متاح</option>
+                                        </select>
+                                        <input id="editDoctorPhone" class="swal2-input" placeholder="رقم الهاتف" value="${doctor.phone || ""}">
+                                    </div>
+                                `,
+                                focusConfirm: false,
+                                preConfirm: () => {
+                                    const name = document.getElementById("editDoctorName").value;
+                                    const specialty = document.getElementById("editDoctorSpecialty").value;
+                                    const department = document.getElementById("editDoctorDepartment").value;
+                                    const shift = document.getElementById("editDoctorShift").value;
+                                    const status = document.getElementById("editDoctorStatus").value;
+                                    const phone = document.getElementById("editDoctorPhone").value;
+                                    
+                                    if (!name || !specialty || !department || !shift || !status) {
+                                        Swal.showValidationMessage("الرجاء إدخال جميع الحقول المطلوبة");
+                                        return false;
+                                    }
+                                    
+                                    return update(ref(db, `doctors/${id}`), {
+                                        name,
+                                        specialty,
+                                        department,
+                                        shift,
+                                        status,
+                                        phone: phone || "-"
+                                    });
+                                }
+                            }).then(result => {
+                                if (result.isConfirmed) {
+                                    Swal.fire("تم", "تم تحديث بيانات الطبيب بنجاح", "success");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                document.querySelectorAll(".deleteDoctorBtn").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        const id = btn.dataset.id;
+                        Swal.fire({
+                            title: "هل أنت متأكد؟",
+                            text: "لن تتمكن من التراجع عن حذف هذا الطبيب!",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "نعم، احذف",
+                            cancelButtonText: "إلغاء"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                remove(ref(db, `doctors/${id}`))
+                                    .then(() => Swal.fire("تم الحذف", "تم حذف الطبيب بنجاح", "success"))
+                                    .catch(() => Swal.fire("خطأ", "حدث خطأ أثناء الحذف", "error"));
+                            }
+                        });
+                    });
+                });
+            }
+            // Initialize with Dashboard and load all data
             document.querySelector('.sidebar-link[data-target="adminDashboard"]').click();
-        });
+            
+            // Load all sections data
+            loadDoctorsData();
+            loadDepartmentsData();
+            loadStaffData();
+            loadAttendanceData();
+            loadInventoryData();
+
+            function loadDoctorsData() {
+                const doctorsRef = ref(db, "doctors");
+                onValue(doctorsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    allDoctors = [];
+                    if (data) {
+                        Object.entries(data).forEach(([id, doctor]) => {
+                            allDoctors.push({ id, ...doctor });
+                        });
+                        renderDoctors(allDoctors);
+                        renderAvailableDoctors(allDoctors.filter(d => d.status === "متاح"));
+                        statsDoctorsOnline.textContent = allDoctors.filter(d => d.status === "متاح").length;
+                    }
+                });
+            }
+
+            function loadDepartmentsData() {
+                const deptsRef = ref(db, "departments");
+                onValue(deptsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    const deptsTable = document.getElementById("departmentsTable");
+                    deptsTable.innerHTML = "";
+                    if (data) {
+                        Object.entries(data).forEach(([id, dept]) => {
+                            const row = document.createElement("tr");
+                            row.className = "hover:bg-gray-50";
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">${dept.name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${dept.manager || "-"}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                    <div class="flex justify-center space-x-2 space-x-reverse">
+                                        <button class="editDeptBtn text-primary-600 hover:text-primary-900" data-id="${id}">
+                                            <i data-feather="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="deleteDeptBtn text-red-600 hover:text-red-900" data-id="${id}">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            `;
+                            deptsTable.appendChild(row);
+                        });
+                        feather.replace();
+                        attachDeptEvents();
+                    }
+                });
+            }
+
+            function loadStaffData() {
+                const staffRef = ref(db, "staff");
+                onValue(staffRef, (snapshot) => {
+                    const data = snapshot.val();
+                    const staffTable = document.getElementById("staffTable");
+                    staffTable.innerHTML = "";
+                    if (data) {
+                        Object.entries(data).forEach(([id, staff]) => {
+                            const row = document.createElement("tr");
+                            row.className = "hover:bg-gray-50";
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">${staff.name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${staff.position}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${staff.department || "-"}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${staff.phone || "-"}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                    <div class="flex justify-center space-x-2 space-x-reverse">
+                                        <button class="editStaffBtn text-primary-600 hover:text-primary-900" data-id="${id}">
+                                            <i data-feather="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="deleteStaffBtn text-red-600 hover:text-red-900" data-id="${id}">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            `;
+                            staffTable.appendChild(row);
+                        });
+                        feather.replace();
+                        attachStaffEvents();
+                    }
+                });
+            }
+
+            function loadAttendanceData() {
+                const attendanceRef = ref(db, "attendance");
+                onValue(attendanceRef, (snapshot) => {
+                    const data = snapshot.val();
+                    const attendanceTable = document.getElementById("attendanceTable");
+                    attendanceTable.innerHTML = "";
+                    if (data) {
+                        Object.entries(data).forEach(([id, attendee]) => {
+                            const row = document.createElement("tr");
+                            row.className = "hover:bg-gray-50";
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">${attendee.name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${attendee.type}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${attendee.department || "-"}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${attendee.status === "حاضر" ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${attendee.status}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                    <button class="toggleAttendance text-primary-600 hover:text-primary-900" data-id="${id}" data-current="${attendee.status}">
+                                        <i data-feather="${attendee.status === "حاضر" ? "x-circle" : "check-circle"}" class="w-4 h-4"></i>
+                                    </button>
+                                </td>
+                            `;
+                            attendanceTable.appendChild(row);
+                        });
+                        feather.replace();
+                        attachAttendanceEvents();
+                    }
+                });
+            }
+
+            function loadInventoryData() {
+                const inventoryRef = ref(db, "inventory");
+                onValue(inventoryRef, (snapshot) => {
+                    const data = snapshot.val();
+                    const inventoryTable = document.getElementById("inventoryTable");
+                    inventoryTable.innerHTML = "";
+                    if (data) {
+                        Object.entries(data).forEach(([id, item]) => {
+                            const row = document.createElement("tr");
+                            row.className = "hover:bg-gray-50";
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">${item.name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${item.currentQty}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${item.minQty}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                    <div class="flex justify-center space-x-2 space-x-reverse">
+                                        <button class="restockBtn text-green-600 hover:text-green-900" data-id="${id}">
+                                            <i data-feather="plus" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="editItemBtn text-primary-600 hover:text-primary-900" data-id="${id}">
+                                            <i data-feather="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button class="deleteItemBtn text-red-600 hover:text-red-900" data-id="${id}">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            `;
+                            inventoryTable.appendChild(row);
+                        });
+                        feather.replace();
+                        attachInventoryEvents();
+                    }
+                });
+            }
+
+            // Attach events for all sections
+            function attachDeptEvents() {
+                document.querySelectorAll(".editDeptBtn").forEach(btn => {
+                    btn.addEventListener("click", editDepartment);
+                });
+                document.querySelectorAll(".deleteDeptBtn").forEach(btn => {
+                    btn.addEventListener("click", deleteDepartment);
+                });
+            }
+
+            function attachStaffEvents() {
+                document.querySelectorAll(".editStaffBtn").forEach(btn => {
+                    btn.addEventListener("click", editStaff);
+                });
+                document.querySelectorAll(".deleteStaffBtn").forEach(btn => {
+                    btn.addEventListener("click", deleteStaff);
+                });
+            }
+
+            function attachAttendanceEvents() {
+                document.querySelectorAll(".toggleAttendance").forEach(btn => {
+                    btn.addEventListener("click", toggleAttendance);
+                });
+            }
+
+            function attachInventoryEvents() {
+                document.querySelectorAll(".restockBtn").forEach(btn => {
+                    btn.addEventListener("click", restockItem);
+                });
+                document.querySelectorAll(".editItemBtn").forEach(btn => {
+                    btn.addEventListener("click", editInventoryItem);
+                });
+                document.querySelectorAll(".deleteItemBtn").forEach(btn => {
+                    btn.addEventListener("click", deleteInventoryItem);
+                });
+            }
+
+            // Add button event listeners
+            document.getElementById("addDeptBtn").addEventListener("click", addDepartment);
+            document.getElementById("addStaffBtn").addEventListener("click", addStaff);
+            document.getElementById("registerFingerprintBtn").addEventListener("click", registerFingerprint);
+            document.getElementById("addInventoryBtn").addEventListener("click", addInventoryItem);
+
+            // Tab switching for attendance
+            document.querySelectorAll(".attendance-tab").forEach(tab => {
+                tab.addEventListener("click", function() {
+                    document.querySelectorAll(".attendance-tab").forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+                    const type = this.dataset.type;
+                    if (type === "all") {
+                        loadAttendanceData();
+                    } else {
+                        const attendanceRef = ref(db, "attendance");
+                        onValue(attendanceRef, (snapshot) => {
+                            const data = snapshot.val();
+                            const attendanceTable = document.getElementById("attendanceTable");
+                            attendanceTable.innerHTML = "";
+                            if (data) {
+                                Object.entries(data).forEach(([id, attendee]) => {
+                                    if (attendee.type === type) {
+                                        const row = document.createElement("tr");
+                                        row.className = "hover:bg-gray-50";
+                                        row.innerHTML = `
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">${attendee.name}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${attendee.type}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">${attendee.department || "-"}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${attendee.status === "حاضر" ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                                    ${attendee.status}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                                <button class="toggleAttendance text-primary-600 hover:text-primary-900" data-id="${id}" data-current="${attendee.status}">
+                                                    <i data-feather="${attendee.status === "حاضر" ? "x-circle" : "check-circle"}" class="w-4 h-4"></i>
+                                                </button>
+                                            </td>
+                                        `;
+                                        attendanceTable.appendChild(row);
+                                    }
+                                });
+                                feather.replace();
+                                attachAttendanceEvents();
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Department functions
+            function addDepartment() {
+                Swal.fire({
+                    title: "إضافة قسم جديد",
+                    html: `
+                        <div class="space-y-3">
+                            <input id="deptName" class="swal2-input" placeholder="اسم القسم">
+                            <input id="deptManager" class="swal2-input" placeholder="مدير القسم">
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const name = document.getElementById("deptName").value;
+                        const manager = document.getElementById("deptManager").value;
+                        
+                        if (!name) {
+                            Swal.showValidationMessage("اسم القسم مطلوب");
+                            return false;
+                        }
+                        
+                        const newDeptRef = push(ref(db, "departments"));
+                        return set(newDeptRef, {
+                            name,
+                            manager: manager || "-",
+                            timestamp: Date.now()
+                        });
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        Swal.fire("تم", "تمت إضافة القسم بنجاح", "success");
+                    }
+                });
+            }
+
+            function editDepartment() {
+                const id = this.dataset.id;
+                const deptRef = ref(db, `departments/${id}`);
+                get(deptRef).then((snapshot) => {
+                    const dept = snapshot.val();
+                    Swal.fire({
+                        title: "تعديل القسم",
+                        html: `
+                            <div class="space-y-3">
+                                <input id="editDeptName" class="swal2-input" placeholder="اسم القسم" value="${dept.name}">
+                                <input id="editDeptManager" class="swal2-input" placeholder="مدير القسم" value="${dept.manager || ""}">
+                            </div>
+                        `,
+                        focusConfirm: false,
+                        preConfirm: () => {
+                            const name = document.getElementById("editDeptName").value;
+                            const manager = document.getElementById("editDeptManager").value;
+                            
+                            if (!name) {
+                                Swal.showValidationMessage("اسم القسم مطلوب");
+                                return false;
+                            }
+                            
+                            return update(deptRef, {
+                                name,
+                                manager: manager || "-"
+                            });
+                        }
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            Swal.fire("تم", "تم تحديث القسم بنجاح", "success");
+                        }
+                    });
+                });
+            }
+
+            function deleteDepartment() {
+                const id = this.dataset.id;
+                Swal.fire({
+                    title: "هل أنت متأكد؟",
+                    text: "لن تتمكن من التراجع عن حذف هذا القسم!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "نعم، احذف",
+                    cancelButtonText: "إلغاء"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        remove(ref(db, `departments/${id}`))
+                            .then(() => Swal.fire("تم الحذف", "تم حذف القسم بنجاح", "success"))
+                            .catch(() => Swal.fire("خطأ", "حدث خطأ أثناء الحذف", "error"));
+                    }
+                });
+            }
+
+            // Staff functions
+            function addStaff() {
+                Swal.fire({
+                    title: "إضافة موظف جديد",
+                    html: `
+                        <div class="space-y-3">
+                            <input id="staffName" class="swal2-input" placeholder="الاسم الكامل">
+                            <input id="staffPosition" class="swal2-input" placeholder="الوظيفة">
+                            <input id="staffDepartment" class="swal2-input" placeholder="القسم">
+                            <input id="staffPhone" class="swal2-input" placeholder="رقم الهاتف">
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const name = document.getElementById("staffName").value;
+                        const position = document.getElementById("staffPosition").value;
+                        const department = document.getElementById("staffDepartment").value;
+                        const phone = document.getElementById("staffPhone").value;
+                        
+                        if (!name || !position) {
+                            Swal.showValidationMessage("الاسم والوظيفة مطلوبان");
+                            return false;
+                        }
+                        
+                        const newStaffRef = push(ref(db, "staff"));
+                        return set(newStaffRef, {
+                            name,
+                            position,
+                            department: department || "-",
+                            phone: phone || "-",
+                            timestamp: Date.now()
+                        });
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        Swal.fire("تم", "تمت إضافة الموظف بنجاح", "success");
+                    }
+                });
+            }
+
+            function editStaff() {
+                const id = this.dataset.id;
+                const staffRef = ref(db, `staff/${id}`);
+                get(staffRef).then((snapshot) => {
+                    const staff = snapshot.val();
+                    Swal.fire({
+                        title: "تعديل بيانات الموظف",
+                        html: `
+                            <div class="space-y-3">
+                                <input id="editStaffName" class="swal2-input" placeholder="الاسم الكامل" value="${staff.name}">
+                                <input id="editStaffPosition" class="swal2-input" placeholder="الوظيفة" value="${staff.position}">
+                                <input id="editStaffDepartment" class="swal2-input" placeholder="القسم" value="${staff.department || ""}">
+                                <input id="editStaffPhone" class="swal2-input" placeholder="رقم الهاتف" value="${staff.phone || ""}">
+                            </div>
+                        `,
+                        focusConfirm: false,
+                        preConfirm: () => {
+                            const name = document.getElementById("editStaffName").value;
+                            const position = document.getElementById("editStaffPosition").value;
+                            const department = document.getElementById("editStaffDepartment").value;
+                            const phone = document.getElementById("editStaffPhone").value;
+                            
+                            if (!name || !position) {
+                                Swal.showValidationMessage("الاسم والوظيفة مطلوبان");
+                                return false;
+                            }
+                            
+                            return update(staffRef, {
+                                name,
+                                position,
+                                department: department || "-",
+                                phone: phone || "-"
+                            });
+                        }
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            Swal.fire("تم", "تم تحديث بيانات الموظف بنجاح", "success");
+                        }
+                    });
+                });
+            }
+
+            function deleteStaff() {
+                const id = this.dataset.id;
+                Swal.fire({
+                    title: "هل أنت متأكد؟",
+                    text: "لن تتمكن من التراجع عن حذف هذا الموظف!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "نعم، احذف",
+                    cancelButtonText: "إلغاء"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        remove(ref(db, `staff/${id}`))
+                            .then(() => Swal.fire("تم الحذف", "تم حذف الموظف بنجاح", "success"))
+                            .catch(() => Swal.fire("خطأ", "حدث خطأ أثناء الحذف", "error"));
+                    }
+                });
+            }
+
+            // Attendance functions
+            function toggleAttendance() {
+                const id = this.dataset.id;
+                const currentStatus = this.dataset.current;
+                const newStatus = currentStatus === "حاضر" ? "غائب" : "حاضر";
+                
+                update(ref(db, `attendance/${id}`), {
+                    status: newStatus
+                }).then(() => {
+                    loadAttendanceData();
+                });
+            }
+
+            function registerFingerprint() {
+                Swal.fire({
+                    title: "تسجيل بصمة جديدة",
+                    html: `
+                        <div class="space-y-3">
+                            <select id="fingerprintType" class="swal2-select">
+                                <option value="طبيب">طبيب</option>
+                                <option value="موظف">موظف</option>
+                            </select>
+                            <input id="fingerprintName" class="swal2-input" placeholder="الاسم الكامل">
+                            <input id="fingerprintDepartment" class="swal2-input" placeholder="القسم">
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const type = document.getElementById("fingerprintType").value;
+                        const name = document.getElementById("fingerprintName").value;
+                        const department = document.getElementById("fingerprintDepartment").value;
+                        
+                        if (!name) {
+                            Swal.showValidationMessage("الاسم مطلوب");
+                            return false;
+                        }
+                        
+                        const newAttendanceRef = push(ref(db, "attendance"));
+                        return set(newAttendanceRef, {
+                            type,
+                            name,
+                            department: department || "-",
+                            status: "غائب",
+                            timestamp: Date.now()
+                        });
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        Swal.fire("تم", "تم تسجيل البيانات بنجاح", "success");
+                    }
+                });
+            }
+
+            // Inventory functions
+            function addInventoryItem() {
+                Swal.fire({
+                    title: "إضافة منتج جديد",
+                    html: `
+                        <div class="space-y-3">
+                            <input id="itemName" class="swal2-input" placeholder="اسم المنتج">
+                            <input id="itemCurrentQty" class="swal2-input" placeholder="الكمية الحالية" type="number">
+                            <input id="itemMinQty" class="swal2-input" placeholder="الحد الأدنى" type="number">
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const name = document.getElementById("itemName").value;
+                        const currentQty = document.getElementById("itemCurrentQty").value;
+                        const minQty = document.getElementById("itemMinQty").value;
+                        
+                        if (!name || !currentQty || !minQty) {
+                            Swal.showValidationMessage("جميع الحقول مطلوبة");
+                            return false;
+                        }
+                        
+                        const newItemRef = push(ref(db, "inventory"));
+                        return set(newItemRef, {
+                            name,
+                            currentQty: parseInt(currentQty),
+                            minQty: parseInt(minQty),
+                            timestamp: Date.now()
+                        });
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        Swal.fire("تم", "تمت إضافة المنتج بنجاح", "success");
+                    }
+                });
+            }
+
+            function restockItem() {
+                const id = this.dataset.id;
+                const itemRef = ref(db, `inventory/${id}`);
+                
+                get(itemRef).then((snapshot) => {
+                    const item = snapshot.val();
+                    Swal.fire({
+                        title: "إضافة كمية للمنتج",
+                        html: `
+                            <div class="space-y-3">
+                                <p class="text-sm text-gray-500">${item.name}</p>
+                                <input id="restockQty" class="swal2-input" placeholder="الكمية المضافة" type="number" min="1">
+                            </div>
+                        `,
+                        focusConfirm: false,
+                        preConfirm: () => {
+                            const qty = parseInt(document.getElementById("restockQty").value);
+                            
+                            if (isNaN(qty) || qty <= 0) {
+                                Swal.showValidationMessage("الرجاء إدخال كمية صحيحة");
+                                return false;
+                            }
+                            
+                            const newQty = item.currentQty + qty;
+                            return update(itemRef, {
+                                currentQty: newQty
+                            });
+                        }
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            Swal.fire("تم", "تمت إضافة الكمية بنجاح", "success");
+                        }
+                    });
+                });
+            }
+
+            function editInventoryItem() {
+                const id = this.dataset.id;
+                const itemRef = ref(db, `inventory/${id}`);
+                
+                get(itemRef).then((snapshot) => {
+                    const item = snapshot.val();
+                    Swal.fire({
+                        title: "تعديل المنتج",
+                        html: `
+                            <div class="space-y-3">
+                                <input id="editItemName" class="swal2-input" placeholder="اسم المنتج" value="${item.name}">
+                                <input id="editItemCurrentQty" class="swal2-input" placeholder="الكمية الحالية" type="number" value="${item.currentQty}">
+                                <input id="editItemMinQty" class="swal2-input" placeholder="الحد الأدنى" type="number" value="${item.minQty}">
+                            </div>
+                        `,
+                        focusConfirm: false,
+                        preConfirm: () => {
+                            const name = document.getElementById("editItemName").value;
+                            const currentQty = document.getElementById("editItemCurrentQty").value;
+                            const minQty = document.getElementById("editItemMinQty").value;
+                            
+                            if (!name || !currentQty || !minQty) {
+                                Swal.showValidationMessage("جميع الحقول مطلوبة");
+                                return false;
+                            }
+                            
+                            return update(itemRef, {
+                                name,
+                                currentQty: parseInt(currentQty),
+                                minQty: parseInt(minQty)
+                            });
+                        }
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            Swal.fire("تم", "تم تحديث المنتج بنجاح", "success");
+                        }
+                    });
+                });
+            }
+
+            function deleteInventoryItem() {
+                const id = this.dataset.id;
+                Swal.fire({
+                    title: "هل أنت متأكد؟",
+                    text: "لن تتمكن من التراجع عن حذف هذا المنتج!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "نعم، احذف",
+                    cancelButtonText: "إلغاء"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        remove(ref(db, `inventory/${id}`))
+                            .then(() => Swal.fire("تم الحذف", "تم حذف المنتج بنجاح", "success"))
+                            .catch(() => Swal.fire("خطأ", "حدث خطأ أثناء الحذف", "error"));
+                    }
+                });
+            }
+});
     </script>
     
     <!-- Vanta.js for animated background -->
