@@ -8,17 +8,33 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-    body { font-family: 'Tajawal', sans-serif; }
+    :root {
+      --primary-color: #007BFF;
+      --primary-hover: #0056B3;
+      --secondary-text: #6C757D;
+      --bg-color: #E6F4F9;
+    }
+    
+    body { 
+      font-family: 'Cairo', sans-serif; 
+      background-color: var(--bg-color);
+    }
+    
     .patient-card {
       transition: all 0.3s ease;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
+    
     .patient-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
+    
     .loading {
       position: fixed;
       top: 0;
@@ -31,14 +47,17 @@
       align-items: center;
       z-index: 1000;
     }
+    
     .action-btn {
       transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
     }
+    
     .action-btn:hover {
       transform: scale(1.05);
     }
+    
     .action-btn::after {
       content: '';
       position: absolute;
@@ -52,9 +71,11 @@
       transform: scale(1, 1) translate(-50%);
       transform-origin: 50% 50%;
     }
+    
     .action-btn:hover::after {
       animation: ripple 1s ease-out;
     }
+    
     @keyframes ripple {
       0% {
         transform: scale(0, 0);
@@ -65,29 +86,39 @@
         opacity: 0;
       }
     }
+    
     .stat-card {
       transition: all 0.3s ease;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
+    
     .stat-card:hover {
       transform: translateY(-5px);
     }
+    
     .search-box {
       position: relative;
     }
+    
     .search-box input {
       padding-left: 40px;
     }
+    
     .search-box i {
       position: absolute;
       left: 12px;
       top: 50%;
       transform: translateY(-50%);
     }
+    
     .chart-container {
       position: relative;
       height: 250px;
       width: 100%;
     }
+    
     .notification-badge {
       position: absolute;
       top: -5px;
@@ -103,9 +134,59 @@
       font-size: 12px;
       font-weight: bold;
     }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+    
+    .header-bg {
+      background-color: white;
+      border-bottom: 1px solid rgba(0, 123, 255, 0.1);
+    }
+    
+    .card-bg {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .text-primary {
+      color: var(--primary-color);
+    }
+    
+    .text-secondary {
+      color: var(--secondary-text);
+    }
+    
+    .form-input {
+      border: 1px solid rgba(0, 123, 255, 0.2);
+      border-radius: 8px;
+      padding: 8px 12px;
+      transition: border-color 0.3s;
+    }
+    
+    .form-input:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+    
+    .section-title {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen">
   <!-- Loading Overlay -->
   <div id="loading" class="loading hidden">
     <div class="text-center">
@@ -114,8 +195,8 @@
     </div>
   </div>
 
-  <!-- Header (دمج الهيدر الاحترافي) -->
-  <div class="flex justify-between items-center p-4 bg-white mb-6 border-b border-gray-200">
+  <!-- Header -->
+  <div class="header-bg flex justify-between items-center p-4 mb-6">
     <div class="flex items-center gap-3">
       <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="w-16 h-16 rounded-full bg-white border-2 border-blue-700 p-1" alt="شعار مستشفى الحياة الذكية">
       <div>
@@ -129,287 +210,174 @@
   <div class="container mx-auto px-4 py-8 max-w-5xl">
     <!-- Dashboard Stats -->
     <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+      <div class="stat-card p-5 text-center">
         <div class="flex justify-center mb-3">
           <i class="fas fa-users text-3xl text-blue-600"></i>
         </div>
-        <h3 class="text-sm text-gray-500 mb-2">إجمالي المرضى</h3>
+        <h3 class="text-sm text-secondary mb-2">إجمالي المرضى</h3>
         <div id="totalPatients" class="text-3xl font-bold text-blue-700">0</div>
       </div>
-      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+      <div class="stat-card p-5 text-center">
         <div class="flex justify-center mb-3">
           <i class="fas fa-user-plus text-3xl text-green-600"></i>
         </div>
-        <h3 class="text-sm text-gray-500 mb-2">المسجلين اليوم</h3>
+        <h3 class="text-sm text-secondary mb-2">المسجلين اليوم</h3>
         <div id="todayPatients" class="text-3xl font-bold text-green-600">0</div>
       </div>
-      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+      <div class="stat-card p-5 text-center">
         <div class="flex justify-center mb-3">
           <i class="fas fa-ambulance text-3xl text-red-600"></i>
         </div>
-        <h3 class="text-sm text-gray-500 mb-2">مرضى الطوارئ</h3>
+        <h3 class="text-sm text-secondary mb-2">مرضى الطوارئ</h3>
         <div id="emergencyPatients" class="text-3xl font-bold text-red-600">0</div>
       </div>
-      <div class="bg-white p-5 rounded-lg shadow-md text-center stat-card">
+      <div class="stat-card p-5 text-center">
         <div class="flex justify-center mb-3">
           <i class="fas fa-procedures text-3xl text-purple-600"></i>
         </div>
-        <h3 class="text-sm text-gray-500 mb-2">مرضى العمليات</h3>
+        <h3 class="text-sm text-secondary mb-2">مرضى العمليات</h3>
         <div id="surgeryPatients" class="text-3xl font-bold text-purple-600">0</div>
       </div>
     </section>
 
     <!-- Charts Section -->
-    <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+    <section class="card-bg p-6 mb-8">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div class="flex items-center mb-4 md:mb-0">
           <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
-          <h2 class="text-xl font-bold">إحصائيات وتحليلات</h2>
+          <h2 class="text-xl font-bold section-title">إحصائيات وتحليلات</h2>
         </div>
         <div class="flex space-x-4">
-          <button id="printReportBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center">
-            <i class="fas fa-print mr-2"></i> طباعة التقرير
+          <button id="printReportBtn" class="btn-primary flex items-center">
+            <i class="fas fa-print ml-2"></i> طباعة التقرير
           </button>
           <button id="exportPdfBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center">
-            <i class="fas fa-file-pdf mr-2"></i> تصدير PDF
+            <i class="fas fa-file-pdf ml-2"></i> تصدير PDF
           </button>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 class="text-lg font-semibold mb-3 text-gray-700">توزيع المرضى حسب الأقسام</h3>
+          <h3 class="text-lg font-semibold mb-3 text-secondary">توزيع المرضى حسب الأقسام</h3>
           <div class="chart-container">
             <canvas id="departmentChart"></canvas>
           </div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold mb-3 text-gray-700">عدد المرضى المسجلين يومياً</h3>
+          <h3 class="text-lg font-semibold mb-3 text-secondary">عدد المرضى المسجلين يومياً</h3>
           <div class="chart-container">
             <canvas id="dailyChart"></canvas>
           </div>
         </div>
       </div>
       <div class="mt-6">
-        <h3 class="text-lg font-semibold mb-3 text-gray-700">فصائل الدم الأكثر شيوعاً</h3>
+        <h3 class="text-lg font-semibold mb-3 text-secondary">فصائل الدم الأكثر شيوعاً</h3>
         <div class="chart-container">
           <canvas id="bloodTypeChart"></canvas>
         </div>
       </div>
     </section>
 
- <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل مريض - الاستقبال</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans">
-
-<!-- Main Content -->
-<div class="max-w-5xl mx-auto p-6">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Patient Registration Form -->
-    <div class="lg:col-span-1">
-      <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-600">
-        <div class="flex items-center mb-4">
-          <i class="fas fa-clipboard-list text-blue-600 mr-2"></i>
-          <h2 class="text-xl font-bold">تسجيل مريض جديد</h2>
-        </div>
-        <form id="patientForm" class="space-y-4">
-          <div class="space-y-3">
-            <!-- اسم المريض -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">اسم المريض</label>
-              <input type="text" id="name" class="w-full border rounded-md p-2" required />
-            </div>
-
-            <!-- العمر والرقم القومي -->
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
-                <input type="number" id="age" min="0" max="120" class="w-full border rounded-md p-2" required />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">الرقم القومي</label>
-                <input type="text" id="nid" maxlength="14" class="w-full border rounded-md p-2" required />
-              </div>
-            </div>
-
-            <!-- الجنس وفصيلة الدم -->
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
-                <select id="gender" class="w-full border rounded-md p-2" required>
-                  <option value="">اختر</option>
-                  <option value="male">ذكر</option>
-                  <option value="female">أنثى</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">فصيلة الدم</label>
-                <select id="bloodType" class="w-full border rounded-md p-2" required>
-                  <option value="">اختر</option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- العنوان -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
-              <input type="text" id="address" class="w-full border rounded-md p-2" required />
-            </div>
-
-            <!-- الأمراض -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
-              <textarea id="diseases" rows="3" class="w-full border rounded-md p-2"></textarea>
-            </div>
-
-            <!-- اختيار القسم -->
-            <label class="block mb-2 font-medium">اختر القسم</label>
-            <select id="department" class="w-full border rounded p-2 mb-4">
-              <option value="">-- اختر القسم --</option>
-              <option value="emergency">الطوارئ</option>
-              <option value="radiology">الأشعة</option>
-              <option value="icu">العناية المركزة</option>
-              <option value="operations">العمليات</option>
-            </select>
-
-            <!-- اختيار الدكتور -->
-            <label class="block mb-2 font-medium">اختر الدكتور</label>
-            <select id="doctorSelect" class="w-full border rounded p-2 mb-4">
-              <option value="">-- اختر الدكتور --</option>
-            </select>
-
-            <!-- زر التسجيل -->
-            <button type="button" onclick="registerPatient()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">تسجيل المريض</button>
+    <!-- Patient Registration Form and List -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Patient Registration Form -->
+      <div class="lg:col-span-1">
+        <div class="card-bg p-6 border-l-4 border-blue-600">
+          <div class="flex items-center mb-4">
+            <i class="fas fa-clipboard-list text-blue-600 ml-2"></i>
+            <h2 class="text-xl font-bold section-title">تسجيل مريض جديد</h2>
           </div>
-        </form>
+          <form id="patientForm" class="space-y-4">
+            <div class="space-y-3">
+              <!-- اسم المريض -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">اسم المريض</label>
+                <input type="text" id="name" class="form-input w-full" required />
+              </div>
+
+              <!-- العمر والرقم القومي -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
+                  <input type="number" id="age" min="0" max="120" class="form-input w-full" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">الرقم القومي</label>
+                  <input type="text" id="nid" maxlength="14" class="form-input w-full" required />
+                </div>
+              </div>
+
+              <!-- الجنس وفصيلة الدم -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
+                  <select id="gender" class="form-input w-full" required>
+                    <option value="">اختر</option>
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">فصيلة الدم</label>
+                  <select id="bloodType" class="form-input w-full" required>
+                    <option value="">اختر</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- العنوان -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
+                <input type="text" id="address" class="form-input w-full" required />
+              </div>
+
+              <!-- الأمراض -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
+                <textarea id="diseases" rows="3" class="form-input w-full"></textarea>
+              </div>
+
+              <!-- اختيار القسم -->
+              <label class="block mb-2 font-medium">اختر القسم</label>
+              <select id="department" class="form-input w-full mb-4">
+                <option value="">-- اختر القسم --</option>
+                <option value="emergency">الطوارئ</option>
+                <option value="radiology">الأشعة</option>
+                <option value="icu">العناية المركزة</option>
+                <option value="operations">العمليات</option>
+              </select>
+
+              <!-- اختيار الدكتور -->
+              <label class="block mb-2 font-medium">اختر الدكتور</label>
+              <select id="doctorSelect" class="form-input w-full mb-4">
+                <option value="">-- اختر الدكتور --</option>
+              </select>
+
+              <!-- زر التسجيل -->
+              <button type="button" onclick="registerPatient()" class="btn-primary w-full">تسجيل المريض</button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
-  authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
-  databaseURL: "https://smart-life-hospital-ef64c-default-rtdb.firebaseio.com",
-  projectId: "smart-life-hospital-ef64c",
-  storageBucket: "smart-life-hospital-ef64c.firebasestorage.app",
-  messagingSenderId: "851045891087",
-  appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
-  measurementId: "G-QE5BL3MTY7"
-};
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // دالة لتحديد الوردية بتوقيت مصر
-  function getCurrentShift() {
-    const nowCairo = new Date().toLocaleString("en-US", { timeZone: "Africa/Cairo" });
-    const date = new Date(nowCairo);
-    const hour = date.getHours();
-
-    if (hour >= 8 && hour < 16) return "Morning";
-    if (hour >= 16 && hour < 24) return "Evening";
-    return "Night";
-  }
-
-  // تحميل الأطباء حسب القسم + الوردية + الحالة
-  document.getElementById("department").addEventListener("change", function () {
-    const dept = this.value;
-    const doctorSelect = document.getElementById("doctorSelect");
-    doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-
-    if (!dept) return;
-
-    const shift = getCurrentShift();
-    const doctorsRef = ref(db, "doctors");
-    onValue(doctorsRef, (snapshot) => {
-      doctorSelect.innerHTML = "<option value=''>-- اختر الدكتور --</option>";
-      snapshot.forEach(child => {
-        const doc = child.val();
-        // شرط: نفس القسم + نفس الوردية + اونلاين
-        if (
-          doc.department.toLowerCase() === dept.toLowerCase() &&
-          doc.shift === shift &&
-          doc.manualStatus === "online"
-        ) {
-          const option = document.createElement("option");
-          option.value = doc.name;
-          option.textContent = `${doc.name} (${doc.shift})`;
-          doctorSelect.appendChild(option);
-        }
-      });
-    });
-  });
-
-  // تسجيل المريض
-  window.registerPatient = function () {
-    const name = document.getElementById("name").value.trim();
-    const age = document.getElementById("age").value.trim();
-    const nid = document.getElementById("nid").value.trim();
-    const address = document.getElementById("address").value.trim();
-    const bloodType = document.getElementById("bloodType").value;
-    const diseases = document.getElementById("diseases").value.trim();
-    const department = document.getElementById("department").value;
-    const doctor = document.getElementById("doctorSelect").value;
-
-    if (!name || !age || !nid || !department || !doctor) {
-      Swal.fire("تنبيه", "يرجى إدخال كل البيانات المطلوبة واختيار الدكتور", "warning");
-      return;
-    }
-
-    const patientData = {
-      name,
-      age,
-      nid,
-      address,
-      bloodType,
-      diseases,
-      department,
-      doctors: doctor,   // تخزين اسم الدكتور
-      timestamp: new Date().toISOString()
-    };
-
-    const patientsRef = ref(db, `patients/${department}`);
-    const newPatientRef = push(patientsRef);
-
-    set(newPatientRef, patientData)
-      .then(() => {
-        Swal.fire("تم الحفظ", "تم تسجيل المريض بنجاح", "success");
-        document.getElementById("patientForm").reset();
-      })
-      .catch(() => {
-        Swal.fire("خطأ", "حدث خطأ أثناء التسجيل", "error");
-      });
-  };
-</script>
-</body>
-</html>
       <!-- Patients List -->
       <div class="lg:col-span-2">
-        <div class="bg-white p-6 rounded-xl shadow-lg">
+        <div class="card-bg p-6">
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div class="flex items-center mb-4 md:mb-0">
-              <i class="fas fa-list-ul text-blue-600 mr-2"></i>
-              <h2 class="text-xl font-bold">قائمة المرضى</h2>
+              <i class="fas fa-list-ul text-blue-600 ml-2"></i>
+              <h2 class="text-xl font-bold section-title">قائمة المرضى</h2>
             </div>
             <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 w-full">
-              <select id="filterDepartment" class="border border-gray-300 rounded-md p-2 text-sm">
+              <select id="filterDepartment" class="form-input text-sm">
                 <option value="all">جميع الأقسام</option>
                 <option value="emergency">الطوارئ</option>
                 <option value="icu">العناية المركزة</option>
@@ -419,7 +387,7 @@ const firebaseConfig = {
                 <option value="radiology">الأشعة</option>
               </select>
               <div class="search-box relative">
-                <input type="text" id="searchPatient" placeholder="بحث عن مريض..." class="w-full border border-gray-300 rounded-md p-2 pl-8 text-sm" />
+                <input type="text" id="searchPatient" placeholder="بحث عن مريض..." class="form-input w-full pl-8 text-sm" />
                 <i class="fas fa-search absolute left-2 top-3 text-gray-400"></i>
               </div>
             </div>
@@ -493,7 +461,7 @@ const firebaseConfig = {
     // Create patient card
     function createPatientCard(patient, id, department) {
       const card = document.createElement('div');
-      card.className = 'patient-card bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300';
+      card.className = 'patient-card p-4';
       
       // Determine gender text and icon
       const genderText = patient.gender === 'male' ? 'ذكر' : 'أنثى';
@@ -506,33 +474,33 @@ const firebaseConfig = {
         <div class="flex flex-col md:flex-row md:items-between">
           <div class="flex-1">
             <div class="flex items-center mb-2">
-              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 ml-3">
                 <i class="fas fa-user"></i>
               </div>
               <div>
                 <h3 class="font-bold text-lg text-blue-800">${patient.name}</h3>
-                <div class="flex items-center text-sm text-gray-600">
-                  <span class="mr-3"><i class="fas fa-id-card mr-1"></i> ${patient.nid}</span>
-                  <span><i class="fas fa-hospital mr-1"></i> ${departmentInfo.name}</span>
+                <div class="flex items-center text-sm text-secondary">
+                  <span class="ml-3"><i class="fas fa-id-card ml-1"></i> ${patient.nid}</span>
+                  <span><i class="fas fa-hospital ml-1"></i> ${departmentInfo.name}</span>
                 </div>
               </div>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
               <div class="flex items-center">
-                <i class="fas fa-birthday-cake text-gray-500 mr-1"></i>
+                <i class="fas fa-birthday-cake text-gray-500 ml-1"></i>
                 <span>${patient.age} سنة</span>
               </div>
               <div class="flex items-center">
-                <i class="fas fa-${genderIcon} text-gray-500 mr-1"></i>
+                <i class="fas fa-${genderIcon} text-gray-500 ml-1"></i>
                 <span>${genderText}</span>
               </div>
               <div class="flex items-center">
-                <i class="fas fa-tint text-gray-500 mr-1"></i>
+                <i class="fas fa-tint text-gray-500 ml-1"></i>
                 <span>${patient.bloodType}</span>
               </div>
               <div class="flex items-center">
-                <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>
+                <i class="fas fa-map-marker-alt text-gray-500 ml-1"></i>
                 <span class="truncate">${patient.address}</span>
               </div>
             </div>
@@ -540,14 +508,14 @@ const firebaseConfig = {
             ${patient.diseases ? `
             <div class="mt-2 text-sm">
               <div class="font-medium text-gray-700 mb-1">
-                <i class="fas fa-notes-medical mr-1"></i> ملاحظات:
+                <i class="fas fa-notes-medical ml-1"></i> ملاحظات:
               </div>
-              <p class="text-gray-600 bg-gray-50 p-2 rounded">${patient.diseases}</p>
+              <p class="text-secondary bg-gray-50 p-2 rounded">${patient.diseases}</p>
             </div>
             ` : ''}
             
-            <div class="mt-2 text-xs text-gray-500">
-              <i class="fas fa-clock mr-1"></i> سجل في: ${formatDate(patient.timestamp)}
+            <div class="mt-2 text-xs text-secondary">
+              <i class="fas fa-clock ml-1"></i> سجل في: ${formatDate(patient.timestamp)}
             </div>
           </div>
           
@@ -594,7 +562,7 @@ const firebaseConfig = {
       
       if (!patients) {
         patientsList.innerHTML = `
-          <div class="text-center py-8 text-gray-500">
+          <div class="text-center py-8 text-secondary">
             <i class="fas fa-search text-4xl mb-3"></i>
             <p>لا يوجد مرضى يطابق البحث</p>
           </div>
@@ -621,7 +589,7 @@ const firebaseConfig = {
       
       if (filteredPatients.length === 0) {
         patientsList.innerHTML = `
-          <div class="text-center py-8 text-gray-500">
+          <div class="text-center py-8 text-secondary">
             <i class="fas fa-user-slash text-4xl mb-3"></i>
             <p>لا يوجد مرضى في هذا القسم</p>
           </div>
@@ -688,30 +656,30 @@ const firebaseConfig = {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الاسم</label>
-            <input type="text" id="edit-name" value="${patient.name}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+            <input type="text" id="edit-name" value="${patient.name}" class="form-input w-full" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">العمر</label>
-            <input type="number" id="edit-age" value="${patient.age}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+            <input type="number" id="edit-age" value="${patient.age}" class="form-input w-full" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الرقم القومي</label>
-            <input type="text" id="edit-nid" value="${patient.nid}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+            <input type="text" id="edit-nid" value="${patient.nid}" class="form-input w-full" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الجنس</label>
-            <select id="edit-gender" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            <select id="edit-gender" class="form-input w-full" required>
               <option value="male" ${patient.gender === 'male' ? 'selected' : ''}>ذكر</option>
               <option value="female" ${patient.gender === 'female' ? 'selected' : ''}>أنثى</option>
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
-            <input type="text" id="edit-address" value="${patient.address}" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+            <input type="text" id="edit-address" value="${patient.address}" class="form-input w-full" required />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">فصيلة الدم</label>
-            <select id="edit-bloodType" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            <select id="edit-bloodType" class="form-input w-full" required>
               <option value="A+" ${patient.bloodType === 'A+' ? 'selected' : ''}>A+</option>
               <option value="A-" ${patient.bloodType === 'A-' ? 'selected' : ''}>A-</option>
               <option value="B+" ${patient.bloodType === 'B+' ? 'selected' : ''}>B+</option>
@@ -725,7 +693,7 @@ const firebaseConfig = {
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">الأمراض المزمنة / ملاحظات</label>
-          <textarea id="edit-diseases" rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">${patient.diseases || ''}</textarea>
+          <textarea id="edit-diseases" rows="3" class="form-input w-full">${patient.diseases || ''}</textarea>
         </div>
       `;
       
@@ -801,7 +769,7 @@ const firebaseConfig = {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       
-      doc.setFont('Tajawal', 'normal');
+      doc.setFont('Cairo', 'normal');
       doc.setFontSize(18);
       doc.text('تقرير المرضى - مستشفى الحياة الذكية', 105, 15, { align: 'center' });
       
@@ -923,8 +891,8 @@ const firebaseConfig = {
             label: 'عدد المرضى المسجلين',
             data: [0, 0, 0, 0, 0, 0, 0],
             fill: true,
-            backgroundColor: 'rgba(59, 130, 246, 0.2)',
-            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            borderColor: 'rgb(0, 123, 255)',
             tension: 0.4
           }]
         },
