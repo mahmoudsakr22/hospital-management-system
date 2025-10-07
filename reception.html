@@ -730,7 +730,7 @@
               </select>
             </div>
 
-            <button type="button" onclick="registerPatient()" class="btn-medical w-full">
+            <button type="submit" class="btn-medical w-full">
               <i class="fas fa-save"></i>
               تسجيل المريض
             </button>
@@ -804,6 +804,7 @@ const firebaseConfig = {
     const surgeryPatientsElement = document.getElementById('surgeryPatients');
     const printReportBtn = document.getElementById('printReportBtn');
     const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const doctorSelect = document.getElementById('doctorSelect');
     
     // Display current date
     const today = new Date();
@@ -829,6 +830,44 @@ const firebaseConfig = {
       });
     }
     
+    // Load doctors from database
+    function loadDoctors() {
+      const doctorsRef = ref(db, "doctors");
+      
+      onValue(doctorsRef, (snapshot) => {
+        const doctors = snapshot.val() || {};
+        
+        // Clear current options except the default one
+        doctorSelect.innerHTML = '<option value="">-- اختر الطبيب --</option>';
+        
+        // Add doctors to the select
+        Object.entries(doctors).forEach(([id, doctor]) => {
+          const option = document.createElement("option");
+          option.value = id;
+          option.textContent = `${doctor.name} - ${getDepartmentName(doctor.department)}`;
+          doctorSelect.appendChild(option);
+        });
+      });
+    }
+    
+    // Add sample doctors (run once)
+    function addSampleDoctors() {
+      const doctorsRef = ref(db, "doctors");
+      
+      const sampleDoctors = [
+        { name: "د. أحمد محمد", department: "emergency", specialization: "طب الطوارئ" },
+        { name: "د. فاطمة علي", department: "icu", specialization: "العناية المركزة" },
+        { name: "د. محمد خالد", department: "operations", specialization: "جراحة عامة" },
+        { name: "د. نورة سعيد", department: "radiology", specialization: "الأشعة التشخيصية" },
+        { name: "د. يوسف عمر", department: "emergency", specialization: "طب الطوارئ" },
+        { name: "د. مريم حسن", department: "icu", specialization: "العناية المركزة" }
+      ];
+      
+      sampleDoctors.forEach(doctor => {
+        push(doctorsRef, doctor);
+      });
+    }
+    
     // Create patient card
     function createPatientCard(patient, id, department) {
       const card = document.createElement('div');
@@ -840,6 +879,17 @@ const firebaseConfig = {
       
       // Get department badge class
       const deptClass = `dept-${department}`;
+      
+      // Get doctor name if doctorId exists
+      let doctorInfo = '';
+      if (patient.doctorId) {
+        doctorInfo = `
+          <div class="detail-item">
+            <i class="fas fa-user-md"></i>
+            <span>الطبيب: ${patient.doctorName || 'غير محدد'}</span>
+          </div>
+        `;
+      }
       
       card.innerHTML = `
         <div class="flex items-start gap-4">
@@ -872,6 +922,7 @@ const firebaseConfig = {
                 <i class="fas fa-tint"></i>
                 <span>${patient.bloodType}</span>
               </div>
+              ${doctorInfo}
             </div>
             
             ${patient.diseases ? `
@@ -984,7 +1035,7 @@ const firebaseConfig = {
     }
     
     // Delete patient
-    function deletePatient(id, department) {
+    window.deletePatient = function(id, department) {
       Swal.fire({
         title: 'تأكيد الحذف',
         text: "هل أنت متأكد من حذف بيانات هذا المريض؟",
@@ -1027,7 +1078,7 @@ const firebaseConfig = {
     }
     
     // Edit patient
-    function editPatient(id, department, patient) {
+    window.editPatient = function(id, department, patient) {
       const editForm = document.createElement('form');
       editForm.className = 'space-y-4';
       
@@ -1405,6 +1456,15 @@ const firebaseConfig = {
     patientForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
+      const selectedDoctor = document.getElementById("doctorSelect").value;
+      let doctorName = '';
+      
+      // Get doctor name if a doctor is selected
+      if (selectedDoctor) {
+        const selectedOption = doctorSelect.options[doctorSelect.selectedIndex];
+        doctorName = selectedOption.textContent.split(' - ')[0];
+      }
+      
       const formData = {
         name: document.getElementById("name").value.trim(),
         age: document.getElementById("age").value.trim(),
@@ -1414,6 +1474,8 @@ const firebaseConfig = {
         bloodType: document.getElementById("bloodType").value,
         diseases: document.getElementById("diseases").value.trim(),
         department: document.getElementById("department").value,
+        doctorId: selectedDoctor,
+        doctorName: doctorName,
         timestamp: new Date().toISOString()
       };
       
@@ -1522,6 +1584,10 @@ const firebaseConfig = {
     document.addEventListener('DOMContentLoaded', () => {
       setupDataListeners();
       initializeCharts();
+      loadDoctors();
+      
+      // Uncomment the line below to add sample doctors (run once)
+      // addSampleDoctors();
     });
   </script>
 </body>
