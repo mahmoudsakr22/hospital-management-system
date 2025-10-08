@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>نظام إدارة المرضى - مستشفى الحياة الذكية</title>
+  <title>نظام إدارة المستشفى المتكامل - مستشفى الحياة الذكية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -43,6 +43,123 @@
       color: var(--text-primary);
     }
     
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: 260px;
+      background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      z-index: 1000;
+      transform: translateX(0);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .sidebar.collapsed {
+      transform: translateX(100%);
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: white;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .sidebar-menu {
+      padding: 20px 0;
+    }
+    
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .sidebar-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-item.active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .sidebar-item.active::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: white;
+    }
+    
+    .sidebar-item i {
+      margin-left: 15px;
+      font-size: 18px;
+    }
+    
+    .sidebar-text {
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .sidebar-submenu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: rgba(0, 0, 0, 0.1);
+    }
+    
+    .sidebar-submenu.open {
+      max-height: 500px;
+    }
+    
+    .sidebar-submenu-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px 12px 50px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .sidebar-submenu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+      margin-right: 260px;
+      transition: margin-right 0.3s ease;
+      min-height: 100vh;
+    }
+    
+    .main-content.expanded {
+      margin-right: 0;
+    }
+    
     /* Header Styles */
     .medical-header {
       background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
@@ -63,16 +180,181 @@
       opacity: 0.3;
     }
     
-    .logo-container {
+    .header-content {
       position: relative;
       z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
     }
     
-    .logo-badge {
-      background: white;
+    .menu-toggle {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .notification-btn {
+      position: relative;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .notification-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--danger-color);
+      color: white;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      padding: 3px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    
+    .user-dropdown {
+      position: relative;
+    }
+    
+    .user-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .user-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+    
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: var(--shadow-lg);
+      min-width: 200px;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+    
+    .dropdown-menu.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 15px;
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .dropdown-item:hover {
+      background: var(--light-bg);
+    }
+    
+    .dropdown-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 5px 0;
+    }
+    
+    /* Page Content Styles */
+    .page-content {
+      padding: 20px;
+    }
+    
+    .page-header {
+      margin-bottom: 20px;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--text-primary);
+      margin-bottom: 5px;
+    }
+    
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .breadcrumb-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+      content: '/';
+      margin-right: 5px;
     }
     
     /* Card Styles */
@@ -105,6 +387,31 @@
     .medical-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-lg);
+    }
+    
+    .card-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .card-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card-title i {
+      color: var(--primary-color);
+    }
+    
+    .card-body {
+      padding: 20px;
     }
     
     /* Stat Cards */
@@ -183,15 +490,19 @@
       color: white;
     }
     
-    .btn-success {
-      background: linear-gradient(135deg, var(--success-color), #4CAF50);
-      color: white;
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 14px;
     }
     
-    .btn-success:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: linear-gradient(135deg, #4CAF50, var(--success-color));
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
     }
     
     /* Form Styles */
@@ -232,7 +543,246 @@
       padding-left: 40px;
     }
     
-    /* Patient Cards */
+    /* Table Styles */
+    .medical-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .medical-table th {
+      background: var(--light-bg);
+      padding: 12px 15px;
+      text-align: right;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border-color);
+    }
+    
+    .medical-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .medical-table tr:hover {
+      background: rgba(0, 102, 204, 0.05);
+    }
+    
+    /* Tab Styles */
+    .tab-container {
+      margin-bottom: 20px;
+    }
+    
+    .tab-nav {
+      display: flex;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 20px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .tab-btn:hover {
+      color: var(--primary-color);
+    }
+    
+    .tab-btn.active {
+      color: var(--primary-color);
+    }
+    
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      right: 0;
+      left: 0;
+      height: 2px;
+      background: var(--primary-color);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal.show .modal-content {
+      transform: scale(1);
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-close:hover {
+      background: var(--light-bg);
+      color: var(--danger-color);
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+    }
+    
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--border-color);
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Chart Container */
+    .chart-wrapper {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+    
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .chart-title i {
+      color: var(--primary-color);
+    }
+    
+    /* Department Badge */
+    .dept-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .dept-emergency {
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--danger-color);
+    }
+    
+    .dept-icu {
+      background: rgba(139, 92, 246, 0.1);
+      color: #8B5CF6;
+    }
+    
+    .dept-surgery {
+      background: rgba(0, 102, 204, 0.1);
+      color: var(--primary-color);
+    }
+    
+    .dept-radiology {
+      background: rgba(14, 165, 233, 0.1);
+      color: #0EA5E9;
+    }
+    
+    /* Patient Card */
     .patient-card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -347,26 +897,6 @@
       color: white;
     }
     
-    .btn-view {
-      background: rgba(0, 201, 167, 0.1);
-      color: var(--accent-color);
-    }
-    
-    .btn-view:hover {
-      background: var(--accent-color);
-      color: white;
-    }
-    
-    .btn-book {
-      background: rgba(76, 175, 80, 0.1);
-      color: var(--success-color);
-    }
-    
-    .btn-book:hover {
-      background: var(--success-color);
-      color: white;
-    }
-    
     /* Search Box */
     .search-container {
       position: relative;
@@ -385,233 +915,6 @@
       color: var(--text-secondary);
     }
     
-    /* Loading Overlay */
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.95);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      backdrop-filter: blur(4px);
-    }
-    
-    .loading-spinner {
-      width: 60px;
-      height: 60px;
-      border: 4px solid var(--border-color);
-      border-top: 4px solid var(--primary-color);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    /* Chart Container */
-    .chart-wrapper {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 24px;
-    }
-    
-    .chart-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .chart-title i {
-      color: var(--primary-color);
-    }
-    
-    /* Department Badge */
-    .dept-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .dept-emergency {
-      background: rgba(255, 107, 107, 0.1);
-      color: var(--danger-color);
-    }
-    
-    .dept-icu {
-      background: rgba(139, 92, 246, 0.1);
-      color: #8B5CF6;
-    }
-    
-    .dept-surgery {
-      background: rgba(0, 102, 204, 0.1);
-      color: var(--primary-color);
-    }
-    
-    .dept-radiology {
-      background: rgba(14, 165, 233, 0.1);
-      color: #0EA5E9;
-    }
-    
-    /* Availability Badge */
-    .availability-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .available {
-      background: rgba(107, 207, 127, 0.1);
-      color: var(--success-color);
-    }
-    
-    .busy {
-      background: rgba(255, 217, 61, 0.1);
-      color: var(--warning-color);
-    }
-    
-    .off-duty {
-      background: rgba(108, 117, 125, 0.1);
-      color: var(--text-secondary);
-    }
-    
-    /* Tabs */
-    .tabs-container {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-      border-bottom: 2px solid var(--border-color);
-      overflow-x: auto;
-    }
-    
-    .tab-btn {
-      padding: 12px 20px;
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      color: var(--text-secondary);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .tab-btn:hover {
-      color: var(--primary-color);
-    }
-    
-    .tab-btn.active {
-      color: var(--primary-color);
-      border-bottom-color: var(--primary-color);
-    }
-    
-    .tab-content {
-      display: none;
-    }
-    
-    .tab-content.active {
-      display: block;
-      animation: fadeIn 0.3s ease-out;
-    }
-    
-    /* Time Slots */
-    .time-slots {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 8px;
-      margin-top: 12px;
-    }
-    
-    .time-slot {
-      padding: 8px;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 14px;
-    }
-    
-    .time-slot:hover {
-      border-color: var(--primary-color);
-      background: rgba(0, 102, 204, 0.05);
-    }
-    
-    .time-slot.selected {
-      border-color: var(--primary-color);
-      background: var(--primary-color);
-      color: white;
-    }
-    
-    .time-slot.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: #f5f5f5;
-    }
-    
-    /* Current Time Display */
-    .current-time {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      padding: 16px;
-      border-radius: 12px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    
-    .current-time h3 {
-      font-size: 14px;
-      opacity: 0.9;
-      margin-bottom: 4px;
-    }
-    
-    .current-time .time {
-      font-size: 24px;
-      font-weight: bold;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-      .stat-card {
-        margin-bottom: 16px;
-      }
-      
-      .patient-details {
-        flex-direction: column;
-        gap: 8px;
-      }
-      
-      .tabs-container {
-        overflow-x: scroll;
-      }
-      
-      .time-slots {
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-      }
-    }
-    
     /* Animations */
     @keyframes fadeIn {
       from {
@@ -628,25 +931,960 @@
       animation: fadeIn 0.5s ease-out;
     }
     
-    /* Pulse Animation for New Items */
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(0, 102, 204, 0.4);
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .sidebar {
+        transform: translateX(100%);
       }
-      70% {
-        box-shadow: 0 0 0 10px rgba(0, 102, 204, 0);
+      
+      .sidebar.show {
+        transform: translateX(0);
       }
-      100% {
-        box-shadow: 0 0 0 0 rgba(0, 102, 204, 0);
+      
+      .main-content {
+        margin-right: 0;
       }
     }
     
-    .pulse {
-      animation: pulse 2s infinite;
+    @media (max-width: 768px) {
+      .stat-card {
+        margin-bottom: 16px;
+      }
+      
+      .header-content {
+        padding: 15px;
+      }
+      
+      .page-content {
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Main Application -->
+  <div id="mainApp">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" 
+               class="w-14 h-14 rounded-full" alt="شعار المستشفى">
+        </div>
+        <h3 class="text-white font-bold">مستشفى الحياة الذكية</h3>
+        <p class="text-white text-xs opacity-80">نظام إدارة المستشفى</p>
+      </div>
+      <nav class="sidebar-menu">
+        <a href="#" class="sidebar-item active" data-page="dashboard">
+          <i class="fas fa-tachometer-alt"></i>
+          <span class="sidebar-text">لوحة التحكم</span>
+        </a>
+        
+        <div class="sidebar-item" id="patientsMenu">
+          <i class="fas fa-users"></i>
+          <span class="sidebar-text">إدارة المرضى</span>
+          <i class="fas fa-chevron-down mr-auto"></i>
+        </div>
+        <div class="sidebar-submenu" id="patientsSubmenu">
+          <a href="#" class="sidebar-submenu-item" data-page="patients-registration">تسجيل مريض جديد</a>
+          <a href="#" class="sidebar-submenu-item" data-page="patients-list">قائمة المرضى</a>
+          <a href="#" class="sidebar-submenu-item" data-page="patients-search">بحث متقدم</a>
+        </div>
+        
+        <div class="sidebar-item" id="appointmentsMenu">
+          <i class="fas fa-calendar-check"></i>
+          <span class="sidebar-text">المواعيد</span>
+          <i class="fas fa-chevron-down mr-auto"></i>
+        </div>
+        <div class="sidebar-submenu" id="appointmentsSubmenu">
+          <a href="#" class="sidebar-submenu-item" data-page="appointments-schedule">جدولة المواعيد</a>
+          <a href="#" class="sidebar-submenu-item" data-page="appointments-list">قائمة المواعيد</a>
+          <a href="#" class="sidebar-submenu-item" data-page="appointments-calendar">التقويم</a>
+        </div>
+        
+        <div class="sidebar-item" id="medicalMenu">
+          <i class="fas fa-notes-medical"></i>
+          <span class="sidebar-text">السجلات الطبية</span>
+          <i class="fas fa-chevron-down mr-auto"></i>
+        </div>
+        <div class="sidebar-submenu" id="medicalSubmenu">
+          <a href="#" class="sidebar-submenu-item" data-page="medical-records">السجلات الطبية</a>
+          <a href="#" class="sidebar-submenu-item" data-page="prescriptions">الوصفات الطبية</a>
+          <a href="#" class="sidebar-submenu-item" data-page="lab-results">نتائج المختبر</a>
+          <a href="#" class="sidebar-submenu-item" data-page="radiology">الأشعة</a>
+        </div>
+        
+        <div class="sidebar-item" id="hospitalMenu">
+          <i class="fas fa-hospital"></i>
+          <span class="sidebar-text">إدارة المستشفى</span>
+          <i class="fas fa-chevron-down mr-auto"></i>
+        </div>
+        <div class="sidebar-submenu" id="hospitalSubmenu">
+          <a href="#" class="sidebar-submenu-item" data-page="rooms">الغرف والأسرّة</a>
+          <a href="#" class="sidebar-submenu-item" data-page="departments">الأقسام</a>
+          <a href="#" class="sidebar-submenu-item" data-page="staff">الموظفين</a>
+          <a href="#" class="sidebar-submenu-item" data-page="doctors">الأطباء</a>
+        </div>
+        
+        <div class="sidebar-item" id="pharmacyMenu">
+          <i class="fas fa-pills"></i>
+          <span class="sidebar-text">الصيدلية</span>
+          <i class="fas fa-chevron-down mr-auto"></i>
+        </div>
+        <div class="sidebar-submenu" id="pharmacySubmenu">
+          <a href="#" class="sidebar-submenu-item" data-page="pharmacy-inventory">المخزون</a>
+          <a href="#" class="sidebar-submenu-item" data-page="pharmacy-prescriptions">الوصفات</a>
+        </div>
+        
+        <div class="sidebar-item" id="billingMenu">
+          <i class="fas fa-file-invoice-dollar"></i>
+          <span class="sidebar-text">الفواتير والتأمين</span>
+          <i class="fas fa-chevron-down mr-auto"></i>
+        </div>
+        <div class="sidebar-submenu" id="billingSubmenu">
+          <a href="#" class="sidebar-submenu-item" data-page="billing-invoices">الفواتير</a>
+          <a href="#" class="sidebar-submenu-item" data-page="billing-insurance">التأمين الصحي</a>
+          <a href="#" class="sidebar-submenu-item" data-page="billing-payments">المدفوعات</a>
+        </div>
+        
+        <a href="#" class="sidebar-item" data-page="reports">
+          <i class="fas fa-chart-bar"></i>
+          <span class="sidebar-text">التقارير</span>
+        </a>
+        
+        <a href="#" class="sidebar-item" data-page="settings">
+          <i class="fas fa-cog"></i>
+          <span class="sidebar-text">الإعدادات</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+      <!-- Header -->
+      <header class="medical-header">
+        <div class="header-content">
+          <button id="menuToggle" class="menu-toggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          
+          <div class="header-actions">
+            <button class="notification-btn">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge" id="notificationCount">0</span>
+            </button>
+            
+            <div class="user-dropdown">
+              <button id="userBtn" class="user-btn">
+                <div class="user-avatar">م</div>
+                <span id="userName">مدير النظام</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div id="userDropdown" class="dropdown-menu">
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-user"></i>
+                  <span>الملف الشخصي</span>
+                </a>
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-cog"></i>
+                  <span>الإعدادات</span>
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="#" id="logoutBtn" class="dropdown-item">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>خروج</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div id="pageContent" class="page-content">
+        <!-- Dashboard Page -->
+        <div id="dashboardPage" class="page active">
+          <div class="page-header">
+            <h1 class="page-title">لوحة التحكم</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">لوحة التحكم</span>
+            </div>
+          </div>
+          
+          <!-- Statistics Dashboard -->
+          <section class="mb-8 fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(0, 102, 204, 0.1); color: var(--primary-color);">
+                  <i class="fas fa-users"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-600 mb-2">إجمالي المرضى</h3>
+                <div id="totalPatients" class="text-3xl font-bold text-gray-800">0</div>
+                <div class="text-xs text-gray-500 mt-2">
+                  <i class="fas fa-arrow-up text-green-500"></i> هذا الشهر
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(107, 207, 127, 0.1); color: var(--success-color);">
+                  <i class="fas fa-user-plus"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-600 mb-2">المسجلين اليوم</h3>
+                <div id="todayPatients" class="text-3xl font-bold text-gray-800">0</div>
+                <div class="text-xs text-gray-500 mt-2">
+                  <i class="fas fa-clock text-blue-500"></i> حتى الآن
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255, 107, 107, 0.1); color: var(--danger-color);">
+                  <i class="fas fa-ambulance"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-600 mb-2">حالات الطوارئ</h3>
+                <div id="emergencyPatients" class="text-3xl font-bold text-gray-800">0</div>
+                <div class="text-xs text-gray-500 mt-2">
+                  <i class="fas fa-exclamation-triangle text-yellow-500"></i> نشط
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8B5CF6;">
+                  <i class="fas fa-procedures"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-600 mb-2">العمليات المجدولة</h3>
+                <div id="surgeryPatients" class="text-3xl font-bold text-gray-800">0</div>
+                <div class="text-xs text-gray-500 mt-2">
+                  <i class="fas fa-calendar-alt text-purple-500"></i> هذا الأسبوع
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Charts Section -->
+          <section class="mb-8 fade-in">
+            <div class="chart-wrapper">
+              <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <i class="fas fa-chart-line text-blue-600"></i>
+                  التحليلات والإحصائيات الطبية
+                </h2>
+                <div class="flex gap-3 mt-4 lg:mt-0">
+                  <button id="printReportBtn" class="btn-medical btn-sm">
+                    <i class="fas fa-print"></i>
+                    طباعة التقرير
+                  </button>
+                  <button id="exportPdfBtn" class="btn-medical btn-outline btn-sm">
+                    <i class="fas fa-file-pdf"></i>
+                    تصدير PDF
+                  </button>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h3 class="chart-title">
+                    <i class="fas fa-hospital"></i>
+                    توزيع المرضى حسب الأقسام
+                  </h3>
+                  <div style="height: 250px;">
+                    <canvas id="departmentChart"></canvas>
+                  </div>
+                </div>
+                <div>
+                  <h3 class="chart-title">
+                    <i class="fas fa-calendar-day"></i>
+                    معدل التسجيل اليومي
+                  </h3>
+                  <div style="height: 250px;">
+                    <canvas id="dailyChart"></canvas>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-6">
+                <h3 class="chart-title">
+                  <i class="fas fa-tint"></i>
+                  توزيع فصائل الدم
+                </h3>
+                <div style="height: 250px;">
+                  <canvas id="bloodTypeChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          <!-- Recent Activities -->
+          <section class="mb-8 fade-in">
+            <div class="medical-card">
+              <div class="card-header">
+                <h2 class="card-title">
+                  <i class="fas fa-history"></i>
+                  النشاطات الحديثة
+                </h2>
+                <button class="btn-medical btn-sm btn-outline" onclick="viewAllActivities()">
+                  <i class="fas fa-eye"></i>
+                  عرض الكل
+                </button>
+              </div>
+              <div class="card-body">
+                <div id="recentActivities" class="space-y-4">
+                  <!-- Activities will be loaded here -->
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+        
+        <!-- Patients Registration Page -->
+        <div id="patients-registrationPage" class="page">
+          <div class="page-header">
+            <h1 class="page-title">تسجيل مريض جديد</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">إدارة المرضى</span>
+              <span class="breadcrumb-item">تسجيل مريض جديد</span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Patient Registration Form -->
+            <div class="lg:col-span-2">
+              <div class="medical-card">
+                <div class="card-header">
+                  <h2 class="card-title">
+                    <i class="fas fa-user-plus"></i>
+                    معلومات المريض الأساسية
+                  </h2>
+                </div>
+                <div class="card-body">
+                  <form id="patientForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="form-group">
+                        <label class="form-label">
+                          <i class="fas fa-user ml-1"></i>
+                          اسم المريض الكامل
+                        </label>
+                        <input type="text" id="name" class="form-input" placeholder="أدخل اسم المريض" required />
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="form-label">
+                          <i class="fas fa-id-card ml-1"></i>
+                          الرقم القومي
+                        </label>
+                        <input type="text" id="nid" maxlength="14" class="form-input" placeholder="14 رقم" required />
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div class="form-group">
+                        <label class="form-label">
+                          <i class="fas fa-birthday-cake ml-1"></i>
+                          تاريخ الميلاد
+                        </label>
+                        <input type="date" id="birthDate" class="form-input" required />
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="form-label">
+                          <i class="fas fa-venus-mars ml-1"></i>
+                          الجنس
+                        </label>
+                        <select id="gender" class="form-input form-select" required>
+                          <option value="">اختر</option>
+                          <option value="male">ذكر</option>
+                          <option value="female">أنثى</option>
+                        </select>
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="form-label">
+                          <i class="fas fa-tint ml-1"></i>
+                          فصيلة الدم
+                        </label>
+                        <select id="bloodType" class="form-input form-select" required>
+                          <option value="">اختر</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="form-group">
+                        <label class="form-label">
+                          <i class="fas fa-phone ml-1"></i>
+                          رقم الهاتف
+                        </label>
+                        <input type="tel" id="phone" class="form-input" placeholder="رقم الهاتف" required />
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="form-label">
+                          <i class="fas fa-envelope ml-1"></i>
+                          البريد الإلكتروني
+                        </label>
+                        <input type="email" id="email" class="form-input" placeholder="البريد الإلكتروني" />
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-map-marker-alt ml-1"></i>
+                        العنوان
+                      </label>
+                      <input type="text" id="address" class="form-input" placeholder="العنوان الكامل" required />
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-user-md ml-1"></i>
+                        الطبيب المعالج
+                      </label>
+                      <select id="doctorSelect" class="form-input form-select">
+                        <option value="">-- اختر الطبيب --</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-hospital ml-1"></i>
+                        القسم الطبي
+                      </label>
+                      <select id="department" class="form-input form-select" required>
+                        <option value="">-- اختر القسم --</option>
+                        <option value="emergency">الطوارئ</option>
+                        <option value="radiology">الأشعة</option>
+                        <option value="icu">العناية المركزة</option>
+                        <option value="operations">العمليات</option>
+                        <option value="cardiology">أمراض القلب</option>
+                        <option value="pediatrics">طب الأطفال</option>
+                        <option value="obstetrics">أمراض النساء والتوليد</option>
+                        <option value="orthopedics">العظام</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-notes-medical ml-1"></i>
+                        الأمراض المزمنة / ملاحظات
+                      </label>
+                      <textarea id="diseases" rows="3" class="form-input" placeholder="أي أمراض مزمنة أو ملاحظات هامة"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-shield-alt ml-1"></i>
+                        معلومات التأمين الصحي
+                      </label>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="insuranceCompany" class="form-input" placeholder="شركة التأمين" />
+                        <input type="text" id="insuranceNumber" class="form-input" placeholder="رقم التأمين" />
+                      </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                      <button type="submit" class="btn-medical">
+                        <i class="fas fa-save"></i>
+                        تسجيل المريض
+                      </button>
+                      <button type="button" id="resetFormBtn" class="btn-medical btn-outline">
+                        <i class="fas fa-redo"></i>
+                        إعادة تعيين
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="lg:col-span-1">
+              <div class="medical-card mb-6">
+                <div class="card-header">
+                  <h2 class="card-title">
+                    <i class="fas fa-bolt"></i>
+                    إجراءات سريعة
+                  </h2>
+                </div>
+                <div class="card-body space-y-3">
+                  <button class="btn-medical w-full btn-outline" onclick="capturePatientPhoto()">
+                    <i class="fas fa-camera"></i>
+                    التقاط صورة للمريض
+                  </button>
+                  <button class="btn-medical w-full btn-outline" onclick="uploadMedicalDocuments()">
+                    <i class="fas fa-file-upload"></i>
+                    رفع مستندات طبية
+                  </button>
+                  <button class="btn-medical w-full btn-outline" onclick="generatePatientQR()">
+                    <i class="fas fa-qrcode"></i>
+                    إنشاء رمز QR للمريض
+                  </button>
+                </div>
+              </div>
+              
+              <div class="medical-card">
+                <div class="card-header">
+                  <h2 class="card-title">
+                    <i class="fas fa-info-circle"></i>
+                    معلومات هامة
+                  </h2>
+                </div>
+                <div class="card-body">
+                  <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                      <i class="fas fa-lightbulb ml-2"></i>
+                      تأكد من إدخال جميع المعلومات الأساسية للمريض بشكل صحيح لتجنب أي مشاكل في المستقبل.
+                    </p>
+                  </div>
+                  <div class="mt-4 space-y-2">
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                      <i class="fas fa-check-circle text-green-500"></i>
+                      <span>الرقم القومي مطلوب للتعرف على المريض</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                      <i class="fas fa-check-circle text-green-500"></i>
+                      <span>معلومات التأمين تساعد في الفواتير</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                      <i class="fas fa-check-circle text-green-500"></i>
+                      <span>يمكن إضافة ملاحظات طبية هامة</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Patients List Page -->
+        <div id="patients-listPage" class="page">
+          <div class="page-header">
+            <h1 class="page-title">قائمة المرضى</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">إدارة المرضى</span>
+              <span class="breadcrumb-item">قائمة المرضى</span>
+            </div>
+          </div>
+          
+          <div class="medical-card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fas fa-list-ul"></i>
+                جميع المرضى المسجلين
+              </h2>
+              <div class="flex gap-3">
+                <button class="btn-medical btn-sm" onclick="exportPatientsList()">
+                  <i class="fas fa-download"></i>
+                  تصدير القائمة
+                </button>
+                <button class="btn-medical btn-sm btn-outline" onclick="refreshPatientsList()">
+                  <i class="fas fa-sync"></i>
+                  تحديث
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="flex flex-col lg:flex-row gap-4 mb-6">
+                <div class="search-container flex-1">
+                  <input type="text" id="searchPatientInput" placeholder="بحث عن مريض..." class="form-input search-input" />
+                  <i class="fas fa-search search-icon"></i>
+                </div>
+                <select id="filterDepartment" class="form-input form-select" style="width: 200px;">
+                  <option value="all">جميع الأقسام</option>
+                  <option value="emergency">الطوارئ</option>
+                  <option value="icu">العناية المركزة</option>
+                  <option value="operations">العمليات</option>
+                  <option value="cardiology">أمراض القلب</option>
+                  <option value="pediatrics">طب الأطفال</option>
+                  <option value="obstetrics">أمراض النساء والتوليد</option>
+                  <option value="orthopedics">العظام</option>
+                  <option value="radiology">الأشعة</option>
+                </select>
+              </div>
+              
+              <div id="patientsListContainer" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                <!-- Patients will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Appointments Schedule Page -->
+        <div id="appointments-schedulePage" class="page">
+          <div class="page-header">
+            <h1 class="page-title">جدولة المواعيد</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">المواعيد</span>
+              <span class="breadcrumb-item">جدولة المواعيد</span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+              <div class="medical-card">
+                <div class="card-header">
+                  <h2 class="card-title">
+                    <i class="fas fa-calendar-plus"></i>
+                    حجز موعد جديد
+                  </h2>
+                </div>
+                <div class="card-body">
+                  <form id="appointmentForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="form-group">
+                        <label class="form-label">اختر المريض</label>
+                        <select id="appointmentPatient" class="form-input form-select" required>
+                          <option value="">-- اختر المريض --</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">اختر الطبيب</label>
+                        <select id="appointmentDoctor" class="form-input form-select" required>
+                          <option value="">-- اختر الطبيب --</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="form-group">
+                        <label class="form-label">تاريخ الموعد</label>
+                        <input type="date" id="appointmentDate" class="form-input" required />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">وقت الموعد</label>
+                        <input type="time" id="appointmentTime" class="form-input" required />
+                      </div>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label class="form-label">نوع الموعد</label>
+                      <select id="appointmentType" class="form-input form-select" required>
+                        <option value="">-- اختر النوع --</option>
+                        <option value="consultation">استشارة</option>
+                        <option value="followup">متابعة</option>
+                        <option value="emergency">طوارئ</option>
+                        <option value="surgery">عملية جراحية</option>
+                        <option value="lab">فحص مختبر</option>
+                        <option value="radiology">أشعة</option>
+                      </select>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label class="form-label">ملاحظات</label>
+                      <textarea id="appointmentNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-medical w-full">
+                      <i class="fas fa-calendar-check"></i>
+                      حجز الموعد
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            
+            <div class="lg:col-span-1">
+              <div class="medical-card">
+                <div class="card-header">
+                  <h2 class="card-title">
+                    <i class="fas fa-clock"></i>
+                    المواعيد القادمة
+                  </h2>
+                </div>
+                <div class="card-body">
+                  <div id="upcomingAppointments" class="space-y-3">
+                    <!-- Appointments will be loaded here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Medical Records Page -->
+        <div id="medical-recordsPage" class="page">
+          <div class="page-header">
+            <h1 class="page-title">السجلات الطبية</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">السجلات الطبية</span>
+              <span class="breadcrumb-item">السجلات الطبية</span>
+            </div>
+          </div>
+          
+          <div class="medical-card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fas fa-file-medical"></i>
+                إدارة السجلات الطبية
+              </h2>
+              <button class="btn-medical btn-sm" onclick="addNewMedicalRecord()">
+                <i class="fas fa-plus"></i>
+                إضافة سجل جديد
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <div class="search-container">
+                  <input type="text" id="searchMedicalRecord" placeholder="بحث في السجلات الطبية..." class="form-input search-input" />
+                  <i class="fas fa-search search-icon"></i>
+                </div>
+                <select id="filterRecordType" class="form-input form-select">
+                  <option value="all">جميع الأنواع</option>
+                  <option value="diagnosis">تشخيص</option>
+                  <option value="treatment">علاج</option>
+                  <option value="surgery">جراحة</option>
+                  <option value="lab">مختبر</option>
+                  <option value="radiology">أشعة</option>
+                </select>
+              </div>
+              
+              <div id="medicalRecordsList" class="space-y-4">
+                <!-- Medical records will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pharmacy Inventory Page -->
+        <div id="pharmacy-inventoryPage" class="page">
+          <div class="page-header">
+            <h1 class="page-title">مخزون الصيدلية</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">الصيدلية</span>
+              <span class="breadcrumb-item">المخزون</span>
+            </div>
+          </div>
+          
+          <div class="medical-card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fas fa-pills"></i>
+                إدارة الأدوية والمخزون
+              </h2>
+              <div class="flex gap-3">
+                <button class="btn-medical btn-sm" onclick="addNewMedicine()">
+                  <i class="fas fa-plus"></i>
+                  إضافة دواء
+                </button>
+                <button class="btn-medical btn-sm btn-outline" onclick="generateInventoryReport()">
+                  <i class="fas fa-file-alt"></i>
+                  تقرير المخزون
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                <div class="search-container">
+                  <input type="text" id="searchMedicine" placeholder="بحث عن دواء..." class="form-input search-input" />
+                  <i class="fas fa-search search-icon"></i>
+                </div>
+                <select id="filterMedicineCategory" class="form-input form-select">
+                  <option value="all">جميع الفئات</option>
+                  <option value="antibiotics">مضادات حيوية</option>
+                  <option value="painkillers">مسكنات</option>
+                  <option value="vitamins">فيتامينات</option>
+                  <option value="chronic">أمراض مزمنة</option>
+                  <option value="emergency">طوارئ</option>
+                </select>
+                <select id="filterStockStatus" class="form-input form-select">
+                  <option value="all">جميع الحالات</option>
+                  <option value="instock">متوفر</option>
+                  <option value="low">مخزون منخفض</option>
+                  <option value="outofstock">نفد المخزون</option>
+                </select>
+                <button class="btn-medical btn-sm" onclick="refreshInventory()">
+                  <i class="fas fa-sync"></i>
+                  تحديث
+                </button>
+              </div>
+              
+              <div class="overflow-x-auto">
+                <table class="medical-table">
+                  <thead>
+                    <tr>
+                      <th>اسم الدواء</th>
+                      <th>التصنيف</th>
+                      <th>الكمية</th>
+                      <th>السعر</th>
+                      <th>تاريخ الانتهاء</th>
+                      <th>الحالة</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="medicinesTableBody">
+                    <!-- Medicines will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Billing Invoices Page -->
+        <div id="billing-invoicesPage" class="page">
+          <div class="page-header">
+            <h1 class="page-title">الفواتير</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">الفواتير والتأمين</span>
+              <span class="breadcrumb-item">الفواتير</span>
+            </div>
+          </div>
+          
+          <div class="medical-card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fas fa-file-invoice"></i>
+                إدارة الفواتير
+              </h2>
+              <button class="btn-medical btn-sm" onclick="createNewInvoice()">
+                <i class="fas fa-plus"></i>
+                إنشاء فاتورة جديدة
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <div class="search-container">
+                  <input type="text" id="searchInvoice" placeholder="بحث عن فاتورة..." class="form-input search-input" />
+                  <i class="fas fa-search search-icon"></i>
+                </div>
+                <select id="filterInvoiceStatus" class="form-input form-select">
+                  <option value="all">جميع الحالات</option>
+                  <option value="paid">مدفوعة</option>
+                  <option value="unpaid">غير مدفوعة</option>
+                  <option value="partial">مدفوعة جزئياً</option>
+                  <option value="overdue">متأخرة</option>
+                </select>
+                <input type="date" id="filterInvoiceDate" class="form-input" placeholder="تاريخ الفاتورة" />
+              </div>
+              
+              <div id="invoicesList" class="space-y-4">
+                <!-- Invoices will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Reports Page -->
+        <div id="reportsPage" class="page">
+          <div class="page-header">
+            <h1 class="page-title">التقارير</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">التقارير</span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="medical-card">
+              <div class="card-header">
+                <h2 class="card-title">
+                  <i class="fas fa-chart-bar"></i>
+                  تقارير المرضى
+                </h2>
+              </div>
+              <div class="card-body space-y-3">
+                <button class="btn-medical w-full btn-outline" onclick="generatePatientReport()">
+                  <i class="fas fa-users"></i>
+                  تقرير المرضى المسجلين
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generateDepartmentReport()">
+                  <i class="fas fa-hospital"></i>
+                  تقرير الأقسام
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generateAppointmentReport()">
+                  <i class="fas fa-calendar"></i>
+                  تقرير المواعيد
+                </button>
+              </div>
+            </div>
+            
+            <div class="medical-card">
+              <div class="card-header">
+                <h2 class="card-title">
+                  <i class="fas fa-file-medical"></i>
+                  تقارير طبية
+                </h2>
+              </div>
+              <div class="card-body space-y-3">
+                <button class="btn-medical w-full btn-outline" onclick="generateMedicalReport()">
+                  <i class="fas fa-notes-medical"></i>
+                  تقرير السجلات الطبية
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generateLabReport()">
+                  <i class="fas fa-vial"></i>
+                  تقرير المختبر
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generatePharmacyReport()">
+                  <i class="fas fa-pills"></i>
+                  تقرير الصيدلية
+                </button>
+              </div>
+            </div>
+            
+            <div class="medical-card">
+              <div class="card-header">
+                <h2 class="card-title">
+                  <i class="fas fa-dollar-sign"></i>
+                  تقارير مالية
+                </h2>
+              </div>
+              <div class="card-body space-y-3">
+                <button class="btn-medical w-full btn-outline" onclick="generateRevenueReport()">
+                  <i class="fas fa-chart-line"></i>
+                  تقرير الإيرادات
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generateExpenseReport()">
+                  <i class="fas fa-receipt"></i>
+                  تقرير المصروفات
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generateBillingReport()">
+                  <i class="fas fa-file-invoice-dollar"></i>
+                  تقرير الفواتير
+                </button>
+              </div>
+            </div>
+            
+            <div class="medical-card">
+              <div class="card-header">
+                <h2 class="card-title">
+                  <i class="fas fa-calendar-alt"></i>
+                  تقارير زمنية
+                </h2>
+              </div>
+              <div class="card-body space-y-3">
+                <button class="btn-medical w-full btn-outline" onclick="generateDailyReport()">
+                  <i class="fas fa-calendar-day"></i>
+                  تقرير يومي
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generateWeeklyReport()">
+                  <i class="fas fa-calendar-week"></i>
+                  تقرير أسبوعي
+                </button>
+                <button class="btn-medical w-full btn-outline" onclick="generateMonthlyReport()">
+                  <i class="fas fa-calendar-month"></i>
+                  تقرير شهري
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading Overlay -->
   <div id="loading" class="loading-overlay hidden">
     <div class="text-center">
@@ -655,517 +1893,278 @@
     </div>
   </div>
 
-  <!-- Medical Header -->
-  <header class="medical-header text-white p-6">
-    <div class="container mx-auto">
-      <div class="flex justify-between items-center">
-        <div class="logo-container flex items-center gap-4">
-          <div class="logo-badge">
-            <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" 
-                 class="w-14 h-14 rounded-full" alt="شعار المستشفى">
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
-            <p class="text-sm opacity-90">نظام إدارة المرضى المتقدم</p>
-          </div>
-        </div>
-        <div class="text-right">
-          <div id="currentDate" class="text-sm opacity-90"></div>
-          <div class="flex items-center gap-2 mt-2">
-            <i class="fas fa-user-md"></i>
-            <span class="text-sm">نظام الاستقبال</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <main class="container mx-auto px-4 py-8">
-    <!-- Statistics Dashboard -->
-    <section class="mb-8 fade-in">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(0, 102, 204, 0.1); color: var(--primary-color);">
-            <i class="fas fa-users"></i>
-          </div>
-          <h3 class="text-sm font-semibold text-gray-600 mb-2">إجمالي المرضى</h3>
-          <div id="totalPatients" class="text-3xl font-bold text-gray-800">0</div>
-          <div class="text-xs text-gray-500 mt-2">
-            <i class="fas fa-arrow-up text-green-500"></i> هذا الشهر
-          </div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(107, 207, 127, 0.1); color: var(--success-color);">
-            <i class="fas fa-user-plus"></i>
-          </div>
-          <h3 class="text-sm font-semibold text-gray-600 mb-2">المسجلين اليوم</h3>
-          <div id="todayPatients" class="text-3xl font-bold text-gray-800">0</div>
-          <div class="text-xs text-gray-500 mt-2">
-            <i class="fas fa-clock text-blue-500"></i> حتى الآن
-          </div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(255, 107, 107, 0.1); color: var(--danger-color);">
-            <i class="fas fa-ambulance"></i>
-          </div>
-          <h3 class="text-sm font-semibold text-gray-600 mb-2">حالات الطوارئ</h3>
-          <div id="emergencyPatients" class="text-3xl font-bold text-gray-800">0</div>
-          <div class="text-xs text-gray-500 mt-2">
-            <i class="fas fa-exclamation-triangle text-yellow-500"></i> نشط
-          </div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8B5CF6;">
-            <i class="fas fa-user-md"></i>
-          </div>
-          <h3 class="text-sm font-semibold text-gray-600 mb-2">الأطباء المتاحون</h3>
-          <div id="availableDoctors" class="text-3xl font-bold text-gray-800">0</div>
-          <div class="text-xs text-gray-500 mt-2">
-            <i class="fas fa-clock text-blue-500"></i> الآن
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Charts Section -->
-    <section class="mb-8 fade-in">
-      <div class="chart-wrapper">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <i class="fas fa-chart-line text-blue-600"></i>
-            التحليلات والإحصائيات الطبية
-          </h2>
-          <div class="flex gap-3 mt-4 lg:mt-0">
-            <button id="printReportBtn" class="btn-medical">
-              <i class="fas fa-print"></i>
-              طباعة التقرير
-            </button>
-            <button id="exportPdfBtn" class="btn-medical btn-outline">
-              <i class="fas fa-file-pdf"></i>
-              تصدير PDF
-            </button>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 class="chart-title">
-              <i class="fas fa-hospital"></i>
-              توزيع المرضى حسب الأقسام
-            </h3>
-            <div style="height: 250px;">
-              <canvas id="departmentChart"></canvas>
-            </div>
-          </div>
-          <div>
-            <h3 class="chart-title">
-              <i class="fas fa-calendar-day"></i>
-              معدل التسجيل اليومي
-            </h3>
-            <div style="height: 250px;">
-              <canvas id="dailyChart"></canvas>
-            </div>
-          </div>
-        </div>
-        
-        <div class="mt-6">
-          <h3 class="chart-title">
-            <i class="fas fa-tint"></i>
-            توزيع فصائل الدم
-          </h3>
-          <div style="height: 250px;">
-            <canvas id="bloodTypeChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Tabs Navigation -->
-    <div class="tabs-container mb-6">
-      <button class="tab-btn active" data-tab="patients">
-        <i class="fas fa-users"></i>
-        المرضى
-      </button>
-      <button class="tab-btn" data-tab="appointments">
-        <i class="fas fa-calendar-alt"></i>
-        المواعيد
-      </button>
-      <button class="tab-btn" data-tab="doctors">
-        <i class="fas fa-user-md"></i>
-        الأطباء
-      </button>
-    </div>
-
-    <!-- Tab Contents -->
-    <div id="patientsTab" class="tab-content active">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Patient Registration Form -->
-        <div class="lg:col-span-1 fade-in">
-          <div class="medical-card p-6">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white">
-                <i class="fas fa-user-plus"></i>
-              </div>
-              <h2 class="text-xl font-bold text-gray-800">تسجيل مريض جديد</h2>
-            </div>
-            
-            <form id="patientForm" class="space-y-4">
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-user ml-1"></i>
-                  اسم المريض الكامل
-                </label>
-                <input type="text" id="name" class="form-input" placeholder="أدخل اسم المريض" required />
-              </div>
-
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-birthday-cake ml-1"></i>
-                    العمر
-                  </label>
-                  <input type="number" id="age" min="0" max="120" class="form-input" placeholder="العمر" required />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-id-card ml-1"></i>
-                    الرقم القومي
-                  </label>
-                  <input type="text" id="nid" maxlength="14" class="form-input" placeholder="14 رقم" required />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-venus-mars ml-1"></i>
-                    الجنس
-                  </label>
-                  <select id="gender" class="form-input form-select" required>
-                    <option value="">اختر</option>
-                    <option value="male">ذكر</option>
-                    <option value="female">أنثى</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-tint ml-1"></i>
-                    فصيلة الدم
-                  </label>
-                  <select id="bloodType" class="form-input form-select" required>
-                    <option value="">اختر</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-phone ml-1"></i>
-                  رقم الهاتف
-                </label>
-                <input type="tel" id="phone" class="form-input" placeholder="رقم الهاتف" />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-map-marker-alt ml-1"></i>
-                  العنوان
-                </label>
-                <input type="text" id="address" class="form-input" placeholder="العنوان الكامل" required />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-notes-medical ml-1"></i>
-                  الأمراض المزمنة / ملاحظات
-                </label>
-                <textarea id="diseases" rows="3" class="form-input" placeholder="أي أمراض مزمنة أو ملاحظات هامة"></textarea>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-hospital ml-1"></i>
-                  القسم الطبي
-                </label>
-                <select id="department" class="form-input form-select" required>
-                  <option value="">-- اختر القسم --</option>
-                  <option value="emergency">الطوارئ</option>
-                  <option value="radiology">الأشعة</option>
-                  <option value="icu">العناية المركزة</option>
-                  <option value="operations">العمليات</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-user-md ml-1"></i>
-                  الطبيب المعالج
-                </label>
-                <select id="doctorSelect" class="form-input form-select">
-                  <option value="">-- اختر الطبيب --</option>
-                </select>
-              </div>
-
-              <button type="submit" class="btn-medical w-full">
-                <i class="fas fa-save"></i>
-                تسجيل المريض
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Patients List -->
-        <div class="lg:col-span-2 fade-in">
-          <div class="medical-card p-6">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-              <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-list-ul text-blue-600"></i>
-                قائمة المرضى المسجلين
-              </h2>
-              <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0">
-                <select id="filterDepartment" class="form-input form-select">
-                  <option value="all">جميع الأقسام</option>
-                  <option value="emergency">الطوارئ</option>
-                  <option value="icu">العناية المركزة</option>
-                  <option value="surgery">العمليات</option>
-                  <option value="care">الرعاية</option>
-                  <option value="admin">الإدارة</option>
-                  <option value="radiology">الأشعة</option>
-                </select>
-                <div class="search-container">
-                  <input type="text" id="searchPatient" placeholder="بحث عن مريض..." class="form-input search-input" />
-                  <i class="fas fa-search search-icon"></i>
-                </div>
-              </div>
-            </div>
-            
-            <div id="patientsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              <!-- Patients will be loaded here -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="appointmentsTab" class="tab-content">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Appointment Booking Form -->
-        <div class="lg:col-span-1 fade-in">
-          <div class="medical-card p-6">
-            <div class="current-time">
-              <h3>الوقت الحالي</h3>
-              <div class="time" id="currentTime">--:--:--</div>
-            </div>
-            
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center text-white">
-                <i class="fas fa-calendar-plus"></i>
-              </div>
-              <h2 class="text-xl font-bold text-gray-800">حجز موعد جديد</h2>
-            </div>
-            
-            <form id="appointmentForm" class="space-y-4">
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-user ml-1"></i>
-                  اختر المريض
-                </label>
-                <select id="appointmentPatient" class="form-input form-select" required>
-                  <option value="">-- اختر المريض --</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-user-md ml-1"></i>
-                  اختر الطبيب (المتاحين الآن)
-                </label>
-                <select id="appointmentDoctor" class="form-input form-select" required>
-                  <option value="">-- اختر الطبيب --</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-calendar-day ml-1"></i>
-                  التاريخ
-                </label>
-                <input type="date" id="appointmentDate" class="form-input" required />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-clock ml-1"></i>
-                  اختر الوقت
-                </label>
-                <div class="time-slots" id="timeSlots">
-                  <!-- Time slots will be generated dynamically -->
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-notes-medical ml-1"></i>
-                  سبب الزيارة
-                </label>
-                <textarea id="appointmentReason" rows="3" class="form-input" placeholder="سبب الزيارة أو الأعراض"></textarea>
-              </div>
-
-              <button type="submit" class="btn-success w-full">
-                <i class="fas fa-calendar-check"></i>
-                حجز الموعد
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Available Doctors List -->
-        <div class="lg:col-span-2 fade-in">
-          <div class="medical-card p-6">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-              <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-user-md text-green-600"></i>
-                الأطباء المتاحون الآن
-              </h2>
-              <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0">
-                <select id="filterDoctorSpecialization" class="form-input form-select">
-                  <option value="all">جميع التخصصات</option>
-                  <option value="طب الطوارئ">طب الطوارئ</option>
-                  <option value="العناية المركزة">العناية المركزة</option>
-                  <option value="جراحة عامة">جراحة عامة</option>
-                  <option value="الأشعة التشخيصية">الأشعة التشخيصية</option>
-                  <option value="طب القلب">طب القلب</option>
-                  <option value="طب الأطفال">طب الأطفال</option>
-                  <option value="النساء والتوليد">النساء والتوليد</option>
-                </select>
-                <div class="search-container">
-                  <input type="text" id="searchDoctor" placeholder="بحث عن طبيب..." class="form-input search-input" />
-                  <i class="fas fa-search search-icon"></i>
-                </div>
-              </div>
-            </div>
-            
-            <div id="availableDoctorsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              <!-- Available doctors will be loaded here -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="doctorsTab" class="tab-content">
-      <div class="medical-card p-6">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <i class="fas fa-user-md text-blue-600"></i>
-            قائمة الأطباء
-          </h2>
-          <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0">
-            <select id="filterDoctorDepartment" class="form-input form-select">
-              <option value="all">جميع الأقسام</option>
-              <option value="emergency">الطوارئ</option>
-              <option value="icu">العناية المركزة</option>
-              <option value="surgery">العمليات</option>
-              <option value="care">الرعاية</option>
-              <option value="admin">الإدارة</option>
-              <option value="radiology">الأشعة</option>
-            </select>
-            <div class="search-container">
-              <input type="text" id="searchDoctorAll" placeholder="بحث عن طبيب..." class="form-input search-input" />
-              <i class="fas fa-search search-icon"></i>
-            </div>
-          </div>
-        </div>
-        
-        <div id="doctorsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-          <!-- Doctors will be loaded here -->
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  
-  <script>
-    // Initialize Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
-      authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
-      databaseURL: "https://smart-life-hospital-ef64c-default-rtdb.firebaseio.com",
-      projectId: "smart-life-hospital-ef64c",
-      storageBucket: "smart-life-hospital-ef64c.firebasestorage.app",
-      messagingSenderId: "851045891087",
-      appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
-      measurementId: "G-QE5BL3MTY7"
-    };
+  <script type="module">
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
+  authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
+  databaseURL: "https://smart-life-hospital-ef64c-default-rtdb.firebaseio.com",
+  projectId: "smart-life-hospital-ef64c",
+  storageBucket: "smart-life-hospital-ef64c.firebasestorage.app",
+  messagingSenderId: "851045891087",
+  appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
+  measurementId: "G-QE5BL3MTY7"
+};
     
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, update, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
     
     // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    const menuToggle = document.getElementById('menuToggle');
+    const userBtn = document.getElementById('userBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const pageContent = document.getElementById('pageContent');
     const loadingElement = document.getElementById('loading');
-    const currentDateElement = document.getElementById('currentDate');
-    const currentTimeElement = document.getElementById('currentTime');
     const patientForm = document.getElementById('patientForm');
-    const appointmentForm = document.getElementById('appointmentForm');
-    const patientsList = document.getElementById('patientsList');
-    const doctorsList = document.getElementById('doctorsList');
-    const availableDoctorsList = document.getElementById('availableDoctorsList');
-    const filterDepartment = document.getElementById('filterDepartment');
-    const filterDoctorDepartment = document.getElementById('filterDoctorDepartment');
-    const filterDoctorSpecialization = document.getElementById('filterDoctorSpecialization');
-    const searchPatient = document.getElementById('searchPatient');
-    const searchDoctor = document.getElementById('searchDoctor');
-    const searchDoctorAll = document.getElementById('searchDoctorAll');
-    const totalPatientsElement = document.getElementById('totalPatients');
-    const todayPatientsElement = document.getElementById('todayPatients');
-    const emergencyPatientsElement = document.getElementById('emergencyPatients');
-    const availableDoctorsElement = document.getElementById('availableDoctors');
-    const printReportBtn = document.getElementById('printReportBtn');
-    const exportPdfBtn = document.getElementById('exportPdfBtn');
-    const doctorSelect = document.getElementById('doctorSelect');
-    const appointmentDoctor = document.getElementById('appointmentDoctor');
-    const appointmentPatient = document.getElementById('appointmentPatient');
-    const appointmentDate = document.getElementById('appointmentDate');
-    const timeSlots = document.getElementById('timeSlots');
+    const resetFormBtn = document.getElementById('resetFormBtn');
+    const userName = document.getElementById('userName');
+    const notificationCount = document.getElementById('notificationCount');
     
-    // Display current date
-    const today = new Date();
-    currentDateElement.textContent = today.toLocaleDateString("ar-EG", {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
+    // Global variables
+    let currentUser = null;
+    let charts = {};
     
-    // Update current time
-    function updateCurrentTime() {
-      const now = new Date();
-      currentTimeElement.textContent = now.toLocaleTimeString("ar-EG", {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+    // Initialize sample data
+    function initializeSampleData() {
+      // Add sample doctors
+      const doctorsRef = ref(db, "doctors");
+      const sampleDoctors = [
+        { name: "د. أحمد محمد", department: "emergency", specialization: "طب الطوارئ", phone: "01234567890", email: "ahmed@hospital.com" },
+        { name: "د. فاطمة علي", department: "icu", specialization: "العناية المركزة", phone: "01234567891", email: "fatima@hospital.com" },
+        { name: "د. محمد خالد", department: "operations", specialization: "جراحة عامة", phone: "01234567892", email: "mohammed@hospital.com" },
+        { name: "د. نورة سعيد", department: "radiology", specialization: "الأشعة التشخيصية", phone: "01234567893", email: "nora@hospital.com" },
+        { name: "د. يوسف عمر", department: "cardiology", specialization: "أمراض القلب", phone: "01234567894", email: "yousef@hospital.com" },
+        { name: "د. مريم حسن", department: "pediatrics", specialization: "طب الأطفال", phone: "01234567895", email: "mariam@hospital.com" }
+      ];
+      
+      sampleDoctors.forEach(doctor => {
+        push(doctorsRef, doctor);
+      });
+      
+      // Add sample medicines
+      const medicinesRef = ref(db, "medicines");
+      const sampleMedicines = [
+        { name: "بنسلين", category: "antibiotics", quantity: 150, price: 25, expiryDate: "2025-12-31", status: "instock" },
+        { name: "باراسيتامول", category: "painkillers", quantity: 500, price: 15, expiryDate: "2024-12-31", status: "instock" },
+        { name: "فيتامين سي", category: "vitamins", quantity: 200, price: 30, expiryDate: "2025-06-30", status: "instock" },
+        { name: "أموكسيسيلين", category: "antibiotics", quantity: 50, price: 35, expiryDate: "2024-08-31", status: "low" },
+        { name: "إيبوبروفين", category: "painkillers", quantity: 300, price: 20, expiryDate: "2025-03-31", status: "instock" },
+        { name: "ميتفورمين", category: "chronic", quantity: 100, price: 40, expiryDate: "2024-11-30", status: "instock" }
+      ];
+      
+      sampleMedicines.forEach(medicine => {
+        push(medicinesRef, medicine);
+      });
+      
+      // Add sample departments
+      const departmentsRef = ref(db, "departments");
+      const sampleDepartments = [
+        { name: "الطوارئ", capacity: 20, occupied: 15, head: "د. أحمد محمد", floor: 1 },
+        { name: "العناية المركزة", capacity: 10, occupied: 8, head: "د. فاطمة علي", floor: 2 },
+        { name: "العمليات", capacity: 5, occupied: 3, head: "د. محمد خالد", floor: 3 },
+        { name: "الأشعة", capacity: 15, occupied: 10, head: "د. نورة سعيد", floor: 1 },
+        { name: "أمراض القلب", capacity: 12, occupied: 9, head: "د. يوسف عمر", floor: 2 },
+        { name: "طب الأطفال", capacity: 18, occupied: 12, head: "د. مريم حسن", floor: 2 }
+      ];
+      
+      sampleDepartments.forEach(dept => {
+        push(departmentsRef, dept);
       });
     }
     
-    setInterval(updateCurrentTime, 1000);
-    updateCurrentTime();
+    // User dropdown toggle
+    userBtn.addEventListener('click', () => {
+      userDropdown.classList.toggle('show');
+    });
     
-    // Set minimum date for appointment to today
-    appointmentDate.min = today.toISOString().split('T')[0];
-    appointmentDate.value = today.toISOString().split('T')[0];
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+        userDropdown.classList.remove('show');
+      }
+    });
+    
+    // Sidebar toggle
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('show');
+      mainContent.classList.toggle('expanded');
+    });
+    
+    // Sidebar menu items
+    document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = item.getAttribute('data-page');
+        showPage(page);
+        
+        // Update active state
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        // Close sidebar on mobile
+        if (window.innerWidth <= 1024) {
+          sidebar.classList.remove('show');
+        }
+      });
+    });
+    
+    // Sidebar submenu toggles
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+      if (item.id && item.id.includes('Menu')) {
+        item.addEventListener('click', () => {
+          const submenuId = item.id.replace('Menu', 'Submenu');
+          const submenu = document.getElementById(submenuId);
+          if (submenu) {
+            submenu.classList.toggle('open');
+          }
+        });
+      }
+    });
+    
+    // Sidebar submenu items
+    document.querySelectorAll('.sidebar-submenu-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = item.getAttribute('data-page');
+        showPage(page);
+        
+        // Update active state
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.sidebar-submenu-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        // Close sidebar on mobile
+        if (window.innerWidth <= 1024) {
+          sidebar.classList.remove('show');
+        }
+      });
+    });
+    
+    // Show page function
+    function showPage(pageId) {
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+      
+      // Show the selected page
+      const targetPage = document.getElementById(`${pageId}Page`);
+      if (targetPage) {
+        targetPage.classList.add('active');
+        
+        // Initialize page-specific data
+        initializePageData(pageId);
+      } else {
+        // If page doesn't exist, show a placeholder
+        const placeholder = document.createElement('div');
+        placeholder.className = 'page active';
+        placeholder.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">${getPageTitle(pageId)}</h1>
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">الرئيسية</span>
+              <span class="breadcrumb-item">${getPageTitle(pageId)}</span>
+            </div>
+          </div>
+          <div class="medical-card">
+            <div class="card-body text-center py-12">
+              <i class="fas fa-tools text-6xl text-gray-300 mb-4"></i>
+              <h2 class="text-xl font-bold text-gray-700 mb-2">هذه الصفحة قيد التطوير</h2>
+              <p class="text-gray-500">سيتم إضافة محتوى هذه الصفحة قريباً</p>
+            </div>
+          </div>
+        `;
+        pageContent.appendChild(placeholder);
+      }
+    }
+    
+    // Initialize page-specific data
+    function initializePageData(pageId) {
+      switch(pageId) {
+        case 'patients-list':
+          loadPatientsList();
+          break;
+        case 'appointments-schedule':
+          loadAppointmentsData();
+          break;
+        case 'medical-records':
+          loadMedicalRecords();
+          break;
+        case 'pharmacy-inventory':
+          loadMedicinesInventory();
+          break;
+        case 'billing-invoices':
+          loadInvoices();
+          break;
+        case 'dashboard':
+          loadDashboardData();
+          break;
+      }
+    }
+    
+    // Get page title
+    function getPageTitle(pageId) {
+      const titles = {
+        'dashboard': 'لوحة التحكم',
+        'patients-registration': 'تسجيل مريض جديد',
+        'patients-list': 'قائمة المرضى',
+        'patients-search': 'بحث متقدم',
+        'appointments-schedule': 'جدولة المواعيد',
+        'appointments-list': 'قائمة المواعيد',
+        'appointments-calendar': 'التقويم',
+        'medical-records': 'السجلات الطبية',
+        'prescriptions': 'الوصفات الطبية',
+        'lab-results': 'نتائج المختبر',
+        'radiology': 'الأشعة',
+        'rooms': 'الغرف والأسرّة',
+        'departments': 'الأقسام',
+        'staff': 'الموظفين',
+        'doctors': 'الأطباء',
+        'pharmacy-inventory': 'مخزون الصيدلية',
+        'pharmacy-prescriptions': 'وصفات الصيدلية',
+        'billing-invoices': 'الفواتير',
+        'billing-insurance': 'التأمين الصحي',
+        'billing-payments': 'المدفوعات',
+        'reports': 'التقارير',
+        'settings': 'الإعدادات'
+      };
+      return titles[pageId] || pageId;
+    }
+    
+    // Initialize app
+    function initializeApp() {
+      // Check if sample data exists
+      get(ref(db, "doctors")).then((snapshot) => {
+        if (!snapshot.exists()) {
+          initializeSampleData();
+        }
+      });
+      
+      // Load doctors
+      loadDoctors();
+      
+      // Initialize charts
+      initializeCharts();
+      
+      // Setup data listeners
+      setupDataListeners();
+      
+      // Update stats
+      updateStats();
+      
+      // Load recent activities
+      loadRecentActivities();
+      
+      // Update notifications
+      updateNotifications();
+    }
     
     // Show loading overlay
     function showLoading() {
@@ -1185,337 +2184,28 @@
       });
     }
     
-    // Check if doctor is available at current time
-    function isDoctorAvailableNow(doctor) {
-      if (!doctor.workFrom || !doctor.workTo) return false;
-      
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-      const workFrom = doctor.workFrom.split(':');
-      const workTo = doctor.workTo.split(':');
-      const workFromMinutes = parseInt(workFrom[0]) * 60 + parseInt(workFrom[1]);
-      const workToMinutes = parseInt(workTo[0]) * 60 + parseInt(workTo[1]);
-      
-      // Check if current time is within working hours
-      return currentTime >= workFromMinutes && currentTime <= workToMinutes;
-    }
-    
-    // Get doctor availability status
-    function getDoctorAvailabilityStatus(doctor) {
-      if (isDoctorAvailableNow(doctor)) {
-        return { class: 'available', text: 'متاح الآن', icon: 'fa-check-circle' };
-      } else if (doctor.workFrom && doctor.workTo) {
-        return { class: 'off-duty', text: 'خارج الدوام', icon: 'fa-moon' };
-      } else {
-        return { class: 'busy', text: 'مشغول', icon: 'fa-clock' };
-      }
-    }
-    
     // Load doctors from database
     function loadDoctors() {
-      const doctorsRef = database.ref("doctors");
+      const doctorsRef = ref(db, "doctors");
       
-      doctorsRef.on('value', (snapshot) => {
+      onValue(doctorsRef, (snapshot) => {
         const doctors = snapshot.val() || {};
         
-        // Clear current options except the default one
-        doctorSelect.innerHTML = '<option value="">-- اختر الطبيب --</option>';
-        
-        // Add doctors to the select
-        Object.entries(doctors).forEach(([id, doctor]) => {
-          const option = document.createElement("option");
-          option.value = id;
-          option.textContent = `${doctor.name} - ${getDepartmentName(doctor.department)}`;
-          doctorSelect.appendChild(option);
-        });
-        
-        // Update doctors lists
-        renderDoctors(doctors);
-        renderAvailableDoctors(doctors);
-        updateAvailableDoctorsCount(doctors);
-      });
-    }
-    
-    // Load patients for appointment form
-    function loadPatientsForAppointment() {
-      const patientsRef = database.ref("patients");
-      
-      patientsRef.on('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        let allPatients = {};
-        
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
-            }
-          });
-        });
-        
-        // Clear current options except the default one
-        appointmentPatient.innerHTML = '<option value="">-- اختر المريض --</option>';
-        
-        // Add patients to the select
-        Object.entries(allPatients).forEach(([id, patient]) => {
-          const option = document.createElement("option");
-          option.value = id;
-          option.textContent = `${patient.name} - ${getDepartmentName(patient.department)}`;
-          appointmentPatient.appendChild(option);
+        // Update doctor selects
+        const doctorSelects = document.querySelectorAll('#doctorSelect, #appointmentDoctor');
+        doctorSelects.forEach(select => {
+          if (select) {
+            select.innerHTML = '<option value="">-- اختر الطبيب --</option>';
+            
+            Object.entries(doctors).forEach(([id, doctor]) => {
+              const option = document.createElement("option");
+              option.value = id;
+              option.textContent = `${doctor.name} - ${getDepartmentName(doctor.department)}`;
+              select.appendChild(option);
+            });
+          }
         });
       });
-    }
-    
-    // Generate time slots for appointment
-    function generateTimeSlots(doctorId, date) {
-      timeSlots.innerHTML = '';
-      
-      if (!doctorId || !date) return;
-      
-      // Get doctor info
-      database.ref(`doctors/${doctorId}`).once('value').then((snapshot) => {
-        const doctor = snapshot.val();
-        if (!doctor) return;
-        
-        const workFrom = doctor.workFrom || "09:00";
-        const workTo = doctor.workTo || "17:00";
-        
-        // Generate time slots
-        const [fromHour, fromMinute] = workFrom.split(':').map(Number);
-        const [toHour, toMinute] = workTo.split(':').map(Number);
-        
-        const startTime = new Date();
-        startTime.setHours(fromHour, fromMinute, 0, 0);
-        
-        const endTime = new Date();
-        endTime.setHours(toHour, toMinute, 0, 0);
-        
-        // Generate 30-minute slots
-        while (startTime < endTime) {
-          const timeString = startTime.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-          });
-          
-          const slot = document.createElement('div');
-          slot.className = 'time-slot';
-          slot.textContent = timeString;
-          slot.dataset.time = timeString;
-          
-          // Check if slot is already booked
-          checkSlotAvailability(doctorId, date, timeString).then(isAvailable => {
-            if (!isAvailable) {
-              slot.classList.add('disabled');
-            } else {
-              slot.addEventListener('click', selectTimeSlot);
-            }
-          });
-          
-          timeSlots.appendChild(slot);
-          
-          // Add 30 minutes
-          startTime.setMinutes(startTime.getMinutes() + 30);
-        }
-      });
-    }
-    
-    // Check if a time slot is available
-    async function checkSlotAvailability(doctorId, date, time) {
-      const snapshot = await database.ref('appointments').once('value');
-      const appointments = snapshot.val() || {};
-      
-      for (const appointment of Object.values(appointments)) {
-        if (appointment.doctorId === doctorId && 
-            appointment.date === date && 
-            appointment.time === time && 
-            appointment.status !== 'cancelled') {
-          return false;
-        }
-      }
-      
-      return true;
-    }
-    
-    // Select time slot
-    function selectTimeSlot(e) {
-      // Remove selected class from all slots
-      document.querySelectorAll('.time-slot').forEach(slot => {
-        slot.classList.remove('selected');
-      });
-      
-      // Add selected class to clicked slot
-      e.target.classList.add('selected');
-    }
-    
-    // Create patient card
-    function createPatientCard(patient, id, department) {
-      const card = document.createElement('div');
-      card.className = 'patient-card';
-      
-      // Determine gender text and icon
-      const genderText = patient.gender === 'male' ? 'ذكر' : 'أنثى';
-      const genderIcon = patient.gender === 'male' ? 'fa-mars' : 'fa-venus';
-      
-      // Get department badge class
-      const deptClass = `dept-${department}`;
-      
-      // Get doctor name if doctorId exists
-      let doctorInfo = '';
-      if (patient.doctorId) {
-        doctorInfo = `
-          <div class="detail-item">
-            <i class="fas fa-user-md"></i>
-            <span>الطبيب: ${patient.doctorName || 'غير محدد'}</span>
-          </div>
-        `;
-      }
-      
-      card.innerHTML = `
-        <div class="flex items-start gap-4">
-          <div class="patient-avatar">
-            ${patient.name.charAt(0).toUpperCase()}
-          </div>
-          <div class="patient-info flex-1">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="patient-name">${patient.name}</h3>
-              <span class="dept-badge ${deptClass}">
-                ${getDepartmentIcon(department)}
-                ${getDepartmentName(department)}
-              </span>
-            </div>
-            
-            <div class="patient-details">
-              <div class="detail-item">
-                <i class="fas fa-id-card"></i>
-                <span>${patient.nid}</span>
-              </div>
-              <div class="detail-item">
-                <i class="fas fa-${genderIcon}"></i>
-                <span>${genderText}</span>
-              </div>
-              <div class="detail-item">
-                <i class="fas fa-birthday-cake"></i>
-                <span>${patient.age} سنة</span>
-              </div>
-              <div class="detail-item">
-                <i class="fas fa-tint"></i>
-                <span>${patient.bloodType}</span>
-              </div>
-              ${patient.phone ? `
-              <div class="detail-item">
-                <i class="fas fa-phone"></i>
-                <span>${patient.phone}</span>
-              </div>
-              ` : ''}
-              ${doctorInfo}
-            </div>
-            
-            ${patient.diseases ? `
-            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
-              <div class="detail-item mb-1">
-                <i class="fas fa-notes-medical"></i>
-                <span class="font-semibold">ملاحظات طبية:</span>
-              </div>
-              <p class="text-sm text-gray-600 pr-6">${patient.diseases}</p>
-            </div>
-            ` : ''}
-            
-            <div class="flex items-center justify-between mt-3">
-              <div class="detail-item text-xs">
-                <i class="fas fa-clock"></i>
-                <span>${formatDate(patient.timestamp)}</span>
-              </div>
-              <div class="flex gap-2">
-                <button class="action-btn btn-view" onclick="viewPatient('${id}', '${department}', ${JSON.stringify(patient).replace(/"/g, '&quot;')})">
-                  <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn btn-edit" onclick="editPatient('${id}', '${department}', ${JSON.stringify(patient).replace(/"/g, '&quot;')})">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn btn-delete" onclick="deletePatient('${id}', '${department}')">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      return card;
-    }
-    
-    // Create doctor card
-    function createDoctorCard(doctor, id, showAvailability = false) {
-      const card = document.createElement('div');
-      card.className = 'patient-card';
-      
-      // Get department badge class
-      const deptClass = `dept-${doctor.department}`;
-      
-      // Get availability status
-      let availabilityBadge = '';
-      if (showAvailability) {
-        const status = getDoctorAvailabilityStatus(doctor);
-        availabilityBadge = `
-          <span class="availability-badge ${status.class}">
-            <i class="fas ${status.icon}"></i>
-            ${status.text}
-          </span>
-        `;
-      }
-      
-      card.innerHTML = `
-        <div class="flex items-start gap-4">
-          <div class="patient-avatar">
-            <i class="fas fa-user-md"></i>
-          </div>
-          <div class="patient-info flex-1">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="patient-name">د. ${doctor.name}</h3>
-              <div class="flex gap-2">
-                <span class="dept-badge ${deptClass}">
-                  ${getDepartmentIcon(doctor.department)}
-                  ${getDepartmentName(doctor.department)}
-                </span>
-                ${availabilityBadge}
-              </div>
-            </div>
-            
-            <div class="patient-details">
-              <div class="detail-item">
-                <i class="fas fa-stethoscope"></i>
-                <span>${doctor.specialization}</span>
-              </div>
-              <div class="detail-item">
-                <i class="fas fa-clock"></i>
-                <span>${doctor.workFrom || '--'} - ${doctor.workTo || '--'}</span>
-              </div>
-            </div>
-            
-            <div class="flex items-center justify-between mt-3">
-              <div class="detail-item text-xs">
-                <i class="fas fa-clock"></i>
-                <span>${formatDate(doctor.timestamp)}</span>
-              </div>
-              <div class="flex gap-2">
-                ${showAvailability && isDoctorAvailableNow(doctor) ? `
-                <button class="action-btn btn-book" onclick="quickBookAppointment('${id}', '${doctor.name}')">
-                  <i class="fas fa-calendar-plus"></i>
-                </button>
-                ` : ''}
-                <button class="action-btn btn-edit" onclick="editDoctor('${id}', ${JSON.stringify(doctor).replace(/"/g, '&quot;')})">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn btn-delete" onclick="deleteDoctor('${id}')">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      return card;
     }
     
     // Get department name
@@ -1527,895 +2217,56 @@
         care: 'الرعاية',
         admin: 'الإدارة',
         radiology: 'الأشعة',
-        operations: 'العمليات'
+        operations: 'العمليات',
+        cardiology: 'أمراض القلب',
+        pediatrics: 'طب الأطفال',
+        obstetrics: 'أمراض النساء والتوليد',
+        orthopedics: 'العظام'
       };
       return departments[department] || department;
     }
     
-    // Get department icon
-    function getDepartmentIcon(department) {
-      const icons = {
-        emergency: '<i class="fas fa-ambulance"></i>',
-        icu: '<i class="fas fa-procedures"></i>',
-        surgery: '<i class="fas fa-user-md"></i>',
-        care: '<i class="fas fa-hand-holding-heart"></i>',
-        admin: '<i class="fas fa-building"></i>',
-        radiology: '<i class="fas fa-x-ray"></i>',
-        operations: '<i class="fas fa-user-md"></i>'
-      };
-      return icons[department] || '<i class="fas fa-hospital"></i>';
-    }
-    
-    // Render patients list
-    function renderPatients(patients, filter = 'all', searchTerm = '') {
-      patientsList.innerHTML = '';
-      
-      if (!patients) {
-        patientsList.innerHTML = `
-          <div class="text-center py-12">
-            <i class="fas fa-user-slash text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">لا يوجد مرضى مسجلين</p>
-            <p class="text-gray-400 text-sm mt-2">قم بتسجيل أول مريض للبدء</p>
-          </div>
-        `;
-        return;
-      }
-      
-      let filteredPatients = Object.entries(patients);
-      
-      // Apply department filter
-      if (filter !== 'all') {
-        filteredPatients = filteredPatients.filter(([_, patient]) => patient.department === filter);
-      }
-      
-      // Apply search filter
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        filteredPatients = filteredPatients.filter(([_, patient]) => 
-          patient.name.toLowerCase().includes(term) || 
-          patient.nid.includes(term) || 
-          (patient.address && patient.address.toLowerCase().includes(term)) ||
-          (patient.phone && patient.phone.includes(term))
-        );
-      }
-      
-      if (filteredPatients.length === 0) {
-        patientsList.innerHTML = `
-          <div class="text-center py-12">
-            <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">لا توجد نتائج للبحث</p>
-            <p class="text-gray-400 text-sm mt-2">جرب تغيير معايير البحث</p>
-          </div>
-        `;
-        return;
-      }
-      
-      filteredPatients.forEach(([id, patient]) => {
-        const department = patient.department || 'غير محدد';
-        const card = createPatientCard(patient, id, department);
-        patientsList.appendChild(card);
-      });
-    }
-    
-    // Render doctors list
-    function renderDoctors(doctors, filter = 'all', searchTerm = '') {
-      doctorsList.innerHTML = '';
-      
-      if (!doctors || Object.keys(doctors).length === 0) {
-        doctorsList.innerHTML = `
-          <div class="text-center py-12">
-            <i class="fas fa-user-md text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">لا يوجد أطباء مسجلين</p>
-            <p class="text-gray-400 text-sm mt-2">سيتم إضافة أطباء افتراضيين</p>
-          </div>
-        `;
-        
-        // Add default doctors
-        addDefaultDoctors();
-        return;
-      }
-      
-      let filteredDoctors = Object.entries(doctors);
-      
-      // Apply department filter
-      if (filter !== 'all') {
-        filteredDoctors = filteredDoctors.filter(([_, doctor]) => doctor.department === filter);
-      }
-      
-      // Apply search filter
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        filteredDoctors = filteredDoctors.filter(([_, doctor]) => 
-          doctor.name.toLowerCase().includes(term) || 
-          doctor.specialization.toLowerCase().includes(term)
-        );
-      }
-      
-      if (filteredDoctors.length === 0) {
-        doctorsList.innerHTML = `
-          <div class="text-center py-12">
-            <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">لا توجد نتائج للبحث</p>
-            <p class="text-gray-400 text-sm mt-2">جرب تغيير معايير البحث</p>
-          </div>
-        `;
-        return;
-      }
-      
-      filteredDoctors.forEach(([id, doctor]) => {
-        const card = createDoctorCard(doctor, id, false);
-        doctorsList.appendChild(card);
-      });
-    }
-    
-    // Render available doctors list
-    function renderAvailableDoctors(doctors, specializationFilter = 'all', searchTerm = '') {
-      availableDoctorsList.innerHTML = '';
-      
-      if (!doctors || Object.keys(doctors).length === 0) {
-        availableDoctorsList.innerHTML = `
-          <div class="text-center py-12">
-            <i class="fas fa-user-md text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">لا يوجد أطباء متاحين حالياً</p>
-            <p class="text-gray-400 text-sm mt-2">جرب التحقق لاحقاً</p>
-          </div>
-        `;
-        return;
-      }
-      
-      // Filter available doctors
-      let availableDoctors = Object.entries(doctors).filter(([_, doctor]) => 
-        isDoctorAvailableNow(doctor)
-      );
-      
-      // Apply specialization filter
-      if (specializationFilter !== 'all') {
-        availableDoctors = availableDoctors.filter(([_, doctor]) => 
-          doctor.specialization === specializationFilter
-        );
-      }
-      
-      // Apply search filter
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        availableDoctors = availableDoctors.filter(([_, doctor]) => 
-          doctor.name.toLowerCase().includes(term) || 
-          doctor.specialization.toLowerCase().includes(term)
-        );
-      }
-      
-      if (availableDoctors.length === 0) {
-        availableDoctorsList.innerHTML = `
-          <div class="text-center py-12">
-            <i class="fas fa-user-clock text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">لا يوجد أطباء متاحين بهذه المواصفات</p>
-            <p class="text-gray-400 text-sm mt-2">جرب تغيير معايير البحث أو التوقيت</p>
-          </div>
-        `;
-        return;
-      }
-      
-      availableDoctors.forEach(([id, doctor]) => {
-        const card = createDoctorCard(doctor, id, true);
-        availableDoctorsList.appendChild(card);
-      });
-      
-      // Update appointment doctor select with available doctors
-      appointmentDoctor.innerHTML = '<option value="">-- اختر الطبيب --</option>';
-      availableDoctors.forEach(([id, doctor]) => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = `${doctor.name} - ${doctor.specialization}`;
-        appointmentDoctor.appendChild(option);
-      });
-    }
-    
-    // Update available doctors count
-    function updateAvailableDoctorsCount(doctors) {
-      if (!doctors) {
-        availableDoctorsElement.textContent = '0';
-        return;
-      }
-      
-      const availableCount = Object.values(doctors).filter(doctor => 
-        isDoctorAvailableNow(doctor)
-      ).length;
-      
-      availableDoctorsElement.textContent = availableCount;
-    }
-    
-    // Add default doctors
-    function addDefaultDoctors() {
-      const defaultDoctors = [
-        { 
-          name: "د. أحمد محمد", 
-          specialization: "طب الطوارئ", 
-          department: "emergency", 
-          workFrom: "08:00", 
-          workTo: "20:00", 
-          timestamp: new Date().toISOString() 
-        },
-        { 
-          name: "د. فاطمة علي", 
-          specialization: "العناية المركزة", 
-          department: "icu", 
-          workFrom: "08:00", 
-          workTo: "20:00", 
-          timestamp: new Date().toISOString() 
-        },
-        { 
-          name: "د. محمد خالد", 
-          specialization: "جراحة عامة", 
-          department: "operations", 
-          workFrom: "08:00", 
-          workTo: "20:00", 
-          timestamp: new Date().toISOString() 
-        },
-        { 
-          name: "د. نورة سعيد", 
-          specialization: "الأشعة التشخيصية", 
-          department: "radiology", 
-          workFrom: "08:00", 
-          workTo: "20:00", 
-          timestamp: new Date().toISOString() 
-        },
-        { 
-          name: "د. يوسف عمر", 
-          specialization: "طب القلب", 
-          department: "care", 
-          workFrom: "09:00", 
-          workTo: "17:00", 
-          timestamp: new Date().toISOString() 
-        },
-        { 
-          name: "د. مريم حسن", 
-          specialization: "طب الأطفال", 
-          department: "care", 
-          workFrom: "10:00", 
-          workTo: "18:00", 
-          timestamp: new Date().toISOString() 
-        },
-        { 
-          name: "د. خالد أحمد", 
-          specialization: "النساء والتوليد", 
-          department: "care", 
-          workFrom: "08:00", 
-          workTo: "16:00", 
-          timestamp: new Date().toISOString() 
-        }
-      ];
-      
-      defaultDoctors.forEach(doctor => {
-        database.ref('doctors').push(doctor);
-      });
-    }
-    
-    // Quick book appointment
-    window.quickBookAppointment = function(doctorId, doctorName) {
-      // Switch to appointments tab
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      document.querySelector('[data-tab="appointments"]').classList.add('active');
-      document.getElementById('appointmentsTab').classList.add('active');
-      
-      // Set doctor in appointment form
-      appointmentDoctor.value = doctorId;
-      
-      // Generate time slots
-      generateTimeSlots(doctorId, appointmentDate.value);
-      
-      // Scroll to appointment form
-      document.getElementById('appointmentsTab').scrollIntoView({ behavior: 'smooth' });
-    };
-    
-    // Delete patient
-    window.deletePatient = function(id, department) {
-      Swal.fire({
-        title: 'تأكيد الحذف',
-        text: "هل أنت متأكد من حذف بيانات هذا المريض؟",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#FF6B6B',
-        cancelButtonColor: '#6C757D',
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء',
-        customClass: {
-          popup: 'medical-card'
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          showLoading();
-          database.ref(`patients/${department}/${id}`).remove()
-            .then(() => {
-              hideLoading();
-              Swal.fire({
-                icon: 'success',
-                title: 'تم الحذف بنجاح',
-                text: 'تم حذف بيانات المريض',
-                timer: 2000,
-                showConfirmButton: false,
-                position: 'top-end',
-                toast: true
-              });
-            })
-            .catch((error) => {
-              hideLoading();
-              Swal.fire({
-                icon: 'error',
-                title: 'خطأ',
-                text: 'حدث خطأ أثناء الحذف'
-              });
-            });
-        }
-      });
-    }
-    
-    // Delete doctor
-    window.deleteDoctor = function(id) {
-      Swal.fire({
-        title: 'تأكيد الحذف',
-        text: "هل أنت متأكد من حذف بيانات هذا الطبيب؟",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#FF6B6B',
-        cancelButtonColor: '#6C757D',
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء',
-        customClass: {
-          popup: 'medical-card'
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          showLoading();
-          database.ref(`doctors/${id}`).remove()
-            .then(() => {
-              hideLoading();
-              Swal.fire({
-                icon: 'success',
-                title: 'تم الحذف بنجاح',
-                text: 'تم حذف بيانات الطبيب',
-                timer: 2000,
-                showConfirmButton: false,
-                position: 'top-end',
-                toast: true
-              });
-            })
-            .catch((error) => {
-              hideLoading();
-              Swal.fire({
-                icon: 'error',
-                title: 'خطأ',
-                text: 'حدث خطأ أثناء الحذف'
-              });
-            });
-        }
-      });
-    }
-    
-    // View patient details
-    window.viewPatient = function(id, department, patient) {
-      Swal.fire({
-        title: 'تفاصيل المريض',
-        html: `
-          <div class="text-right">
-            <div class="mb-4">
-              <strong>الاسم:</strong> ${patient.name}<br>
-              <strong>العمر:</strong> ${patient.age} سنة<br>
-              <strong>الجنس:</strong> ${patient.gender === 'male' ? 'ذكر' : 'أنثى'}<br>
-              <strong>فصيلة الدم:</strong> ${patient.bloodType}<br>
-              <strong>الرقم القومي:</strong> ${patient.nid}<br>
-              <strong>الهاتف:</strong> ${patient.phone || '---'}<br>
-              <strong>العنوان:</strong> ${patient.address}<br>
-              <strong>القسم:</strong> ${getDepartmentName(department)}<br>
-              <strong>الطبيب:</strong> ${patient.doctorName || '---'}<br>
-              <strong>تاريخ التسجيل:</strong> ${formatDate(patient.timestamp)}<br>
-              ${patient.diseases ? `<strong>ملاحظات:</strong> ${patient.diseases}` : ''}
-            </div>
-          </div>
-        `,
-        confirmButtonText: 'إغلاق',
-        customClass: {
-          popup: 'medical-card'
-        }
-      });
-    }
-    
-    // Edit patient
-    window.editPatient = function(id, department, patient) {
-      const editForm = document.createElement('form');
-      editForm.className = 'space-y-4';
-      
-      editForm.innerHTML = `
-        <h3 class="text-lg font-bold mb-4 text-gray-800">تعديل بيانات المريض</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group">
-            <label class="form-label">الاسم</label>
-            <input type="text" id="edit-name" value="${patient.name}" class="form-input" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">العمر</label>
-            <input type="number" id="edit-age" value="${patient.age}" class="form-input" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">الرقم القومي</label>
-            <input type="text" id="edit-nid" value="${patient.nid}" class="form-input" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">الجنس</label>
-            <select id="edit-gender" class="form-input form-select" required>
-              <option value="male" ${patient.gender === 'male' ? 'selected' : ''}>ذكر</option>
-              <option value="female" ${patient.gender === 'female' ? 'selected' : ''}>أنثى</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">رقم الهاتف</label>
-            <input type="tel" id="edit-phone" value="${patient.phone || ''}" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">العنوان</label>
-            <input type="text" id="edit-address" value="${patient.address}" class="form-input" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">فصيلة الدم</label>
-            <select id="edit-bloodType" class="form-input form-select" required>
-              <option value="A+" ${patient.bloodType === 'A+' ? 'selected' : ''}>A+</option>
-              <option value="A-" ${patient.bloodType === 'A-' ? 'selected' : ''}>A-</option>
-              <option value="B+" ${patient.bloodType === 'B+' ? 'selected' : ''}>B+</option>
-              <option value="B-" ${patient.bloodType === 'B-' ? 'selected' : ''}>B-</option>
-              <option value="AB+" ${patient.bloodType === 'AB+' ? 'selected' : ''}>AB+</option>
-              <option value="AB-" ${patient.bloodType === 'AB-' ? 'selected' : ''}>AB-</option>
-              <option value="O+" ${patient.bloodType === 'O+' ? 'selected' : ''}>O+</option>
-              <option value="O-" ${patient.bloodType === 'O-' ? 'selected' : ''}>O-</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">ملاحظات طبية</label>
-          <textarea id="edit-diseases" rows="3" class="form-input">${patient.diseases || ''}</textarea>
-        </div>
-      `;
-      
-      Swal.fire({
-        title: '',
-        html: editForm,
-        showCancelButton: true,
-        confirmButtonText: 'حفظ التعديلات',
-        cancelButtonText: 'إلغاء',
-        preConfirm: () => {
-          const name = document.getElementById('edit-name').value.trim();
-          const age = document.getElementById('edit-age').value.trim();
-          const nid = document.getElementById('edit-nid').value.trim();
-          const gender = document.getElementById('edit-gender').value;
-          const phone = document.getElementById('edit-phone').value.trim();
-          const address = document.getElementById('edit-address').value.trim();
-          const bloodType = document.getElementById('edit-bloodType').value;
-          
-          if (!name || !age || !nid || !gender || !address || !bloodType) {
-            Swal.showValidationMessage('يرجى ملء جميع الحقول الإلزامية');
-            return false;
-          }
-          
-          return {
-            name, age, nid, gender, phone, address, bloodType,
-            diseases: document.getElementById('edit-diseases').value.trim()
-          };
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const updatedData = result.value;
-          
-          showLoading();
-          database.ref(`patients/${department}/${id}`).update({
-            ...updatedData,
-            timestamp: new Date().toISOString()
-          })
-          .then(() => {
-            hideLoading();
-            Swal.fire({
-              icon: 'success',
-              title: 'تم التحديث',
-              text: 'تم تحديث بيانات المريض بنجاح',
-              timer: 2000,
-              showConfirmButton: false,
-              position: 'top-end',
-              toast: true
-            });
-          })
-          .catch((error) => {
-            hideLoading();
-            Swal.fire({
-              icon: 'error',
-              title: 'خطأ',
-              text: 'حدث خطأ أثناء التحديث'
-            });
-          });
-        }
-      });
-    }
-    
-    // Edit doctor
-    window.editDoctor = function(id, doctor) {
-      const editForm = document.createElement('form');
-      editForm.className = 'space-y-4';
-      
-      editForm.innerHTML = `
-        <h3 class="text-lg font-bold mb-4 text-gray-800">تعديل بيانات الطبيب</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group">
-            <label class="form-label">الاسم</label>
-            <input type="text" id="edit-doctor-name" value="${doctor.name}" class="form-input" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">التخصص</label>
-            <input type="text" id="edit-doctor-specialization" value="${doctor.specialization}" class="form-input" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">القسم</label>
-            <select id="edit-doctor-department" class="form-input form-select" required>
-              <option value="emergency" ${doctor.department === 'emergency' ? 'selected' : ''}>الطوارئ</option>
-              <option value="radiology" ${doctor.department === 'radiology' ? 'selected' : ''}>الأشعة</option>
-              <option value="icu" ${doctor.department === 'icu' ? 'selected' : ''}>العناية المركزة</option>
-              <option value="operations" ${doctor.department === 'operations' ? 'selected' : ''}>العمليات</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">ساعات العمل</label>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="time" id="edit-work-from" value="${doctor.workFrom || ''}" class="form-input" required />
-              <input type="time" id="edit-work-to" value="${doctor.workTo || ''}" class="form-input" required />
-            </div>
-          </div>
-        </div>
-      `;
-      
-      Swal.fire({
-        title: '',
-        html: editForm,
-        showCancelButton: true,
-        confirmButtonText: 'حفظ التعديلات',
-        cancelButtonText: 'إلغاء',
-        preConfirm: () => {
-          const name = document.getElementById('edit-doctor-name').value.trim();
-          const specialization = document.getElementById('edit-doctor-specialization').value.trim();
-          const department = document.getElementById('edit-doctor-department').value;
-          const workFrom = document.getElementById('edit-work-from').value;
-          const workTo = document.getElementById('edit-work-to').value;
-          
-          if (!name || !specialization || !department || !workFrom || !workTo) {
-            Swal.showValidationMessage('يرجى ملء جميع الحقول الإلزامية');
-            return false;
-          }
-          
-          return {
-            name, specialization, department, workFrom, workTo
-          };
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const updatedData = result.value;
-          
-          showLoading();
-          database.ref(`doctors/${id}`).update({
-            ...updatedData,
-            timestamp: new Date().toISOString()
-          })
-          .then(() => {
-            hideLoading();
-            Swal.fire({
-              icon: 'success',
-              title: 'تم التحديث',
-              text: 'تم تحديث بيانات الطبيب بنجاح',
-              timer: 2000,
-              showConfirmButton: false,
-              position: 'top-end',
-              toast: true
-            });
-          })
-          .catch((error) => {
-            hideLoading();
-            Swal.fire({
-              icon: 'error',
-              title: 'خطأ',
-              text: 'حدث خطأ أثناء التحديث'
-            });
-          });
-        }
-      });
-    }
-    
-    // Print report function
-    printReportBtn.addEventListener('click', () => {
-      window.print();
-    });
-    
-    // Export PDF function
-    exportPdfBtn.addEventListener('click', () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      doc.setFont('Cairo', 'normal');
-      doc.setFontSize(18);
-      doc.text('تقرير المرضى - مستشفى الحياة الذكية', 105, 15, { align: 'center' });
-      
-      doc.setFontSize(12);
-      doc.text(`التاريخ: ${new Date().toLocaleDateString("ar-EG")}`, 105, 25, { align: 'center' });
-      
-      doc.setFontSize(14);
-      doc.text('قائمة المرضى', 20, 40);
-      
-      doc.setFontSize(10);
-      let y = 50;
-      
-      database.ref('patients').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        let patientCount = 0;
-        
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (patientCount > 0) y += 10;
-            doc.text(`${patientCount + 1}. ${patient.name} - ${dept}`, 20, y);
-            doc.text(`   العمر: ${patient.age} | الجنس: ${patient.gender === 'male' ? 'ذكر' : 'أنثى'} | الرقم القومي: ${patient.nid}`, 20, y + 5);
-            patientCount++;
-          });
-        });
-        
-        doc.save('تقرير-المرضى.pdf');
-        hideLoading();
-      });
-      
-      showLoading();
-    });
-    
-    // Update statistics
-    function updateStats() {
-      showLoading();
-      const todayDate = new Date().toDateString();
-      let total = 0, todayCount = 0, emergency = 0;
-      
-      database.ref('patients').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        
-        Object.values(data).forEach(dept => {
-          Object.values(dept).forEach(patient => {
-            total++;
-            if (new Date(patient.timestamp).toDateString() === todayDate) todayCount++;
-            if (patient.department === 'emergency') emergency++;
-          });
-        });
-        
-        totalPatientsElement.textContent = total;
-        todayPatientsElement.textContent = todayCount;
-        emergencyPatientsElement.textContent = emergency;
-        
-        hideLoading();
-      });
-    }
-    
-    // Initialize charts
-    function initializeCharts() {
-      // Department distribution chart
-      const deptCtx = document.getElementById('departmentChart').getContext('2d');
-      const deptChart = new Chart(deptCtx, {
-        type: 'bar',
-        data: {
-          labels: ['الطوارئ', 'العناية المركزة', 'العمليات', 'الرعاية', 'الإدارة', 'الأشعة'],
-          datasets: [{
-            label: 'عدد المرضى',
-            data: [0, 0, 0, 0, 0, 0],
-            backgroundColor: [
-              'rgba(255, 107, 107, 0.7)',
-              'rgba(139, 92, 246, 0.7)',
-              'rgba(0, 102, 204, 0.7)',
-              'rgba(107, 207, 127, 0.7)',
-              'rgba(108, 117, 125, 0.7)',
-              'rgba(14, 165, 233, 0.7)'
-            ],
-            borderColor: [
-              'rgb(255, 107, 107)',
-              'rgb(139, 92, 246)',
-              'rgb(0, 102, 204)',
-              'rgb(107, 207, 127)',
-              'rgb(108, 117, 125)',
-              'rgb(14, 165, 233)'
-            ],
-            borderWidth: 1,
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              },
-              grid: {
-                borderDash: [5, 5]
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
-          }
-        }
-      });
-      
-      // Daily patients chart
-      const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-      const dailyChart = new Chart(dailyCtx, {
-        type: 'line',
-        data: {
-          labels: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
-          datasets: [{
-            label: 'عدد المرضى',
-            data: [0, 0, 0, 0, 0, 0, 0],
-            fill: true,
-            backgroundColor: 'rgba(0, 102, 204, 0.1)',
-            borderColor: 'rgb(0, 102, 204)',
-            tension: 0.4,
-            pointBackgroundColor: 'rgb(0, 102, 204)',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              },
-              grid: {
-                borderDash: [5, 5]
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
-          }
-        }
-      });
-      
-      // Blood type distribution chart
-      const bloodCtx = document.getElementById('bloodTypeChart').getContext('2d');
-      const bloodChart = new Chart(bloodCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-          datasets: [{
-            label: 'فصيلة الدم',
-            data: [0, 0, 0, 0, 0, 0, 0, 0],
-            backgroundColor: [
-              'rgba(255, 107, 107, 0.7)',
-              'rgba(255, 107, 107, 0.5)',
-              'rgba(0, 102, 204, 0.7)',
-              'rgba(0, 102, 204, 0.5)',
-              'rgba(139, 92, 246, 0.7)',
-              'rgba(139, 92, 246, 0.5)',
-              'rgba(107, 207, 127, 0.7)',
-              'rgba(107, 207, 127, 0.5)'
-            ],
-            borderColor: '#fff',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                padding: 15,
-                font: {
-                  size: 12
-                }
-              }
-            }
-          }
-        }
-      });
-      
-      // Update charts with real data
-      database.ref('patients').on('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        const deptCounts = [0, 0, 0, 0, 0, 0];
-        const bloodCounts = [0, 0, 0, 0, 0, 0, 0, 0];
-        
-        Object.values(data).forEach(dept => {
-          Object.values(dept).forEach(patient => {
-            const deptIndex = getDepartmentIndex(patient.department);
-            if (deptIndex !== -1) deptCounts[deptIndex]++;
-            
-            const bloodIndex = getBloodTypeIndex(patient.bloodType);
-            if (bloodIndex !== -1) bloodCounts[bloodIndex]++;
-          });
-        });
-        
-        deptChart.data.datasets[0].data = deptCounts;
-        deptChart.update();
-        
-        bloodChart.data.datasets[0].data = bloodCounts;
-        bloodChart.update();
-        
-        // Update daily chart
-        const dailyCounts = [0, 0, 0, 0, 0, 0, 0];
-        Object.values(data).forEach(dept => {
-          Object.values(dept).forEach(patient => {
-            const patientDate = new Date(patient.timestamp);
-            const patientDay = patientDate.getDay();
-            if (patientDay >= 0 && patientDay <= 6) {
-              dailyCounts[patientDay]++;
-            }
-          });
-        });
-        
-        dailyChart.data.datasets[0].data = dailyCounts;
-        dailyChart.update();
-      });
-    }
-    
-    // Helper functions
-    function getDepartmentIndex(department) {
-      const departments = ['emergency', 'icu', 'surgery', 'care', 'admin', 'radiology'];
-      return departments.indexOf(department);
-    }
-    
-    function getBloodTypeIndex(bloodType) {
-      const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-      return bloodTypes.indexOf(bloodType);
-    }
-    
-    // Form submission for patient
+    // Form submission for patient registration
     patientForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
       const selectedDoctor = document.getElementById("doctorSelect").value;
       let doctorName = '';
       
-      // Get doctor name if a doctor is selected
       if (selectedDoctor) {
         const selectedOption = doctorSelect.options[doctorSelect.selectedIndex];
         doctorName = selectedOption.textContent.split(' - ')[0];
       }
       
+      const birthDate = new Date(document.getElementById("birthDate").value);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
       const formData = {
         name: document.getElementById("name").value.trim(),
-        age: document.getElementById("age").value.trim(),
         nid: document.getElementById("nid").value.trim(),
+        birthDate: document.getElementById("birthDate").value,
+        age: age,
         gender: document.getElementById("gender").value,
-        phone: document.getElementById("phone").value.trim(),
-        address: document.getElementById("address").value.trim(),
         bloodType: document.getElementById("bloodType").value,
+        phone: document.getElementById("phone").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        address: document.getElementById("address").value.trim(),
         diseases: document.getElementById("diseases").value.trim(),
         department: document.getElementById("department").value,
         doctorId: selectedDoctor,
         doctorName: doctorName,
+        insuranceCompany: document.getElementById("insuranceCompany").value.trim(),
+        insuranceNumber: document.getElementById("insuranceNumber").value.trim(),
         timestamp: new Date().toISOString()
       };
       
-      if (!formData.name || !formData.age || !formData.nid || !formData.gender || 
-          !formData.address || !formData.bloodType || !formData.department) {
+      if (!formData.name || !formData.nid || !formData.birthDate || !formData.gender || 
+          !formData.bloodType || !formData.phone || !formData.address || !formData.department) {
         Swal.fire({
           icon: 'warning',
           title: 'بيانات ناقصة',
@@ -2427,7 +2278,11 @@
       
       try {
         showLoading();
-        await database.ref(`patients/${formData.department}`).push(formData);
+        const patientsRef = ref(db, `patients/${formData.department}`);
+        const newPatientRef = await push(patientsRef, formData);
+        
+        // Add activity log
+        await addActivityLog('patient_registered', `تم تسجيل مريض جديد: ${formData.name}`, newPatientRef.key);
         
         Swal.fire({
           icon: 'success',
@@ -2451,235 +2306,1283 @@
       }
     });
     
-    // Form submission for appointment
-    appointmentForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const selectedTime = document.querySelector('.time-slot.selected');
-      if (!selectedTime) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'وقت غير محدد',
-          text: 'يرجى اختيار وقت للموعد',
-          confirmButtonText: 'حسناً'
-        });
-        return;
-      }
-      
-      const patientId = document.getElementById("appointmentPatient").value;
-      const doctorId = document.getElementById("appointmentDoctor").value;
-      const date = document.getElementById("appointmentDate").value;
-      const time = selectedTime.dataset.time;
-      const reason = document.getElementById("appointmentReason").value.trim();
-      
-      // Get patient and doctor names
-      const patientOption = appointmentPatient.options[appointmentPatient.selectedIndex];
-      const doctorOption = appointmentDoctor.options[appointmentDoctor.selectedIndex];
-      
-      const patientName = patientOption.textContent.split(' - ')[0];
-      const doctorName = doctorOption.textContent.split(' - ')[0];
-      
-      const formData = {
-        patientId,
-        patientName,
-        doctorId,
-        doctorName,
-        date,
-        time,
-        reason,
-        status: 'scheduled',
-        timestamp: new Date().toISOString()
-      };
-      
-      try {
-        showLoading();
-        await database.ref('appointments').push(formData);
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'تم الحجز بنجاح',
-          text: `تم حجز موعد للمريض ${patientName} مع د. ${doctorName}`,
-          timer: 3000,
-          showConfirmButton: false,
-          position: 'top-end',
-          toast: true
-        });
-        
-        appointmentForm.reset();
-        timeSlots.innerHTML = '';
-        hideLoading();
-      } catch (error) {
-        hideLoading();
-        Swal.fire({
-          icon: 'error',
-          title: 'خطأ',
-          text: 'حدث خطأ أثناء الحجز'
-        });
-      }
+    // Reset form button
+    resetFormBtn.addEventListener('click', () => {
+      patientForm.reset();
     });
     
-    // Tab navigation
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const tabName = button.getAttribute('data-tab');
-        
-        // Remove active class from all tabs and buttons
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabContents.forEach(content => content.classList.remove('active'));
-        
-        // Add active class to clicked button and corresponding content
-        button.classList.add('active');
-        document.getElementById(`${tabName}Tab`).classList.add('active');
-      });
-    });
-    
-    // Real-time data listeners
-    function setupDataListeners() {
-      // Patients listener
-      database.ref('patients').on('value', (snapshot) => {
+    // Load patients list
+    function loadPatientsList() {
+      const patientsListContainer = document.getElementById('patientsListContainer');
+      if (!patientsListContainer) return;
+      
+      patientsListContainer.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
+      
+      const patientsRef = ref(db, "patients");
+      onValue(patientsRef, (snapshot) => {
         const data = snapshot.val() || {};
-        const filter = filterDepartment.value;
-        const searchTerm = searchPatient.value;
+        let allPatients = [];
         
-        let allPatients = {};
         Object.entries(data).forEach(([dept, patients]) => {
           Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
-            }
+            allPatients.push({ ...patient, id, department: dept });
           });
         });
         
-        renderPatients(allPatients, filter, searchTerm);
-        updateStats();
-      });
-      
-      // Doctors listener
-      database.ref('doctors').on('value', (snapshot) => {
-        const doctors = snapshot.val() || {};
-        const deptFilter = filterDoctorDepartment.value;
-        const searchTermAll = searchDoctorAll.value;
-        const specializationFilter = filterDoctorSpecialization.value;
-        const searchTermAvailable = searchDoctor.value;
+        if (allPatients.length === 0) {
+          patientsListContainer.innerHTML = `
+            <div class="text-center py-12">
+              <i class="fas fa-user-slash text-6xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500 text-lg">لا يوجد مرضى مسجلين</p>
+              <p class="text-gray-400 text-sm mt-2">قم بتسجيل أول مريض للبدء</p>
+            </div>
+          `;
+          return;
+        }
         
-        renderDoctors(doctors, deptFilter, searchTermAll);
-        renderAvailableDoctors(doctors, specializationFilter, searchTermAvailable);
-        updateAvailableDoctorsCount(doctors);
+        // Sort by timestamp (newest first)
+        allPatients.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        patientsListContainer.innerHTML = allPatients.map(patient => createPatientCard(patient)).join('');
       });
     }
     
-    // Filter and search listeners
-    filterDepartment.addEventListener('change', () => {
-      const filter = filterDepartment.value;
-      const searchTerm = searchPatient.value;
+    // Create patient card
+    function createPatientCard(patient) {
+      const genderText = patient.gender === 'male' ? 'ذكر' : 'أنثى';
+      const genderIcon = patient.gender === 'male' ? 'fa-mars' : 'fa-venus';
+      const deptClass = `dept-${patient.department}`;
       
-      database.ref('patients').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        let allPatients = {};
+      return `
+        <div class="patient-card">
+          <div class="flex items-start gap-4">
+            <div class="patient-avatar">
+              ${patient.name.charAt(0).toUpperCase()}
+            </div>
+            <div class="patient-info flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="patient-name">${patient.name}</h3>
+                <span class="dept-badge ${deptClass}">
+                  ${getDepartmentIcon(patient.department)}
+                  ${getDepartmentName(patient.department)}
+                </span>
+              </div>
+              
+              <div class="patient-details">
+                <div class="detail-item">
+                  <i class="fas fa-id-card"></i>
+                  <span>${patient.nid}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-${genderIcon}"></i>
+                  <span>${genderText}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-birthday-cake"></i>
+                  <span>${patient.age} سنة</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-tint"></i>
+                  <span>${patient.bloodType}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-phone"></i>
+                  <span>${patient.phone}</span>
+                </div>
+              </div>
+              
+              ${patient.doctorName ? `
+              <div class="detail-item mt-2">
+                <i class="fas fa-user-md"></i>
+                <span>الطبيب: ${patient.doctorName}</span>
+              </div>
+              ` : ''}
+              
+              ${patient.diseases ? `
+              <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                <div class="detail-item mb-1">
+                  <i class="fas fa-notes-medical"></i>
+                  <span class="font-semibold">ملاحظات طبية:</span>
+                </div>
+                <p class="text-sm text-gray-600 pr-6">${patient.diseases}</p>
+              </div>
+              ` : ''}
+              
+              <div class="flex items-center justify-between mt-3">
+                <div class="detail-item text-xs">
+                  <i class="fas fa-clock"></i>
+                  <span>${formatDate(patient.timestamp)}</span>
+                </div>
+                <div class="flex gap-2">
+                  <button class="action-btn btn-edit" onclick="editPatient('${patient.id}', '${patient.department}')">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="action-btn btn-delete" onclick="deletePatient('${patient.id}', '${patient.department}')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Get department icon
+    function getDepartmentIcon(department) {
+      const icons = {
+        emergency: '<i class="fas fa-ambulance"></i>',
+        icu: '<i class="fas fa-procedures"></i>',
+        surgery: '<i class="fas fa-user-md"></i>',
+        care: '<i class="fas fa-hand-holding-heart"></i>',
+        admin: '<i class="fas fa-building"></i>',
+        radiology: '<i class="fas fa-x-ray"></i>',
+        operations: '<i class="fas fa-user-md"></i>',
+        cardiology: '<i class="fas fa-heartbeat"></i>',
+        pediatrics: '<i class="fas fa-baby"></i>',
+        obstetrics: '<i class="fas fa-female"></i>',
+        orthopedics: '<i class="fas fa-bone"></i>'
+      };
+      return icons[department] || '<i class="fas fa-hospital"></i>';
+    }
+    
+    // Edit patient
+    window.editPatient = function(id, department) {
+      const patientRef = ref(db, `patients/${department}/${id}`);
+      
+      get(patientRef).then((snapshot) => {
+        const patient = snapshot.val();
+        if (!patient) return;
         
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
-            }
+        Swal.fire({
+          title: 'تعديل بيانات المريض',
+          html: `
+            <form id="editPatientForm" class="text-right">
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">الاسم</label>
+                  <input type="text" id="editName" value="${patient.name}" class="w-full p-2 border rounded" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">الرقم القومي</label>
+                  <input type="text" id="editNid" value="${patient.nid}" class="w-full p-2 border rounded" required />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">الهاتف</label>
+                  <input type="tel" id="editPhone" value="${patient.phone}" class="w-full p-2 border rounded" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">البريد الإلكتروني</label>
+                  <input type="email" id="editEmail" value="${patient.email || ''}" class="w-full p-2 border rounded" />
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">العنوان</label>
+                <input type="text" id="editAddress" value="${patient.address}" class="w-full p-2 border rounded" required />
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">ملاحظات طبية</label>
+                <textarea id="editDiseases" rows="3" class="w-full p-2 border rounded">${patient.diseases || ''}</textarea>
+              </div>
+            </form>
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'حفظ التعديلات',
+          cancelButtonText: 'إلغاء',
+          preConfirm: () => {
+            return {
+              name: document.getElementById('editName').value,
+              nid: document.getElementById('editNid').value,
+              phone: document.getElementById('editPhone').value,
+              email: document.getElementById('editEmail').value,
+              address: document.getElementById('editAddress').value,
+              diseases: document.getElementById('editDiseases').value
+            };
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const updatedData = result.value;
+            update(patientRef, updatedData).then(() => {
+              Swal.fire('نجح!', 'تم تحديث بيانات المريض', 'success');
+              addActivityLog('patient_updated', `تم تحديث بيانات المريض: ${updatedData.name}`, id);
+            });
+          }
+        });
+      });
+    }
+    
+    // Delete patient
+    window.deletePatient = function(id, department) {
+      Swal.fire({
+        title: 'تأكيد الحذف',
+        text: "هل أنت متأكد من حذف بيانات هذا المريض؟",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#FF6B6B',
+        cancelButtonColor: '#6C757D',
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const patientRef = ref(db, `patients/${department}/${id}`);
+          
+          get(patientRef).then((snapshot) => {
+            const patient = snapshot.val();
+            remove(patientRef).then(() => {
+              Swal.fire('تم الحذف!', 'تم حذف بيانات المريض', 'success');
+              addActivityLog('patient_deleted', `تم حذف المريض: ${patient.name}`, id);
+            });
+          });
+        }
+      });
+    }
+    
+    // Load appointments data
+    function loadAppointmentsData() {
+      // Load patients for appointment form
+      const appointmentPatient = document.getElementById('appointmentPatient');
+      if (appointmentPatient) {
+        const patientsRef = ref(db, "patients");
+        onValue(patientsRef, (snapshot) => {
+          const data = snapshot.val() || {};
+          appointmentPatient.innerHTML = '<option value="">-- اختر المريض --</option>';
+          
+          Object.entries(data).forEach(([dept, patients]) => {
+            Object.entries(patients).forEach(([id, patient]) => {
+              const option = document.createElement("option");
+              option.value = id;
+              option.textContent = `${patient.name} - ${getDepartmentName(dept)}`;
+              appointmentPatient.appendChild(option);
+            });
+          });
+        });
+      }
+      
+      // Load upcoming appointments
+      loadUpcomingAppointments();
+    }
+    
+    // Load upcoming appointments
+    function loadUpcomingAppointments() {
+      const upcomingAppointments = document.getElementById('upcomingAppointments');
+      if (!upcomingAppointments) return;
+      
+      const appointmentsRef = ref(db, "appointments");
+      onValue(appointmentsRef, (snapshot) => {
+        const appointments = snapshot.val() || {};
+        const today = new Date();
+        let upcoming = [];
+        
+        Object.entries(appointments).forEach(([id, appointment]) => {
+          const appointmentDate = new Date(`${appointment.date} ${appointment.time}`);
+          if (appointmentDate >= today) {
+            upcoming.push({ ...appointment, id });
+          }
+        });
+        
+        // Sort by date
+        upcoming.sort((a, b) => new Date(`${a.date} ${a.time}`) - new Date(`${b.date} ${b.time}`));
+        
+        if (upcoming.length === 0) {
+          upcomingAppointments.innerHTML = '<p class="text-gray-500 text-center">لا توجد مواعد قادمة</p>';
+          return;
+        }
+        
+        upcomingAppointments.innerHTML = upcoming.slice(0, 5).map(appointment => `
+          <div class="p-3 bg-gray-50 rounded-lg">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-semibold">${appointment.patientName}</p>
+                <p class="text-sm text-gray-600">${appointment.doctorName}</p>
+                <p class="text-xs text-gray-500">${formatDate(appointment.timestamp)}</p>
+              </div>
+              <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                ${appointment.type}
+              </span>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+    
+    // Appointment form submission
+    const appointmentForm = document.getElementById('appointmentForm');
+    if (appointmentForm) {
+      appointmentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const appointmentPatient = document.getElementById('appointmentPatient');
+        const appointmentDoctor = document.getElementById('appointmentDoctor');
+        const selectedPatientOption = appointmentPatient.options[appointmentPatient.selectedIndex];
+        const selectedDoctorOption = appointmentDoctor.options[appointmentDoctor.selectedIndex];
+        
+        const appointmentData = {
+          patientId: appointmentPatient.value,
+          patientName: selectedPatientOption.textContent.split(' - ')[0],
+          doctorId: appointmentDoctor.value,
+          doctorName: selectedDoctorOption.textContent.split(' - ')[0],
+          date: document.getElementById('appointmentDate').value,
+          time: document.getElementById('appointmentTime').value,
+          type: document.getElementById('appointmentType').value,
+          notes: document.getElementById('appointmentNotes').value,
+          status: 'scheduled',
+          timestamp: new Date().toISOString()
+        };
+        
+        try {
+          showLoading();
+          const appointmentsRef = ref(db, "appointments");
+          const newAppointmentRef = await push(appointmentsRef, appointmentData);
+          
+          await addActivityLog('appointment_scheduled', `تم حجز موعد: ${appointmentData.patientName} مع ${appointmentData.doctorName}`, newAppointmentRef.key);
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'تم حجز الموعد',
+            text: `تم حجز الموعد بنجاح`,
+            timer: 2000,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true
+          });
+          
+          appointmentForm.reset();
+          hideLoading();
+        } catch (error) {
+          hideLoading();
+          Swal.fire({
+            icon: 'error',
+            title: 'خطأ',
+            text: 'حدث خطأ أثناء حجز الموعد'
+          });
+        }
+      });
+    }
+    
+    // Load medical records
+    function loadMedicalRecords() {
+      const medicalRecordsList = document.getElementById('medicalRecordsList');
+      if (!medicalRecordsList) return;
+      
+      medicalRecordsList.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
+      
+      const recordsRef = ref(db, "medicalRecords");
+      onValue(recordsRef, (snapshot) => {
+        const records = snapshot.val() || {};
+        
+        if (Object.keys(records).length === 0) {
+          medicalRecordsList.innerHTML = `
+            <div class="text-center py-12">
+              <i class="fas fa-file-medical text-6xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500 text-lg">لا توجد سجلات طبية</p>
+            </div>
+          `;
+          return;
+        }
+        
+        medicalRecordsList.innerHTML = Object.entries(records).map(([id, record]) => `
+          <div class="medical-card">
+            <div class="card-header">
+              <div class="flex justify-between items-center">
+                <div>
+                  <h3 class="font-semibold">${record.patientName}</h3>
+                  <p class="text-sm text-gray-600">${record.doctorName} - ${formatDate(record.timestamp)}</p>
+                </div>
+                <span class="dept-badge dept-${record.department}">
+                  ${getDepartmentIcon(record.department)}
+                  ${getDepartmentName(record.department)}
+                </span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p class="text-sm font-semibold">التشخيص:</p>
+                  <p class="text-sm">${record.diagnosis}</p>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">العلاج:</p>
+                  <p class="text-sm">${record.treatment}</p>
+                </div>
+              </div>
+              ${record.notes ? `
+              <div>
+                <p class="text-sm font-semibold">ملاحظات:</p>
+                <p class="text-sm">${record.notes}</p>
+              </div>
+              ` : ''}
+              <div class="flex gap-2 mt-4">
+                <button class="btn-medical btn-sm btn-outline" onclick="viewMedicalRecord('${id}')">
+                  <i class="fas fa-eye"></i>
+                  عرض
+                </button>
+                <button class="btn-medical btn-sm btn-outline" onclick="printMedicalRecord('${id}')">
+                  <i class="fas fa-print"></i>
+                  طباعة
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+    
+    // Load medicines inventory
+    function loadMedicinesInventory() {
+      const medicinesTableBody = document.getElementById('medicinesTableBody');
+      if (!medicinesTableBody) return;
+      
+      medicinesTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></td></tr>';
+      
+      const medicinesRef = ref(db, "medicines");
+      onValue(medicinesRef, (snapshot) => {
+        const medicines = snapshot.val() || {};
+        
+        if (Object.keys(medicines).length === 0) {
+          medicinesTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">لا توجد أدوية في المخزون</td></tr>';
+          return;
+        }
+        
+        medicinesTableBody.innerHTML = Object.entries(medicines).map(([id, medicine]) => {
+          const statusClass = medicine.status === 'instock' ? 'text-green-600' : 
+                              medicine.status === 'low' ? 'text-yellow-600' : 'text-red-600';
+          const statusText = medicine.status === 'instock' ? 'متوفر' : 
+                            medicine.status === 'low' ? 'مخزون منخفض' : 'نفد المخزون';
+          
+          return `
+            <tr>
+              <td class="font-semibold">${medicine.name}</td>
+              <td>${getCategoryName(medicine.category)}</td>
+              <td>${medicine.quantity}</td>
+              <td>${medicine.price} ج.م</td>
+              <td>${medicine.expiryDate}</td>
+              <td class="${statusClass}">${statusText}</td>
+              <td>
+                <div class="flex gap-2">
+                  <button class="action-btn btn-edit" onclick="editMedicine('${id}')">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="action-btn btn-delete" onclick="deleteMedicine('${id}')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      });
+    }
+    
+    // Get category name
+    function getCategoryName(category) {
+      const categories = {
+        antibiotics: 'مضادات حيوية',
+        painkillers: 'مسكنات',
+        vitamins: 'فيتامينات',
+        chronic: 'أمراض مزمنة',
+        emergency: 'طوارئ'
+      };
+      return categories[category] || category;
+    }
+    
+    // Load invoices
+    function loadInvoices() {
+      const invoicesList = document.getElementById('invoicesList');
+      if (!invoicesList) return;
+      
+      invoicesList.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
+      
+      const invoicesRef = ref(db, "invoices");
+      onValue(invoicesRef, (snapshot) => {
+        const invoices = snapshot.val() || {};
+        
+        if (Object.keys(invoices).length === 0) {
+          invoicesList.innerHTML = `
+            <div class="text-center py-12">
+              <i class="fas fa-file-invoice text-6xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500 text-lg">لا توجد فواتير</p>
+            </div>
+          `;
+          return;
+        }
+        
+        invoicesList.innerHTML = Object.entries(invoices).map(([id, invoice]) => {
+          const statusClass = invoice.status === 'paid' ? 'text-green-600' : 
+                              invoice.status === 'unpaid' ? 'text-red-600' : 'text-yellow-600';
+          const statusText = invoice.status === 'paid' ? 'مدفوعة' : 
+                            invoice.status === 'unpaid' ? 'غير مدفوعة' : 'مدفوعة جزئياً';
+          
+          return `
+            <div class="medical-card">
+              <div class="card-header">
+                <div class="flex justify-between items-center">
+                  <div>
+                    <h3 class="font-semibold">فاتورة رقم: ${id.slice(-6)}</h3>
+                    <p class="text-sm text-gray-600">${invoice.patientName} - ${formatDate(invoice.timestamp)}</p>
+                  </div>
+                  <span class="${statusClass} font-semibold">${statusText}</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <p class="text-sm text-gray-600">المبلغ الإجمالي</p>
+                    <p class="font-semibold">${invoice.totalAmount} ج.م</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-600">المبلغ المدفوع</p>
+                    <p class="font-semibold">${invoice.paidAmount || 0} ج.م</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-600">المتبقي</p>
+                    <p class="font-semibold">${(invoice.totalAmount - (invoice.paidAmount || 0))} ج.م</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-600">طريقة الدفع</p>
+                    <p class="font-semibold">${invoice.paymentMethod || 'نقدي'}</p>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn-medical btn-sm btn-outline" onclick="viewInvoice('${id}')">
+                    <i class="fas fa-eye"></i>
+                    عرض
+                  </button>
+                  <button class="btn-medical btn-sm btn-outline" onclick="printInvoice('${id}')">
+                    <i class="fas fa-print"></i>
+                    طباعة
+                  </button>
+                  ${invoice.status !== 'paid' ? `
+                  <button class="btn-medical btn-sm" onclick="payInvoice('${id}')">
+                    <i class="fas fa-credit-card"></i>
+                    دفع
+                  </button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      });
+    }
+    
+    // Update statistics
+    function updateStats() {
+      const todayDate = new Date().toDateString();
+      let total = 0, today = 0, emergency = 0, surgery = 0;
+      
+      onValue(ref(db, "patients"), (snapshot) => {
+        const data = snapshot.val() || {};
+        
+        Object.values(data).forEach(dept => {
+          Object.values(dept).forEach(patient => {
+            total++;
+            if (new Date(patient.timestamp).toDateString() === todayDate) today++;
+            if (patient.department === 'emergency') emergency++;
+            if (patient.department === 'surgery' || patient.department === 'operations') surgery++;
           });
         });
         
-        renderPatients(allPatients, filter, searchTerm);
-      });
-    });
-    
-    filterDoctorDepartment.addEventListener('change', () => {
-      const filter = filterDoctorDepartment.value;
-      const searchTerm = searchDoctorAll.value;
-      
-      database.ref('doctors').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        renderDoctors(data, filter, searchTerm);
-      });
-    });
-    
-    filterDoctorSpecialization.addEventListener('change', () => {
-      const specializationFilter = filterDoctorSpecialization.value;
-      const searchTerm = searchDoctor.value;
-      
-      database.ref('doctors').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        renderAvailableDoctors(data, specializationFilter, searchTerm);
-      });
-    });
-    
-    searchPatient.addEventListener('input', () => {
-      const filter = filterDepartment.value;
-      const searchTerm = searchPatient.value;
-      
-      database.ref('patients').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        let allPatients = {};
+        const totalPatientsElement = document.getElementById('totalPatients');
+        const todayPatientsElement = document.getElementById('todayPatients');
+        const emergencyPatientsElement = document.getElementById('emergencyPatients');
+        const surgeryPatientsElement = document.getElementById('surgeryPatients');
         
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
+        if (totalPatientsElement) totalPatientsElement.textContent = total;
+        if (todayPatientsElement) todayPatientsElement.textContent = today;
+        if (emergencyPatientsElement) emergencyPatientsElement.textContent = emergency;
+        if (surgeryPatientsElement) surgeryPatientsElement.textContent = surgery;
+      });
+    }
+    
+    // Initialize charts
+    function initializeCharts() {
+      // Department distribution chart
+      const deptCtx = document.getElementById('departmentChart');
+      if (deptCtx) {
+        charts.department = new Chart(deptCtx.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ['الطوارئ', 'العناية المركزة', 'العمليات', 'الرعاية', 'الإدارة', 'الأشعة'],
+            datasets: [{
+              label: 'عدد المرضى',
+              data: [0, 0, 0, 0, 0, 0],
+              backgroundColor: [
+                'rgba(255, 107, 107, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(0, 102, 204, 0.7)',
+                'rgba(107, 207, 127, 0.7)',
+                'rgba(108, 117, 125, 0.7)',
+                'rgba(14, 165, 233, 0.7)'
+              ],
+              borderColor: [
+                'rgb(255, 107, 107)',
+                'rgb(139, 92, 246)',
+                'rgb(0, 102, 204)',
+                'rgb(107, 207, 127)',
+                'rgb(108, 117, 125)',
+                'rgb(14, 165, 233)'
+              ],
+              borderWidth: 1,
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                },
+                grid: {
+                  borderDash: [5, 5]
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+        
+        // Update chart with real data
+        onValue(ref(db, "patients"), (snapshot) => {
+          const data = snapshot.val() || {};
+          const deptCounts = [0, 0, 0, 0, 0, 0];
+          
+          Object.values(data).forEach(dept => {
+            Object.values(dept).forEach(patient => {
+              const deptIndex = getDepartmentIndex(patient.department);
+              if (deptIndex !== -1) deptCounts[deptIndex]++;
+            });
+          });
+          
+          charts.department.data.datasets[0].data = deptCounts;
+          charts.department.update();
+        });
+      }
+      
+      // Daily patients chart
+      const dailyCtx = document.getElementById('dailyChart');
+      if (dailyCtx) {
+        charts.daily = new Chart(dailyCtx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+            datasets: [{
+              label: 'عدد المرضى',
+              data: [0, 0, 0, 0, 0, 0, 0],
+              fill: true,
+              backgroundColor: 'rgba(0, 102, 204, 0.1)',
+              borderColor: 'rgb(0, 102, 204)',
+              tension: 0.4,
+              pointBackgroundColor: 'rgb(0, 102, 204)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                },
+                grid: {
+                  borderDash: [5, 5]
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+        
+        // Update chart with real data
+        onValue(ref(db, "patients"), (snapshot) => {
+          const data = snapshot.val() || {};
+          const dailyCounts = [0, 0, 0, 0, 0, 0, 0];
+          
+          Object.values(data).forEach(dept => {
+            Object.values(dept).forEach(patient => {
+              const patientDate = new Date(patient.timestamp);
+              const patientDay = patientDate.getDay();
+              if (patientDay >= 0 && patientDay <= 6) {
+                dailyCounts[patientDay]++;
+              }
+            });
+          });
+          
+          charts.daily.data.datasets[0].data = dailyCounts;
+          charts.daily.update();
+        });
+      }
+      
+      // Blood type distribution chart
+      const bloodCtx = document.getElementById('bloodTypeChart');
+      if (bloodCtx) {
+        charts.blood = new Chart(bloodCtx.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+            datasets: [{
+              label: 'فصيلة الدم',
+              data: [0, 0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: [
+                'rgba(255, 107, 107, 0.7)',
+                'rgba(255, 107, 107, 0.5)',
+                'rgba(0, 102, 204, 0.7)',
+                'rgba(0, 102, 204, 0.5)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(139, 92, 246, 0.5)',
+                'rgba(107, 207, 127, 0.7)',
+                'rgba(107, 207, 127, 0.5)'
+              ],
+              borderColor: '#fff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  padding: 15,
+                  font: {
+                    size: 12
+                  }
+                }
+              }
+            }
+          }
+        });
+        
+        // Update chart with real data
+        onValue(ref(db, "patients"), (snapshot) => {
+          const data = snapshot.val() || {};
+          const bloodCounts = [0, 0, 0, 0, 0, 0, 0, 0];
+          
+          Object.values(data).forEach(dept => {
+            Object.values(dept).forEach(patient => {
+              const bloodIndex = getBloodTypeIndex(patient.bloodType);
+              if (bloodIndex !== -1) bloodCounts[bloodIndex]++;
+            });
+          });
+          
+          charts.blood.data.datasets[0].data = bloodCounts;
+          charts.blood.update();
+        });
+      }
+    }
+    
+    // Helper functions
+    function getDepartmentIndex(department) {
+      const departments = ['emergency', 'icu', 'surgery', 'care', 'admin', 'radiology'];
+      return departments.indexOf(department);
+    }
+    
+    function getBloodTypeIndex(bloodType) {
+      const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+      return bloodTypes.indexOf(bloodType);
+    }
+    
+    // Load recent activities
+    function loadRecentActivities() {
+      const recentActivities = document.getElementById('recentActivities');
+      if (!recentActivities) return;
+      
+      const activitiesRef = ref(db, "activities");
+      onValue(activitiesRef, (snapshot) => {
+        const activities = snapshot.val() || {};
+        const activitiesArray = Object.entries(activities).map(([id, activity]) => ({
+          id,
+          ...activity
+        }));
+        
+        // Sort by timestamp (newest first)
+        activitiesArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        if (activitiesArray.length === 0) {
+          recentActivities.innerHTML = '<p class="text-gray-500 text-center">لا توجد نشاطات حديثة</p>';
+          return;
+        }
+        
+        recentActivities.innerHTML = activitiesArray.slice(0, 5).map(activity => {
+          const icon = getActivityIcon(activity.type);
+          const color = getActivityColor(activity.type);
+          
+          return `
+            <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center text-white">
+                <i class="fas ${icon}"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium">${activity.description}</p>
+                <p class="text-xs text-gray-500">${formatDate(activity.timestamp)}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      });
+    }
+    
+    // Get activity icon
+    function getActivityIcon(type) {
+      const icons = {
+        patient_registered: 'fa-user-plus',
+        patient_updated: 'fa-user-edit',
+        patient_deleted: 'fa-user-times',
+        appointment_scheduled: 'fa-calendar-check',
+        appointment_completed: 'fa-calendar-check',
+        medical_record_added: 'fa-file-medical',
+        medicine_added: 'fa-pills',
+        invoice_created: 'fa-file-invoice',
+        invoice_paid: 'fa-credit-card'
+      };
+      return icons[type] || 'fa-info-circle';
+    }
+    
+    // Get activity color
+    function getActivityColor(type) {
+      const colors = {
+        patient_registered: 'bg-blue-100 text-blue-600',
+        patient_updated: 'bg-yellow-100 text-yellow-600',
+        patient_deleted: 'bg-red-100 text-red-600',
+        appointment_scheduled: 'bg-purple-100 text-purple-600',
+        appointment_completed: 'bg-green-100 text-green-600',
+        medical_record_added: 'bg-indigo-100 text-indigo-600',
+        medicine_added: 'bg-pink-100 text-pink-600',
+        invoice_created: 'bg-orange-100 text-orange-600',
+        invoice_paid: 'bg-green-100 text-green-600'
+      };
+      return colors[type] || 'bg-gray-100 text-gray-600';
+    }
+    
+    // Add activity log
+    async function addActivityLog(type, description, relatedId = null) {
+      const activity = {
+        type,
+        description,
+        relatedId,
+        timestamp: new Date().toISOString(),
+        userId: currentUser?.id || 'system'
+      };
+      
+      const activitiesRef = ref(db, "activities");
+      await push(activitiesRef, activity);
+    }
+    
+    // Update notifications
+    function updateNotifications() {
+      const appointmentsRef = ref(db, "appointments");
+      onValue(appointmentsRef, (snapshot) => {
+        const appointments = snapshot.val() || {};
+        const today = new Date().toDateString();
+        let todayCount = 0;
+        
+        Object.values(appointments).forEach(appointment => {
+          if (new Date(appointment.date).toDateString() === today) {
+            todayCount++;
+          }
+        });
+        
+        if (notificationCount) {
+          notificationCount.textContent = todayCount;
+        }
+      });
+    }
+    
+    // Load dashboard data
+    function loadDashboardData() {
+      updateStats();
+      loadRecentActivities();
+    }
+    
+    // Setup data listeners
+    function setupDataListeners() {
+      // Search functionality
+      const searchPatientInput = document.getElementById('searchPatientInput');
+      if (searchPatientInput) {
+        searchPatientInput.addEventListener('input', (e) => {
+          const searchTerm = e.target.value.toLowerCase();
+          const patientCards = document.querySelectorAll('.patient-card');
+          
+          patientCards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+          });
+        });
+      }
+      
+      // Filter functionality
+      const filterDepartment = document.getElementById('filterDepartment');
+      if (filterDepartment) {
+        filterDepartment.addEventListener('change', (e) => {
+          const filterValue = e.target.value;
+          const patientCards = document.querySelectorAll('.patient-card');
+          
+          patientCards.forEach(card => {
+            if (filterValue === 'all') {
+              card.style.display = 'block';
+            } else {
+              const deptBadge = card.querySelector('.dept-badge');
+              if (deptBadge && deptBadge.textContent.includes(getDepartmentName(filterValue))) {
+                card.style.display = 'block';
+              } else {
+                card.style.display = 'none';
+              }
             }
           });
         });
+      }
+    }
+    
+    // Global functions for buttons
+    window.capturePatientPhoto = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'التقاط صورة',
+        text: 'سيتم إضافة ميزة الكاميرا قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.uploadMedicalDocuments = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'رفع المستندات',
+        text: 'سيتم إضافة ميزة رفع الملفات قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generatePatientQR = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'رمز QR',
+        text: 'سيتم إضافة ميزة إنشاء رمز QR قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.viewAllActivities = function() {
+      showPage('reports');
+    }
+    
+    window.exportPatientsList = function() {
+      Swal.fire({
+        icon: 'success',
+        title: 'تصدير القائمة',
+        text: 'سيتم تصدير قائمة المرضى قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.refreshPatientsList = function() {
+      loadPatientsList();
+      Swal.fire({
+        icon: 'success',
+        title: 'تم التحديث',
+        timer: 1000,
+        showConfirmButton: false
+      });
+    }
+    
+    window.addNewMedicalRecord = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'إضافة سجل طبي',
+        text: 'سيتم إضافة نموذج السجل الطبي قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.addNewMedicine = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'إضافة دواء',
+        text: 'سيتم إضافة نموذج الدواء قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateInventoryReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير المخزون',
+        text: 'سيتم إنشاء تقرير المخزون قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.refreshInventory = function() {
+      loadMedicinesInventory();
+      Swal.fire({
+        icon: 'success',
+        title: 'تم التحديث',
+        timer: 1000,
+        showConfirmButton: false
+      });
+    }
+    
+    window.createNewInvoice = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'إنشاء فاتورة',
+        text: 'سيتم إضافة نموذج الفاتورة قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.viewMedicalRecord = function(id) {
+      Swal.fire({
+        icon: 'info',
+        title: 'عرض السجل الطبي',
+        text: 'سيتم عرض تفاصيل السجل الطبي قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.printMedicalRecord = function(id) {
+      window.print();
+    }
+    
+    window.editMedicine = function(id) {
+      Swal.fire({
+        icon: 'info',
+        title: 'تعديل الدواء',
+        text: 'سيتم إضافة نموذج التعديل قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.deleteMedicine = function(id) {
+      Swal.fire({
+        title: 'تأكيد الحذف',
+        text: "هل أنت متأكد من حذف هذا الدواء؟",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#FF6B6B',
+        cancelButtonColor: '#6C757D',
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const medicineRef = ref(db, `medicines/${id}`);
+          remove(medicineRef).then(() => {
+            Swal.fire('تم الحذف!', 'تم حذف الدواء', 'success');
+          });
+        }
+      });
+    }
+    
+    window.viewInvoice = function(id) {
+      Swal.fire({
+        icon: 'info',
+        title: 'عرض الفاتورة',
+        text: 'سيتم عرض تفاصيل الفاتورة قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.printInvoice = function(id) {
+      window.print();
+    }
+    
+    window.payInvoice = function(id) {
+      Swal.fire({
+        icon: 'info',
+        title: 'دفع الفاتورة',
+        text: 'سيتم إضافة صفحة الدفع قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    // Report generation functions
+    window.generatePatientReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير المرضى',
+        text: 'سيتم إنشاء تقرير المرضى قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateDepartmentReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير الأقسام',
+        text: 'سيتم إنشاء تقرير الأقسام قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateAppointmentReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير المواعيد',
+        text: 'سيتم إنشاء تقرير المواعيد قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateMedicalReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير السجلات الطبية',
+        text: 'سيتم إنشاء تقرير السجلات الطبية قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateLabReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير المختبر',
+        text: 'سيتم إنشاء تقرير المختبر قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generatePharmacyReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير الصيدلية',
+        text: 'سيتم إنشاء تقرير الصيدلية قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateRevenueReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير الإيرادات',
+        text: 'سيتم إنشاء تقرير الإيرادات قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateExpenseReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير المصروفات',
+        text: 'سيتم إنشاء تقرير المصروفات قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateBillingReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير الفواتير',
+        text: 'سيتم إنشاء تقرير الفواتير قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateDailyReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير يومي',
+        text: 'سيتم إنشاء التقرير اليومي قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateWeeklyReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير أسبوعي',
+        text: 'سيتم إنشاء التقرير الأسبوعي قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    window.generateMonthlyReport = function() {
+      Swal.fire({
+        icon: 'info',
+        title: 'تقرير شهري',
+        text: 'سيتم إنشاء التقرير الشهري قريباً',
+        confirmButtonText: 'حسناً'
+      });
+    }
+    
+    // Print report function
+    const printReportBtn = document.getElementById('printReportBtn');
+    if (printReportBtn) {
+      printReportBtn.addEventListener('click', () => {
+        window.print();
+      });
+    }
+    
+    // Export PDF function
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    if (exportPdfBtn) {
+      exportPdfBtn.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
         
-        renderPatients(allPatients, filter, searchTerm);
+        doc.setFont('Cairo', 'normal');
+        doc.setFontSize(18);
+        doc.text('تقرير المرضى - مستشفى الحياة الذكية', 105, 15, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.text(`التاريخ: ${new Date().toLocaleDateString("ar-EG")}`, 105, 25, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.text('قائمة المرضى', 20, 40);
+        
+        doc.setFontSize(10);
+        let y = 50;
+        
+        onValue(ref(db, "patients"), (snapshot) => {
+          const data = snapshot.val() || {};
+          let patientCount = 0;
+          
+          Object.entries(data).forEach(([dept, patients]) => {
+            Object.entries(patients).forEach(([id, patient]) => {
+              if (patientCount > 0) y += 10;
+              doc.text(`${patientCount + 1}. ${patient.name} - ${dept}`, 20, y);
+              doc.text(`   العمر: ${patient.age} | الجنس: ${patient.gender === 'male' ? 'ذكر' : 'أنثى'} | الرقم القومي: ${patient.nid}`, 20, y + 5);
+              patientCount++;
+            });
+          });
+          
+          doc.save('تقرير-المرضى.pdf');
+          hideLoading();
+        });
+        
+        showLoading();
       });
-    });
+    }
     
-    searchDoctor.addEventListener('input', () => {
-      const specializationFilter = filterDoctorSpecialization.value;
-      const searchTerm = searchDoctor.value;
-      
-      database.ref('doctors').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        renderAvailableDoctors(data, specializationFilter, searchTerm);
-      });
-    });
-    
-    searchDoctorAll.addEventListener('input', () => {
-      const filter = filterDoctorDepartment.value;
-      const searchTerm = searchDoctorAll.value;
-      
-      database.ref('doctors').once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        renderDoctors(data, filter, searchTerm);
-      });
-    });
-    
-    // Event listeners for appointment form
-    appointmentDoctor.addEventListener('change', () => {
-      const doctorId = appointmentDoctor.value;
-      const date = appointmentDate.value;
-      generateTimeSlots(doctorId, date);
-    });
-    
-    appointmentDate.addEventListener('change', () => {
-      const doctorId = appointmentDoctor.value;
-      const date = appointmentDate.value;
-      generateTimeSlots(doctorId, date);
-    });
-    
-    // Update available doctors every minute
-    setInterval(() => {
-      database.ref('doctors').once('value', (snapshot) => {
-        const doctors = snapshot.val() || {};
-        renderAvailableDoctors(doctors, filterDoctorSpecialization.value, searchDoctor.value);
-        updateAvailableDoctorsCount(doctors);
-      });
-    }, 60000); // Update every minute
-    
-    // Initialize everything
+    // Initialize the app when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
-      setupDataListeners();
-      initializeCharts();
-      loadDoctors();
-      loadPatientsForAppointment();
+      initializeApp();
     });
   </script>
 </body>
