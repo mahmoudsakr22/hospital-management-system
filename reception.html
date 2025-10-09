@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -834,6 +835,138 @@
       padding: 4px;
     }
     
+    /* Invoice Preview Styles */
+    .invoice-preview {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      margin-bottom: 24px;
+    }
+    
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px dashed #0066CC;
+    }
+    
+    .invoice-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    
+    .status-paid {
+      background: rgba(107, 207, 127, 0.1);
+      color: var(--success-color);
+    }
+    
+    .status-pending {
+      background: rgba(255, 193, 7, 0.1);
+      color: var(--warning-color);
+    }
+    
+    /* Payment History */
+    .payment-history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: rgba(0, 102, 204, 0.02);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .payment-date {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .payment-amount {
+      font-weight: bold;
+      color: var(--success-color);
+    }
+    
+    /* Installment Options */
+    .installment-options {
+      background: rgba(0, 102, 204, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    /* Financial Report */
+    .financial-report {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      margin-top: 24px;
+    }
+    
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .report-stat {
+      background: rgba(0, 102, 204, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .report-stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    
+    .report-stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    /* QR Code Container */
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 16px 0;
+    }
+    
+    .qr-code {
+      padding: 16px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .qr-instructions {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    
     /* Responsive */
     @media (max-width: 768px) {
       .stat-card {
@@ -1062,6 +1195,10 @@
       <button class="tab-btn" data-tab="services">
         <i class="fas fa-concierge-bell"></i>
         الخدمات
+      </button>
+      <button class="tab-btn" data-tab="reports">
+        <i class="fas fa-chart-pie"></i>
+        التقارير المالية
       </button>
     </div>
 
@@ -1548,6 +1685,113 @@
         </div>
       </div>
     </div>
+
+    <div id="reportsTab" class="tab-content">
+      <div class="medical-card p-6">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-chart-pie text-blue-600"></i>
+            التقارير المالية المتقدمة
+          </h2>
+          <div class="flex gap-3 mt-4 lg:mt-0">
+            <select id="reportPeriod" class="form-input form-select">
+              <option value="7">آخر 7 أيام</option>
+              <option value="30">آخر 30 يوم</option>
+              <option value="90">آخر 3 أشهر</option>
+              <option value="365">آخر سنة</option>
+            </select>
+            <button id="generateReportBtn" class="btn-medical">
+              <i class="fas fa-sync-alt"></i>
+              إنشاء تقرير
+            </button>
+            <button id="exportReportBtn" class="btn-medical btn-outline">
+              <i class="fas fa-file-export"></i>
+              تصدير التقرير
+            </button>
+          </div>
+        </div>
+        
+        <div id="financialReport" class="financial-report">
+          <div class="report-header">
+            <h3>تقرير مالي - مستشفى الحياة الذكية</h3>
+            <div id="reportDateRange">--</div>
+          </div>
+          
+          <div class="report-stats">
+            <div class="report-stat">
+              <div class="report-stat-value" id="reportTotalRevenue">0 ج.م</div>
+              <div class="report-stat-label">إجمالي الإيرادات</div>
+            </div>
+            <div class="report-stat">
+              <div class="report-stat-value" id="reportPendingRevenue">0 ج.م</div>
+              <div class="report-stat-label">الإيرادات المعلقة</div>
+            </div>
+            <div class="report-stat">
+              <div class="report-stat-value" id="reportTotalInvoices">0</div>
+              <div class="report-stat-label">إجمالي الفواتير</div>
+            </div>
+            <div class="report-stat">
+              <div class="report-stat-value" id="reportPaidInvoices">0</div>
+              <div class="report-stat-label">الفواتير المدفوعة</div>
+            </div>
+            <div class="report-stat">
+              <div class="report-stat-value" id="reportPendingInvoices">0</div>
+              <div class="report-stat-label">الفواتير المعلقة</div>
+            </div>
+            <div class="report-stat">
+              <div class="report-stat-value" id="reportAvgInvoice">0 ج.م</div>
+              <div class="report-stat-label">متوسط قيمة الفاتورة</div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 class="chart-title">
+                <i class="fas fa-chart-line"></i>
+                الإيرادات اليومية
+              </h3>
+              <div style="height: 250px;">
+                <canvas id="revenueChart"></canvas>
+              </div>
+            </div>
+            <div>
+              <h3 class="chart-title">
+                <i class="fas fa-chart-pie"></i>
+                توزيع الإيرادات حسب الخدمات
+              </h3>
+              <div style="height: 250px;">
+                <canvas id="servicesRevenueChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-6">
+            <h3 class="chart-title">
+              <i class="fas fa-list"></i>
+              تفاصيل الفواتير
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="invoice-table">
+                <thead>
+                  <tr>
+                    <th>رقم الفاتورة</th>
+                    <th>اسم المريض</th>
+                    <th>التاريخ</th>
+                    <th>المبلغ الإجمالي</th>
+                    <th>المدفوع</th>
+                    <th>المتبقي</th>
+                    <th>الحالة</th>
+                  </tr>
+                </thead>
+                <tbody id="reportInvoicesTable">
+                  <!-- Report invoices will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Invoice Modal -->
@@ -1583,6 +1827,18 @@
               </label>
               <input type="date" id="invoiceDate" class="form-input" required />
             </div>
+          </div>
+          
+          <!-- Patient Type for Discount -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-user-tag ml-1"></i>
+              نوع المريض
+            </label>
+            <select id="patientType" class="form-input form-select">
+              <option value="returning">مريض عائد</option>
+              <option value="new">مريض جديد</option>
+            </select>
           </div>
           
           <!-- Services Selection -->
@@ -1658,6 +1914,44 @@
             </div>
           </div>
           
+          <!-- Installment Options (shown for large invoices) -->
+          <div id="installmentOptions" class="installment-options" style="display: none;">
+            <label class="form-label">
+              <i class="fas fa-calendar-alt ml-1"></i>
+              خيارات التقسيط
+            </label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">عدد الأقساط</label>
+                <select id="installmentCount" class="form-input form-select">
+                  <option value="0">بدون تقسيط</option>
+                  <option value="3">3 أشهر</option>
+                  <option value="6">6 أشهر</option>
+                  <option value="12">12 شهر</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">مبلغ القسط الأول</label>
+                <input type="number" id="firstInstallment" class="form-input" readonly />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Payment History -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-receipt ml-1"></i>
+              سجل المدفوعات
+            </label>
+            <div id="paymentHistory" class="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-4">
+              <!-- سيتم عرض المدفوعات هنا -->
+            </div>
+            <button type="button" id="addPaymentBtn" class="btn-medical mt-2">
+              <i class="fas fa-plus"></i>
+              إضافة دفعة
+            </button>
+          </div>
+          
           <!-- Invoice Summary -->
           <div class="invoice-summary">
             <div class="summary-row">
@@ -1678,15 +1972,15 @@
             </div>
           </div>
           
-          <!-- Notes -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-sticky-note ml-1"></i>
-              ملاحظات
-            </label>
-            <textarea id="invoiceNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
+          <!-- QR Code -->
+          <div class="qr-container">
+            <div id="qrcode" class="qr-code"></div>
+            <div class="qr-instructions">
+              امسح رمز QR للدفع الإلكتروني
+            </div>
           </div>
           
+          <!-- Invoice Actions -->
           <div class="flex gap-4">
             <button type="submit" class="btn-success flex-1">
               <i class="fas fa-save"></i>
@@ -1696,6 +1990,23 @@
               <i class="fas fa-print"></i>
               طباعة
             </button>
+            <button type="button" id="emailInvoiceBtn" class="btn-medical flex-1">
+              <i class="fas fa-envelope"></i>
+              إرسال عبر البريد
+            </button>
+            <button type="button" id="whatsappInvoiceBtn" class="btn-medical flex-1">
+              <i class="fab fa-whatsapp"></i>
+              إرسال عبر واتساب
+            </button>
+          </div>
+          
+          <!-- Notes -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات
+            </label>
+            <textarea id="invoiceNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
           </div>
         </form>
       </div>
@@ -1767,6 +2078,59 @@
     </div>
   </div>
 
+  <!-- Payment Modal -->
+  <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full">
+      <div class="modal-header bg-gradient-to-r from-green-500 to-teal-500 text-white p-6 rounded-t-2xl">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold">إضافة دفعة جديدة</h2>
+          <button id="closePaymentModal" class="text-white hover:bg-white/20 p-2 rounded-full transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <form id="paymentForm" class="space-y-4">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-money-bill-wave ml-1"></i>
+              مبلغ الدفعة
+            </label>
+            <input type="number" id="paymentAmount" class="form-input" placeholder="أدخل المبلغ" min="0" step="0.01" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-calendar ml-1"></i>
+              تاريخ الدفعة
+            </label>
+            <input type="date" id="paymentDate" class="form-input" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات الدفعة
+            </label>
+            <textarea id="paymentNotes" rows="3" class="form-input" placeholder="ملاحظات حول الدفعة"></textarea>
+          </div>
+          
+          <div class="flex gap-4">
+            <button type="submit" class="btn-success flex-1">
+              <i class="fas fa-save"></i>
+              حفظ الدفعة
+            </button>
+            <button type="button" id="cancelPayment" class="btn-outline flex-1">
+              <i class="fas fa-times"></i>
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -1797,6 +2161,7 @@
     const serviceForm = document.getElementById('serviceForm');
     const invoiceForm = document.getElementById('invoiceForm');
     const dischargeForm = document.getElementById('dischargeForm');
+    const paymentForm = document.getElementById('paymentForm');
     const patientsList = document.getElementById('patientsList');
     const doctorsList = document.getElementById('doctorsList');
     const availableDoctorsList = document.getElementById('availableDoctorsList');
@@ -1833,18 +2198,33 @@
     // Modal Elements
     const invoiceModal = document.getElementById('invoiceModal');
     const dischargeModal = document.getElementById('dischargeModal');
+    const paymentModal = document.getElementById('paymentModal');
     const closeInvoiceModal = document.getElementById('closeInvoiceModal');
     const closeDischargeModal = document.getElementById('closeDischargeModal');
+    const closePaymentModal = document.getElementById('closePaymentModal');
     const generateInvoiceBtn = document.getElementById('generateInvoiceBtn');
     const printAllInvoicesBtn = document.getElementById('printAllInvoicesBtn');
     const printInvoice = document.getElementById('printInvoice');
     const createInvoiceFromDischarge = document.getElementById('createInvoiceFromDischarge');
+    const addPaymentBtn = document.getElementById('addPaymentBtn');
+    const cancelPayment = document.getElementById('cancelPayment');
+    const emailInvoiceBtn = document.getElementById('emailInvoiceBtn');
+    const whatsappInvoiceBtn = document.getElementById('whatsappInvoiceBtn');
+    
+    // Report Elements
+    const reportPeriod = document.getElementById('reportPeriod');
+    const generateReportBtn = document.getElementById('generateReportBtn');
+    const exportReportBtn = document.getElementById('exportReportBtn');
     
     // Global Variables
     let currentPatientForDischarge = null;
     let currentPatientForInvoice = null;
+    let currentInvoiceId = null;
     let selectedServices = new Map();
     let selectedPaymentMethod = null;
+    let paymentHistory = [];
+    let revenueChart = null;
+    let servicesRevenueChart = null;
     
     // Display current date
     const today = new Date();
@@ -2147,7 +2527,6 @@
             <span class="font-bold text-blue-600">${formatCurrency(service.price)}</span>
             <input type="number" id="quantity-${id}" min="1" value="1" class="w-16 text-center border rounded px-2 py-1">
           </div>
-        </div>
         `;
         
         container.appendChild(serviceItem);
@@ -2232,17 +2611,109 @@
       updateSelectedServices();
     }
     
+    // Calculate discount based on patient type and invoice amount
+    function calculateDiscount(subtotal, patientType, services) {
+      let discountPercentage = 0;
+      
+      // Discount for new patients
+      if (patientType === 'new') discountPercentage += 5;
+      
+      // Discount for large invoices
+      if (subtotal > 1000) discountPercentage += 5;
+      if (subtotal > 5000) discountPercentage += 10;
+      
+      // Discount for special services
+      const hasSpecialService = Array.from(services.values()).some(s => s.type === 'surgery');
+      if (hasSpecialService) discountPercentage += 3;
+      
+      return (subtotal * discountPercentage) / 100;
+    }
+    
     // Update invoice summary
     function updateInvoiceSummary(customSubtotal = null) {
       const subtotal = customSubtotal || Array.from(selectedServices.values()).reduce((sum, service) => 
         sum + (service.price * service.quantity), 0
       );
       
+      const patientType = document.getElementById('patientType').value;
+      const discount = calculateDiscount(subtotal, patientType, selectedServices);
+      const discountedSubtotal = subtotal - discount;
+      
       const subtotalElement = document.getElementById('subtotal');
+      const discountElement = document.getElementById('discount');
+      const discountRow = document.getElementById('discountRow');
       const totalAmountElement = document.getElementById('totalAmount');
       
       if (subtotalElement) subtotalElement.textContent = formatCurrency(subtotal);
-      if (totalAmountElement) totalAmountElement.textContent = formatCurrency(subtotal);
+      
+      if (discount > 0) {
+        if (discountElement) discountElement.textContent = formatCurrency(discount);
+        if (discountRow) discountRow.style.display = 'flex';
+      } else {
+        if (discountRow) discountRow.style.display = 'none';
+      }
+      
+      // Calculate insurance coverage if applicable
+      let coverage = 0;
+      if (selectedPaymentMethod === 'insurance') {
+        const coveragePercentage = parseInt(document.getElementById('coveragePercentage').value) || 0;
+        coverage = (discountedSubtotal * coveragePercentage) / 100;
+        
+        const coverageElement = document.getElementById('coverage');
+        const coverageRow = document.getElementById('coverageRow');
+        
+        if (coverageElement) coverageElement.textContent = formatCurrency(coverage);
+        if (coverageRow) coverageRow.style.display = 'flex';
+      } else {
+        const coverageRow = document.getElementById('coverageRow');
+        if (coverageRow) coverageRow.style.display = 'none';
+      }
+      
+      const totalAmount = discountedSubtotal - coverage;
+      if (totalAmountElement) totalAmountElement.textContent = formatCurrency(totalAmount);
+      
+      // Show installment options for large invoices
+      const installmentOptions = document.getElementById('installmentOptions');
+      if (totalAmount > 2000) {
+        if (installmentOptions) installmentOptions.style.display = 'block';
+        
+        // Calculate first installment
+        const installmentCount = parseInt(document.getElementById('installmentCount').value) || 0;
+        if (installmentCount > 0) {
+          const firstInstallment = totalAmount * 0.3; // 30% down payment
+          const firstInstallmentElement = document.getElementById('firstInstallment');
+          if (firstInstallmentElement) firstInstallmentElement.value = firstInstallment.toFixed(2);
+        }
+      } else {
+        if (installmentOptions) installmentOptions.style.display = 'none';
+      }
+      
+      // Generate QR code for payment
+      generateQRCode({
+        invoiceNumber: generateInvoiceNumber(),
+        amount: totalAmount,
+        patientName: document.getElementById('invoicePatient').options[document.getElementById('invoicePatient').selectedIndex]?.text.split(' - ')[0] || '',
+        date: document.getElementById('invoiceDate').value
+      });
+    }
+    
+    // Generate QR Code
+    function generateQRCode(invoiceData) {
+      const qrContainer = document.getElementById('qrcode');
+      if (!qrContainer) return;
+      
+      // Clear previous QR code
+      qrContainer.innerHTML = '';
+      
+      // Generate new QR code
+      new QRCode(qrContainer, {
+        text: JSON.stringify(invoiceData),
+        width: 128,
+        height: 128,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
     }
     
     // Load invoices
@@ -2946,6 +3417,9 @@
     
     // View invoice
     window.viewInvoice = function(id, invoice) {
+      // Load payment history for this invoice
+      loadPaymentHistory(id);
+      
       Swal.fire({
         title: `تفاصيل الفاتورة ${invoice.invoiceNumber}`,
         html: `
@@ -2996,14 +3470,97 @@
               ${invoice.notes}
             </div>
             ` : ''}
+            <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+              <strong>سجل المدفوعات:</strong><br>
+              <div id="invoicePaymentHistory" class="space-y-2 max-h-40 overflow-y-auto">
+                <!-- Payment history will be loaded here -->
+              </div>
+            </div>
           </div>
         `,
         confirmButtonText: 'إغلاق',
         customClass: {
           popup: 'medical-card'
+        },
+        didOpen: () => {
+          // Load payment history in the modal
+          loadPaymentHistoryInModal(id);
         }
       });
     };
+    
+    // Load payment history for an invoice
+    function loadPaymentHistory(invoiceId) {
+      database.ref(`invoices/${invoiceId}/payments`).once('value').then((snapshot) => {
+        const payments = snapshot.val() || {};
+        paymentHistory = Object.values(payments);
+        updatePaymentHistoryDisplay();
+      });
+    }
+    
+    // Load payment history in modal
+    function loadPaymentHistoryInModal(invoiceId) {
+      database.ref(`invoices/${invoiceId}/payments`).once('value').then((snapshot) => {
+        const payments = snapshot.val() || {};
+        const container = document.getElementById('invoicePaymentHistory');
+        
+        if (!container) return;
+        
+        if (Object.keys(payments).length === 0) {
+          container.innerHTML = '<p class="text-gray-500 text-center">لا توجد مدفوعات مسجلة</p>';
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        Object.values(payments).forEach(payment => {
+          const paymentItem = document.createElement('div');
+          paymentItem.className = 'payment-history-item';
+          
+          paymentItem.innerHTML = `
+            <div>
+              <div class="font-semibold">${formatCurrency(payment.amount)}</div>
+              <div class="payment-date">${formatDate(payment.date)}</div>
+            </div>
+            <div>
+              ${payment.notes ? `<div class="text-sm text-gray-500">${payment.notes}</div>` : ''}
+            </div>
+          `;
+          
+          container.appendChild(paymentItem);
+        });
+      });
+    }
+    
+    // Update payment history display
+    function updatePaymentHistoryDisplay() {
+      const container = document.getElementById('paymentHistory');
+      if (!container) return;
+      
+      if (paymentHistory.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center">لا توجد مدفوعات مسجلة</p>';
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      paymentHistory.forEach(payment => {
+        const paymentItem = document.createElement('div');
+        paymentItem.className = 'payment-history-item';
+        
+        paymentItem.innerHTML = `
+          <div>
+            <div class="font-semibold">${formatCurrency(payment.amount)}</div>
+            <div class="payment-date">${formatDate(payment.date)}</div>
+          </div>
+          <div>
+            ${payment.notes ? `<div class="text-sm text-gray-500">${payment.notes}</div>` : ''}
+          </div>
+        `;
+        
+        container.appendChild(paymentItem);
+      });
+    }
     
     // Print invoice by ID
     window.printInvoiceById = function(id) {
@@ -3990,6 +4547,7 @@
       const patientId = document.getElementById("invoicePatient").value;
       const patientOption = document.getElementById("invoicePatient").options[document.getElementById("invoicePatient").selectedIndex];
       const patientName = patientOption.textContent.split(' - ')[0];
+      const patientType = document.getElementById("patientType").value;
       
       if (!selectedPaymentMethod) {
         Swal.fire({
@@ -4009,30 +4567,50 @@
       }));
       
       const subtotal = servicesArray.reduce((sum, service) => sum + (service.price * service.quantity), 0);
-      let totalAmount = subtotal;
-      let coverage = 0;
+      const discount = calculateDiscount(subtotal, patientType, selectedServices);
+      const discountedSubtotal = subtotal - discount;
       
+      let coverage = 0;
       if (selectedPaymentMethod === 'insurance') {
         const coveragePercentage = parseInt(document.getElementById('coveragePercentage').value) || 0;
-        coverage = (subtotal * coveragePercentage) / 100;
-        totalAmount = subtotal - coverage;
+        coverage = (discountedSubtotal * coveragePercentage) / 100;
+      }
+      
+      const totalAmount = discountedSubtotal - coverage;
+      
+      // Handle installments
+      let installmentInfo = {};
+      const installmentCount = parseInt(document.getElementById('installmentCount').value) || 0;
+      if (installmentCount > 0) {
+        const firstInstallment = parseFloat(document.getElementById('firstInstallment').value) || 0;
+        const remainingAmount = totalAmount - firstInstallment;
+        const monthlyInstallment = remainingAmount / installmentCount;
+        
+        installmentInfo = {
+          count: installmentCount,
+          firstInstallment,
+          monthlyInstallment,
+          remainingAmount
+        };
       }
       
       const invoiceData = {
         invoiceNumber: generateInvoiceNumber(),
         patientId,
         patientName,
+        patientType,
         date: document.getElementById('invoiceDate').value,
         services: servicesArray,
         subtotal,
-        discount: 0,
-        coverage: coverage,
+        discount,
+        coverage,
         totalAmount,
-        paidAmount: selectedPaymentMethod === 'cash' ? totalAmount : 0,
+        paidAmount: selectedPaymentMethod === 'cash' ? totalAmount : (installmentInfo.firstInstallment || 0),
         paymentMethod: selectedPaymentMethod,
         insuranceCompany: document.getElementById('insuranceCompany').value,
         insuranceNumber: document.getElementById('insuranceNumber').value,
         coveragePercentage: document.getElementById('coveragePercentage').value,
+        installmentInfo,
         notes: document.getElementById('invoiceNotes').value.trim(),
         status: selectedPaymentMethod === 'cash' ? 'paid' : 'pending',
         timestamp: new Date().toISOString()
@@ -4042,6 +4620,17 @@
         showLoading();
         const invoiceRef = await database.ref('invoices').push(invoiceData);
         const invoiceId = invoiceRef.key;
+        
+        // Save payment history
+        if (selectedPaymentMethod === 'cash' || installmentInfo.firstInstallment > 0) {
+          const paymentAmount = selectedPaymentMethod === 'cash' ? totalAmount : installmentInfo.firstInstallment;
+          await database.ref(`invoices/${invoiceId}/payments`).push({
+            amount: paymentAmount,
+            date: new Date().toISOString(),
+            method: selectedPaymentMethod,
+            notes: selectedPaymentMethod === 'cash' ? 'دفع كامل' : 'القسط الأول'
+          });
+        }
         
         // Update patient status if needed
         if (currentPatientForInvoice) {
@@ -4140,6 +4729,71 @@
       }
     });
     
+    // Form submission for payment
+    paymentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      if (!currentInvoiceId) return;
+      
+      const paymentAmount = parseFloat(document.getElementById("paymentAmount").value);
+      const paymentDate = document.getElementById("paymentDate").value;
+      const paymentNotes = document.getElementById("paymentNotes").value.trim();
+      
+      try {
+        showLoading();
+        
+        // Add payment to history
+        await database.ref(`invoices/${currentInvoiceId}/payments`).push({
+          amount: paymentAmount,
+          date: paymentDate,
+          notes: paymentNotes,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Update invoice paid amount
+        const invoiceSnapshot = await database.ref(`invoices/${currentInvoiceId}`).once('value');
+        const invoice = invoiceSnapshot.val();
+        const newPaidAmount = (invoice.paidAmount || 0) + paymentAmount;
+        
+        // Check if invoice is fully paid
+        const isFullyPaid = newPaidAmount >= invoice.totalAmount;
+        
+        await database.ref(`invoices/${currentInvoiceId}`).update({
+          paidAmount: newPaidAmount,
+          status: isFullyPaid ? 'paid' : 'pending',
+          updatedAt: new Date().toISOString()
+        });
+        
+        // Update patient status if fully paid
+        if (isFullyPaid && invoice.patientId) {
+          await database.ref(`patients/${invoice.patientDepartment}/${invoice.patientId}`).update({
+            status: 'active',
+            pendingInvoiceId: null
+          });
+        }
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'تم إضافة الدفعة',
+          text: `تم تسجيل دفعة بقيمة ${formatCurrency(paymentAmount)}`,
+          timer: 3000,
+          showConfirmButton: false,
+          position: 'top-end',
+          toast: true
+        });
+        
+        closePaymentModal.click();
+        hideLoading();
+      } catch (error) {
+        hideLoading();
+        Swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: 'حدث خطأ أثناء إضافة الدفعة'
+        });
+      }
+    });
+    
     // Tab navigation
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -4153,6 +4807,11 @@
         
         button.classList.add('active');
         document.getElementById(`${tabName}Tab`).classList.add('active');
+        
+        // Initialize charts when reports tab is opened
+        if (tabName === 'reports') {
+          initializeFinancialCharts();
+        }
       });
     });
     
@@ -4160,8 +4819,11 @@
     generateInvoiceBtn.addEventListener('click', () => {
       selectedServices.clear();
       selectedPaymentMethod = null;
+      paymentHistory = [];
       document.getElementById('invoiceDate').value = today.toISOString().split('T')[0];
+      document.getElementById('paymentDate').value = today.toISOString().split('T')[0];
       updateSelectedServices();
+      updatePaymentHistoryDisplay();
       invoiceModal.classList.remove('hidden');
     });
     
@@ -4172,6 +4834,11 @@
     closeDischargeModal.addEventListener('click', () => {
       dischargeModal.classList.add('hidden');
       currentPatientForDischarge = null;
+    });
+    
+    closePaymentModal.addEventListener('click', () => {
+      paymentModal.classList.add('hidden');
+      currentInvoiceId = null;
     });
     
     createInvoiceFromDischarge.addEventListener('click', () => {
@@ -4206,6 +4873,41 @@
       });
     });
     
+    // Installment count change
+    document.getElementById('installmentCount').addEventListener('change', () => {
+      updateInvoiceSummary();
+    });
+    
+    // Patient type change
+    document.getElementById('patientType').addEventListener('change', () => {
+      updateInvoiceSummary();
+    });
+    
+    // Add payment button
+    addPaymentBtn.addEventListener('click', () => {
+      if (!currentInvoiceId) {
+        // If no invoice is selected, show a message
+        Swal.fire({
+          icon: 'info',
+          title: 'لا توجد فاتورة محددة',
+          text: 'يرجى إنشاء فاتورة أولاً',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      }
+      
+      // Set payment date to today
+      document.getElementById('paymentDate').value = today.toISOString().split('T')[0];
+      
+      // Show payment modal
+      paymentModal.classList.remove('hidden');
+    });
+    
+    // Cancel payment button
+    cancelPayment.addEventListener('click', () => {
+      paymentModal.classList.add('hidden');
+    });
+    
     // Print invoice
     printInvoice.addEventListener('click', () => {
       const invoiceData = {
@@ -4220,6 +4922,145 @@
       
       printInvoiceData(invoiceData);
     });
+    
+    // Send invoice via email
+    emailInvoiceBtn.addEventListener('click', () => {
+      const patientId = document.getElementById('invoicePatient').value;
+      if (!patientId) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'لم يتم اختيار مريض',
+          text: 'يرجى اختيار مريض أولاً',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      }
+      
+      // Get patient email
+      database.ref('patients').once('value').then((snapshot) => {
+        const patients = snapshot.val() || {};
+        let patientEmail = null;
+        
+        Object.values(patients).forEach(dept => {
+          Object.values(dept).forEach(patient => {
+            if (patient.id === patientId && patient.email) {
+              patientEmail = patient.email;
+            }
+          });
+        });
+        
+        if (!patientEmail) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'لا يوجد بريد إلكتروني',
+            text: 'لا يوجد بريد إلكتروني مسجل لهذا المريض',
+            confirmButtonText: 'حسناً'
+          });
+          return;
+        }
+        
+        // Create invoice data
+        const invoiceData = {
+          invoiceNumber: generateInvoiceNumber(),
+          patientName: document.getElementById('invoicePatient').options[document.getElementById('invoicePatient').selectedIndex]?.text.split(' - ')[0] || '',
+          date: document.getElementById('invoiceDate').value,
+          services: Array.from(selectedServices.values()),
+          totalAmount: document.getElementById('totalAmount').textContent
+        };
+        
+        // Send email (this is a placeholder - in a real app, you'd use an email service)
+        sendInvoiceViaEmail(invoiceData, patientEmail);
+      });
+    });
+    
+    // Send invoice via WhatsApp
+    whatsappInvoiceBtn.addEventListener('click', () => {
+      const patientId = document.getElementById('invoicePatient').value;
+      if (!patientId) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'لم يتم اختيار مريض',
+          text: 'يرجى اختيار مريض أولاً',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      }
+      
+      // Get patient phone
+      database.ref('patients').once('value').then((snapshot) => {
+        const patients = snapshot.val() || {};
+        let patientPhone = null;
+        
+        Object.values(patients).forEach(dept => {
+          Object.values(dept).forEach(patient => {
+            if (patient.id === patientId && patient.phone) {
+              patientPhone = patient.phone;
+            }
+          });
+        });
+        
+        if (!patientPhone) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'لا يوجد رقم هاتف',
+            text: 'لا يوجد رقم هاتف مسجل لهذا المريض',
+            confirmButtonText: 'حسناً'
+          });
+          return;
+        }
+        
+        // Create invoice data
+        const invoiceData = {
+          invoiceNumber: generateInvoiceNumber(),
+          patientName: document.getElementById('invoicePatient').options[document.getElementById('invoicePatient').selectedIndex]?.text.split(' - ')[0] || '',
+          totalAmount: document.getElementById('totalAmount').textContent
+        };
+        
+        // Send WhatsApp message
+        sendInvoiceViaWhatsApp(invoiceData, patientPhone);
+      });
+    });
+    
+    // Send invoice via email function
+    function sendInvoiceViaEmail(invoiceData, patientEmail) {
+      // In a real application, you would use an email service like EmailJS
+      // For this demo, we'll just show a success message
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'تم إرسال الفاتورة',
+        text: `تم إرسال الفاتورة إلى ${patientEmail}`,
+        timer: 3000,
+        showConfirmButton: false,
+        position: 'top-end',
+        toast: true
+      });
+      
+      // In a real implementation, you would use something like:
+      // emailjs.send("service_id", "template_id", {
+      //   to_email: patientEmail,
+      //   invoice_number: invoiceData.invoiceNumber,
+      //   patient_name: invoiceData.patientName,
+      //   total_amount: invoiceData.totalAmount
+      // });
+    }
+    
+    // Send invoice via WhatsApp function
+    function sendInvoiceViaWhatsApp(invoiceData, patientPhone) {
+      const message = `فاتورة مستشفى الحياة الذكية\nرقم: ${invoiceData.invoiceNumber}\nالمريض: ${invoiceData.patientName}\nالمبلغ: ${invoiceData.totalAmount}`;
+      const whatsappUrl = `https://wa.me/${patientPhone}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'تم فتح واتساب',
+        text: 'تم فتح واتساب لإرسال الفاتورة',
+        timer: 2000,
+        showConfirmButton: false,
+        position: 'top-end',
+        toast: true
+      });
+    }
     
     // Print all invoices
     printAllInvoicesBtn.addEventListener('click', () => {
@@ -4282,6 +5123,349 @@
         printWindow.print();
       });
     });
+    
+    // Generate financial report
+    generateReportBtn.addEventListener('click', () => {
+      const period = parseInt(reportPeriod.value);
+      generateFinancialReport(period);
+    });
+    
+    // Export financial report
+    exportReportBtn.addEventListener('click', () => {
+      const period = parseInt(reportPeriod.value);
+      generateFinancialReport(period, true);
+    });
+    
+    // Generate financial report function
+    function generateFinancialReport(period, exportPdf = false) {
+      showLoading();
+      
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - period);
+      
+      database.ref('invoices').orderByChild('date').startAt(startDate.toISOString()).once('value')
+        .then((snapshot) => {
+          const invoices = snapshot.val() || {};
+          
+          // Calculate statistics
+          const totalRevenue = Object.values(invoices)
+            .filter(inv => inv.status === 'paid')
+            .reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
+          
+          const pendingRevenue = Object.values(invoices)
+            .filter(inv => inv.status === 'pending')
+            .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+          
+          const totalInvoicesCount = Object.keys(invoices).length;
+          const paidInvoicesCount = Object.values(invoices).filter(inv => inv.status === 'paid').length;
+          const pendingInvoicesCount = Object.values(invoices).filter(inv => inv.status === 'pending').length;
+          const avgInvoice = totalInvoicesCount > 0 ? totalRevenue / paidInvoicesCount : 0;
+          
+          // Update report UI
+          document.getElementById('reportTotalRevenue').textContent = formatCurrency(totalRevenue);
+          document.getElementById('reportPendingRevenue').textContent = formatCurrency(pendingRevenue);
+          document.getElementById('reportTotalInvoices').textContent = totalInvoicesCount;
+          document.getElementById('reportPaidInvoices').textContent = paidInvoicesCount;
+          document.getElementById('reportPendingInvoices').textContent = pendingInvoicesCount;
+          document.getElementById('reportAvgInvoice').textContent = formatCurrency(avgInvoice);
+          
+          // Update date range
+          const endDate = new Date();
+          document.getElementById('reportDateRange').textContent = 
+            `${formatDate(startDate.toISOString())} - ${formatDate(endDate.toISOString())}`;
+          
+          // Update report table
+          const reportTable = document.getElementById('reportInvoicesTable');
+          reportTable.innerHTML = '';
+          
+          if (Object.keys(invoices).length === 0) {
+            reportTable.innerHTML = `
+              <tr>
+                <td colspan="7" class="text-center py-8 text-gray-500">
+                  لا توجد فواتير في هذه الفترة
+                </td>
+              </tr>
+            `;
+          } else {
+            Object.entries(invoices).forEach(([id, invoice]) => {
+              const row = document.createElement('tr');
+              
+              const statusClass = invoice.status === 'paid' ? 'status-active' : 
+                                 invoice.status === 'pending' ? 'status-pending' : 'status-discharged';
+              
+              const statusText = invoice.status === 'paid' ? 'مدفوعة' : 
+                                invoice.status === 'pending' ? 'معلقة' : 'ملغاة';
+              
+              row.innerHTML = `
+                <td class="font-semibold">${invoice.invoiceNumber}</td>
+                <td>${invoice.patientName}</td>
+                <td>${formatDate(invoice.date)}</td>
+                <td class="font-semibold">${formatCurrency(invoice.totalAmount)}</td>
+                <td class="text-green-600">${formatCurrency(invoice.paidAmount || 0)}</td>
+                <td class="text-orange-600">${formatCurrency((invoice.totalAmount || 0) - (invoice.paidAmount || 0))}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+              `;
+              
+              reportTable.appendChild(row);
+            });
+          }
+          
+          // Update charts
+          updateFinancialCharts(invoices, period);
+          
+          if (exportPdf) {
+            exportFinancialReportToPdf(invoices, period, startDate, endDate);
+          }
+          
+          hideLoading();
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'تم إنشاء التقرير',
+            text: `تم إنشاء تقرير مالي للفترة المحددة`,
+            timer: 2000,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true
+          });
+        });
+    }
+    
+    // Initialize financial charts
+    function initializeFinancialCharts() {
+      const revenueCtx = document.getElementById('revenueChart');
+      const servicesRevenueCtx = document.getElementById('servicesRevenueChart');
+      
+      if (revenueCtx && servicesRevenueCtx) {
+        // Initialize revenue chart
+        revenueChart = new Chart(revenueCtx, {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [{
+              label: 'الإيرادات اليومية',
+              data: [],
+              fill: true,
+              backgroundColor: 'rgba(0, 102, 204, 0.1)',
+              borderColor: 'rgb(0, 102, 204)',
+              tension: 0.4,
+              pointBackgroundColor: 'rgb(0, 102, 204)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return formatCurrency(value);
+                  }
+                },
+                grid: { borderDash: [5, 5] }
+              },
+              x: {
+                grid: { display: false }
+              }
+            }
+          }
+        });
+        
+        // Initialize services revenue chart
+        servicesRevenueChart = new Chart(servicesRevenueCtx, {
+          type: 'doughnut',
+          data: {
+            labels: [],
+            datasets: [{
+              label: 'إيرادات الخدمات',
+              data: [],
+              backgroundColor: [
+                'rgba(255, 107, 107, 0.7)',
+                'rgba(0, 102, 204, 0.7)',
+                'rgba(107, 207, 127, 0.7)',
+                'rgba(255, 193, 7, 0.7)',
+                'rgba(139, 92, 246, 0.7)'
+              ],
+              borderColor: '#fff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  padding: 15,
+                  font: { size: 12 }
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+    
+    // Update financial charts
+    function updateFinancialCharts(invoices, period) {
+      if (!revenueChart || !servicesRevenueChart) {
+        initializeFinancialCharts();
+      }
+      
+      // Prepare daily revenue data
+      const dailyRevenue = {};
+      const servicesRevenue = {};
+      
+      // Initialize daily revenue for the period
+      for (let i = 0; i < period; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        dailyRevenue[dateStr] = 0;
+      }
+      
+      // Calculate revenue by day and by service
+      Object.values(invoices).forEach(invoice => {
+        if (invoice.status === 'paid') {
+          // Add to daily revenue
+          const dateStr = invoice.date.split('T')[0];
+          if (dailyRevenue[dateStr] !== undefined) {
+            dailyRevenue[dateStr] += invoice.paidAmount || 0;
+          }
+          
+          // Add to services revenue
+          if (invoice.services) {
+            invoice.services.forEach(service => {
+              if (!servicesRevenue[service.name]) {
+                servicesRevenue[service.name] = 0;
+              }
+              servicesRevenue[service.name] += service.price * service.quantity;
+            });
+          }
+        }
+      });
+      
+      // Update revenue chart
+      const sortedDates = Object.keys(dailyRevenue).sort();
+      const revenueData = sortedDates.map(date => dailyRevenue[date]);
+      const labels = sortedDates.map(date => {
+        const d = new Date(date);
+        return `${d.getDate()}/${d.getMonth() + 1}`;
+      });
+      
+      revenueChart.data.labels = labels;
+      revenueChart.data.datasets[0].data = revenueData;
+      revenueChart.update();
+      
+      // Update services revenue chart
+      const sortedServices = Object.entries(servicesRevenue)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // Top 5 services
+      
+      servicesRevenueChart.data.labels = sortedServices.map(([name]) => name);
+      servicesRevenueChart.data.datasets[0].data = sortedServices.map(([, revenue]) => revenue);
+      servicesRevenueChart.update();
+    }
+    
+    // Export financial report to PDF
+    function exportFinancialReportToPdf(invoices, period, startDate, endDate) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      // Add header
+      doc.setFont('Cairo', 'normal');
+      doc.setFontSize(18);
+      doc.text('تقرير مالي - مستشفى الحياة الذكية', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`الفترة: ${formatDate(startDate.toISOString())} - ${formatDate(endDate.toISOString())}`, 105, 25, { align: 'center' });
+      
+      // Calculate statistics
+      const totalRevenue = Object.values(invoices)
+        .filter(inv => inv.status === 'paid')
+        .reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
+      
+      const pendingRevenue = Object.values(invoices)
+        .filter(inv => inv.status === 'pending')
+        .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+      
+      const totalInvoicesCount = Object.keys(invoices).length;
+      const paidInvoicesCount = Object.values(invoices).filter(inv => inv.status === 'paid').length;
+      const pendingInvoicesCount = Object.values(invoices).filter(inv => inv.status === 'pending').length;
+      
+      // Add statistics
+      doc.setFontSize(14);
+      doc.text('إحصائيات مالية', 20, 40);
+      
+      doc.setFontSize(10);
+      let y = 50;
+      doc.text(`إجمالي الإيرادات: ${formatCurrency(totalRevenue)}`, 20, y);
+      y += 10;
+      doc.text(`الإيرادات المعلقة: ${formatCurrency(pendingRevenue)}`, 20, y);
+      y += 10;
+      doc.text(`إجمالي الفواتير: ${totalInvoicesCount}`, 20, y);
+      y += 10;
+      doc.text(`الفواتير المدفوعة: ${paidInvoicesCount}`, 20, y);
+      y += 10;
+      doc.text(`الفواتير المعلقة: ${pendingInvoicesCount}`, 20, y);
+      
+      // Add invoices table
+      y += 20;
+      doc.setFontSize(14);
+      doc.text('تفاصيل الفواتير', 20, y);
+      
+      y += 10;
+      doc.setFontSize(10);
+      doc.text('رقم الفاتورة', 20, y);
+      doc.text('المريض', 60, y);
+      doc.text('التاريخ', 100, y);
+      doc.text('المبلغ', 140, y);
+      doc.text('الحالة', 170, y);
+      
+      y += 5;
+      Object.entries(invoices).forEach(([id, invoice]) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        y += 7;
+        doc.text(invoice.invoiceNumber, 20, y);
+        doc.text(invoice.patientName.substring(0, 15), 60, y);
+        doc.text(formatDate(invoice.date).substring(0, 10), 100, y);
+        doc.text(formatCurrency(invoice.totalAmount), 140, y);
+        doc.text(invoice.status === 'paid' ? 'مدفوعة' : 'معلقة', 170, y);
+      });
+      
+      // Save PDF
+      doc.save(`تقرير-مالي-${formatDate(new Date().toISOString()).replace(/\//g, '-')}.pdf`);
+    }
+    
+    // Verify insurance function
+    async function verifyInsurance(insuranceNumber, company) {
+      // In a real application, you would make an API call to the insurance company
+      // For this demo, we'll return a mock response
+      
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            valid: true,
+            coveragePercentage: 80,
+            maxCoverage: 10000,
+            usedCoverage: 2000
+          });
+        }, 1000);
+      });
+    }
     
     // Real-time data listeners
     function setupDataListeners() {
