@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -1376,12 +1375,29 @@
                 </div>
               </div>
 
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-phone ml-1"></i>
+                    رقم الهاتف
+                  </label>
+                  <input type="tel" id="phone" class="form-input" placeholder="رقم الهاتف" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fab fa-whatsapp ml-1"></i>
+                    رقم الواتساب
+                  </label>
+                  <input type="tel" id="whatsapp" class="form-input" placeholder="رقم الواتساب" />
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label">
-                  <i class="fas fa-phone ml-1"></i>
-                  رقم الهاتف
+                  <i class="fas fa-envelope ml-1"></i>
+                  البريد الإلكتروني
                 </label>
-                <input type="tel" id="phone" class="form-input" placeholder="رقم الهاتف" />
+                <input type="email" id="email" class="form-input" placeholder="البريد الإلكتروني" />
               </div>
 
               <div class="form-group">
@@ -1390,6 +1406,22 @@
                   العنوان
                 </label>
                 <input type="text" id="address" class="form-input" placeholder="العنوان الكامل" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-user-tag ml-1"></i>
+                  نوع المريض
+                </label>
+                <select id="patientCategory" class="form-input form-select" required>
+                  <option value="">-- اختر النوع --</option>
+                  <option value="outpatient">مريض خارجي</option>
+                  <option value="inpatient">مريض داخلي</option>
+                  <option value="emergency">حالة طارئة</option>
+                  <option value="daycare">علاج نهاري</option>
+                  <option value="referred">محول من مستشفى آخر</option>
+                  <option value="vip">مريض VIP</option>
+                </select>
               </div>
 
               <div class="form-group">
@@ -1411,6 +1443,12 @@
                   <option value="radiology">الأشعة</option>
                   <option value="icu">العناية المركزة</option>
                   <option value="operations">العمليات</option>
+                  <option value="cardiology">القلب</option>
+                  <option value="neurology">الأعصاب</option>
+                  <option value="pediatrics">الأطفال</option>
+                  <option value="obstetrics">النساء والتوليد</option>
+                  <option value="orthopedics">العظام</option>
+                  <option value="internal">الباطنة</option>
                 </select>
               </div>
 
@@ -1712,8 +1750,13 @@
                   <option value="lab">تحاليل</option>
                   <option value="ecg">موجات صوتية</option>
                   <option value="ultrasound">سونار</option>
+                  <option value="ct">أشعة مقطعية</option>
+                  <option value="mri">رنين مغناطيسي</option>
                   <option value="surgery">عملية جراحية</option>
                   <option value="medication">أدوية</option>
+                  <option value="therapy">علاج طبيعي</option>
+                  <option value="vaccination">تطعيمات</option>
+                  <option value="checkup">فحص شامل</option>
                   <option value="other">أخرى</option>
                 </select>
               </div>
@@ -1731,7 +1774,16 @@
                   <option value="icu">العناية المركزة</option>
                   <option value="operations">العمليات</option>
                   <option value="cardiology">القلب</option>
-                  <option value="general">داخلي</option>
+                  <option value="neurology">الأعصاب</option>
+                  <option value="pediatrics">الأطفال</option>
+                  <option value="obstetrics">النساء والتوليد</option>
+                  <option value="orthopedics">العظام</option>
+                  <option value="internal">الباطنة</option>
+                  <option value="ent">الأذن والأنف والحنجرة</option>
+                  <option value="ophthalmology">العيون</option>
+                  <option value="dermatology">الجلدية</option>
+                  <option value="psychiatry">الطب النفسي</option>
+                  <option value="physiotherapy">العلاج الطبيعي</option>
                 </select>
               </div>
 
@@ -1775,8 +1827,13 @@
                   <option value="lab">تحاليل</option>
                   <option value="ecg">موجات صوتية</option>
                   <option value="ultrasound">سونار</option>
+                  <option value="ct">أشعة مقطعية</option>
+                  <option value="mri">رنين مغناطيسي</option>
                   <option value="surgery">عملية جراحية</option>
                   <option value="medication">أدوية</option>
+                  <option value="therapy">علاج طبيعي</option>
+                  <option value="vaccination">تطعيمات</option>
+                  <option value="checkup">فحص شامل</option>
                   <option value="other">أخرى</option>
                 </select>
                 <div class="search-container">
@@ -1885,11 +1942,11 @@
                   <span class="text-sm font-medium">خصم الفواتير فوق 1000 ج.م:</span>
                   <span class="text-sm font-bold text-blue-600" id="largeInvoiceDiscount1">5%</span>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center mb-2">
                   <span class="text-sm font-medium">خصم الفواتير فوق 5000 ج.م:</span>
                   <span class="text-sm font-bold text-blue-600" id="largeInvoiceDiscount2">10%</span>
                 </div>
-                <div class="flex justify-between items-center mt-2">
+                <div class="flex justify-between items-center">
                   <span class="text-sm font-medium">خصم الجراحات:</span>
                   <span class="text-sm font-bold text-blue-600" id="surgeryDiscount">3%</span>
                 </div>
@@ -2556,13 +2613,120 @@
     // Add default services
     function addDefaultServices() {
       const defaultServices = [
-        { name: "كشف طبيب عام", type: "consultation", department: "general", price: 150, description: "فحص عام وتشخيص" },
-        { name: "أشعة صدرية", type: "xray", department: "radiology", price: 250, description: "أشعة على الصدر" },
-        { name: "تحليل دم شامل", type: "lab", department: "lab", price: 200, description: "تحليل دم كامل" },
-        { name: "موجات صوتية قلب", type: "ecg", department: "cardiology", price: 180, description: "تخطيط القلب الكهربائي" },
-        { name: "سونار بطن", type: "ultrasound", department: "radiology", price: 300, description: "أشعة فوق صوتية على البطن" },
+        // الكشوف الطبية
+        { name: "كشف طبيب عام", type: "consultation", department: "internal", price: 150, description: "فحص عام وتشخيص" },
+        { name: "كشف طبيب أطفال", type: "consultation", department: "pediatrics", price: 200, description: "فحص أطفال عام" },
+        { name: "كشف طبيب قلب", type: "consultation", department: "cardiology", price: 300, description: "فحص قلب وأوعية دموية" },
+        { name: "كشف طبيب أعصاب", type: "consultation", department: "neurology", price: 350, description: "فحص أعصاب" },
+        { name: "كشف طبيب نساء وتوليد", type: "consultation", department: "obstetrics", price: 250, description: "فحص نساء وتوليد" },
+        { name: "كشف طبيب عظام", type: "consultation", department: "orthopedics", price: 280, description: "فحص عظام ومفاصل" },
+        { name: "كشف طبيب جلدية", type: "consultation", department: "dermatology", price: 200, description: "فحص جلدية" },
+        { name: "كشف طبيب عيون", type: "consultation", department: "ophthalmology", price: 250, description: "فحص عيون" },
+        { name: "كشف طبيب أنف وأذن وحنجرة", type: "consultation", department: "ent", price: 220, description: "فحص أنف وأذن وحنجرة" },
+        { name: "كشف طبيب نفسي", type: "consultation", department: "psychiatry", price: 400, description: "استشارة نفسية" },
+        
+        // الأشعة والتشخيص
+        { name: "أشعة صدرية (Chest X-ray)", type: "xray", department: "radiology", price: 250, description: "أشعة على الصدر" },
+        { name: "أشعة على البطن", type: "xray", department: "radiology", price: 300, description: "أشعة على البطن" },
+        { name: "أشعة على الأطراف", type: "xray", department: "radiology", price: 200, description: "أشعة على الذراع أو الساق" },
+        { name: "أشعة على العمود الفقري", type: "xray", department: "radiology", price: 350, description: "أشعة على العمود الفقري" },
+        { name: "أشعة مقطعية (CT Scan)", type: "ct", department: "radiology", price: 1500, description: "أشعة مقطعية على الرأس" },
+        { name: "أشعة مقطعية على البطن", type: "ct", department: "radiology", price: 2000, description: "أشعة مقطعية على البطن" },
+        { name: "رنين مغناطيسي (MRI)", type: "mri", department: "radiology", price: 3000, description: "رنين مغناطيسي على الرأس" },
+        { name: "رنين مغناطيسي على العمود الفقري", type: "mri", department: "radiology", price: 3500, description: "رنين مغناطيسي على العمود الفقري" },
+        { name: "سونار على البطن", type: "ultrasound", department: "radiology", price: 400, description: "أشعة فوق صوتية على البطن" },
+        { name: "سونار على الحوض", type: "ultrasound", department: "radiology", price: 450, description: "أشعة فوق صوتية على الحوض" },
+        { name: "سونار للقلب", type: "ultrasound", department: "cardiology", price: 600, description: "إيكو للقلب" },
+        { name: "دوبلر دوبلر للأوعية", type: "ultrasound", department: "radiology", price: 500, description: "دوبلر دوبلر" },
+        { name: "ماموجرام", type: "xray", department: "radiology", price: 800, description: "أشعة على الثدي" },
+        
+        // التحاليل الطبية
+        { name: "تحليل دم شامل (CBC)", type: "lab", department: "lab", price: 150, description: "تحليل دم كامل" },
+        { name: "تحليل كيمياء حيوية", type: "lab", department: "lab", price: 200, description: "وظائف الكبد والكلى" },
+        { name: "تحليل سكر صائم", type: "lab", department: "lab", price: 50, description: "تحليل سكر صائم" },
+        { name: "تحليل سكر عشوائي", type: "lab", department: "lab", price: 40, description: "تحليل سكر عشوائي" },
+        { name: "تحليل الهيموجلوبين السكري", type: "lab", department: "lab", price: 80, description: "HbA1c" },
+        { name: "تحليل الكوليسترول", type: "lab", department: "lab", price: 100, description: "بروفيل دهون" },
+        { name: "تحليل وظائف الكلى", type: "lab", department: "lab", price: 120, description: "يوريا وكرياتينين" },
+        { name: "تحليل وظائف الكبد", type: "lab", department: "lab", price: 150, description: "إنزيمات الكبد" },
+        { name: "تحليل هرمونات الغدة الدرقية", type: "lab", department: "lab", price: 200, description: "T3, T4, TSH" },
+        { name: "تحليل البروستاتا (PSA)", type: "lab", department: "lab", price: 180, description: "مستضاد البروستاتا" },
+        { name: "تحليل فيتامين د", type: "lab", department: "lab", price: 150, description: "فيتامين D" },
+        { name: "تحليل فيتامين ب12", type: "lab", department: "lab", price: 120, description: "فيتامين B12" },
+        { name: "تحليل حديد", type: "lab", department: "lab", price: 100, description: "حديد، قدرة ارتباط، فيريتين" },
+        { name: "تحليل بول", type: "lab", department: "lab", price: 50, description: "تحليل بول كامل" },
+        { name: "مزرعة بول", type: "lab", department: "lab", price: 100, description: "مزرعة بول" },
+        { name: "مزرعة براز", type: "lab", department: "lab", price: 120, description: "مزرعة براز" },
+        { name: "تحليل الحساسية", type: "lab", department: "lab", price: 300, description: "تحليل حساسية شامل" },
+        
+        // الفحوصات والتشخيصات
+        { name: "تخطيط القلب الكهربائي (ECG)", type: "ecg", department: "cardiology", price: 150, description: "تخطيط القلب الكهربائي" },
+        { name: "تخطيط القلب بالمجهود", type: "ecg", department: "cardiology", price: 400, description: "تخطيط القلب بالمجهود" },
+        { name: "هولتر 24 ساعة", type: "ecg", department: "cardiology", price: 800, description: "تسجيل قلب 24 ساعة" },
+        { name: "قياس ضغط الدم 24 ساعة", type: "ecg", department: "cardiology", price: 600, description: "ABPM" },
+        { name: "فحص الجهاز التنفسي", type: "checkup", department: "internal", price: 200, description: "فحص رئة" },
+        { name: "فحص الجهاز الهضمي", type: "checkup", department: "internal", price: 250, description: "فحص جهاز هضمي" },
+        { name: "فحص النساء", type: "checkup", department: "obstetrics", price: 500, description: "فحص نساء شامل" },
+        { name: "فحص ما قبل الزواج", type: "checkup", department: "lab", price: 800, description: "فحص ما قبل الزواج" },
+        { name: "فحص الشركات", type: "checkup", department: "internal", price: 1000, description: "فحص طبي للشركات" },
+        { name: "فحص كبار السن", type: "checkup", department: "internal", price: 600, description: "فحص لكبار السن" },
+        
+        // العمليات الجراحية
         { name: "عملية استئصال الزائدة الدودية", type: "surgery", department: "operations", price: 5000, description: "جراحة استئصال الزائدة الدودية" },
-        { name: "مضادات حيوية", type: "medication", department: "general", price: 80, description: "مضادات حيوية واسعة الطيف" }
+        { name: "عملية استئصال المرارة", type: "surgery", department: "operations", price: 8000, description: "جراحة استئصال المرارة" },
+        { name: "عملية فتق", type: "surgery", department: "operations", price: 6000, description: "جراحة إصلاح فتق" },
+        { name: "عملية غدة البروستاتا", type: "surgery", department: "operations", price: 15000, description: "جراحة البروستاتا" },
+        { name: "عملية قلب مفتوح", type: "surgery", department: "operations", price: 50000, description: "جراحة قلب مفتوح" },
+        { name: "عملية استبدال مفصل الركبة", type: "surgery", department: "orthopedics", price: 25000, description: "جراحة استبدال مفصل الركبة" },
+        { name: "عملية استبدال مفصل الورك", type: "surgery", department: "orthopedics", price: 30000, description: "جراحة استبدال مفصل الورك" },
+        { name: "عملية ولادة قيصرية", type: "surgery", department: "obstetrics", price: 8000, description: "ولادة قيصرية" },
+        { name: "عملية ولادة طبيعية", type: "surgery", department: "obstetrics", price: 5000, description: "ولادة طبيعية" },
+        { name: "عملية تجميل الأنف", type: "surgery", department: "ent", price: 10000, description: "جراحة تجميل الأنف" },
+        { name: "عملية استئصال اللوزتين", type: "surgery", department: "ent", price: 4000, description: "جراحة استئصال اللوزتين" },
+        { name: "عملية ساد", type: "surgery", department: "ophthalmology", price: 8000, description: "جراحة الساد" },
+        { name: "عملية الليزك", type: "surgery", department: "ophthalmology", price: 15000, description: "جراحة الليزك" },
+        
+        // العلاج الطبيعي والتأهيل
+        { name: "جلسة علاج طبيعي", type: "therapy", department: "physiotherapy", price: 200, description: "جلسة علاج طبيعي واحدة" },
+        { name: "باقة علاج طبيعي (10 جلسات)", type: "therapy", department: "physiotherapy", price: 1500, description: "10 جلسات علاج طبيعي" },
+        { name: "علاج طبيعي بعد العمليات", type: "therapy", department: "physiotherapy", price: 250, description: "علاج طبيعي بعد العمليات" },
+        { name: "علاج طبيعي للعمود الفقري", type: "therapy", department: "physiotherapy", price: 300, description: "علاج طبيعي للعمود الفقري" },
+        { name: "علاج طبيعي للمفاصل", type: "therapy", department: "physiotherapy", price: 250, description: "علاج طبيعي للمفاصل" },
+        { name: "علاج طبيعي للرياضيين", type: "therapy", department: "physiotherapy", price: 350, description: "علاج طبيعي للرياضيين" },
+        
+        // التطعيمات والمناعة
+        { name: "تطعيم كوفيد-19", type: "vaccination", department: "internal", price: 100, description: "تطعيم كوفيد-19" },
+        { name: "تطعيم الإنفلونزا", type: "vaccination", department: "internal", price: 150, description: "تطعيم الإنفلونزا الموسمي" },
+        { name: "تطعيم التهاب الكبد B", type: "vaccination", department: "internal", price: 200, description: "تطعيم التهاب الكبد B" },
+        { name: "تطعيم التيتانوس", type: "vaccination", department: "internal", price: 100, description: "تطعيم التيتانوس" },
+        { name: "تطعيم شلل الأطفال", type: "vaccination", department: "pediatrics", price: 50, description: "تطعيم شلل الأطفال" },
+        { name: "تطعيم الثلاثي", type: "vaccination", department: "pediatrics", price: 80, description: "تطعيم DTP" },
+        { name: "تطعيم الحصبة", type: "vaccination", department: "pediatrics", price: 60, description: "تطعيم الحصبة" },
+        { name: "تطعيم النكاف", type: "vaccination", department: "pediatrics", price: 70, description: "تطعيم النكاف" },
+        
+        // الأدوية والمستلزمات الطبية
+        { name: "حقنة فيتامين د", type: "medication", department: "internal", price: 50, description: "حقنة فيتامين د" },
+        { name: "حقنة فيتامين ب12", type: "medication", department: "internal", price: 40, description: "حقنة فيتامين ب12" },
+        { name: "حقنة كورتيزون", type: "medication", department: "internal", price: 60, description: "حقنة كورتيزون" },
+        { name: "مضادات حيوية (حقنة)", type: "medication", department: "internal", price: 80, description: "مضاد حيوي حقن" },
+        { name: "مضادات حيوية (أقراص)", type: "medication", department: "internal", price: 120, description: "مضاد حيوي أقراص" },
+        { name: "مسكنات (حقنة)", type: "medication", department: "internal", price: 30, description: "مسكن قوي" },
+        { name: "مضادات الالتهاب", type: "medication", department: "internal", price: 100, description: "مضادات الالتهاب" },
+        { name: "أدوية الضغط", type: "medication", department: "cardiology", price: 150, description: "أدوية ضغط الدم" },
+        { name: "أدوية السكر", type: "medication", department: "internal", price: 200, description: "أدوية السكري" },
+        { name: "أدوية الكوليسترول", type: "medication", department: "cardiology", price: 180, description: "أدوية خفض الكوليسترول" },
+        
+        // الخدمات الأخرى
+        { name: "غسيل كلوي", type: "other", department: "internal", price: 500, description: "جلسة غسيل كلوي" },
+        { name: "العلاج بالأكسجين", type: "other", department: "internal", price: 200, description: "جلسة علاج بالأكسجين" },
+        { name: "العلاج بالأشعة", type: "other", department: "radiology", price: 2000, description: "جلسة علاج بالأشعة" },
+        { name: "العلاج الكيميائي", type: "other", department: "internal", price: 1500, description: "جلسة علاج كيميائي" },
+        { name: "تنويم مغناطيسي", type: "other", department: "radiology", price: 800, description: "جلسة تنويم مغناطيسي" },
+        { name: "العلاج بالموجات فوق الصوتية", type: "other", department: "physiotherapy", price: 300, description: "علاج بالموجات فوق الصوتية" },
+        { name: "العلاج بالليزر", type: "other", department: "physiotherapy", price: 400, description: "علاج بالليزر" },
+        { name: "العلاج بالحرارة", type: "other", department: "physiotherapy", price: 250, description: "علاج بالحرارة" },
+        { name: "العلاج بالكهرباء", type: "other", department: "physiotherapy", price: 200, description: "علاج بالكهرباء" },
+        { name: "العلاج بالمياه", type: "other", department: "physiotherapy", price: 350, description: "علاج بالمياه" }
       ];
       
       defaultServices.forEach(service => {
@@ -2615,8 +2779,13 @@
         lab: 'fa-vial',
         ecg: 'fa-heartbeat',
         ultrasound: 'fa-ultrasound',
+        ct: 'fa-x-ray',
+        mri: fa-magnet',
         surgery: 'fa-procedures',
         medication: 'fa-pills',
+        therapy: 'fa-dumbbell',
+        vaccination: 'fa-syringe',
+        checkup: 'fa-clipboard-check',
         other: 'fa-medkit'
       };
       
@@ -3620,6 +3789,28 @@
         statusBadge = '<span class="status-badge status-active"><i class="fas fa-procedures"></i> تحت العلاج</span>';
       }
       
+      // Patient category badge
+      const categoryColors = {
+        outpatient: 'bg-blue-100 text-blue-800',
+        inpatient: 'bg-green-100 text-green-800',
+        emergency: 'bg-red-100 text-red-800',
+        daycare: 'bg-yellow-100 text-yellow-800',
+        referred: 'bg-purple-100 text-purple-800',
+        vip: 'bg-indigo-100 text-indigo-800'
+      };
+      
+      const categoryNames = {
+        outpatient: 'مريض خارجي',
+        inpatient: 'مريض داخلي',
+        emergency: 'حالة طارئة',
+        daycare: 'علاج نهاري',
+        referred: 'محول',
+        vip: 'VIP'
+      };
+      
+      const categoryClass = categoryColors[patient.patientCategory] || 'bg-gray-100 text-gray-800';
+      const categoryName = categoryNames[patient.patientCategory] || 'غير محدد';
+      
       card.innerHTML = `
         <div class="flex items-start gap-4">
           <div class="patient-avatar">
@@ -3633,6 +3824,9 @@
                 <span class="dept-badge ${deptClass}">
                   ${getDepartmentIcon(department)}
                   ${getDepartmentName(department)}
+                </span>
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${categoryClass}">
+                  ${categoryName}
                 </span>
               </div>
             </div>
@@ -3658,6 +3852,18 @@
               <div class="detail-item">
                 <i class="fas fa-phone"></i>
                 <span>${patient.phone}</span>
+              </div>
+              ` : ''}
+              ${patient.whatsapp ? `
+              <div class="detail-item">
+                <i class="fab fa-whatsapp"></i>
+                <span>${patient.whatsapp}</span>
+              </div>
+              ` : ''}
+              ${patient.email ? `
+              <div class="detail-item">
+                <i class="fas fa-envelope"></i>
+                <span>${patient.email}</span>
               </div>
               ` : ''}
               ${doctorInfo}
@@ -3783,7 +3989,18 @@
         care: 'الرعاية',
         admin: 'الإدارة',
         radiology: 'الأشعة',
-        operations: 'العمليات'
+        operations: 'العمليات',
+        cardiology: 'القلب',
+        neurology: 'الأعصاب',
+        pediatrics: 'الأطفال',
+        obstetrics: 'النساء والتوليد',
+        orthopedics: 'العظام',
+        internal: 'الباطنة',
+        ent: 'الأذن والأنف والحنجرة',
+        ophthalmology: 'العيون',
+        dermatology: 'الجلدية',
+        psychiatry: 'الطب النفسي',
+        physiotherapy: 'العلاج الطبيعي'
       };
       return departments[department] || department;
     }
@@ -3797,7 +4014,18 @@
         care: '<i class="fas fa-hand-holding-heart"></i>',
         admin: '<i class="fas fa-building"></i>',
         radiology: '<i class="fas fa-x-ray"></i>',
-        operations: '<i class="fas fa-user-md"></i>'
+        operations: '<i class="fas fa-user-md"></i>',
+        cardiology: '<i class="fas fa-heartbeat"></i>',
+        neurology: '<i class="fas fa-brain"></i>',
+        pediatrics: '<i class="fas fa-baby"></i>',
+        obstetrics: '<i class="fas fa-female"></i>',
+        orthopedics: '<i class="fas fa-bone"></i>',
+        internal: '<i class="fas fa-stethoscope"></i>',
+        ent: '<i class="fas fa-head-side"></i>',
+        ophthalmology: '<i class="fas fa-eye"></i>',
+        dermatology: '<i class="fas fa-skin"></i>',
+        psychiatry: '<i class="fas fa-brain"></i>',
+        physiotherapy: '<i class="fas fa-dumbbell"></i>'
       };
       return icons[department] || '<i class="fas fa-hospital"></i>';
     }
@@ -3833,7 +4061,8 @@
           patient.name.toLowerCase().includes(term) || 
           patient.nid.includes(term) || 
           (patient.address && patient.address.toLowerCase().includes(term)) ||
-          (patient.phone && patient.phone.includes(term))
+          (patient.phone && patient.phone.includes(term)) ||
+          (patient.email && patient.email.toLowerCase().includes(term))
         );
       }
       
@@ -3970,7 +4199,7 @@
     function addDefaultDoctors() {
       const defaultDoctors = [
         { 
-          name: "د. أحمد محمد", 
+          name: "د. أحمد محمد علي", 
           specialization: "طب الطوارئ", 
           department: "emergency", 
           workFrom: "08:00", 
@@ -3978,7 +4207,7 @@
           timestamp: new Date().toISOString() 
         },
         { 
-          name: "د. فاطمة علي", 
+          name: "د. فاطمة أحمد حسن", 
           specialization: "العناية المركزة", 
           department: "icu", 
           workFrom: "08:00", 
@@ -3986,7 +4215,7 @@
           timestamp: new Date().toISOString() 
         },
         { 
-          name: "د. محمد خالد", 
+          name: "د. محمد خالد عبدالله", 
           specialization: "جراحة عامة", 
           department: "operations", 
           workFrom: "08:00", 
@@ -3994,7 +4223,7 @@
           timestamp: new Date().toISOString() 
         },
         { 
-          name: "د. نورة سعيد", 
+          name: "د. نورة سعيد محمود", 
           specialization: "الأشعة التشخيصية", 
           department: "radiology", 
           workFrom: "08:00", 
@@ -4002,27 +4231,91 @@
           timestamp: new Date().toISOString() 
         },
         { 
-          name: "د. يوسف عمر", 
+          name: "د. يوسف عمر إبراهيم", 
           specialization: "طب القلب", 
-          department: "care", 
+          department: "cardiology", 
           workFrom: "09:00", 
           workTo: "17:00", 
           timestamp: new Date().toISOString() 
         },
         { 
-          name: "د. مريم حسن", 
+          name: "د. مريم حسن عبدالرحمن", 
           specialization: "طب الأطفال", 
-          department: "care", 
+          department: "pediatrics", 
           workFrom: "10:00", 
           workTo: "18:00", 
           timestamp: new Date().toISOString() 
         },
         { 
-          name: "د. خالد أحمد", 
+          name: "د. خالد أحمد محمد", 
           specialization: "النساء والتوليد", 
-          department: "care", 
+          department: "obstetrics", 
           workFrom: "08:00", 
           workTo: "16:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. سامي محمود عبداللطيف", 
+          specialization: "طب الأعصاب", 
+          department: "neurology", 
+          workFrom: "09:00", 
+          workTo: "17:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. ليلى حسين علي", 
+          specialization: "العظام", 
+          department: "orthopedics", 
+          workFrom: "08:00", 
+          workTo: "16:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. عمر خالد محمود", 
+          specialization: "الباطنة", 
+          department: "internal", 
+          workFrom: "09:00", 
+          workTo: "17:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. رنا أحمد سالم", 
+          specialization: "الأذن والأنف والحنجرة", 
+          department: "ent", 
+          workFrom: "10:00", 
+          workTo: "18:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. كريم محمود إبراهيم", 
+          specialization: "العيون", 
+          department: "ophthalmology", 
+          workFrom: "09:00", 
+          workTo: "17:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. سارة محمد علي", 
+          specialization: "الجلدية", 
+          department: "dermatology", 
+          workFrom: "10:00", 
+          workTo: "18:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. أحمد حسن محمود", 
+          specialization: "الطب النفسي", 
+          department: "psychiatry", 
+          workFrom: "14:00", 
+          workTo: "20:00", 
+          timestamp: new Date().toISOString() 
+        },
+        { 
+          name: "د. منى محمود عبدالله", 
+          specialization: "العلاج الطبيعي", 
+          department: "physiotherapy", 
+          workFrom: "08:00", 
+          workTo: "20:00", 
           timestamp: new Date().toISOString() 
         }
       ];
@@ -4447,8 +4740,13 @@
               <option value="lab" ${service.type === 'lab' ? 'selected' : ''}>تحاليل</option>
               <option value="ecg" ${service.type === 'ecg' ? 'selected' : ''}>موجات صوتية</option>
               <option value="ultrasound" ${service.type === 'ultrasound' ? 'selected' : ''}>سونار</option>
+              <option value="ct" ${service.type === 'ct' ? 'selected' : ''}>أشعة مقطعية</option>
+              <option value="mri" ${service.type === 'mri' ? 'selected' : ''}>رنين مغناطيسي</option>
               <option value="surgery" ${service.type === 'surgery' ? 'selected' : ''}>عملية جراحية</option>
               <option value="medication" ${service.type === 'medication' ? 'selected' : ''}>أدوية</option>
+              <option value="therapy" ${service.type === 'therapy' ? 'selected' : ''}>علاج طبيعي</option>
+              <option value="vaccination" ${service.type === 'vaccination' ? 'selected' : ''}>تطعيمات</option>
+              <option value="checkup" ${service.type === 'checkup' ? 'selected' : ''}>فحص شامل</option>
               <option value="other" ${service.type === 'other' ? 'selected' : ''}>أخرى</option>
             </select>
           </div>
@@ -4461,7 +4759,16 @@
               <option value="icu" ${service.department === 'icu' ? 'selected' : ''}>العناية المركزة</option>
               <option value="operations" ${service.department === 'operations' ? 'selected' : ''}>العمليات</option>
               <option value="cardiology" ${service.department === 'cardiology' ? 'selected' : ''}>القلب</option>
-              <option value="general" ${service.department === 'general' ? 'selected' : ''}>داخلي</option>
+              <option value="neurology" ${service.department === 'neurology' ? 'selected' : ''}>الأعصاب</option>
+              <option value="pediatrics" ${service.department === 'pediatrics' ? 'selected' : ''}>الأطفال</option>
+              <option value="obstetrics" ${service.department === 'obstetrics' ? 'selected' : ''}>النساء والتوليد</option>
+              <option value="orthopedics" ${service.department === 'orthopedics' ? 'selected' : ''}>العظام</option>
+              <option value="internal" ${service.department === 'internal' ? 'selected' : ''}>داخلي</option>
+              <option value="ent" ${service.department === 'ent' ? 'selected' : ''}>الأذن والأنف والحنجرة</option>
+              <option value="ophthalmology" ${service.department === 'ophthalmology' ? 'selected' : ''}>العيون</option>
+              <option value="dermatology" ${service.department === 'dermatology' ? 'selected' : ''}>الجلدية</option>
+              <option value="psychiatry" ${service.department === 'psychiatry' ? 'selected' : ''}>الطب النفسي</option>
+              <option value="physiotherapy" ${service.department === 'physiotherapy' ? 'selected' : ''}>العلاج الطبيعي</option>
             </select>
           </div>
         </div>
@@ -4517,6 +4824,17 @@
     
     // View patient details
     window.viewPatient = function(id, department, patient) {
+      const categoryNames = {
+        outpatient: 'مريض خارجي',
+        inpatient: 'مريض داخلي',
+        emergency: 'حالة طارئة',
+        daycare: 'علاج نهاري',
+        referred: 'محول من مستشفى آخر',
+        vip: 'مريض VIP'
+      };
+      
+      const categoryName = categoryNames[patient.patientCategory] || 'غير محدد';
+      
       Swal.fire({
         title: 'تفاصيل المريض',
         html: `
@@ -4528,7 +4846,10 @@
               <strong>فصيلة الدم:</strong> ${patient.bloodType}<br>
               <strong>الرقم القومي:</strong> ${patient.nid}<br>
               <strong>الهاتف:</strong> ${patient.phone || '---'}<br>
+              <strong>الواتساب:</strong> ${patient.whatsapp || '---'}<br>
+              <strong>البريد الإلكتروني:</strong> ${patient.email || '---'}<br>
               <strong>العنوان:</strong> ${patient.address}<br>
+              <strong>نوع المريض:</strong> ${categoryName}<br>
               <strong>القسم:</strong> ${getDepartmentName(department)}<br>
               <strong>الطبيب:</strong> ${patient.doctorName || '---'}<br>
               <strong>الحالة:</strong> ${patient.status === 'discharged' ? 'تم الخروج' : patient.status === 'pending' ? 'في انتظار الدفع' : 'تحت العلاج'}<br>
@@ -4574,7 +4895,15 @@
           </div>
           <div class="form-group">
             <label class="form-label">رقم الهاتف</label>
-            <input type="tel" id="edit-phone" value="${patient.phone || ''}" class="form-input" />
+            <input type="tel" id="edit-phone" value="${patient.phone || ''}" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">رقم الواتساب</label>
+            <input type="tel" id="edit-whatsapp" value="${patient.whatsapp || ''}" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">البريد الإلكتروني</label>
+            <input type="email" id="edit-email" value="${patient.email || ''}" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">العنوان</label>
@@ -4591,6 +4920,17 @@
               <option value="AB-" ${patient.bloodType === 'AB-' ? 'selected' : ''}>AB-</option>
               <option value="O+" ${patient.bloodType === 'O+' ? 'selected' : ''}>O+</option>
               <option value="O-" ${patient.bloodType === 'O-' ? 'selected' : ''}>O-</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">نوع المريض</label>
+            <select id="edit-patientCategory" class="form-input form-select" required>
+              <option value="outpatient" ${patient.patientCategory === 'outpatient' ? 'selected' : ''}>مريض خارجي</option>
+              <option value="inpatient" ${patient.patientCategory === 'inpatient' ? 'selected' : ''}>مريض داخلي</option>
+              <option value="emergency" ${patient.patientCategory === 'emergency' ? 'selected' : ''}>حالة طارئة</option>
+              <option value="daycare" ${patient.patientCategory === 'daycare' ? 'selected' : ''}>علاج نهاري</option>
+              <option value="referred" ${patient.patientCategory === 'referred' ? 'selected' : ''}>محول من مستشفى آخر</option>
+              <option value="vip" ${patient.patientCategory === 'vip' ? 'selected' : ''}>مريض VIP</option>
             </select>
           </div>
         </div>
@@ -4612,16 +4952,19 @@
           const nid = document.getElementById('edit-nid').value.trim();
           const gender = document.getElementById('edit-gender').value;
           const phone = document.getElementById('edit-phone').value.trim();
+          const whatsapp = document.getElementById('edit-whatsapp').value.trim();
+          const email = document.getElementById('edit-email').value.trim();
           const address = document.getElementById('edit-address').value.trim();
           const bloodType = document.getElementById('edit-bloodType').value;
+          const patientCategory = document.getElementById('edit-patientCategory').value;
           
-          if (!name || !age || !nid || !gender || !address || !bloodType) {
+          if (!name || !age || !nid || !gender || !phone || !address || !bloodType || !patientCategory) {
             Swal.showValidationMessage('يرجى ملء جميع الحقول الإلزامية');
             return false;
           }
           
           return {
-            name, age, nid, gender, phone, address, bloodType,
+            name, age, nid, gender, phone, whatsapp, email, address, bloodType, patientCategory,
             diseases: document.getElementById('edit-diseases').value.trim()
           };
         }
@@ -4672,6 +5015,17 @@
               <option value="radiology" ${doctor.department === 'radiology' ? 'selected' : ''}>الأشعة</option>
               <option value="icu" ${doctor.department === 'icu' ? 'selected' : ''}>العناية المركزة</option>
               <option value="operations" ${doctor.department === 'operations' ? 'selected' : ''}>العمليات</option>
+              <option value="cardiology" ${doctor.department === 'cardiology' ? 'selected' : ''}>القلب</option>
+              <option value="neurology" ${doctor.department === 'neurology' ? 'selected' : ''}>الأعصاب</option>
+              <option value="pediatrics" ${doctor.department === 'pediatrics' ? 'selected' : ''}>الأطفال</option>
+              <option value="obstetrics" ${doctor.department === 'obstetrics' ? 'selected' : ''}>النساء والتوليد</option>
+              <option value="orthopedics" ${doctor.department === 'orthopedics' ? 'selected' : ''}>العظام</option>
+              <option value="internal" ${doctor.department === 'internal' ? 'selected' : ''}>الباطنة</option>
+              <option value="ent" ${doctor.department === 'ent' ? 'selected' : ''}>الأذن والأنف والحنجرة</option>
+              <option value="ophthalmology" ${doctor.department === 'ophthalmology' ? 'selected' : ''}>العيون</option>
+              <option value="dermatology" ${doctor.department === 'dermatology' ? 'selected' : ''}>الجلدية</option>
+              <option value="psychiatry" ${doctor.department === 'psychiatry' ? 'selected' : ''}>الطب النفسي</option>
+              <option value="physiotherapy" ${doctor.department === 'physiotherapy' ? 'selected' : ''}>العلاج الطبيعي</option>
             </select>
           </div>
           <div class="form-group">
@@ -5008,9 +5362,12 @@
         nid: document.getElementById("nid").value.trim(),
         gender: document.getElementById("gender").value,
         phone: document.getElementById("phone").value.trim(),
+        whatsapp: document.getElementById("whatsapp").value.trim(),
+        email: document.getElementById("email").value.trim(),
         address: document.getElementById("address").value.trim(),
         bloodType: document.getElementById("bloodType").value,
         diseases: document.getElementById("diseases").value.trim(),
+        patientCategory: document.getElementById("patientCategory").value,
         department: document.getElementById("department").value,
         doctorId: selectedDoctor,
         doctorName: doctorName,
@@ -5019,7 +5376,7 @@
       };
       
       if (!formData.name || !formData.age || !formData.nid || !formData.gender || 
-          !formData.address || !formData.bloodType || !formData.department) {
+          !formData.address || !formData.bloodType || !formData.patientCategory || !formData.department) {
         Swal.fire({
           icon: 'warning',
           title: 'بيانات ناقصة',
@@ -5503,20 +5860,25 @@
       database.ref(`patients`).once('value').then((snapshot) => {
         const patients = snapshot.val() || {};
         let patientPhone = '';
+        let patientWhatsApp = '';
         
         Object.entries(patients).forEach(([dept, deptPatients]) => {
           Object.entries(deptPatients).forEach(([id, patient]) => {
-            if (id === patientId && patient.phone) {
-              patientPhone = patient.phone;
+            if (id === patientId) {
+              patientPhone = patient.phone || '';
+              patientWhatsApp = patient.whatsapp || '';
             }
           });
         });
         
-        if (!patientPhone) {
+        // Use WhatsApp number if available, otherwise use phone
+        const phoneNumber = patientWhatsApp || patientPhone;
+        
+        if (!phoneNumber) {
           Swal.fire({
             icon: 'warning',
             title: 'لا يوجد رقم هاتف',
-            text: 'لا يوجد رقم هاتف مسجل لهذا المريض',
+            text: 'لا يوجد رقم هاتف أو واتساب مسجل لهذا المريض',
             confirmButtonText: 'حسناً'
           });
           return;
@@ -5529,7 +5891,7 @@
           totalAmount: document.getElementById('totalAmount').textContent
         };
         
-        sendInvoiceViaWhatsApp(invoiceData, patientPhone);
+        sendInvoiceViaWhatsApp(invoiceData, phoneNumber);
       });
     });
     
