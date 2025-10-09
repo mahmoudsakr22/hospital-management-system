@@ -2373,7 +2373,7 @@
         Object.entries(data).forEach(([dept, patients]) => {
           Object.entries(patients).forEach(([id, patient]) => {
             if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
+              allPatients[id] = { ...patient, department: dept, id: id };
             }
           });
         });
@@ -4559,6 +4559,16 @@
         return;
       }
       
+      if (selectedServices.size === 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'لم يتم اختيار خدمات',
+          text: 'يرجى اختيار خدمة واحدة على الأقل',
+          confirmButtonText: 'حسناً'
+        });
+        return;
+      }
+      
       const servicesArray = Array.from(selectedServices.entries()).map(([id, service]) => ({
         id,
         name: service.name,
@@ -4658,7 +4668,7 @@
         Swal.fire({
           icon: 'error',
           title: 'خطأ',
-          text: 'حدث خطأ أثناء إنشاء الفاتورة'
+          text: 'حدث خطأ أثناء إنشاء الفاتورة: ' + error.message
         });
       }
     });
@@ -4825,6 +4835,10 @@
       updateSelectedServices();
       updatePaymentHistoryDisplay();
       invoiceModal.classList.remove('hidden');
+      
+      // Load patients and services for the modal
+      loadPatientsForForms();
+      loadServices();
     });
     
     closeInvoiceModal.addEventListener('click', () => {
@@ -5479,7 +5493,7 @@
         Object.entries(data).forEach(([dept, patients]) => {
           Object.entries(patients).forEach(([id, patient]) => {
             if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
+              allPatients[id] = { ...patient, department: dept, id: id };
             }
           });
         });
@@ -5523,7 +5537,7 @@
         Object.entries(data).forEach(([dept, patients]) => {
           Object.entries(patients).forEach(([id, patient]) => {
             if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
+              allPatients[id] = { ...patient, department: dept, id: id };
             }
           });
         });
@@ -5544,7 +5558,7 @@
         Object.entries(data).forEach(([dept, patients]) => {
           Object.entries(patients).forEach(([id, patient]) => {
             if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
+              allPatients[id] = { ...patient, department: dept, id: id };
             }
           });
         });
@@ -5595,7 +5609,7 @@
         Object.entries(data).forEach(([dept, patients]) => {
           Object.entries(patients).forEach(([id, patient]) => {
             if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept };
+              allPatients[id] = { ...patient, department: dept, id: id };
             }
           });
         });
