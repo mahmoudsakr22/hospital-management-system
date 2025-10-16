@@ -31,6 +31,7 @@
             --dark: #0f172a;
             --accent: #667eea;
             --accent-light: #a78bfa;
+            --checkup-color: #7c3aed; /* لون جديد للكشف */
         }
         
         /* Modern Card Styles */
@@ -138,6 +139,19 @@
         .btn-danger:hover {
             background-color: #b91c1c;
             transform: translateY(-1px);
+        }
+        
+        /* NEW: Checkup Button Style */
+        .btn-checkup {
+            background: linear-gradient(135deg, var(--checkup-color), #9333ea);
+            color: white;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-checkup:hover {
+            background: linear-gradient(135deg, #6d28d9, var(--checkup-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
         }
         
         /* Form Styles */
@@ -526,6 +540,36 @@
             font-weight: bold;
         }
         
+        /* Floating Save Button */
+        .floating-save-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--success) 0%, #48bb78 100%);
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 25px rgba(56, 161, 105, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 40;
+            border: none;
+        }
+        
+        .floating-save-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(56, 161, 105, 0.5);
+        }
+        
+        .floating-save-btn:active {
+            transform: scale(0.95);
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .header {
@@ -580,6 +624,13 @@
                 flex-direction: column;
                 gap: 0.5rem;
             }
+            
+            .floating-save-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+            }
         }
     </style>
 </head>
@@ -632,7 +683,8 @@
                         <button onclick="changePatientStatus()" class="btn btn-secondary">
                             <i class="fas fa-exchange-alt"></i> تغيير الحالة
                         </button>
-                        <button onclick="openCheckupModal()" class="btn btn-primary">
+                        <!-- تغيير لون زر الكشف الطبي -->
+                        <button onclick="openCheckupModal()" class="btn btn-checkup">
                             <i class="fas fa-stethoscope"></i> كشف طبي جديد
                         </button>
                         <a href="#" id="monitorBtn" class="btn btn-success">
@@ -896,6 +948,12 @@
         </div>
     </div>
 </div>
+
+<!-- Floating Save Button -->
+<button id="floatingSaveBtn" class="floating-save-btn" onclick="saveSimpleCheckup()" style="display: none;">
+    <i class="fas fa-save"></i>
+</button>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getDatabase, ref, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
@@ -1033,6 +1091,7 @@ async function loadPatientData() {
                 <tr><td class="py-2 px-3 font-semibold text-gray-700">تاريخ الدخول:</td><td class="py-2 px-3">${patient.timestamp ? new Date(patient.timestamp).toLocaleString('ar-EG') : '-'}</td></tr>
                 <tr><td class="py-2 px-3 font-semibold text-gray-700">القسم الحالي:</td><td class="py-2 px-3">${patient.department || '-'}</td></tr>
                 <tr><td class="py-2 px-3 font-semibold text-gray-700">الطبيب المعالج:</td><td class="py-2 px-3">${patient.doctors || '-'}</td></tr>
+                <tr><td class="py-2 px-3 font-semibold text-gray-700">الطبيب المحول:</td><td class="py-2 px-3">${patient.transferredBy || '-'}</td></tr>
                 <tr><td class="py-2 px-3 font-semibold text-gray-700">نوع الخدمة:</td><td class="py-2 px-3" id="serviceType">${patient.serviceType || 'غير محدد'}</td></tr>
                 <tr><td class="py-2 px-3 font-semibold text-gray-700">الحالة:</td><td class="py-2 px-3" id="patientStatusInTable">${patient.status || 'غير محدد'}</td></tr>
             `;
@@ -1064,6 +1123,9 @@ window.openCheckupModal = function() {
     const modal = document.getElementById('checkupModal');
     modal.classList.add('active');
     
+    // Show floating save button
+    document.getElementById('floatingSaveBtn').style.display = 'flex';
+    
     // Focus on textarea
     setTimeout(() => {
         document.getElementById('checkupDetails').focus();
@@ -1073,6 +1135,9 @@ window.openCheckupModal = function() {
 window.closeCheckupModal = function() {
     const modal = document.getElementById('checkupModal');
     modal.classList.remove('active');
+    
+    // Hide floating save button
+    document.getElementById('floatingSaveBtn').style.display = 'none';
 };
 // Save simple checkup data
 window.saveSimpleCheckup = async function() {
@@ -1137,9 +1202,9 @@ window.saveSimpleCheckup = async function() {
             showConfirmButton: false
         });
         
-        // Add success animation to save button
-        const saveBtn = document.querySelector('.save-btn');
-        saveBtn.classList.add('success-animation');
+        // Add success animation to save buttons
+        document.querySelector('.save-btn').classList.add('success-animation');
+        document.getElementById('floatingSaveBtn').classList.add('success-animation');
         
         // Close modal and refresh data
         setTimeout(() => {
