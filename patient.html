@@ -991,7 +991,7 @@
                         </div>
                         <div class="flex items-center gap-3 text-purple-100 text-lg">
                             <i class="fas fa-user-md text-2xl"></i>
-                            <span id="currentDoctor" class="font-semibold">د. أحمد محمد</span>
+                            <span class="font-semibold">د. أحمد محمد</span>
                             <span class="text-2xl">•</span>
                             <span id="currentDate" class="font-medium"></span>
                         </div>
@@ -1012,31 +1012,18 @@
                         <div class="section-icon">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
-                        <h2 class="section-title">معلومات الكشف</h2>
+                        <h2 class="section-title">نوع الكشف</h2>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label class="form-label required">نوع الكشف</label>
-                            <select id="visitType" class="form-select" required>
-                                <option value="">اختر نوع الكشف</option>
-                                <option value="كشف أولي">كشف أولي</option>
-                                <option value="متابعة">متابعة</option>
-                                <option value="استشارة">استشارة</option>
-                                <option value="كشف دوري">كشف دوري</option>
-                                <option value="طوارئ">طوارئ</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label required">الطبيب المعالج</label>
-                            <select id="doctorSelect" class="form-select" required>
-                                <option value="">اختر الطبيب</option>
-                                <option value="د. أحمد محمد" selected>د. أحمد محمد</option>
-                                <option value="د. محمد السيد">د. محمد السيد</option>
-                                <option value="د. سارة أحمد">د. سارة أحمد</option>
-                                <option value="د. خالد عبدالله">د. خالد عبدالله</option>
-                                <option value="د. نادية محمود">د. نادية محمود</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label required">نوع الكشف</label>
+                        <select id="visitType" class="form-select" required>
+                            <option value="">اختر نوع الكشف</option>
+                            <option value="كشف أولي">كشف أولي</option>
+                            <option value="متابعة">متابعة</option>
+                            <option value="استشارة">استشارة</option>
+                            <option value="كشف دوري">كشف دوري</option>
+                            <option value="طوارئ">طوارئ</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -1110,21 +1097,21 @@
         </div>
         
         <!-- Enhanced Save Section -->
-        <div class="save-section">
-            <div class="save-content">
-                <div class="save-info">
-                    <h3>
-                        <i class="fas fa-info-circle"></i>
-                        تأكد من ملء جميع الحقول المطلوبة
-                    </h3>
-                    <p>سيتم حفظ الكشف الطبي في ملف المريض بعد التأكد من صحة البيانات</p>
-                </div>
-                <button onclick="saveVisit()" class="save-btn">
-                    <i class="fas fa-save"></i>
-                    <span>حفظ الكشف الطبي</span>
-                </button>
-            </div>
+<div class="save-section">
+    <div class="save-content">
+        <div class="save-info">
+            <h3>
+                <i class="fas fa-info-circle"></i>
+                تأكد من ملء جميع الحقول المطلوبة
+            </h3>
+            <p>سيتم حفظ الكشف الطبي في ملف المريض بعد التأكد من صحة البيانات</p>
         </div>
+        <button onclick="saveVisit()" class="save-btn">
+            <i class="fas fa-save"></i>
+            <span>حفظ الكشف الطبي</span>
+        </button>
+    </div>
+</div>
     </div>
 </div>
 <script type="module">
@@ -1405,16 +1392,15 @@ window.saveVisit = async function() {
     
     // Collect form data
     const visitType = document.getElementById('visitType').value;
-    const doctorName = document.getElementById('doctorSelect').value;
     const symptoms = document.getElementById('symptoms').value;
     const diagnosis = document.getElementById('diagnosis').value;
     const treatmentPlan = document.getElementById('treatmentPlan').value;
     
     // Validate required fields
-    if (!visitType || !doctorName || !symptoms || !diagnosis) {
+    if (!visitType || !symptoms || !diagnosis) {
         Swal.fire({
             title: 'حقول مطلوبة',
-            text: 'يرجى ملء الحقول المطلوبة (نوع الكشف، الطبيب، الأعراض، التشخيص)',
+            text: 'يرجى ملء الحقول المطلوبة (نوع الكشف، الأعراض، التشخيص)',
             icon: 'warning',
             confirmButtonText: 'موافق'
         });
@@ -1458,12 +1444,12 @@ window.saveVisit = async function() {
         // Prepare checkup data
         const checkupData = {
             visitType,
-            doctorName,
             symptoms,
             diagnosis,
             treatmentPlan,
             medications,
-            doctorId: doctorName,
+            doctorId: "د. أحمد محمد",
+            doctorName: "أحمد محمد",
             date: new Date().toISOString(),
             status: "مكتمل"
         };
@@ -1476,7 +1462,7 @@ window.saveVisit = async function() {
         await update(ref(db, `patients/emergency/${patientId}`), {
             lastCheckup: new Date().toISOString(),
             serviceType: visitType,
-            lastCheckupBy: doctorName
+            lastCheckupBy: "د. أحمد محمد"
         });
         
         // Show success message
@@ -1582,7 +1568,7 @@ window.addTransfer = async function() {
         } : null,
         date: new Date().toLocaleString('ar-EG'),
         status: "قيد الانتظار",
-        requestedBy: document.getElementById('doctorSelect').value || "د. أحمد محمد" // Use selected doctor
+        requestedBy: "د. أحمد محمد" // In real system: use doctor name from authentication
     };
     
     try {
@@ -1726,7 +1712,7 @@ function loadTransfers() {
                             <span>${t.type}</span>
                         </div>
                         <div class="text-sm text-gray-500">
-                            ${t.date} | ${t.requestedBy ? 'الطبيب: ' + t.requestedBy : ''}
+                            ${t.date}
                         </div>
                     </div>
                     <div class="px-3 py-1 rounded-full text-sm font-medium ${statusColor[t.status] || 'text-gray-600 bg-gray-50'}">
@@ -1912,15 +1898,9 @@ function loadCheckups() {
                                 <span class="checkup-type-badge">${checkup.visitType || 'كشف'}</span>
                                 <span class="checkup-date">${formattedDate}</span>
                             </div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <i class="fas fa-user-md text-blue-600"></i>
-                                <span class="font-medium text-blue-800">${checkup.doctorName || checkup.doctorId || 'طبيب'}</span>
-                            </div>
                         </div>
                         <div class="text-xs text-gray-500">
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                ${checkup.status || 'مكتمل'}
-                            </span>
+                            <i class="fas fa-user-md"></i> ${checkup.doctorName || checkup.doctorId || 'طبيب'}
                         </div>
                     </div>
                     
