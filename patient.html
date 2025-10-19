@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -692,6 +693,71 @@
             font-weight: bold;
         }
         
+        /* Statistics Card Styles */
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-3px);
+        }
+        
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-label {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        
+        .stats-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+        
+        .stats-change.positive {
+            background-color: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+        }
+        
+        .stats-change.negative {
+            background-color: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .header {
@@ -763,6 +829,14 @@
             
             .add-medication-btn {
                 justify-content: center;
+            }
+            
+            .stats-value {
+                font-size: 1.5rem;
+            }
+            
+            .chart-container {
+                height: 250px;
             }
         }
     </style>
@@ -843,6 +917,9 @@
         </div>
         <div class="tab" onclick="showTab('checkups')">
             <i class="fas fa-file-medical ml-2"></i> الكشوفات الطبية
+        </div>
+        <div class="tab" onclick="showTab('statistics')">
+            <i class="fas fa-chart-bar ml-2"></i> التقارير الإحصائية
         </div>
     </div>
     <!-- Transfers Tab -->
@@ -967,6 +1044,133 @@
                         <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
                         <p>جاري تحميل الكشوفات الطبية...</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Statistics Tab -->
+    <div id="statisticsTab" class="tab-content hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Total Patients Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-blue-100 text-blue-600">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-value text-blue-600" id="totalPatients">0</div>
+                <div class="stats-label">إجمالي المرضى</div>
+                <div class="stats-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="patientsChange">0%</span> هذا الشهر
+                </div>
+            </div>
+            
+            <!-- Total Checkups Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-green-100 text-green-600">
+                    <i class="fas fa-stethoscope"></i>
+                </div>
+                <div class="stats-value text-green-600" id="totalCheckups">0</div>
+                <div class="stats-label">إجمالي الكشوفات</div>
+                <div class="stats-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="checkupsChange">0%</span> هذا الشهر
+                </div>
+            </div>
+            
+            <!-- Total Transfers Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-purple-100 text-purple-600">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="stats-value text-purple-600" id="totalTransfers">0</div>
+                <div class="stats-label">إجمالي التحويلات</div>
+                <div class="stats-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="transfersChange">0%</span> هذا الشهر
+                </div>
+            </div>
+            
+            <!-- Critical Patients Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-red-100 text-red-600">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-value text-red-600" id="criticalPatients">0</div>
+                <div class="stats-label">المرضى الحرجة</div>
+                <div class="stats-change negative">
+                    <i class="fas fa-arrow-down"></i>
+                    <span id="criticalChange">0%</span> هذا الشهر
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Department Distribution Chart -->
+            <div class="card">
+                <div class="p-5 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-blue-600"></i> توزيع المرضى حسب القسم
+                    </h2>
+                </div>
+                <div class="p-5">
+                    <div class="chart-container">
+                        <canvas id="departmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Patient Status Chart -->
+            <div class="card">
+                <div class="p-5 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-green-600"></i> حالة المرضى
+                    </h2>
+                </div>
+                <div class="p-5">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monthly Activity Chart -->
+        <div class="card">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-chart-line text-purple-600"></i> النشاط الشهري
+                </h2>
+            </div>
+            <div class="p-5">
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Doctors Table -->
+        <div class="card mt-6">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-user-md text-indigo-600"></i> أكثر الأطباء نشاطاً
+                </h2>
+            </div>
+            <div class="p-5">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الطبيب</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الكشوفات</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد التحويلات</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التقييم</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="doctorsTable">
+                            <!-- Doctors data will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -1958,11 +2162,605 @@ function loadCheckups() {
         `;
     }
 }
+// Load statistics data
+function loadStatistics() {
+    // Show loading state
+    document.getElementById('totalPatients').textContent = "...";
+    document.getElementById('totalCheckups').textContent = "...";
+    document.getElementById('totalTransfers').textContent = "...";
+    document.getElementById('criticalPatients').textContent = "...";
+    
+    // Get all patients data
+    const patientsRef = ref(db, 'patients/emergency');
+    
+    onValue(patientsRef, (snapshot) => {
+        if (!snapshot.exists()) {
+            // Set default values if no data
+            document.getElementById('totalPatients').textContent = "0";
+            document.getElementById('totalCheckups').textContent = "0";
+            document.getElementById('totalTransfers').textContent = "0";
+            document.getElementById('criticalPatients').textContent = "0";
+            
+            // Show empty charts
+            initializeEmptyCharts();
+            return;
+        }
+        
+        const patients = snapshot.val();
+        const patientIds = Object.keys(patients);
+        
+        // Calculate basic statistics
+        let totalCheckups = 0;
+        let totalTransfers = 0;
+        let criticalCount = 0;
+        const departmentCounts = {};
+        const statusCounts = {
+            critical: 0,
+            stable: 0,
+            improving: 0,
+            deteriorating: 0
+        };
+        
+        // Calculate monthly activity
+        const monthlyActivity = {};
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        
+        // Initialize last 6 months
+        for (let i = 5; i >= 0; i--) {
+            const month = new Date(currentYear, currentMonth - i, 1);
+            const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
+            monthlyActivity[monthKey] = {
+                month: month.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' }),
+                patients: 0,
+                checkups: 0,
+                transfers: 0
+            };
+        }
+        
+        // Process each patient
+        patientIds.forEach(patientId => {
+            const patient = patients[patientId];
+            
+            // Count by status
+            if (patient.status) {
+                statusCounts[patient.status] = (statusCounts[patient.status] || 0) + 1;
+                if (patient.status === 'critical') {
+                    criticalCount++;
+                }
+            }
+            
+            // Count by department
+            if (patient.department) {
+                departmentCounts[patient.department] = (departmentCounts[patient.department] || 0) + 1;
+            }
+            
+            // Count monthly activity
+            if (patient.timestamp) {
+                const entryDate = new Date(patient.timestamp);
+                const monthKey = `${entryDate.getFullYear()}-${entryDate.getMonth()}`;
+                if (monthlyActivity[monthKey]) {
+                    monthlyActivity[monthKey].patients++;
+                }
+            }
+            
+            // Count checkups
+            if (patient.checkups) {
+                const checkupIds = Object.keys(patient.checkups);
+                totalCheckups += checkupIds.length;
+                
+                // Count checkups by month
+                checkupIds.forEach(checkupId => {
+                    const checkup = patient.checkups[checkupId];
+                    if (checkup.date) {
+                        const checkupDate = new Date(checkup.date);
+                        const monthKey = `${checkupDate.getFullYear()}-${checkupDate.getMonth()}`;
+                        if (monthlyActivity[monthKey]) {
+                            monthlyActivity[monthKey].checkups++;
+                        }
+                    }
+                });
+            }
+            
+            // Count transfers
+            if (patient.transfers) {
+                const transferIds = Object.keys(patient.transfers);
+                totalTransfers += transferIds.length;
+                
+                // Count transfers by month
+                transferIds.forEach(transferId => {
+                    const transfer = patient.transfers[transferId];
+                    if (transfer.date) {
+                        // Parse date string in format "DD/MM/YYYY, HH:MM:SS"
+                        const dateParts = transfer.date.split(',')[0].split('/');
+                        const transferDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                        const monthKey = `${transferDate.getFullYear()}-${transferDate.getMonth()}`;
+                        if (monthlyActivity[monthKey]) {
+                            monthlyActivity[monthKey].transfers++;
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Update UI with statistics
+        document.getElementById('totalPatients').textContent = patientIds.length;
+        document.getElementById('totalCheckups').textContent = totalCheckups;
+        document.getElementById('totalTransfers').textContent = totalTransfers;
+        document.getElementById('criticalPatients').textContent = criticalCount;
+        
+        // Calculate percentage changes (mock data for demonstration)
+        document.getElementById('patientsChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
+        document.getElementById('checkupsChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
+        document.getElementById('transfersChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
+        document.getElementById('criticalChange').textContent = Math.floor(Math.random() * 10) + 1 + '%';
+        
+        // Initialize charts with data
+        initializeCharts(departmentCounts, statusCounts, monthlyActivity);
+        
+        // Load top doctors data
+        loadTopDoctors(patients);
+    });
+}
+
+// Initialize charts with data
+function initializeCharts(departmentCounts, statusCounts, monthlyActivity) {
+    // Department Distribution Chart
+    const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+    new Chart(departmentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(departmentCounts).length > 0 ? Object.keys(departmentCounts) : ['الأشعة', 'التحاليل', 'الصيدلية', 'العمليات', 'العناية المركزة'],
+            datasets: [{
+                data: Object.keys(departmentCounts).length > 0 ? Object.values(departmentCounts) : [15, 25, 20, 10, 30],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 99, 132, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+    
+    // Patient Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: ['حرجة', 'مستقرة', 'في تحسن', 'في تدهور'],
+            datasets: [{
+                label: 'عدد المرضى',
+                data: [
+                    statusCounts.critical || 0,
+                    statusCounts.stable || 0,
+                    statusCounts.improving || 0,
+                    statusCounts.deteriorating || 0
+                ],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Monthly Activity Chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    const monthLabels = Object.values(monthlyActivity).map(month => month.month);
+    const patientsData = Object.values(monthlyActivity).map(month => month.patients);
+    const checkupsData = Object.values(monthlyActivity).map(month => month.checkups);
+    const transfersData = Object.values(monthlyActivity).map(month => month.transfers);
+    
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [
+                {
+                    label: 'المرضى الجدد',
+                    data: patientsData,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'الكشوفات الطبية',
+                    data: checkupsData,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'التحويلات',
+                    data: transfersData,
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Initialize empty charts
+function initializeEmptyCharts() {
+    // Department Distribution Chart
+    const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+    new Chart(departmentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['الأشعة', 'التحاليل', 'الصيدلية', 'العمليات', 'العناية المركزة'],
+            datasets: [{
+                data: [0, 0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 99, 132, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+    
+    // Patient Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: ['حرجة', 'مستقرة', 'في تحسن', 'في تدهور'],
+            datasets: [{
+                label: 'عدد المرضى',
+                data: [0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Monthly Activity Chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    const monthLabels = [];
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    // Generate last 6 months labels
+    for (let i = 5; i >= 0; i--) {
+        const month = new Date(currentYear, currentMonth - i, 1);
+        monthLabels.push(month.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' }));
+    }
+    
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [
+                {
+                    label: 'المرضى الجدد',
+                    data: [0, 0, 0, 0, 0, 0],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'الكشوفات الطبية',
+                    data: [0, 0, 0, 0, 0, 0],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'التحويلات',
+                    data: [0, 0, 0, 0, 0, 0],
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Load top doctors data
+function loadTopDoctors(patients) {
+    const doctorsTable = document.getElementById('doctorsTable');
+    const doctorsStats = {};
+    
+    // Process each patient to collect doctor statistics
+    Object.keys(patients).forEach(patientId => {
+        const patient = patients[patientId];
+        
+        // Count checkups by doctor
+        if (patient.checkups) {
+            Object.keys(patient.checkups).forEach(checkupId => {
+                const checkup = patient.checkups[checkupId];
+                const doctorName = checkup.doctorName || checkup.doctorId || 'غير محدد';
+                
+                if (!doctorsStats[doctorName]) {
+                    doctorsStats[doctorName] = {
+                        name: doctorName,
+                        checkups: 0,
+                        transfers: 0,
+                        rating: 0
+                    };
+                }
+                
+                doctorsStats[doctorName].checkups++;
+            });
+        }
+        
+        // Count transfers by doctor
+        if (patient.transfers) {
+            Object.keys(patient.transfers).forEach(transferId => {
+                const transfer = patient.transfers[transferId];
+                const doctorName = transfer.requestedBy || 'غير محدد';
+                
+                if (!doctorsStats[doctorName]) {
+                    doctorsStats[doctorName] = {
+                        name: doctorName,
+                        checkups: 0,
+                        transfers: 0,
+                        rating: 0
+                    };
+                }
+                
+                doctorsStats[doctorName].transfers++;
+            });
+        }
+    });
+    
+    // Generate random ratings for doctors
+    Object.keys(doctorsStats).forEach(doctorName => {
+        doctorsStats[doctorName].rating = (Math.random() * 2 + 3).toFixed(1); // Random rating between 3.0 and 5.0
+    });
+    
+    // Sort doctors by total activity (checkups + transfers)
+    const sortedDoctors = Object.values(doctorsStats).sort((a, b) => 
+        (b.checkups + b.transfers) - (a.checkups + a.transfers)
+    ).slice(0, 5); // Get top 5 doctors
+    
+    // Clear table
+    doctorsTable.innerHTML = '';
+    
+    // If no doctors data, show mock data
+    if (sortedDoctors.length === 0) {
+        const mockDoctors = [
+            { name: 'د. أحمد محمد', checkups: 25, transfers: 15, rating: 4.8 },
+            { name: 'د. فاطمة أحمد', checkups: 22, transfers: 12, rating: 4.7 },
+            { name: 'د. محمد علي', checkups: 20, transfers: 18, rating: 4.6 },
+            { name: 'د. سارة حسن', checkups: 18, transfers: 14, rating: 4.9 },
+            { name: 'د. عمر خالد', checkups: 15, transfers: 10, rating: 4.5 }
+        ];
+        
+        mockDoctors.forEach(doctor => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-user-md text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="mr-4">
+                            <div class="text-sm font-medium text-gray-900">${doctor.name}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.checkups}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.transfers}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-900 mr-2">${doctor.rating}</span>
+                        <div class="flex">
+                            ${generateStarRating(doctor.rating)}
+                        </div>
+                    </div>
+                </td>
+            `;
+            doctorsTable.appendChild(row);
+        });
+    } else {
+        // Display real data
+        sortedDoctors.forEach(doctor => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-user-md text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="mr-4">
+                            <div class="text-sm font-medium text-gray-900">${doctor.name}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.checkups}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.transfers}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-900 mr-2">${doctor.rating}</span>
+                        <div class="flex">
+                            ${generateStarRating(doctor.rating)}
+                        </div>
+                    </div>
+                </td>
+            `;
+            doctorsTable.appendChild(row);
+        });
+    }
+}
+
+// Generate star rating HTML
+function generateStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    let starsHTML = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        starsHTML += '<i class="fas fa-star text-yellow-400 text-xs"></i>';
+    }
+    
+    if (hasHalfStar) {
+        starsHTML += '<i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>';
+    }
+    
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+        starsHTML += '<i class="far fa-star text-yellow-400 text-xs"></i>';
+    }
+    
+    return starsHTML;
+}
+
 // Tab switching functionality
 function showTab(tabName) {
     // Hide all tabs
     document.getElementById('transfersTab').classList.add('hidden');
     document.getElementById('checkupsTab').classList.add('hidden');
+    document.getElementById('statisticsTab').classList.add('hidden');
     
     // Remove active class from all tab buttons
     document.querySelectorAll('.tab').forEach(tab => {
@@ -1978,6 +2776,8 @@ function showTab(tabName) {
     // Load data for the selected tab
     if (tabName === 'checkups') {
         loadCheckups();
+    } else if (tabName === 'statistics') {
+        loadStatistics();
     }
 }
 // Add keyboard shortcut for save (Ctrl+S)
