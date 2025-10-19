@@ -6,7 +6,7 @@
   <title>بوابة المريض - البحث عن مريض</title>
   <meta name="description" content="بوابة البحث عن المرضى في مستشفى الحياة الذكية">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <script>
     tailwind.config = {
@@ -15,10 +15,26 @@
           colors: {
             primary: "#0077b6",
             secondary: "#005f8a",
-            light: "#f0f9ff"
+            light: "#f0f9ff",
+            success: "#22c55e",
+            error: "#ef4444"
           },
           fontFamily: {
-            arabic: ["'Segoe UI'", "Tahoma", "sans-serif"]
+            arabic: ["'Noto Sans Arabic'", "'Segoe UI'", "Tahoma", "sans-serif"]
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-in-out',
+            'slide-up': 'slideUp 0.4s ease-out'
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            }
           }
         }
       }
@@ -26,75 +42,279 @@
   </script>
 
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;700&display=swap');
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
+      font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 <body class="min-h-screen font-arabic">
 
   <!-- الهيدر -->
-  <header class="bg-primary text-white text-center py-6 shadow-md">
-    <h1 class="text-4xl font-extrabold tracking-wide"> مستشفى الحياة الذكية</h1>
-    <p class="mt-2 text-sm opacity-90">نظام ذكي لرعاية صحية متكاملة</p>
+  <header class="bg-primary/90 text-white text-center py-6 shadow-lg sticky top-0 z-10">
+    <div class="container mx-auto px-4">
+      <h1 class="text-4xl font-extrabold tracking-wide flex items-center justify-center gap-3">
+        <i class="fas fa-hospital"></i>
+        مستشفى الحياة الذكية
+      </h1>
+      <p class="mt-2 text-sm opacity-90">نظام ذكي لرعاية صحية متكاملة</p>
+    </div>
   </header>
 
-  <!-- الصورة -->
-  <section class="flex justify-center mt-6 px-4">
-    <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" 
-         alt="صورة المستشفى" 
-         class="rounded-2xl shadow-xl w-full max-w-5xl transition hover:scale-105 duration-500"
-         loading="lazy">
-  </section>
+  <main class="container mx-auto px-4 py-8">
+    <!-- الصورة -->
+    <section class="flex justify-center mt-6">
+      <img src="https://image.cdn2.seaart.me/2025-07-09/d1mo7ble878c73e3dta0-4/3d0cbb13ac1cb6a3c7d657a682e2242e_high.webp" 
+           alt="صورة المستشفى" 
+           class="rounded-2xl shadow-2xl w-full max-w-4xl transition hover:scale-105 duration-500"
+           loading="lazy">
+    </section>
 
-  <!-- الوصف -->
-  <section class="text-center max-w-3xl mx-auto px-4 py-10">
-    <p class="text-lg text-gray-800 leading-loose">
-      نرحب بكم في <strong class="text-primary">بوابة المريض</strong> التابعة لمستشفى الحياة الذكية. هنا يمكنكم الاستعلام عن بيانات المرضى بسهولة،
-      عبر إدخال رقم التعريف (ID) للمريض، ضمن منظومة صحية تعتمد على أحدث التقنيات لتوفير أفضل رعاية.
-    </p>
-  </section>
+    <!-- الوصف -->
+    <section class="text-center max-w-3xl mx-auto px-4 py-10 glass-effect rounded-2xl p-8 mt-8">
+      <p class="text-lg text-gray-800 leading-loose">
+        نرحب بكم في <strong class="text-primary">بوابة المريض</strong> التابعة لمستشفى الحياة الذكية. هنا يمكنكم الاستعلام عن بيانات المرضى بسهولة،
+        عبر إدخال رقم التعريف (ID) للمريض، ضمن منظومة صحية تعتمد على أحدث التقنيات لتوفير أفضل رعاية.
+      </p>
+    </section>
 
-  <!-- نموذج البحث -->
-  <section class="max-w-md mx-auto bg-white/90 p-8 rounded-2xl shadow-2xl backdrop-blur-sm">
-    <div class="text-center mb-6">
-      <i class="fas fa-user-md text-primary text-4xl mb-3"></i>
-      <h2 class="text-2xl font-bold text-gray-800">🔎 البحث عن مريض</h2>
-    </div>
+    <!-- نموذج البحث -->
+    <section class="max-w-lg mx-auto mt-12">
+      <div class="glass-effect p-8 rounded-3xl shadow-2xl">
+        <div class="text-center mb-6">
+          <i class="fas fa-user-injured text-primary text-5xl mb-3"></i>
+          <h2 class="text-3xl font-bold text-gray-800">البحث عن مريض</h2>
+        </div>
 
-    <div class="space-y-4">
-      <input 
-        type="text" 
-        id="patientID" 
-        placeholder="ادخل رقم تعريف المريض (ID)" 
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition placeholder:text-gray-500 text-right"
-      >
+        <!-- نموذج البحث -->
+        <form id="searchForm" class="space-y-6">
+          <div>
+            <label for="patientID" class="block text-sm font-medium text-gray-700 mb-2">رقم التعريف الوطني</label>
+            <input 
+              type="text" 
+              id="patientID" 
+              name="patientID"
+              placeholder="مثال: 101, 102, 103" 
+              class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-gray-500 text-right"
+              required
+            >
+            <!-- رسالة الخطأ -->
+            <div id="errorMessage" class="hidden mt-2 text-sm text-error flex items-center gap-2 animate-slide-up">
+              <i class="fas fa-exclamation-circle"></i>
+              <span id="errorText"></span>
+            </div>
+          </div>
 
-      <button 
-        onclick="searchPatient()"
-        class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-lg font-semibold text-lg transition duration-300 shadow-md"
-      >
-        بحث الآن <i class="fas fa-arrow-left mr-2"></i>
-      </button>
-    </div>
-  </section>
+          <button 
+            type="submit"
+            class="w-full bg-primary hover:bg-secondary text-white py-3 px-6 rounded-xl font-bold text-lg transition duration-300 shadow-md flex items-center justify-center gap-2"
+          >
+            <span>بحث الآن</span>
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+
+        <!-- مؤشر التحميل -->
+        <div id="loadingSpinner" class="hidden mt-6 text-center">
+          <i class="fas fa-spinner fa-spin text-4xl text-primary"></i>
+          <p class="mt-2 text-gray-600">جاري البحث...</p>
+        </div>
+
+        <!-- قسم عرض النتائج -->
+        <div id="resultsSection" class="hidden mt-8 animate-fade-in">
+          <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <i class="fas fa-clipboard-check text-success"></i>
+              بيانات المريض
+            </h3>
+            <div class="space-y-3 text-gray-700">
+              <div class="flex justify-between items-center py-2 border-b">
+                <span class="font-medium">الاسم الكامل:</span>
+                <span id="resultName" class="font-bold"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b">
+                <span class="font-medium">رقم الهوية:</span>
+                <span id="resultID" class="font-bold"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b">
+                <span class="font-medium">تاريخ الميلاد:</span>
+                <span id="resultDOB"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b">
+                <span class="font-medium">الجنس:</span>
+                <span id="resultGender"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b">
+                <span class="font-medium">تاريخ القبول:</span>
+                <span id="resultAdmissionDate"></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b">
+                <span class="font-medium">الطبيب المعالج:</span>
+                <span id="resultDoctor"></span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="font-medium">الحالة:</span>
+                <span id="resultStatus" class="px-3 py-1 rounded-full text-sm font-bold"></span>
+              </div>
+            </div>
+            <button onclick="resetSearch()" class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg font-semibold transition duration-300">
+              <i class="fas fa-redo ml-2"></i>
+              بحث جديد
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <!-- الفوتر -->
-  <footer class="bg-gray-100 mt-16 py-6 text-center text-gray-600 text-sm">
-    <p>© 2025 مستشفى الحياة الذكية - جميع الحقوق محفوظة</p>
+  <footer class="bg-gray-800/80 text-white mt-20 py-8 text-center">
+    <p class="text-sm">© 2025 مستشفى الحياة الذكية - جميع الحقوق محفوظة</p>
+    <div class="mt-4 flex justify-center gap-4">
+      <a href="#" class="hover:text-primary transition"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" class="hover:text-primary transition"><i class="fab fa-twitter"></i></a>
+      <a href="#" class="hover:text-primary transition"><i class="fab fa-instagram"></i></a>
+    </div>
   </footer>
 
   <!-- سكربت -->
   <script>
-    function searchPatient() {
-      const id = document.getElementById('patientID').value.trim();
-      if (id !== '') {
-        window.location.href = `patient.html?id=${id}`;
+    // --- قاعدة بيانات وهمية للمرضى ---
+    // في تطبيق حقيقي، سيتم جلب هذه البيانات من خادم (API)
+    const patientsDatabase = [
+      {
+        id: "101",
+        name: "أحمد علي محمد",
+        dateOfBirth: "1990-05-15",
+        gender: "ذكر",
+        admissionDate: "2025-07-10",
+        doctor: "د. خالد السعيد",
+        status: "مستقر"
+      },
+      {
+        id: "102",
+        name: "فاطمة محمود إبراهيم",
+        dateOfBirth: "1985-11-22",
+        gender: "أنثى",
+        admissionDate: "2025-07-09",
+        doctor: "د. نورة العلي",
+        status: "تحت الملاحظة"
+      },
+      {
+        id: "103",
+        name: "محمود حسن عبدالله",
+        dateOfBirth: "1978-02-28",
+        gender: "ذكر",
+        admissionDate: "2025-07-08",
+        doctor: "د. سامي الغامدي",
+        status: "جاهز للخروج"
+      }
+    ];
+
+    // --- الحصول على عناصر DOM ---
+    const searchForm = document.getElementById('searchForm');
+    const patientIDInput = document.getElementById('patientID');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const errorTextSpan = document.getElementById('errorText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const resultsSection = document.getElementById('resultsSection');
+
+    // --- دالة البحث عن مريض ---
+    async function searchPatient(event) {
+      event.preventDefault(); // منع إعادة تحميل الصفحة عند إرسال النموذج
+
+      const id = patientIDInput.value.trim();
+      
+      // إخفاء الرسائل والنتائج القديمة
+      hideMessage();
+      hideResults();
+
+      if (id === '') {
+        showError('يرجى إدخال رقم تعريف المريض أولاً.');
+        return;
+      }
+
+      // إظهار مؤشر التحميل
+      showLoading();
+
+      // محاكاة تأخير الشبكة (طلب API)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // البحث عن المريض في قاعدة البيانات الوهمية
+      const patient = patientsDatabase.find(p => p.id === id);
+
+      hideLoading();
+
+      if (patient) {
+        displayResults(patient);
       } else {
-        alert('يرجى إدخال رقم تعريف المريض أولاً.');
+        showError(`لم يتم العثور على مريض برقم التعريف "${id}". يرجى التحقق من الرقم والمحاولة مرة أخرى.`);
       }
     }
+
+    // --- دوال مساعدة للتحكم في واجهة المستخدم ---
+
+    function showError(message) {
+      errorTextSpan.textContent = message;
+      errorMessageDiv.classList.remove('hidden');
+    }
+
+    function hideMessage() {
+      errorMessageDiv.classList.add('hidden');
+    }
+
+    function showLoading() {
+      loadingSpinner.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      loadingSpinner.classList.add('hidden');
+    }
+
+    function displayResults(patient) {
+      document.getElementById('resultName').textContent = patient.name;
+      document.getElementById('resultID').textContent = patient.id;
+      document.getElementById('resultDOB').textContent = patient.dateOfBirth;
+      document.getElementById('resultGender').textContent = patient.gender;
+      document.getElementById('resultAdmissionDate').textContent = patient.admissionDate;
+      document.getElementById('resultDoctor').textContent = patient.doctor;
+      
+      const statusElement = document.getElementById('resultStatus');
+      statusElement.textContent = patient.status;
+      // تلوين الحالة حسب نوعها
+      statusElement.className = 'px-3 py-1 rounded-full text-sm font-bold';
+      if (patient.status === 'مستقر') {
+        statusElement.classList.add('bg-green-100', 'text-green-800');
+      } else if (patient.status === 'تحت الملاحظة') {
+        statusElement.classList.add('bg-yellow-100', 'text-yellow-800');
+      } else {
+        statusElement.classList.add('bg-blue-100', 'text-blue-800');
+      }
+
+      resultsSection.classList.remove('hidden');
+    }
+
+    function hideResults() {
+      resultsSection.classList.add('hidden');
+    }
+
+    function resetSearch() {
+      hideResults();
+      hideMessage();
+      patientIDInput.value = '';
+      patientIDInput.focus();
+    }
+
+    // --- إضافة مستمع الأحداث للنموذج ---
+    searchForm.addEventListener('submit', searchPatient);
+
   </script>
 
 </body>
