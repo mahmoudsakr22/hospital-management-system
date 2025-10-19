@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -692,6 +694,359 @@
             font-weight: bold;
         }
         
+        /* Statistics Card Styles */
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-3px);
+        }
+        
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-label {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        
+        .stats-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+        
+        .stats-change.positive {
+            background-color: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+        }
+        
+        .stats-change.negative {
+            background-color: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+        
+        /* Medical Report Styles */
+        .medical-report {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .report-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .report-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+        
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .report-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .report-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .report-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            color: #334155;
+            font-size: 1rem;
+        }
+        
+        .medication-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .medication-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .medication-name {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .medication-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .doctor-signature {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .signature-box {
+            text-align: center;
+            width: 200px;
+        }
+        
+        .signature-line {
+            border-bottom: 1px solid #334155;
+            height: 40px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .signature-text {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .qr-code-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .qr-code {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .qr-label {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 8rem;
+            color: rgba(0, 0, 0, 0.05);
+            font-weight: 800;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background-color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background-color: white;
+            transition: all 0.2s ease;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+        
+        .medications-container {
+            margin-top: 1rem;
+        }
+        
+        .remove-medication-btn {
+            background-color: var(--danger);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .remove-medication-btn:hover {
+            background-color: #b91c1c;
+        }
+        
+        .template-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .template-option {
+            padding: 0.5rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .template-option:hover {
+            border-color: var(--primary-light);
+        }
+        
+        .template-option.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .preview-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .preview-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .preview-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background-color: white;
+                color: black;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .print-break {
+                page-break-inside: avoid;
+            }
+            
+            .medical-report {
+                box-shadow: none;
+                border: 1px solid #e2e8f0;
+            }
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .header {
@@ -763,6 +1118,14 @@
             
             .add-medication-btn {
                 justify-content: center;
+            }
+            
+            .stats-value {
+                font-size: 1.5rem;
+            }
+            
+            .chart-container {
+                height: 250px;
             }
         }
     </style>
@@ -843,6 +1206,9 @@
         </div>
         <div class="tab" onclick="showTab('checkups')">
             <i class="fas fa-file-medical ml-2"></i> الكشوفات الطبية
+        </div>
+        <div class="tab" onclick="showTab('statistics')">
+            <i class="fas fa-chart-bar ml-2"></i> التقارير الإحصائية
         </div>
     </div>
     <!-- Transfers Tab -->
@@ -971,6 +1337,133 @@
             </div>
         </div>
     </div>
+    <!-- Statistics Tab -->
+    <div id="statisticsTab" class="tab-content hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Total Patients Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-blue-100 text-blue-600">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-value text-blue-600" id="totalPatients">0</div>
+                <div class="stats-label">إجمالي المرضى</div>
+                <div class="stats-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="patientsChange">0%</span> هذا الشهر
+                </div>
+            </div>
+            
+            <!-- Total Checkups Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-green-100 text-green-600">
+                    <i class="fas fa-stethoscope"></i>
+                </div>
+                <div class="stats-value text-green-600" id="totalCheckups">0</div>
+                <div class="stats-label">إجمالي الكشوفات</div>
+                <div class="stats-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="checkupsChange">0%</span> هذا الشهر
+                </div>
+            </div>
+            
+            <!-- Total Transfers Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-purple-100 text-purple-600">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="stats-value text-purple-600" id="totalTransfers">0</div>
+                <div class="stats-label">إجمالي التحويلات</div>
+                <div class="stats-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="transfersChange">0%</span> هذا الشهر
+                </div>
+            </div>
+            
+            <!-- Critical Patients Card -->
+            <div class="stats-card">
+                <div class="stats-icon bg-red-100 text-red-600">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-value text-red-600" id="criticalPatients">0</div>
+                <div class="stats-label">المرضى الحرجة</div>
+                <div class="stats-change negative">
+                    <i class="fas fa-arrow-down"></i>
+                    <span id="criticalChange">0%</span> هذا الشهر
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Department Distribution Chart -->
+            <div class="card">
+                <div class="p-5 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-blue-600"></i> توزيع المرضى حسب القسم
+                    </h2>
+                </div>
+                <div class="p-5">
+                    <div class="chart-container">
+                        <canvas id="departmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Patient Status Chart -->
+            <div class="card">
+                <div class="p-5 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-green-600"></i> حالة المرضى
+                    </h2>
+                </div>
+                <div class="p-5">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monthly Activity Chart -->
+        <div class="card">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-chart-line text-purple-600"></i> النشاط الشهري
+                </h2>
+            </div>
+            <div class="p-5">
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Doctors Table -->
+        <div class="card mt-6">
+            <div class="p-5 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-user-md text-indigo-600"></i> أكثر الأطباء نشاطاً
+                </h2>
+            </div>
+            <div class="p-5">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الطبيب</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الكشوفات</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد التحويلات</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التقييم</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="doctorsTable">
+                            <!-- Doctors data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <!-- Enhanced Medical Checkup Modal -->
 <div id="checkupModal" class="modal checkup-form-container">
@@ -1003,138 +1496,327 @@
             </div>
         </div>
         
-        <!-- Modal Body -->
-        <div class="overflow-y-auto" style="max-height: calc(95vh - 200px);">
-            <form id="checkupForm">
-                <!-- Templates Section (New) -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon"><i class="fas fa-layer-group"></i></div>
-                        <h2 class="section-title">القوالب الجاهزة حسب التخصص</h2>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="form-label">التخصص</label>
-                            <select id="templateSpecialty" class="form-select"></select>
-                        </div>
-                        <div>
-                            <label class="form-label">القالب</label>
-                            <select id="templateName" class="form-select">
-                                <option value="">اختر القالب</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end">
-                            <button type="button" id="applyTemplateBtn" class="btn btn-secondary">
-                                <i class="fas fa-magic"></i> تطبيق القالب
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="form-label">عبارات سريعة للأعراض</label>
-                            <div class="flex flex-wrap gap-2" id="quickSymptoms"></div>
-                        </div>
-                        <div>
-                            <label class="form-label">عبارات سريعة للتشخيص</label>
-                            <div class="flex flex-wrap gap-2" id="quickDiagnosis"></div>
-                        </div>
-                        <div>
-                            <label class="form-label">عبارات سريعة للخطة</label>
-                            <div class="flex flex-wrap gap-2" id="quickPlan"></div>
-                        </div>
-                    </div>
+        <!-- Template Selector -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-file-medical"></i>
                 </div>
-
-                <!-- Visit Type Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-clipboard-list"></i>
+                <h2 class="section-title">اختر قالب الكشف</h2>
+            </div>
+            <div class="template-selector">
+                <div class="template-option active" onclick="selectTemplate('general')">كشف عام</div>
+                <div class="template-option" onclick="selectTemplate('pediatric')">كشف أطفال</div>
+                <div class="template-option" onclick="selectTemplate('cardiac')">كشف قلب</div>
+                <div class="template-option" onclick="selectTemplate('orthopedic')">كشف عظام</div>
+                <div class="template-option" onclick="selectTemplate('dental')">كشف أسنان</div>
+                <div class="template-option" onclick="selectTemplate('eye')">كشف عيون</div>
+            </div>
+        </div>
+        
+        <!-- Patient Information -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h2 class="section-title">بيانات المريض</h2>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label class="info-label">اسم المريض</label>
+                    <input type="text" id="patientName" class="form-control" placeholder="أدخل اسم المريض">
+                </div>
+                <div class="info-item">
+                    <label class="info-label">العمر</label>
+                    <input type="text" id="patientAge" class="form-control" placeholder="أدخل العمر">
+                </div>
+                <div class="info-item">
+                    <label class="info-label">الجنس</label>
+                    <select id="patientGender" class="form-control">
+                        <option value="">اختر</option>
+                        <option value="ذكر">ذكر</option>
+                        <option value="أنثى">أنثى</option>
+                    </select>
+                </div>
+                <div class="info-item">
+                    <label class="info-label">تاريخ الميلاد</label>
+                    <input type="date" id="patientDOB" class="form-control">
+                </div>
+                <div class="info-item">
+                    <label class="info-label">رقم الهاتف</label>
+                    <input type="tel" id="patientPhone" class="form-control" placeholder="أدخل رقم الهاتف">
+                </div>
+                <div class="info-item">
+                    <label class="info-label">الرقم القومي</label>
+                    <input type="text" id="patientNID" class="form-control" placeholder="أدخل الرقم القومي">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Checkup Information -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-stethoscope"></i>
+                </div>
+                <h2 class="section-title">بيانات الكشف</h2>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label class="info-label">تاريخ الكشف</label>
+                    <input type="date" id="checkupDate" class="form-control">
+                </div>
+                <div class="info-item">
+                    <label class="info-label">نوع الكشف</label>
+                    <select id="checkupType" class="form-control">
+                        <option value="">اختر</option>
+                        <option value="كشف أولي">كشف أولي</option>
+                        <option value="متابعة">متابعة</option>
+                        <option value="استشارة">استشارة</option>
+                        <option value="كشف دوري">كشف دوري</option>
+                        <option value="طوارئ">طوارئ</option>
+                    </select>
+                </div>
+                <div class="info-item">
+                    <label class="info-label">الطبيب المعالج</label>
+                    <input type="text" id="doctorName" class="form-control" placeholder="أدخل اسم الطبيب">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Symptoms Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-notes-medical"></i>
+                </div>
+                <h2 class="section-title">الأعراض</h2>
+            </div>
+            <div class="form-group">
+                <label class="form-label required">الأعراض التي يشتكي منها المريض</label>
+                <textarea id="symptoms" class="form-textarea" placeholder="اكتب الأعراض التي يشتكي منها المريض بالتفصيل..." required></textarea>
+            </div>
+        </div>
+        
+        <!-- Diagnosis Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-diagnoses"></i>
+                </div>
+                <h2 class="section-title">التشخيص</h2>
+            </div>
+            <div class="form-group">
+                <label class="form-label required">التشخيص الطبي</label>
+                <textarea id="diagnosis" class="form-textarea" placeholder="اكتب التشخيص الطبي للحالة..." required></textarea>
+            </div>
+        </div>
+        
+        <!-- Treatment Plan Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <h2 class="section-title">الخطة العلاجية</h2>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الخطة العلاجية العامة</label>
+                <textarea id="treatmentPlan" class="form-textarea" placeholder="الخطة العلاجية العامة والتوصيات..." rows="4"></textarea>
+            </div>
+            
+            <!-- Enhanced Medications Section -->
+            <div class="medications-container">
+                <div class="medications-header">
+                    <h3 class="medications-title">
+                        <i class="fas fa-prescription-bottle text-green-600"></i>
+                        الأدوية الموصوفة
+                    </h3>
+                    <button type="button" onclick="addMedication()" class="add-medication-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        إضافة دواء
+                    </button>
+                </div>
+                
+                <div id="medicationsList">
+                    <!-- Medications will be added dynamically -->
+                </div>
+                
+                <div id="noMedications" class="empty-state">
+                    <i class="fas fa-pills"></i>
+                    <p class="font-semibold text-lg">لا توجد أدوية مضافة</p>
+                    <p class="text-base">اضغط على زر "إضافة دواء" لبدء إضافة الأدوية</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Notes Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-clipboard"></i>
+                </div>
+                <h2 class="section-title">ملاحظات إضافية</h2>
+            </div>
+            <div class="form-group">
+                <label class="form-label">ملاحظات إضافية</label>
+                <textarea id="additionalNotes" class="form-textarea" placeholder="أدخل أي ملاحظات إضافية"></textarea>
+            </div>
+        </div>
+        
+        <!-- Report Preview Section -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h2 class="section-title">معاينة التقرير</h2>
+            </div>
+            <div class="preview-actions mb-4">
+                <button onclick="generateReport()" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> تحديث المعاينة
+                </button>
+                <button onclick="downloadPDF()" class="btn btn-success">
+                    <i class="fas fa-download"></i> تحميل PDF
+                </button>
+                <button onclick="window.print()" class="btn btn-secondary">
+                    <i class="fas fa-print"></i> طباعة
+                </button>
+            </div>
+            
+            <div id="reportPreview" class="medical-report print-break">
+                <!-- Watermark -->
+                <div class="watermark">مستشفى الحياة الذكية</div>
+                
+                <!-- Report Header -->
+                <div class="report-header">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="report-title">تقرير كشف طبي</h1>
+                            <p class="report-subtitle">مستشفى الحياة الذكية</p>
                         </div>
-                        <h2 class="section-title">نوع الكشف</h2>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label required">نوع الكشف</label>
-                        <select id="visitType" class="form-select" required>
-                            <option value="">اختر نوع الكشف</option>
-                            <option value="كشف أولي">كشف أولي</option>
-                            <option value="متابعة">متابعة</option>
-                            <option value="استشارة">استشارة</option>
-                            <option value="كشف دوري">كشف دوري</option>
-                            <option value="طوارئ">طوارئ</option>
-                        </select>
+                        <div class="qr-code-container">
+                            <div id="qrCodeReport" class="qr-code"></div>
+                            <div class="qr-label">رمز المريض</div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Symptoms Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-notes-medical"></i>
+                <!-- Patient Information -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-user-circle"></i> بيانات المريض
+                    </h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">الاسم</div>
+                            <div class="info-value" id="previewPatientName">-</div>
                         </div>
-                        <h2 class="section-title">الأعراض</h2>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label required">الأعراض التي يشتكي منها المريض</label>
-                        <textarea id="symptoms" class="form-textarea" placeholder="اكتب الأعراض التي يشتكي منها المريض بالتفصيل..." required></textarea>
+                        <div class="info-item">
+                            <div class="info-label">العمر</div>
+                            <div class="info-value" id="previewPatientAge">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">الجنس</div>
+                            <div class="info-value" id="previewPatientGender">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">تاريخ الميلاد</div>
+                            <div class="info-value" id="previewPatientDOB">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">رقم الهاتف</div>
+                            <div class="info-value" id="previewPatientPhone">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">الرقم القومي</div>
+                            <div class="info-value" id="previewPatientNID">-</div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Diagnosis Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-diagnoses"></i>
+                <!-- Checkup Information -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-stethoscope"></i> بيانات الكشف
+                    </h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">تاريخ الكشف</div>
+                            <div class="info-value" id="previewCheckupDate">-</div>
                         </div>
-                        <h2 class="section-title">التشخيص</h2>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label required">التشخيص الطبي</label>
-                        <textarea id="diagnosis" class="form-textarea" placeholder="اكتب التشخيص الطبي للحالة..." required></textarea>
+                        <div class="info-item">
+                            <div class="info-label">نوع الكشف</div>
+                            <div class="info-value" id="previewCheckupType">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">الطبيب المعالج</div>
+                            <div class="info-value" id="previewDoctorName">-</div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Treatment Plan Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-pills"></i>
-                        </div>
-                        <h2 class="section-title">الخطة العلاجية والوصفات الطبية</h2>
+                <!-- Symptoms -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-notes-medical"></i> الأعراض
+                    </h2>
+                    <div id="previewSymptoms" class="info-value">-</div>
+                </div>
+                
+                <!-- Diagnosis -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-diagnoses"></i> التشخيص
+                    </h2>
+                    <div id="previewDiagnosis" class="info-value">-</div>
+                </div>
+                
+                <!-- Treatment Plan -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-heartbeat"></i> الخطة العلاجية
+                    </h2>
+                    <div id="previewTreatmentPlan" class="info-value">-</div>
+                </div>
+                
+                <!-- Medications -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-pills"></i> الأدوية الموصوفة
+                    </h2>
+                    <div id="previewMedications">
+                        <div class="info-value">لا توجد أدوية موصوفة</div>
                     </div>
-                    
-                    <div class="form-group mb-6">
-                        <label class="form-label">الخطة العلاجية العامة</label>
-                        <textarea id="treatmentPlan" class="form-textarea" placeholder="الخطة العلاجية العامة والتوصيات..." rows="4"></textarea>
-                    </div>
-                    
-                    <!-- Enhanced Medications Section -->
-                    <div class="medications-container">
-                        <div class="medications-header">
-                            <h3 class="medications-title">
-                                <i class="fas fa-prescription-bottle text-green-600"></i>
-                                الأدوية الموصوفة
-                            </h3>
-                            <button type="button" onclick="addMedication()" class="add-medication-btn">
-                                <i class="fas fa-plus-circle"></i>
-                                إضافة دواء
-                            </button>
+                </div>
+                
+                <!-- Additional Notes -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-clipboard"></i> ملاحظات إضافية
+                    </h2>
+                    <div id="previewAdditionalNotes" class="info-value">-</div>
+                </div>
+                
+                <!-- Doctor Signature -->
+                <div class="report-section">
+                    <div class="doctor-signature">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-text">توقيع الطبيب</div>
                         </div>
-                        
-                        <div id="medicationsList">
-                            <!-- Medications will be added dynamically -->
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-text">توقيع المريض</div>
                         </div>
-                        
-                        <div id="noMedications" class="empty-state">
-                            <i class="fas fa-pills"></i>
-                            <p class="font-semibold text-lg">لا توجد أدوية مضافة</p>
-                            <p class="text-base">اضغط على زر "إضافة دواء" لبدء إضافة الأدوية</p>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-text">التاريخ</div>
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
         
         <!-- Enhanced Save Section -->
@@ -1182,6 +1864,10 @@ document.getElementById('currentDate').textContent = new Date().toLocaleDateStri
     month: 'long',
     day: 'numeric'
 });
+// Set current date as default for checkup
+document.getElementById('checkupDate').valueAsDate = new Date();
+// Medication counter
+let medicationCounter = 0;
 // Helper function to validate patient ID
 function validatePatientId() {
     if (!patientId) {
@@ -1302,6 +1988,11 @@ async function loadPatientData() {
             QRCode.toCanvas(qrCanvas, patientId, function (error) {
                 if (error) console.error(error);
             });
+            
+            // Pre-fill patient data in the checkup modal
+            document.getElementById('patientName').value = patient.name || '';
+            document.getElementById('patientAge').value = patient.age || '';
+            document.getElementById('patientNID').value = patient.nid || '';
         } else {
             infoTable.innerHTML = "<tr><td colspan='2' class='py-2 px-3 text-center text-gray-500'>لم يتم العثور على بيانات المريض.</td></tr>";
         }
@@ -1336,11 +2027,46 @@ window.openCheckupModal = function() {
             section.style.transform = 'translateY(0)';
         }, index * 150);
     });
+    
+    // Generate initial report preview
+    generateReport();
 };
 // Close medical checkup modal
 window.closeCheckupModal = function() {
     const modal = document.getElementById('checkupModal');
     modal.classList.remove('active');
+};
+// Select template
+window.selectTemplate = function(templateType) {
+    // Update active template
+    document.querySelectorAll('.template-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update form based on template type
+    switch(templateType) {
+        case 'pediatric':
+            document.getElementById('checkupType').value = 'كشف أطفال';
+            break;
+        case 'cardiac':
+            document.getElementById('checkupType').value = 'كشف قلب';
+            break;
+        case 'orthopedic':
+            document.getElementById('checkupType').value = 'كشف عظام';
+            break;
+        case 'dental':
+            document.getElementById('checkupType').value = 'كشف أسنان';
+            break;
+        case 'eye':
+            document.getElementById('checkupType').value = 'كشف عيون';
+            break;
+        default:
+            document.getElementById('checkupType').value = 'كشف عام';
+    }
+    
+    // Update report preview
+    generateReport();
 };
 // Function to add a new medication
 window.addMedication = function() {
@@ -1350,15 +2076,17 @@ window.addMedication = function() {
     // Hide "no medications" message
     noMedications.style.display = 'none';
     
-    const medicationId = Date.now();
+    medicationCounter++;
+    const medicationId = `medication-${medicationCounter}`;
+    
     const medicationItem = document.createElement('div');
     medicationItem.className = 'medication-item';
-    medicationItem.id = `medication-${medicationId}`;
+    medicationItem.id = medicationId;
     
     medicationItem.innerHTML = `
         <div class="medication-header">
             <h4 class="medication-title">الدواء #${medicationsList.children.length + 1}</h4>
-            <button type="button" onclick="removeMedication(${medicationId})" class="remove-medication">
+            <button type="button" onclick="removeMedication('${medicationId}')" class="remove-medication">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
@@ -1407,6 +2135,13 @@ window.addMedication = function() {
         medicationItem.style.opacity = '1';
         medicationItem.style.transform = 'translateY(0)';
     }, 10);
+    
+    // Add event listeners to update preview on change
+    const inputs = medicationItem.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', generateReport);
+        input.addEventListener('change', generateReport);
+    });
 };
 // Function to remove a medication
 window.removeMedication = function(medicationId) {
@@ -1424,24 +2159,135 @@ window.removeMedication = function(medicationId) {
             if (medicationsList.children.length === 0) {
                 document.getElementById('noMedications').style.display = 'block';
             }
+            
+            // Update preview
+            generateReport();
         }, 300);
     }
+};
+// Generate report preview
+window.generateReport = function() {
+    // Get form values
+    const patientName = document.getElementById('patientName').value || '-';
+    const patientAge = document.getElementById('patientAge').value || '-';
+    const patientGender = document.getElementById('patientGender').value || '-';
+    const patientDOB = document.getElementById('patientDOB').value || '-';
+    const patientPhone = document.getElementById('patientPhone').value || '-';
+    const patientNID = document.getElementById('patientNID').value || '-';
+    
+    const checkupDate = document.getElementById('checkupDate').value || '-';
+    const checkupType = document.getElementById('checkupType').value || '-';
+    const doctorName = document.getElementById('doctorName').value || 'د. أحمد محمد';
+    
+    const symptoms = document.getElementById('symptoms').value || '-';
+    const diagnosis = document.getElementById('diagnosis').value || '-';
+    const treatmentPlan = document.getElementById('treatmentPlan').value || '-';
+    const additionalNotes = document.getElementById('additionalNotes').value || '-';
+    
+    // Update preview
+    document.getElementById('previewPatientName').textContent = patientName;
+    document.getElementById('previewPatientAge').textContent = patientAge;
+    document.getElementById('previewPatientGender').textContent = patientGender;
+    document.getElementById('previewPatientDOB').textContent = patientDOB;
+    document.getElementById('previewPatientPhone').textContent = patientPhone;
+    document.getElementById('previewPatientNID').textContent = patientNID;
+    
+    document.getElementById('previewCheckupDate').textContent = checkupDate;
+    document.getElementById('previewCheckupType').textContent = checkupType;
+    document.getElementById('previewDoctorName').textContent = doctorName;
+    
+    document.getElementById('previewSymptoms').textContent = symptoms;
+    document.getElementById('previewDiagnosis').textContent = diagnosis;
+    document.getElementById('previewTreatmentPlan').textContent = treatmentPlan;
+    document.getElementById('previewAdditionalNotes').textContent = additionalNotes;
+    
+    // Update medications
+    const medicationsList = document.getElementById('medicationsList');
+    const medications = medicationsList.querySelectorAll('.medication-item');
+    const previewMedications = document.getElementById('previewMedications');
+    
+    if (medications.length > 0) {
+        let medicationsHTML = '';
+        medications.forEach((medication, index) => {
+            const medicationId = medication.id;
+            const name = medication.querySelector('.medication-name').value || '-';
+            const dosage = medication.querySelector('.medication-dosage').value || '-';
+            const duration = medication.querySelector('.medication-duration').value || '-';
+            const instructions = medication.querySelector('.medication-instructions').value || '-';
+            
+            medicationsHTML += `
+                <div class="medication-item">
+                    <div class="medication-header">
+                        <div class="medication-name">${index + 1}. ${name}</div>
+                    </div>
+                    <div class="medication-details">
+                        <div class="info-item">
+                            <div class="info-label">الجرعة</div>
+                            <div class="info-value">${dosage}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">المدة</div>
+                            <div class="info-value">${duration}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">التعليمات</div>
+                            <div class="info-value">${instructions}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        previewMedications.innerHTML = medicationsHTML;
+    } else {
+        previewMedications.innerHTML = '<div class="info-value">لا توجد أدوية موصوفة</div>';
+    }
+    
+    // Generate QR code
+    const qrCodeContainer = document.getElementById('qrCodeReport');
+    qrCodeContainer.innerHTML = '';
+    QRCode.toCanvas(qrCodeContainer, patientNID, function (error) {
+        if (error) console.error(error);
+    });
+};
+// Download PDF
+window.downloadPDF = function() {
+    const element = document.getElementById('reportPreview');
+    const opt = {
+        margin: 10,
+        filename: `تقرير_كشف_طبي_${document.getElementById('patientName').value || 'غير_محدد'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
 };
 // Save medical checkup data
 window.saveVisit = async function() {
     if (!validatePatientId()) return;
     
     // Collect form data
-    const visitType = document.getElementById('visitType').value;
+    const patientName = document.getElementById('patientName').value;
+    const patientAge = document.getElementById('patientAge').value;
+    const patientGender = document.getElementById('patientGender').value;
+    const patientDOB = document.getElementById('patientDOB').value;
+    const patientPhone = document.getElementById('patientPhone').value;
+    const patientNID = document.getElementById('patientNID').value;
+    
+    const checkupDate = document.getElementById('checkupDate').value;
+    const checkupType = document.getElementById('checkupType').value;
+    const doctorName = document.getElementById('doctorName').value || 'د. أحمد محمد';
+    
     const symptoms = document.getElementById('symptoms').value;
     const diagnosis = document.getElementById('diagnosis').value;
     const treatmentPlan = document.getElementById('treatmentPlan').value;
+    const additionalNotes = document.getElementById('additionalNotes').value;
     
     // Validate required fields
-    if (!visitType || !symptoms || !diagnosis) {
+    if (!symptoms || !diagnosis) {
         Swal.fire({
             title: 'حقول مطلوبة',
-            text: 'يرجى ملء الحقول المطلوبة (نوع الكشف، الأعراض، التشخيص)',
+            text: 'يرجى ملء الحقول المطلوبة (الأعراض، التشخيص)',
             icon: 'warning',
             confirmButtonText: 'موافق'
         });
@@ -1484,13 +2330,21 @@ window.saveVisit = async function() {
         
         // Prepare checkup data
         const checkupData = {
-            visitType,
+            patientName,
+            patientAge,
+            patientGender,
+            patientDOB,
+            patientPhone,
+            patientNID,
+            checkupDate,
+            checkupType,
+            doctorName,
             symptoms,
             diagnosis,
             treatmentPlan,
+            additionalNotes,
             medications,
             doctorId: "د. أحمد محمد",
-            doctorName: "أحمد محمد",
             date: new Date().toISOString(),
             status: "مكتمل"
         };
@@ -1502,7 +2356,7 @@ window.saveVisit = async function() {
         // Update patient status
         await update(ref(db, `patients/emergency/${patientId}`), {
             lastCheckup: new Date().toISOString(),
-            serviceType: visitType,
+            serviceType: checkupType,
             lastCheckupBy: "د. أحمد محمد"
         });
         
@@ -1936,7 +2790,7 @@ function loadCheckups() {
                     <div class="checkup-header-info">
                         <div>
                             <div class="checkup-meta">
-                                <span class="checkup-type-badge">${checkup.visitType || 'كشف'}</span>
+                                <span class="checkup-type-badge">${checkup.checkupType || checkup.visitType || 'كشف'}</span>
                                 <span class="checkup-date">${formattedDate}</span>
                             </div>
                         </div>
@@ -1999,11 +2853,605 @@ function loadCheckups() {
         `;
     }
 }
+// Load statistics data
+function loadStatistics() {
+    // Show loading state
+    document.getElementById('totalPatients').textContent = "...";
+    document.getElementById('totalCheckups').textContent = "...";
+    document.getElementById('totalTransfers').textContent = "...";
+    document.getElementById('criticalPatients').textContent = "...";
+    
+    // Get all patients data
+    const patientsRef = ref(db, 'patients/emergency');
+    
+    onValue(patientsRef, (snapshot) => {
+        if (!snapshot.exists()) {
+            // Set default values if no data
+            document.getElementById('totalPatients').textContent = "0";
+            document.getElementById('totalCheckups').textContent = "0";
+            document.getElementById('totalTransfers').textContent = "0";
+            document.getElementById('criticalPatients').textContent = "0";
+            
+            // Show empty charts
+            initializeEmptyCharts();
+            return;
+        }
+        
+        const patients = snapshot.val();
+        const patientIds = Object.keys(patients);
+        
+        // Calculate basic statistics
+        let totalCheckups = 0;
+        let totalTransfers = 0;
+        let criticalCount = 0;
+        const departmentCounts = {};
+        const statusCounts = {
+            critical: 0,
+            stable: 0,
+            improving: 0,
+            deteriorating: 0
+        };
+        
+        // Calculate monthly activity
+        const monthlyActivity = {};
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        
+        // Initialize last 6 months
+        for (let i = 5; i >= 0; i--) {
+            const month = new Date(currentYear, currentMonth - i, 1);
+            const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
+            monthlyActivity[monthKey] = {
+                month: month.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' }),
+                patients: 0,
+                checkups: 0,
+                transfers: 0
+            };
+        }
+        
+        // Process each patient
+        patientIds.forEach(patientId => {
+            const patient = patients[patientId];
+            
+            // Count by status
+            if (patient.status) {
+                statusCounts[patient.status] = (statusCounts[patient.status] || 0) + 1;
+                if (patient.status === 'critical') {
+                    criticalCount++;
+                }
+            }
+            
+            // Count by department
+            if (patient.department) {
+                departmentCounts[patient.department] = (departmentCounts[patient.department] || 0) + 1;
+            }
+            
+            // Count monthly activity
+            if (patient.timestamp) {
+                const entryDate = new Date(patient.timestamp);
+                const monthKey = `${entryDate.getFullYear()}-${entryDate.getMonth()}`;
+                if (monthlyActivity[monthKey]) {
+                    monthlyActivity[monthKey].patients++;
+                }
+            }
+            
+            // Count checkups
+            if (patient.checkups) {
+                const checkupIds = Object.keys(patient.checkups);
+                totalCheckups += checkupIds.length;
+                
+                // Count checkups by month
+                checkupIds.forEach(checkupId => {
+                    const checkup = patient.checkups[checkupId];
+                    if (checkup.date) {
+                        const checkupDate = new Date(checkup.date);
+                        const monthKey = `${checkupDate.getFullYear()}-${checkupDate.getMonth()}`;
+                        if (monthlyActivity[monthKey]) {
+                            monthlyActivity[monthKey].checkups++;
+                        }
+                    }
+                });
+            }
+            
+            // Count transfers
+            if (patient.transfers) {
+                const transferIds = Object.keys(patient.transfers);
+                totalTransfers += transferIds.length;
+                
+                // Count transfers by month
+                transferIds.forEach(transferId => {
+                    const transfer = patient.transfers[transferId];
+                    if (transfer.date) {
+                        // Parse date string in format "DD/MM/YYYY, HH:MM:SS"
+                        const dateParts = transfer.date.split(',')[0].split('/');
+                        const transferDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                        const monthKey = `${transferDate.getFullYear()}-${transferDate.getMonth()}`;
+                        if (monthlyActivity[monthKey]) {
+                            monthlyActivity[monthKey].transfers++;
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Update UI with statistics
+        document.getElementById('totalPatients').textContent = patientIds.length;
+        document.getElementById('totalCheckups').textContent = totalCheckups;
+        document.getElementById('totalTransfers').textContent = totalTransfers;
+        document.getElementById('criticalPatients').textContent = criticalCount;
+        
+        // Calculate percentage changes (mock data for demonstration)
+        document.getElementById('patientsChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
+        document.getElementById('checkupsChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
+        document.getElementById('transfersChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
+        document.getElementById('criticalChange').textContent = Math.floor(Math.random() * 10) + 1 + '%';
+        
+        // Initialize charts with data
+        initializeCharts(departmentCounts, statusCounts, monthlyActivity);
+        
+        // Load top doctors data
+        loadTopDoctors(patients);
+    });
+}
+
+// Initialize charts with data
+function initializeCharts(departmentCounts, statusCounts, monthlyActivity) {
+    // Department Distribution Chart
+    const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+    new Chart(departmentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(departmentCounts).length > 0 ? Object.keys(departmentCounts) : ['الأشعة', 'التحاليل', 'الصيدلية', 'العمليات', 'العناية المركزة'],
+            datasets: [{
+                data: Object.keys(departmentCounts).length > 0 ? Object.values(departmentCounts) : [15, 25, 20, 10, 30],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 99, 132, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+    
+    // Patient Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: ['حرجة', 'مستقرة', 'في تحسن', 'في تدهور'],
+            datasets: [{
+                label: 'عدد المرضى',
+                data: [
+                    statusCounts.critical || 0,
+                    statusCounts.stable || 0,
+                    statusCounts.improving || 0,
+                    statusCounts.deteriorating || 0
+                ],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Monthly Activity Chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    const monthLabels = Object.values(monthlyActivity).map(month => month.month);
+    const patientsData = Object.values(monthlyActivity).map(month => month.patients);
+    const checkupsData = Object.values(monthlyActivity).map(month => month.checkups);
+    const transfersData = Object.values(monthlyActivity).map(month => month.transfers);
+    
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [
+                {
+                    label: 'المرضى الجدد',
+                    data: patientsData,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'الكشوفات الطبية',
+                    data: checkupsData,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'التحويلات',
+                    data: transfersData,
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Initialize empty charts
+function initializeEmptyCharts() {
+    // Department Distribution Chart
+    const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+    new Chart(departmentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['الأشعة', 'التحاليل', 'الصيدلية', 'العمليات', 'العناية المركزة'],
+            datasets: [{
+                data: [0, 0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 99, 132, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+    
+    // Patient Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: ['حرجة', 'مستقرة', 'في تحسن', 'في تدهور'],
+            datasets: [{
+                label: 'عدد المرضى',
+                data: [0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Monthly Activity Chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    const monthLabels = [];
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    // Generate last 6 months labels
+    for (let i = 5; i >= 0; i--) {
+        const month = new Date(currentYear, currentMonth - i, 1);
+        monthLabels.push(month.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' }));
+    }
+    
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [
+                {
+                    label: 'المرضى الجدد',
+                    data: [0, 0, 0, 0, 0, 0],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'الكشوفات الطبية',
+                    data: [0, 0, 0, 0, 0, 0],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'التحويلات',
+                    data: [0, 0, 0, 0, 0, 0],
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Tajawal',
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Load top doctors data
+function loadTopDoctors(patients) {
+    const doctorsTable = document.getElementById('doctorsTable');
+    const doctorsStats = {};
+    
+    // Process each patient to collect doctor statistics
+    Object.keys(patients).forEach(patientId => {
+        const patient = patients[patientId];
+        
+        // Count checkups by doctor
+        if (patient.checkups) {
+            Object.keys(patient.checkups).forEach(checkupId => {
+                const checkup = patient.checkups[checkupId];
+                const doctorName = checkup.doctorName || checkup.doctorId || 'غير محدد';
+                
+                if (!doctorsStats[doctorName]) {
+                    doctorsStats[doctorName] = {
+                        name: doctorName,
+                        checkups: 0,
+                        transfers: 0,
+                        rating: 0
+                    };
+                }
+                
+                doctorsStats[doctorName].checkups++;
+            });
+        }
+        
+        // Count transfers by doctor
+        if (patient.transfers) {
+            Object.keys(patient.transfers).forEach(transferId => {
+                const transfer = patient.transfers[transferId];
+                const doctorName = transfer.requestedBy || 'غير محدد';
+                
+                if (!doctorsStats[doctorName]) {
+                    doctorsStats[doctorName] = {
+                        name: doctorName,
+                        checkups: 0,
+                        transfers: 0,
+                        rating: 0
+                    };
+                }
+                
+                doctorsStats[doctorName].transfers++;
+            });
+        }
+    });
+    
+    // Generate random ratings for doctors
+    Object.keys(doctorsStats).forEach(doctorName => {
+        doctorsStats[doctorName].rating = (Math.random() * 2 + 3).toFixed(1); // Random rating between 3.0 and 5.0
+    });
+    
+    // Sort doctors by total activity (checkups + transfers)
+    const sortedDoctors = Object.values(doctorsStats).sort((a, b) => 
+        (b.checkups + b.transfers) - (a.checkups + a.transfers)
+    ).slice(0, 5); // Get top 5 doctors
+    
+    // Clear table
+    doctorsTable.innerHTML = '';
+    
+    // If no doctors data, show mock data
+    if (sortedDoctors.length === 0) {
+        const mockDoctors = [
+            { name: 'د. أحمد محمد', checkups: 25, transfers: 15, rating: 4.8 },
+            { name: 'د. فاطمة أحمد', checkups: 22, transfers: 12, rating: 4.7 },
+            { name: 'د. محمد علي', checkups: 20, transfers: 18, rating: 4.6 },
+            { name: 'د. سارة حسن', checkups: 18, transfers: 14, rating: 4.9 },
+            { name: 'د. عمر خالد', checkups: 15, transfers: 10, rating: 4.5 }
+        ];
+        
+        mockDoctors.forEach(doctor => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-user-md text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="mr-4">
+                            <div class="text-sm font-medium text-gray-900">${doctor.name}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.checkups}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.transfers}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-900 mr-2">${doctor.rating}</span>
+                        <div class="flex">
+                            ${generateStarRating(doctor.rating)}
+                        </div>
+                    </div>
+                </td>
+            `;
+            doctorsTable.appendChild(row);
+        });
+    } else {
+        // Display real data
+        sortedDoctors.forEach(doctor => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-user-md text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="mr-4">
+                            <div class="text-sm font-medium text-gray-900">${doctor.name}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.checkups}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${doctor.transfers}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-900 mr-2">${doctor.rating}</span>
+                        <div class="flex">
+                            ${generateStarRating(doctor.rating)}
+                        </div>
+                    </div>
+                </td>
+            `;
+            doctorsTable.appendChild(row);
+        });
+    }
+}
+
+// Generate star rating HTML
+function generateStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    let starsHTML = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        starsHTML += '<i class="fas fa-star text-yellow-400 text-xs"></i>';
+    }
+    
+    if (hasHalfStar) {
+        starsHTML += '<i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>';
+    }
+    
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+        starsHTML += '<i class="far fa-star text-yellow-400 text-xs"></i>';
+    }
+    
+    return starsHTML;
+}
+
 // Tab switching functionality
 function showTab(tabName) {
     // Hide all tabs
     document.getElementById('transfersTab').classList.add('hidden');
     document.getElementById('checkupsTab').classList.add('hidden');
+    document.getElementById('statisticsTab').classList.add('hidden');
     
     // Remove active class from all tab buttons
     document.querySelectorAll('.tab').forEach(tab => {
@@ -2019,6 +3467,8 @@ function showTab(tabName) {
     // Load data for the selected tab
     if (tabName === 'checkups') {
         loadCheckups();
+    } else if (tabName === 'statistics') {
+        loadStatistics();
     }
 }
 // Add keyboard shortcut for save (Ctrl+S)
@@ -2029,6 +3479,15 @@ document.addEventListener('keydown', function(e) {
             saveVisit();
         }
     }
+});
+// Add event listeners to update preview on change
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to all form inputs to update preview
+    const formInputs = document.querySelectorAll('#checkupModal input, #checkupModal select, #checkupModal textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('input', generateReport);
+        input.addEventListener('change', generateReport);
+    });
 });
 // Load data when page opens
 if (patientId) {
@@ -2045,256 +3504,6 @@ const monitorBtn = document.getElementById('monitorBtn');
 if (monitorBtn && patientId) {
     monitorBtn.href = `monitor.html?id=${patientId}`;
 }
-
-/* ===================== القوالب الجاهزة حسب التخصص ===================== */
-const TEMPLATES = {
-    "باطنة": [
-        {
-            name: "عدوى تنفسية علوية",
-            symptoms: "حمّى، احتقان بالأنف، سعال جاف، صداع خفيف، ألم بالحلق",
-            diagnosis: "عدوى فيروسية بالجهاز التنفسي العلوي",
-            treatmentPlan: "راحة، سوائل دافئة، خافض حرارة، مراقبة الأعراض 48-72 ساعة",
-            medications: [
-                { name: "Paracetamol", dosage: "500mg", duration: "3 أيام", insurance: "تأمين أساسي", doses: "كل 8 ساعات", instructions: "بعد الأكل" }
-            ],
-            quickPhrases: {
-                symptoms: ["سعال جاف", "رشح", "ألم حلق", "صداع", "حمّى"],
-                diagnosis: ["عدوى فيروسية", "التهاب بلعوم"],
-                plan: ["راحة وسوائل", "خافض حرارة", "متابعة 48 ساعة"]
-            }
-        },
-        {
-            name: "ارتفاع ضغط الدم غير مضبوط",
-            symptoms: "دوخة متقطعة، عدم انتظام صداع، ضبابية رؤية أحياناً",
-            diagnosis: "Hypertension stage 2 - poor control",
-            treatmentPlan: "تعديل نمط حياة، مراجعة الجرعات، متابعة ضغط منزلي أسبوع",
-            medications: [
-                { name: "Amlodipine", dosage: "5mg", duration: "30 يوم", insurance: "تأمين أساسي", doses: "مرة يومياً", instructions: "مساءً" }
-            ],
-            quickPhrases: {
-                symptoms: ["صداع", "دوخة", "زغللة"],
-                diagnosis: ["ارتفاع ضغط", "سوء ضبط"],
-                plan: ["تقليل ملح", "قياس منزلي", "مراجعة بعد أسبوع"]
-            }
-        }
-    ],
-    "قلب": [
-        {
-            name: "ذبحة مستقرة",
-            symptoms: "ألم صدري ضاغط مع الجهد، تحسن بالراحة",
-            diagnosis: "Stable angina",
-            treatmentPlan: "بيتا بلوكر، نترات عند اللزوم، أسبرين يومي، تعديل عوامل الخطورة",
-            medications: [
-                { name: "Aspirin", dosage: "81mg", duration: "30 يوم", insurance: "تأمين أساسي", doses: "مرة يومياً", instructions: "صباحاً" }
-            ],
-            quickPhrases: {
-                symptoms: ["ألم صدري ضاغط", "يزداد مع الجهد"],
-                diagnosis: ["ذبحة مستقرة"],
-                plan: ["أسبرين يومي", "نترات عند اللزوم", "إيقاف التدخين"]
-            }
-        }
-    ],
-    "أطفال": [
-        {
-            name: "نزلة برد",
-            symptoms: "رشح، كحة خفيفة، حرارة منخفضة",
-            diagnosis: "Viral URI - Pediatric",
-            treatmentPlan: "سوائل دافئة، تنظيف أنف، خافض حرارة حسب الوزن",
-            medications: [],
-            quickPhrases: {
-                symptoms: ["رشح", "كحة", "حرارة خفيفة"],
-                diagnosis: ["نزلة برد"],
-                plan: ["سوائل دافئة", "متابعة الأعراض"]
-            }
-        }
-    ],
-    "عظام": [
-        {
-            name: "آلام أسفل الظهر ميكانيكية",
-            symptoms: "ألم بأسفل الظهر يزيد مع الانحناء ويحسّن بالراحة",
-            diagnosis: "Mechanical low back pain",
-            treatmentPlan: "مسكنات مناسبة، علاج طبيعي تدريجي، تمارين تقوية",
-            medications: [],
-            quickPhrases: {
-                symptoms: ["ألم أسفل الظهر", "يزيد مع الانحناء"],
-                diagnosis: ["ألم ميكانيكي"],
-                plan: ["علاج طبيعي", "تمارين تقوية"]
-            }
-        }
-    ],
-    "طوارئ": [
-        {
-            name: "نزيف أنفي بسيط",
-            symptoms: "نزيف متقطع من فتحة الأنف، لا دوار شديد",
-            diagnosis: "Epistaxis - anterior, mild",
-            treatmentPlan: "ضغط موضعي، مرطب أنف، متابعة إن تكرر",
-            medications: [],
-            quickPhrases: {
-                symptoms: ["نزيف أنفي", "بدون دوار شديد"],
-                diagnosis: ["نزيف أمامي بسيط"],
-                plan: ["ضغط موضعي", "مرطب أنف"]
-            }
-        }
-    ]
-};
-
-// تعبئة قائمة التخصصات
-function populateSpecialties() {
-    const sel = document.getElementById('templateSpecialty');
-    if (!sel) return;
-    sel.innerHTML = `<option value="">اختر التخصص</option>` + Object.keys(TEMPLATES)
-        .map(s => `<option value="${s}">${s}</option>`).join('');
-}
-
-// تعبئة القوالب عند اختيار التخصص
-function populateTemplatesForSpecialty(specialty) {
-    const sel = document.getElementById('templateName');
-    if (!sel) return;
-    sel.innerHTML = `<option value="">اختر القالب</option>`;
-    if (!specialty || !TEMPLATES[specialty]) return;
-    sel.innerHTML += TEMPLATES[specialty].map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
-    // تحديث العبارات السريعة
-    renderQuickPhraseChips(specialty);
-}
-
-// عرض العبارات السريعة كأزرار
-function renderQuickPhraseChips(specialty) {
-    const areas = {
-        quickSymptoms: { key: 'symptoms', targetId: 'symptoms' },
-        quickDiagnosis: { key: 'diagnosis', targetId: 'diagnosis' },
-        quickPlan: { key: 'plan', targetId: 'treatmentPlan' }
-    };
-    Object.entries(areas).forEach(([containerId, meta]) => {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        container.innerHTML = '';
-        if (!specialty) return;
-        const phrases = new Set();
-        TEMPLATES[specialty].forEach(t => t.quickPhrases?.[meta.key]?.forEach(p => phrases.add(p)));
-        [...phrases].forEach(p => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn-primary text-sm';
-            btn.textContent = p;
-            btn.onclick = () => appendPhrase(meta.targetId, p);
-            container.appendChild(btn);
-        });
-    });
-}
-
-// إضافة عبارة للنص الحالي مع فاصلة ذكية
-function appendPhrase(targetId, phrase) {
-    const el = document.getElementById(targetId);
-    if (!el) return;
-    const val = (el.value || '').trim();
-    el.value = val ? `${val}${val.endsWith('،') ? '' : '، '} ${phrase}` : phrase;
-    el.dispatchEvent(new Event('input'));
-}
-
-// تطبيق القالب المختار وملء الحقول + إضافة أدوية افتراضية
-function applySelectedTemplate() {
-    const specialty = document.getElementById('templateSpecialty')?.value;
-    const idx = document.getElementById('templateName')?.value;
-    if (!specialty || idx === '' || !TEMPLATES[specialty]) return;
-
-    const tpl = TEMPLATES[specialty][Number(idx)];
-    if (!tpl) return;
-
-    // ملء الحقول النصية
-    const s = document.getElementById('symptoms');
-    const d = document.getElementById('diagnosis');
-    const p = document.getElementById('treatmentPlan');
-    if (s) s.value = tpl.symptoms || '';
-    if (d) d.value = tpl.diagnosis || '';
-    if (p) p.value = tpl.treatmentPlan || '';
-
-    // إضافة الأدوية الافتراضية إن وُجدت
-    if (tpl.medications && tpl.medications.length) {
-        const medicationsList = document.getElementById('medicationsList');
-        const noMedications = document.getElementById('noMedications');
-        if (noMedications) noMedications.style.display = 'none';
-        if (medicationsList) {
-            tpl.medications.forEach(m => {
-                const medicationId = Date.now() + Math.floor(Math.random() * 1000);
-                const item = document.createElement('div');
-                item.className = 'medication-item';
-                item.id = `medication-${medicationId}`;
-                item.innerHTML = `
-                    <div class="medication-header">
-                        <h4 class="medication-title">دواء</h4>
-                        <button type="button" onclick="removeMedication(${medicationId})" class="remove-medication">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="medication-grid">
-                        <div class="form-group">
-                            <label class="form-label required">اسم الدواء</label>
-                            <input type="text" class="medication-name form-input" required value="${m.name || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label required">الجرعة</label>
-                            <input type="text" class="medication-dosage form-input" required value="${m.dosage || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label required">المدة</label>
-                            <input type="text" class="medication-duration form-input" required value="${m.duration || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">نوع التأمين</label>
-                            <select class="medication-insurance form-select">
-                                <option value="">اختر نوع التأمين</option>
-                                <option ${m.insurance==='تأمين أساسي'?'selected':''} value="تأمين أساسي">تأمين أساسي</option>
-                                <option ${m.insurance==='تأمين تكميلي'?'selected':''} value="تأمين تكميلي">تأمين تكميلي</option>
-                                <option ${m.insurance==='خاص'?'selected':''} value="خاص">خاص</option>
-                                <option ${m.insurance==='غير مؤمن'?'selected':''} value="غير مؤمن">غير مؤمن</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">عدد الجرعات</label>
-                            <input type="number" class="medication-doses form-input" min="1" value="${m.doses || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">تعليمات الإعطاء</label>
-                            <input type="text" class="medication-instructions form-input" value="${m.instructions || ''}">
-                        </div>
-                    </div>
-                `;
-                medicationsList.appendChild(item);
-            });
-        }
-    }
-
-    Swal.fire({ title: 'تم تطبيق القالب', icon: 'success', timer: 1000, showConfirmButton: false });
-}
-
-// ربط الأحداث عند فتح المودال لأول مرة مع الحفاظ على openCheckupModal الأصلي
-(function initTemplatesUI() {
-    document.addEventListener('click', (e) => {
-        if (e.target && e.target.id === 'applyTemplateBtn') {
-            applySelectedTemplate();
-        }
-    });
-
-    document.addEventListener('change', (e) => {
-        if (e.target && e.target.id === 'templateSpecialty') {
-            populateTemplatesForSpecialty(e.target.value);
-        }
-    });
-
-    const _open = window.openCheckupModal;
-    window.openCheckupModal = function() {
-        _open();
-        populateSpecialties();
-        const templateName = document.getElementById('templateName');
-        const quickSymptoms = document.getElementById('quickSymptoms');
-        const quickDiagnosis = document.getElementById('quickDiagnosis');
-        const quickPlan = document.getElementById('quickPlan');
-        if (templateName) templateName.innerHTML = `<option value="">اختر القالب</option>`;
-        if (quickSymptoms) quickSymptoms.innerHTML = '';
-        if (quickDiagnosis) quickDiagnosis.innerHTML = '';
-        if (quickPlan) quickPlan.innerHTML = '';
-    };
-})();
 </script>
 </body>
 </html>
