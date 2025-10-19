@@ -236,11 +236,32 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             border-right: 4px solid var(--primary);
             transition: all 0.2s ease;
+            position: relative;
         }
         
         .checkup-item:hover {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transform: translateX(-2px);
+        }
+        
+        .checkup-item.saved {
+            border-right-color: var(--success);
+            background: linear-gradient(to left, rgba(5, 150, 105, 0.05), transparent);
+        }
+        
+        .checkup-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
         
         .checkup-header-info {
@@ -1751,7 +1772,7 @@ function loadCheckups() {
             
             checkupsArray.forEach((checkup) => {
                 const checkupEl = document.createElement("div");
-                checkupEl.className = "checkup-item";
+                checkupEl.className = "checkup-item saved"; // Add saved class for styling
                 
                 // Format date
                 const checkupDate = new Date(checkup.date);
@@ -1793,6 +1814,12 @@ function loadCheckups() {
                 }
                 
                 checkupEl.innerHTML = `
+                    <!-- Checkup Badge -->
+                    <div class="checkup-badge">
+                        <i class="fas fa-check-circle"></i>
+                        سجل كشف محفوظ
+                    </div>
+                    
                     <div class="checkup-header-info">
                         <div>
                             <div class="checkup-meta">
@@ -1830,6 +1857,16 @@ function loadCheckups() {
                     </div>
                     
                     ${medicationsHtml}
+                    
+                    ${checkup.additionalNotes ? `
+                    <div class="checkup-section">
+                        <div class="checkup-section-title">
+                            <i class="fas fa-clipboard text-orange-500"></i>
+                            ملاحظات إضافية
+                        </div>
+                        <div class="checkup-section-content">${checkup.additionalNotes}</div>
+                    </div>
+                    ` : ''}
                 `;
                 
                 checkupsList.appendChild(checkupEl);
