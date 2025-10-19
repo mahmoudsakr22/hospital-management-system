@@ -1021,9 +1021,6 @@
             </div>
             
             <div class="flex justify-end gap-2">
-                <button onclick="saveCheckupToDatabase()" class="btn btn-success">
-                    <i class="fas fa-save"></i> حفظ الكشف
-                </button>
                 <button onclick="generateReport()" class="btn btn-primary">
                     <i class="fas fa-file-medical"></i> إنشاء التقرير
                 </button>
@@ -1793,4 +1790,319 @@ function loadCheckups() {
                         <div class="checkup-section-content">${checkup.symptoms || 'لا توجد أعراض مسجلة'}</div>
                     </div>
                     
-                    <div class="checkup
+                    <div class="checkup-section">
+                        <div class="checkup-section-title">
+                            <i class="fas fa-diagnoses text-purple-600"></i>
+                            التشخيص
+                        </div>
+                        <div class="checkup-section-content">${checkup.diagnosis || 'لا يوجد تشخيص مسجل'}</div>
+                    </div>
+                    
+                    <div class="checkup-section">
+                        <div class="checkup-section-title">
+                            <i class="fas fa-heartbeat text-blue-600"></i>
+                            الخطة العلاجية
+                        </div>
+                        <div class="checkup-section-content">${checkup.treatmentPlan || 'لا توجد خطة علاجية مسجلة'}</div>
+                    </div>
+                    
+                    ${medicationsHtml}
+                `;
+                
+                checkupsList.appendChild(checkupEl);
+            });
+            
+            console.log("Successfully rendered", checkupsArray.length, "checkups");
+            
+        }, (error) => {
+            console.error("Error loading checkups:", error);
+            checkupsList.innerHTML = `
+                <div class="text-center py-8 text-red-500">
+                    <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                    <p class="text-lg font-medium">خطأ في تحميل الكشوفات الطبية</p>
+                    <p class="text-sm">${error.message}</p>
+                </div>
+            `;
+        });
+        
+    } catch (error) {
+        console.error("Critical error in loadCheckups:", error);
+        checkupsList.innerHTML = `
+            <div class="text-center py-8 text-red-500">
+                <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                <p class="text-lg font-medium">خطأ غير متوقع</p>
+                <p class="text-sm">يرجى تحديث الصفحة والمحاولة مرة أخرى</p>
+            </div>
+        `;
+    }
+}
+// Tab switching functionality
+function showTab(tabName) {
+    // Hide all tabs
+    document.getElementById('transfersTab').classList.add('hidden');
+    document.getElementById('checkupsTab').classList.add('hidden');
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + 'Tab').classList.remove('hidden');
+    
+    // Add active class to clicked tab
+    event.target.classList.add('active');
+    
+    // Load data for the selected tab
+    if (tabName === 'checkups') {
+        loadCheckups();
+    }
+}
+
+// Medical Report Functions
+// Medication counter
+let medicationCounter = 0;
+
+// Select template
+window.selectTemplate = function(templateType) {
+    // Update active template
+    document.querySelectorAll('.template-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update form based on template type
+    switch(templateType) {
+        case 'pediatric':
+            document.getElementById('checkupType').value = 'كشف أطفال';
+            break;
+        case 'cardiac':
+            document.getElementById('checkupType').value = 'كشف قلب';
+            break;
+        case 'orthopedic':
+            document.getElementById('checkupType').value = 'كشف عظام';
+            break;
+        case 'dental':
+            document.getElementById('checkupType').value = 'كشف أسنان';
+            break;
+        case 'eye':
+            document.getElementById('checkupType').value = 'كشف عيون';
+            break;
+        default:
+            document.getElementById('checkupType').value = 'كشف عام';
+    }
+}
+
+// Add medication
+window.addMedication = function() {
+    medicationCounter++;
+    const medicationId = `medication-${medicationCounter}`;
+    
+    const medicationItem = document.createElement('div');
+    medicationItem.className = 'medication-item';
+    medicationItem.id = medicationId;
+    
+    medicationItem.innerHTML = `
+        <div class="medication-header">
+            <div class="medication-name">الدواء #${medicationCounter}</div>
+            <button type="button" onclick="removeMedication('${medicationId}')" class="remove-medication-btn">
+                <i class="fas fa-trash"></i> حذف
+            </button>
+        </div>
+        <div class="medication-details">
+            <div class="info-item">
+                <label class="info-label">اسم الدواء</label>
+                <input type="text" id="${medicationId}-name" class="form-control" placeholder="اسم الدواء">
+            </div>
+            <div class="info-item">
+                <label class="info-label">الجرعة</label>
+                <input type="text" id="${medicationId}-dosage" class="form-control" placeholder="الجرعة">
+            </div>
+            <div class="info-item">
+                <label class="info-label">المدة</label>
+                <input type="text" id="${medicationId}-duration" class="form-control" placeholder="المدة">
+            </div>
+            <div class="info-item">
+                <label class="info-label">التعليمات</label>
+                <input type="text" id="${medicationId}-instructions" class="form-control" placeholder="التعليمات">
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('medicationsList').appendChild(medicationItem);
+}
+
+// Remove medication
+window.removeMedication = function(medicationId) {
+    const medicationItem = document.getElementById(medicationId);
+    if (medicationItem) {
+        medicationItem.remove();
+    }
+}
+
+// Generate report
+window.generateReport = function() {
+    // Get form values
+    const patientName = document.getElementById('patientName').value || '-';
+    const patientAge = document.getElementById('patientAge').value || '-';
+    const patientGender = document.getElementById('patientGender').value || '-';
+    const patientDOB = document.getElementById('patientDOB').value || '-';
+    const patientPhone = document.getElementById('patientPhone').value || '-';
+    const patientNID = document.getElementById('patientNID').value || '-';
+    
+    const checkupDate = document.getElementById('checkupDate').value || '-';
+    const checkupType = document.getElementById('checkupType').value || '-';
+    const doctorName = document.getElementById('doctorName').value || '-';
+    
+    const symptoms = document.getElementById('symptoms').value || '-';
+    const diagnosis = document.getElementById('diagnosis').value || '-';
+    const treatmentPlan = document.getElementById('treatmentPlan').value || '-';
+    const additionalNotes = document.getElementById('additionalNotes').value || '-';
+    
+    // Update preview
+    document.getElementById('previewPatientName').textContent = patientName;
+    document.getElementById('previewPatientAge').textContent = patientAge;
+    document.getElementById('previewPatientGender').textContent = patientGender;
+    document.getElementById('previewPatientDOB').textContent = patientDOB;
+    document.getElementById('previewPatientPhone').textContent = patientPhone;
+    document.getElementById('previewPatientNID').textContent = patientNID;
+    
+    document.getElementById('previewCheckupDate').textContent = checkupDate;
+    document.getElementById('previewCheckupType').textContent = checkupType;
+    document.getElementById('previewDoctorName').textContent = doctorName;
+    
+    document.getElementById('previewSymptoms').textContent = symptoms;
+    document.getElementById('previewDiagnosis').textContent = diagnosis;
+    document.getElementById('previewTreatmentPlan').textContent = treatmentPlan;
+    document.getElementById('previewAdditionalNotes').textContent = additionalNotes;
+    
+    // Update medications
+    const medicationsList = document.getElementById('medicationsList');
+    const medications = medicationsList.querySelectorAll('.medication-item');
+    const previewMedications = document.getElementById('previewMedications');
+    
+    if (medications.length > 0) {
+        let medicationsHTML = '';
+        medications.forEach((medication, index) => {
+            const medicationId = medication.id;
+            const name = document.getElementById(`${medicationId}-name`).value || '-';
+            const dosage = document.getElementById(`${medicationId}-dosage`).value || '-';
+            const duration = document.getElementById(`${medicationId}-duration`).value || '-';
+            const instructions = document.getElementById(`${medicationId}-instructions`).value || '-';
+            
+            medicationsHTML += `
+                <div class="medication-item">
+                    <div class="medication-header">
+                        <div class="medication-name">${index + 1}. ${name}</div>
+                    </div>
+                    <div class="medication-details">
+                        <div class="info-item">
+                            <div class="info-label">الجرعة</div>
+                            <div class="info-value">${dosage}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">المدة</div>
+                            <div class="info-value">${duration}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">التعليمات</div>
+                            <div class="info-value">${instructions}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        previewMedications.innerHTML = medicationsHTML;
+    } else {
+        previewMedications.innerHTML = '<div class="info-value">لا توجد أدوية موصوفة</div>';
+    }
+    
+    // Generate QR code
+    const qrCodeContainer = document.getElementById('qrCode');
+    qrCodeContainer.innerHTML = '';
+    QRCode.toCanvas(qrCodeContainer, patientNID, function (error) {
+        if (error) console.error(error);
+    });
+    
+    // Scroll to preview
+    document.querySelector('.preview-container').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Reset form
+window.resetForm = function() {
+    if (confirm('هل أنت متأكد من أنك تريد إعادة تعيين النموذج؟')) {
+        document.getElementById('patientName').value = '';
+        document.getElementById('patientAge').value = '';
+        document.getElementById('patientGender').value = '';
+        document.getElementById('patientDOB').value = '';
+        document.getElementById('patientPhone').value = '';
+        document.getElementById('patientNID').value = '';
+        
+        document.getElementById('checkupDate').valueAsDate = new Date();
+        document.getElementById('checkupType').value = '';
+        document.getElementById('doctorName').value = '';
+        
+        document.getElementById('symptoms').value = '';
+        document.getElementById('diagnosis').value = '';
+        document.getElementById('treatmentPlan').value = '';
+        document.getElementById('additionalNotes').value = '';
+        
+        document.getElementById('medicationsList').innerHTML = '';
+        medicationCounter = 0;
+        
+        // Reset preview
+        document.getElementById('previewPatientName').textContent = '-';
+        document.getElementById('previewPatientAge').textContent = '-';
+        document.getElementById('previewPatientGender').textContent = '-';
+        document.getElementById('previewPatientDOB').textContent = '-';
+        document.getElementById('previewPatientPhone').textContent = '-';
+        document.getElementById('previewPatientNID').textContent = '-';
+        
+        document.getElementById('previewCheckupDate').textContent = '-';
+        document.getElementById('previewCheckupType').textContent = '-';
+        document.getElementById('previewDoctorName').textContent = '-';
+        
+        document.getElementById('previewSymptoms').textContent = '-';
+        document.getElementById('previewDiagnosis').textContent = '-';
+        document.getElementById('previewTreatmentPlan').textContent = '-';
+        document.getElementById('previewAdditionalNotes').textContent = '-';
+        
+        document.getElementById('previewMedications').innerHTML = '<div class="info-value">لا توجد أدوية موصوفة</div>';
+        
+        // Reset QR code
+        document.getElementById('qrCode').innerHTML = '';
+    }
+}
+
+// Download PDF
+window.downloadPDF = function() {
+    const element = document.getElementById('reportPreview');
+    const opt = {
+        margin: 10,
+        filename: `تقرير_كشف_طبي_${document.getElementById('patientName').value || 'غير_محدد'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
+}
+
+// Load data when page opens
+if (patientId) {
+    console.log("Page loaded with patient ID:", patientId);
+    loadPatientData();
+    loadTransfers();
+    loadCheckups(); // Initial load of checkups
+} else {
+    console.error("No patient ID found in URL");
+    Swal.fire("خطأ", "معرف المريض غير موجود في الرابط", "error");
+}
+// Link monitor button
+const monitorBtn = document.getElementById('monitorBtn');
+if (monitorBtn && patientId) {
+    monitorBtn.href = `monitor.html?id=${patientId}`;
+}
+</script>
+</body>
+</html>
