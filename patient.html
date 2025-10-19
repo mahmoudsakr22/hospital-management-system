@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -100,6 +99,8 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            cursor: pointer;
+            border: none;
         }
         
         .btn-primary {
@@ -158,20 +159,6 @@
             box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
         }
         
-        /* Medical Record Item Styles */
-        .medical-record-item {
-            border-right: 4px solid var(--primary-light);
-            background: linear-gradient(to left, rgba(8, 145, 178, 0.05), transparent);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            transition: all 0.2s ease;
-        }
-        
-        .medical-record-item:hover {
-            transform: translateX(-4px);
-        }
-        
         /* Modal Styles */
         .modal {
             position: fixed;
@@ -208,25 +195,6 @@
         
         .modal.active .modal-content {
             transform: translateY(0);
-        }
-        
-        /* Tab Styles */
-        .tab {
-            padding: 0.75rem 1.5rem;
-            border-bottom: 3px solid transparent;
-            font-weight: 500;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .tab:hover {
-            color: var(--primary);
-        }
-        
-        .tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
         }
         
         /* Enhanced Checkup Form Styles */
@@ -565,201 +533,33 @@
             font-size: 1.2rem;
         }
         
-        /* Checkup Display Styles */
-        .checkup-item {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
+        /* Template Selector */
+        .template-selector {
+            display: flex;
+            gap: 1rem;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border-right: 4px solid var(--primary);
+            flex-wrap: wrap;
+        }
+        
+        .template-option {
+            padding: 0.5rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
         
-        .checkup-item:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transform: translateX(-2px);
+        .template-option:hover {
+            border-color: var(--primary-light);
         }
         
-        .checkup-header-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
-        
-        .checkup-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .checkup-type-badge {
-            background: var(--primary);
+        .template-option.active {
+            background-color: var(--primary);
             color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
+            border-color: var(--primary);
         }
         
-        .checkup-date {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        
-        .checkup-section {
-            margin-bottom: 1rem;
-        }
-        
-        .checkup-section-title {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .checkup-section-content {
-            color: #4b5563;
-            line-height: 1.5;
-        }
-        
-        .medications-list {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 0.5rem;
-        }
-        
-        .medication-list-item {
-            background: white;
-            border: 1px solid #d1fae5;
-            border-radius: 6px;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .medication-list-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .medication-name {
-            font-weight: 600;
-            color: #065f46;
-            margin-bottom: 0.25rem;
-        }
-        
-        .medication-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Success Animation */
-        @keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .success-animation {
-            animation: successPulse 0.6s ease-in-out;
-        }
-        
-        /* Required field indicator */
-        .required::after {
-            content: " *";
-            color: var(--danger);
-            font-weight: bold;
-        }
-        
-        /* Statistics Card Styles */
-        .stats-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s ease;
-            height: 100%;
-        }
-        
-        .stats-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transform: translateY(-3px);
-        }
-        
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .stats-value {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stats-label {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        
-        .stats-change {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-top: 0.5rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-        }
-        
-        .stats-change.positive {
-            background-color: rgba(5, 150, 105, 0.1);
-            color: var(--success);
-        }
-        
-        .stats-change.negative {
-            background-color: rgba(220, 38, 38, 0.1);
-            color: var(--danger);
-        }
-        
-        /* Chart Container */
-        .chart-container {
-            position: relative;
-            height: 300px;
-            margin-top: 1rem;
-        }
-        
-        /* Medical Report Styles */
+        /* Report Preview Styles */
         .medical-report {
             background: white;
             border-radius: 12px;
@@ -843,33 +643,6 @@
             font-size: 1rem;
         }
         
-        .medication-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .medication-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        
-        .medication-name {
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        .medication-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
         .doctor-signature {
             display: flex;
             justify-content: space-between;
@@ -923,128 +696,43 @@
             pointer-events: none;
         }
         
-        .form-control {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background-color: white;
-            transition: all 0.2s ease;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
-        }
-        
-        .form-textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background-color: white;
-            transition: all 0.2s ease;
-            resize: vertical;
-            min-height: 100px;
-        }
-        
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
-        }
-        
-        .medications-container {
-            margin-top: 1rem;
-        }
-        
-        .remove-medication-btn {
-            background-color: var(--danger);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            border: none;
-        }
-        
-        .remove-medication-btn:hover {
-            background-color: #b91c1c;
-        }
-        
-        .template-selector {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .template-option {
-            padding: 0.5rem 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .template-option:hover {
-            border-color: var(--primary-light);
-        }
-        
-        .template-option.active {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        .preview-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .preview-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .preview-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
         .preview-actions {
             display: flex;
             gap: 0.5rem;
+            margin-bottom: 1rem;
         }
         
-        /* Print Styles */
-        @media print {
-            body {
-                background-color: white;
-                color: black;
-            }
-            
-            .no-print {
-                display: none !important;
-            }
-            
-            .print-break {
-                page-break-inside: avoid;
-            }
-            
-            .medical-report {
-                box-shadow: none;
-                border: 1px solid #e2e8f0;
-            }
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Success Animation */
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .success-animation {
+            animation: successPulse 0.6s ease-in-out;
+        }
+        
+        /* Required field indicator */
+        .required::after {
+            content: " *";
+            color: var(--danger);
+            font-weight: bold;
         }
         
         /* Responsive adjustments */
@@ -1099,33 +787,6 @@
             
             .medication-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .checkup-header-info {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            
-            .medication-details {
-                grid-template-columns: 1fr;
-            }
-            
-            .medications-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: stretch;
-            }
-            
-            .add-medication-btn {
-                justify-content: center;
-            }
-            
-            .stats-value {
-                font-size: 1.5rem;
-            }
-            
-            .chart-container {
-                height: 250px;
             }
         }
     </style>
@@ -1199,271 +860,6 @@
             </div>
         </div>
     </div>
-    <!-- Tabs Navigation -->
-    <div class="flex border-b border-gray-200 mb-6">
-        <div class="tab active" onclick="showTab('transfers')">
-            <i class="fas fa-exchange-alt ml-2"></i> التحويلات
-        </div>
-        <div class="tab" onclick="showTab('checkups')">
-            <i class="fas fa-file-medical ml-2"></i> الكشوفات الطبية
-        </div>
-        <div class="tab" onclick="showTab('statistics')">
-            <i class="fas fa-chart-bar ml-2"></i> التقارير الإحصائية
-        </div>
-    </div>
-    <!-- Transfers Tab -->
-    <div id="transfersTab" class="tab-content">
-        <!-- New Transfer Form -->
-        <div class="card mb-6">
-            <div class="p-5 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-plus-circle text-blue-600"></i> تسجيل تحويل جديد
-                </h2>
-            </div>
-            
-            <div class="p-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">القسم</label>
-                        <select id="transferDepartment" class="form-input">
-                            <option value="">اختر القسم</option>
-                            <option value="radiology">الأشعة</option>
-                            <option value="التحاليل">التحاليل</option>
-                            <option value="العناية المركزة">العناية المركزة</option>
-                            <option value="العمليات">العمليات</option>
-                            <option value="الصيدلية">الصيدلية</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">نوع الإجراء</label>
-                        <input type="text" id="transferType" placeholder="نوع الإجراء (أشعة/تحاليل)" class="form-input" />
-                    </div>
-                    
-                    <div id="radiologyDeviceDiv" class="hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">جهاز الأشعة</label>
-                        <select id="radiologyDevice" class="form-input">
-                            <option value="">اختر جهاز الأشعة</option>
-                            <option value="أشعة عادية">أشعة عادية</option>
-                            <option value="أشعة مقطعية">أشعة مقطعية</option>
-                            <option value="رنين مغناطيسي">رنين مغناطيسي</option>
-                            <option value="موجات صوتية">موجات صوتية</option>
-                        </select>
-                    </div>
-                    
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ملاحظات إضافية</label>
-                        <textarea id="transferNotes" placeholder="ملاحظات إضافية" class="form-input" rows="2"></textarea>
-                    </div>
-                </div>
-                
-                <!-- Pharmacy Fields (Hidden by default) -->
-                <div id="pharmacyFields" class="hidden mt-5 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-pills"></i>
-                        تفاصيل طلب الدواء
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">اسم الدواء <span class="text-red-500">*</span></label>
-                            <input type="text" id="medicationName" class="form-input" placeholder="اكتب اسم الدواء">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">الجرعة <span class="text-red-500">*</span></label>
-                            <input type="text" id="dosage" class="form-input" placeholder="مثال: 500 مجم">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">المدة <span class="text-red-500">*</span></label>
-                            <input type="text" id="duration" class="form-input" placeholder="مثال: 7 أيام">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">نوع التأمين</label>
-                            <select id="insuranceType" class="form-input">
-                                <option value="">اختر نوع التأمين</option>
-                                <option value="تأمين أساسي">تأمين أساسي</option>
-                                <option value="تأمين تكميلي">تأمين تكميلي</option>
-                                <option value="خاص">خاص</option>
-                                <option value="غير مؤمن">غير مؤمن</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">عدد الجرعات</label>
-                            <input type="number" id="dosesCount" class="form-input" placeholder="مثال: 3" min="1">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">تعليمات الإعطاء</label>
-                            <input type="text" id="administration" class="form-input" placeholder="مثال: بعد الأكل">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-5 flex justify-end">
-                    <button onclick="addTransfer()" class="btn btn-primary">
-                        <i class="fas fa-save"></i> تسجيل التحويل
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Transfers History -->
-        <div class="card">
-            <div class="p-5 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-history text-blue-600"></i> سجل التحويلات
-                </h2>
-            </div>
-            <div class="p-5">
-                <ul id="transferList" class="space-y-4"></ul>
-            </div>
-        </div>
-    </div>
-    <!-- Checkups Tab -->
-    <div id="checkupsTab" class="tab-content hidden">
-        <div class="card">
-            <div class="p-5 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-file-medical-alt text-blue-600"></i> سجل الكشوفات الطبية
-                </h2>
-            </div>
-            <div class="p-5">
-                <div id="checkupsList">
-                    <!-- Checkups will be loaded here -->
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
-                        <p>جاري تحميل الكشوفات الطبية...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Statistics Tab -->
-    <div id="statisticsTab" class="tab-content hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <!-- Total Patients Card -->
-            <div class="stats-card">
-                <div class="stats-icon bg-blue-100 text-blue-600">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stats-value text-blue-600" id="totalPatients">0</div>
-                <div class="stats-label">إجمالي المرضى</div>
-                <div class="stats-change positive">
-                    <i class="fas fa-arrow-up"></i>
-                    <span id="patientsChange">0%</span> هذا الشهر
-                </div>
-            </div>
-            
-            <!-- Total Checkups Card -->
-            <div class="stats-card">
-                <div class="stats-icon bg-green-100 text-green-600">
-                    <i class="fas fa-stethoscope"></i>
-                </div>
-                <div class="stats-value text-green-600" id="totalCheckups">0</div>
-                <div class="stats-label">إجمالي الكشوفات</div>
-                <div class="stats-change positive">
-                    <i class="fas fa-arrow-up"></i>
-                    <span id="checkupsChange">0%</span> هذا الشهر
-                </div>
-            </div>
-            
-            <!-- Total Transfers Card -->
-            <div class="stats-card">
-                <div class="stats-icon bg-purple-100 text-purple-600">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-                <div class="stats-value text-purple-600" id="totalTransfers">0</div>
-                <div class="stats-label">إجمالي التحويلات</div>
-                <div class="stats-change positive">
-                    <i class="fas fa-arrow-up"></i>
-                    <span id="transfersChange">0%</span> هذا الشهر
-                </div>
-            </div>
-            
-            <!-- Critical Patients Card -->
-            <div class="stats-card">
-                <div class="stats-icon bg-red-100 text-red-600">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="stats-value text-red-600" id="criticalPatients">0</div>
-                <div class="stats-label">المرضى الحرجة</div>
-                <div class="stats-change negative">
-                    <i class="fas fa-arrow-down"></i>
-                    <span id="criticalChange">0%</span> هذا الشهر
-                </div>
-            </div>
-        </div>
-        
-        <!-- Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <!-- Department Distribution Chart -->
-            <div class="card">
-                <div class="p-5 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-chart-pie text-blue-600"></i> توزيع المرضى حسب القسم
-                    </h2>
-                </div>
-                <div class="p-5">
-                    <div class="chart-container">
-                        <canvas id="departmentChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Patient Status Chart -->
-            <div class="card">
-                <div class="p-5 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-chart-bar text-green-600"></i> حالة المرضى
-                    </h2>
-                </div>
-                <div class="p-5">
-                    <div class="chart-container">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Monthly Activity Chart -->
-        <div class="card">
-            <div class="p-5 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-chart-line text-purple-600"></i> النشاط الشهري
-                </h2>
-            </div>
-            <div class="p-5">
-                <div class="chart-container" style="height: 400px;">
-                    <canvas id="monthlyChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Top Doctors Table -->
-        <div class="card mt-6">
-            <div class="p-5 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-user-md text-indigo-600"></i> أكثر الأطباء نشاطاً
-                </h2>
-            </div>
-            <div class="p-5">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الطبيب</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الكشوفات</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد التحويلات</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التقييم</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="doctorsTable">
-                            <!-- Doctors data will be loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 <!-- Enhanced Medical Checkup Modal -->
 <div id="checkupModal" class="modal checkup-form-container">
@@ -1525,15 +921,15 @@
             <div class="info-grid">
                 <div class="info-item">
                     <label class="info-label">اسم المريض</label>
-                    <input type="text" id="patientName" class="form-control" placeholder="أدخل اسم المريض">
+                    <input type="text" id="patientName" class="form-input" placeholder="أدخل اسم المريض">
                 </div>
                 <div class="info-item">
                     <label class="info-label">العمر</label>
-                    <input type="text" id="patientAge" class="form-control" placeholder="أدخل العمر">
+                    <input type="text" id="patientAge" class="form-input" placeholder="أدخل العمر">
                 </div>
                 <div class="info-item">
                     <label class="info-label">الجنس</label>
-                    <select id="patientGender" class="form-control">
+                    <select id="patientGender" class="form-input">
                         <option value="">اختر</option>
                         <option value="ذكر">ذكر</option>
                         <option value="أنثى">أنثى</option>
@@ -1541,15 +937,15 @@
                 </div>
                 <div class="info-item">
                     <label class="info-label">تاريخ الميلاد</label>
-                    <input type="date" id="patientDOB" class="form-control">
+                    <input type="date" id="patientDOB" class="form-input">
                 </div>
                 <div class="info-item">
                     <label class="info-label">رقم الهاتف</label>
-                    <input type="tel" id="patientPhone" class="form-control" placeholder="أدخل رقم الهاتف">
+                    <input type="tel" id="patientPhone" class="form-input" placeholder="أدخل رقم الهاتف">
                 </div>
                 <div class="info-item">
                     <label class="info-label">الرقم القومي</label>
-                    <input type="text" id="patientNID" class="form-control" placeholder="أدخل الرقم القومي">
+                    <input type="text" id="patientNID" class="form-input" placeholder="أدخل الرقم القومي">
                 </div>
             </div>
         </div>
@@ -1565,11 +961,11 @@
             <div class="info-grid">
                 <div class="info-item">
                     <label class="info-label">تاريخ الكشف</label>
-                    <input type="date" id="checkupDate" class="form-control">
+                    <input type="date" id="checkupDate" class="form-input">
                 </div>
                 <div class="info-item">
                     <label class="info-label">نوع الكشف</label>
-                    <select id="checkupType" class="form-control">
+                    <select id="checkupType" class="form-input">
                         <option value="">اختر</option>
                         <option value="كشف أولي">كشف أولي</option>
                         <option value="متابعة">متابعة</option>
@@ -1580,7 +976,7 @@
                 </div>
                 <div class="info-item">
                     <label class="info-label">الطبيب المعالج</label>
-                    <input type="text" id="doctorName" class="form-control" placeholder="أدخل اسم الطبيب">
+                    <input type="text" id="doctorName" class="form-input" placeholder="أدخل اسم الطبيب">
                 </div>
             </div>
         </div>
@@ -1837,139 +1233,145 @@
         </div>
     </div>
 </div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
-  authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
-  databaseURL: "https://smart-life-hospital-ef64c-default-rtdb.firebaseio.com",
-  projectId: "smart-life-hospital-ef64c",
-  storageBucket: "smart-life-hospital-ef64c.firebasestorage.app",
-  messagingSenderId: "851045891087",
-  appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
-  measurementId: "G-QE5BL3MTY7"
-};
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-// Get patient ID from URL
-const urlParams = new URLSearchParams(window.location.search);
-const patientId = urlParams.get("id");
-// Set current date in modal
-document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-});
-// Set current date as default for checkup
-document.getElementById('checkupDate').valueAsDate = new Date();
-// Medication counter
-let medicationCounter = 0;
-// Helper function to validate patient ID
-function validatePatientId() {
-    if (!patientId) {
-        Swal.fire("خطأ", "معرف المريض غير موجود في الرابط", "error");
-        return false;
-    }
-    return true;
-}
-// Helper function to show loading message
-function showLoading(message = "جاري التحميل...") {
-    Swal.fire({
-        title: message,
-        didOpen: () => { Swal.showLoading(); }
-    });
-}
-// Helper function to show result message
-function showResult(title, message, icon = "success") {
-    Swal.fire({
-        title,
-        text: message,
-        icon,
-        timer: 1500,
-        showConfirmButton: false
-    });
-}
-// Function to update patient status UI
-function updateStatusUI(status) {
-    const statusEl = document.getElementById("patientStatus");
+
+<script>
+    // Get patient ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get("id");
     
-    const statusConfig = {
-        critical: { 
-            text: 'حرجة',
-            class: 'status-critical',
-            icon: 'fa-exclamation-triangle'
-        },
-        stable: { 
-            text: 'مستقرة',
-            class: 'status-stable',
-            icon: 'fa-check-circle'
-        },
-        improving: { 
-            text: 'في تحسن',
-            class: 'status-improving',
-            icon: 'fa-arrow-up'
-        },
-        deteriorating: { 
-            text: 'في تدهور',
-            class: 'status-deteriorating',
-            icon: 'fa-arrow-down'
+    // Set current date in modal
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Set current date as default for checkup
+    document.getElementById('checkupDate').valueAsDate = new Date();
+    
+    // Medication counter
+    let medicationCounter = 0;
+    
+    // Helper function to validate patient ID
+    function validatePatientId() {
+        if (!patientId) {
+            Swal.fire("خطأ", "معرف المريض غير موجود في الرابط", "error");
+            return false;
+        }
+        return true;
+    }
+    
+    // Helper function to show loading message
+    function showLoading(message = "جاري التحميل...") {
+        Swal.fire({
+            title: message,
+            didOpen: () => { Swal.showLoading(); }
+        });
+    }
+    
+    // Helper function to show result message
+    function showResult(title, message, icon = "success") {
+        Swal.fire({
+            title,
+            text: message,
+            icon,
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+    
+    // Function to update patient status UI
+    function updateStatusUI(status) {
+        const statusEl = document.getElementById("patientStatus");
+        
+        const statusConfig = {
+            critical: { 
+                text: 'حرجة',
+                class: 'status-critical',
+                icon: 'fa-exclamation-triangle'
+            },
+            stable: { 
+                text: 'مستقرة',
+                class: 'status-stable',
+                icon: 'fa-check-circle'
+            },
+            improving: { 
+                text: 'في تحسن',
+                class: 'status-improving',
+                icon: 'fa-arrow-up'
+            },
+            deteriorating: { 
+                text: 'في تدهور',
+                class: 'status-deteriorating',
+                icon: 'fa-arrow-down'
+            }
+        };
+        
+        if (statusConfig[status]) {
+            statusEl.className = `status-badge ${statusConfig[status].class}`;
+            statusEl.innerHTML = `<i class="fas ${statusConfig[status].icon} ml-2"></i>${statusConfig[status].text}`;
+        }
+    }
+    
+    // Function to change patient status
+    window.changePatientStatus = async function() {
+        if (!validatePatientId()) return;
+        
+        const { value: newStatus } = await Swal.fire({
+            title: 'تغيير حالة المريض',
+            input: 'select',
+            inputOptions: {
+                'critical': 'حرجة',
+                'stable': 'مستقرة',
+                'improving': 'في تحسن',
+                'deteriorating': 'في تدهور'
+            },
+            inputPlaceholder: 'اختر الحالة الجديدة',
+            showCancelButton: true,
+            confirmButtonText: 'حفظ',
+            cancelButtonText: 'إلغاء',
+            inputValidator: (value) => {
+                if (!value) return 'يرجى اختيار الحالة';
+            }
+        });
+        
+        if (newStatus) {
+            try {
+                showLoading("جاري تحديث الحالة...");
+                // In a real application, you would update the database here
+                // await update(ref(db, `patients/emergency/${patientId}`), { status: newStatus });
+                updateStatusUI(newStatus);
+                showResult("تم!", "تم تغيير حالة المريض بنجاح");
+            } catch (error) {
+                Swal.fire("خطأ", "فشل تحديث الحالة: " + error.message, "error");
+            }
         }
     };
     
-    if (statusConfig[status]) {
-        statusEl.className = `status-badge ${statusConfig[status].class}`;
-        statusEl.innerHTML = `<i class="fas ${statusConfig[status].icon} ml-2"></i>${statusConfig[status].text}`;
-    }
-}
-// Function to change patient status
-window.changePatientStatus = async function() {
-    if (!validatePatientId()) return;
-    
-    const { value: newStatus } = await Swal.fire({
-        title: 'تغيير حالة المريض',
-        input: 'select',
-        inputOptions: {
-            'critical': 'حرجة',
-            'stable': 'مستقرة',
-            'improving': 'في تحسن',
-            'deteriorating': 'في تدهور'
-        },
-        inputPlaceholder: 'اختر الحالة الجديدة',
-        showCancelButton: true,
-        confirmButtonText: 'حفظ',
-        cancelButtonText: 'إلغاء',
-        inputValidator: (value) => {
-            if (!value) return 'يرجى اختيار الحالة';
-        }
-    });
-    
-    if (newStatus) {
-        try {
-            showLoading("جاري تحديث الحالة...");
-            await update(ref(db, `patients/emergency/${patientId}`), { status: newStatus });
-            updateStatusUI(newStatus);
-            showResult("تم!", "تم تغيير حالة المريض بنجاح");
-        } catch (error) {
-            Swal.fire("خطأ", "فشل تحديث الحالة: " + error.message, "error");
-        }
-    }
-};
-// Load patient data
-async function loadPatientData() {
-    if (!validatePatientId()) return;
-    
-    const infoTable = document.getElementById("infoTable");
-    const qrCanvas = document.getElementById("qrCode");
-    
-    try {
-        const snapshot = await get(ref(db, `patients/emergency/${patientId}`));
+    // Load patient data
+    async function loadPatientData() {
+        if (!validatePatientId()) return;
         
-        if (snapshot.exists()) {
-            const patient = snapshot.val();
+        const infoTable = document.getElementById("infoTable");
+        const qrCanvas = document.getElementById("qrCode");
+        
+        try {
+            // In a real application, you would fetch data from Firebase
+            // const snapshot = await get(ref(db, `patients/emergency/${patientId}`));
+            
+            // Mock data for demonstration
+            const patient = {
+                name: "أحمد محمد علي",
+                age: "35 سنة",
+                nid: "29501011234567",
+                timestamp: new Date().toISOString(),
+                department: "القلب",
+                doctors: "د. محمد أحمد",
+                serviceType: "متابعة",
+                status: "stable"
+            };
+            
             infoTable.innerHTML = `
                 <tr><td class="py-2 px-3 font-semibold text-gray-700 w-1/3">الاسم:</td><td class="py-2 px-3">${patient.name || '-'}</td></tr>
                 <tr><td class="py-2 px-3 font-semibold text-gray-700">العمر:</td><td class="py-2 px-3">${patient.age || '-'}</td></tr>
@@ -1993,1517 +1395,419 @@ async function loadPatientData() {
             document.getElementById('patientName').value = patient.name || '';
             document.getElementById('patientAge').value = patient.age || '';
             document.getElementById('patientNID').value = patient.nid || '';
-        } else {
-            infoTable.innerHTML = "<tr><td colspan='2' class='py-2 px-3 text-center text-gray-500'>لم يتم العثور على بيانات المريض.</td></tr>";
+        } catch (error) {
+            Swal.fire("خطأ", "فشل تحميل بيانات المريض: " + error.message, "error");
         }
-    } catch (error) {
-        Swal.fire("خطأ", "فشل تحميل بيانات المريض: " + error.message, "error");
-    }
-}
-// Open medical checkup modal
-window.openCheckupModal = function() {
-    if (!validatePatientId()) return;
-    
-    // Reset form
-    document.getElementById('checkupForm').reset();
-    
-    // Reset medications list
-    document.getElementById('medicationsList').innerHTML = '';
-    document.getElementById('noMedications').style.display = 'block';
-    
-    // Show modal with animation
-    const modal = document.getElementById('checkupModal');
-    modal.classList.add('active');
-    
-    // Add entrance animations
-    const sections = modal.querySelectorAll('.form-section');
-    sections.forEach((section, index) => {
-        section.style.opacity = '0';
-        section.style.transform = 'translateY(30px)';
-        
-        setTimeout(() => {
-            section.style.transition = 'all 0.6s ease';
-            section.style.opacity = '1';
-            section.style.transform = 'translateY(0)';
-        }, index * 150);
-    });
-    
-    // Generate initial report preview
-    generateReport();
-};
-// Close medical checkup modal
-window.closeCheckupModal = function() {
-    const modal = document.getElementById('checkupModal');
-    modal.classList.remove('active');
-};
-// Select template
-window.selectTemplate = function(templateType) {
-    // Update active template
-    document.querySelectorAll('.template-option').forEach(option => {
-        option.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    // Update form based on template type
-    switch(templateType) {
-        case 'pediatric':
-            document.getElementById('checkupType').value = 'كشف أطفال';
-            break;
-        case 'cardiac':
-            document.getElementById('checkupType').value = 'كشف قلب';
-            break;
-        case 'orthopedic':
-            document.getElementById('checkupType').value = 'كشف عظام';
-            break;
-        case 'dental':
-            document.getElementById('checkupType').value = 'كشف أسنان';
-            break;
-        case 'eye':
-            document.getElementById('checkupType').value = 'كشف عيون';
-            break;
-        default:
-            document.getElementById('checkupType').value = 'كشف عام';
     }
     
-    // Update report preview
-    generateReport();
-};
-// Function to add a new medication
-window.addMedication = function() {
-    const medicationsList = document.getElementById("medicationsList");
-    const noMedications = document.getElementById("noMedications");
-    
-    // Hide "no medications" message
-    noMedications.style.display = 'none';
-    
-    medicationCounter++;
-    const medicationId = `medication-${medicationCounter}`;
-    
-    const medicationItem = document.createElement('div');
-    medicationItem.className = 'medication-item';
-    medicationItem.id = medicationId;
-    
-    medicationItem.innerHTML = `
-        <div class="medication-header">
-            <h4 class="medication-title">الدواء #${medicationsList.children.length + 1}</h4>
-            <button type="button" onclick="removeMedication('${medicationId}')" class="remove-medication">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
+    // Open medical checkup modal
+    window.openCheckupModal = function() {
+        if (!validatePatientId()) return;
         
-        <div class="medication-grid">
-            <div class="form-group">
-                <label class="form-label required">اسم الدواء</label>
-                <input type="text" class="medication-name form-input" placeholder="اسم الدواء" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label required">الجرعة</label>
-                <input type="text" class="medication-dosage form-input" placeholder="مثال: 500 مجم" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label required">المدة</label>
-                <input type="text" class="medication-duration form-input" placeholder="مثال: 7 أيام" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">نوع التأمين</label>
-                <select class="medication-insurance form-select">
-                    <option value="">اختر نوع التأمين</option>
-                    <option value="تأمين أساسي">تأمين أساسي</option>
-                    <option value="تأمين تكميلي">تأمين تكميلي</option>
-                    <option value="خاص">خاص</option>
-                    <option value="غير مؤمن">غير مؤمن</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">عدد الجرعات</label>
-                <input type="number" class="medication-doses form-input" placeholder="مثال: 3" min="1">
-            </div>
-            <div class="form-group">
-                <label class="form-label">تعليمات الإعطاء</label>
-                <input type="text" class="medication-instructions form-input" placeholder="مثال: بعد الأكل">
-            </div>
-        </div>
-    `;
-    
-    medicationsList.appendChild(medicationItem);
-    
-    // Add animation
-    medicationItem.style.opacity = '0';
-    medicationItem.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-        medicationItem.style.transition = 'all 0.5s ease';
-        medicationItem.style.opacity = '1';
-        medicationItem.style.transform = 'translateY(0)';
-    }, 10);
-    
-    // Add event listeners to update preview on change
-    const inputs = medicationItem.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-        input.addEventListener('input', generateReport);
-        input.addEventListener('change', generateReport);
-    });
-};
-// Function to remove a medication
-window.removeMedication = function(medicationId) {
-    const medicationItem = document.getElementById(`medication-${medicationId}`);
-    if (medicationItem) {
-        medicationItem.style.transition = 'all 0.3s ease';
-        medicationItem.style.opacity = '0';
-        medicationItem.style.transform = 'translateX(-30px)';
+        // Show modal with animation
+        const modal = document.getElementById('checkupModal');
+        modal.classList.add('active');
         
-        setTimeout(() => {
-            medicationItem.remove();
+        // Add entrance animations
+        const sections = modal.querySelectorAll('.form-section');
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
             
-            // Check if no medications left
-            const medicationsList = document.getElementById('medicationsList');
-            if (medicationsList.children.length === 0) {
-                document.getElementById('noMedications').style.display = 'block';
-            }
-            
-            // Update preview
-            generateReport();
-        }, 300);
-    }
-};
-// Generate report preview
-window.generateReport = function() {
-    // Get form values
-    const patientName = document.getElementById('patientName').value || '-';
-    const patientAge = document.getElementById('patientAge').value || '-';
-    const patientGender = document.getElementById('patientGender').value || '-';
-    const patientDOB = document.getElementById('patientDOB').value || '-';
-    const patientPhone = document.getElementById('patientPhone').value || '-';
-    const patientNID = document.getElementById('patientNID').value || '-';
-    
-    const checkupDate = document.getElementById('checkupDate').value || '-';
-    const checkupType = document.getElementById('checkupType').value || '-';
-    const doctorName = document.getElementById('doctorName').value || 'د. أحمد محمد';
-    
-    const symptoms = document.getElementById('symptoms').value || '-';
-    const diagnosis = document.getElementById('diagnosis').value || '-';
-    const treatmentPlan = document.getElementById('treatmentPlan').value || '-';
-    const additionalNotes = document.getElementById('additionalNotes').value || '-';
-    
-    // Update preview
-    document.getElementById('previewPatientName').textContent = patientName;
-    document.getElementById('previewPatientAge').textContent = patientAge;
-    document.getElementById('previewPatientGender').textContent = patientGender;
-    document.getElementById('previewPatientDOB').textContent = patientDOB;
-    document.getElementById('previewPatientPhone').textContent = patientPhone;
-    document.getElementById('previewPatientNID').textContent = patientNID;
-    
-    document.getElementById('previewCheckupDate').textContent = checkupDate;
-    document.getElementById('previewCheckupType').textContent = checkupType;
-    document.getElementById('previewDoctorName').textContent = doctorName;
-    
-    document.getElementById('previewSymptoms').textContent = symptoms;
-    document.getElementById('previewDiagnosis').textContent = diagnosis;
-    document.getElementById('previewTreatmentPlan').textContent = treatmentPlan;
-    document.getElementById('previewAdditionalNotes').textContent = additionalNotes;
-    
-    // Update medications
-    const medicationsList = document.getElementById('medicationsList');
-    const medications = medicationsList.querySelectorAll('.medication-item');
-    const previewMedications = document.getElementById('previewMedications');
-    
-    if (medications.length > 0) {
-        let medicationsHTML = '';
-        medications.forEach((medication, index) => {
-            const medicationId = medication.id;
-            const name = medication.querySelector('.medication-name').value || '-';
-            const dosage = medication.querySelector('.medication-dosage').value || '-';
-            const duration = medication.querySelector('.medication-duration').value || '-';
-            const instructions = medication.querySelector('.medication-instructions').value || '-';
-            
-            medicationsHTML += `
-                <div class="medication-item">
-                    <div class="medication-header">
-                        <div class="medication-name">${index + 1}. ${name}</div>
-                    </div>
-                    <div class="medication-details">
-                        <div class="info-item">
-                            <div class="info-label">الجرعة</div>
-                            <div class="info-value">${dosage}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">المدة</div>
-                            <div class="info-value">${duration}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">التعليمات</div>
-                            <div class="info-value">${instructions}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            setTimeout(() => {
+                section.style.transition = 'all 0.6s ease';
+                section.style.opacity = '1';
+                section.style.transform = 'translateY(0)';
+            }, index * 150);
         });
-        previewMedications.innerHTML = medicationsHTML;
-    } else {
-        previewMedications.innerHTML = '<div class="info-value">لا توجد أدوية موصوفة</div>';
-    }
-    
-    // Generate QR code
-    const qrCodeContainer = document.getElementById('qrCodeReport');
-    qrCodeContainer.innerHTML = '';
-    QRCode.toCanvas(qrCodeContainer, patientNID, function (error) {
-        if (error) console.error(error);
-    });
-};
-// Download PDF
-window.downloadPDF = function() {
-    const element = document.getElementById('reportPreview');
-    const opt = {
-        margin: 10,
-        filename: `تقرير_كشف_طبي_${document.getElementById('patientName').value || 'غير_محدد'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        
+        // Generate initial report preview
+        generateReport();
     };
     
-    html2pdf().set(opt).from(element).save();
-};
-// Save medical checkup data
-window.saveVisit = async function() {
-    if (!validatePatientId()) return;
-    
-    // Collect form data
-    const patientName = document.getElementById('patientName').value;
-    const patientAge = document.getElementById('patientAge').value;
-    const patientGender = document.getElementById('patientGender').value;
-    const patientDOB = document.getElementById('patientDOB').value;
-    const patientPhone = document.getElementById('patientPhone').value;
-    const patientNID = document.getElementById('patientNID').value;
-    
-    const checkupDate = document.getElementById('checkupDate').value;
-    const checkupType = document.getElementById('checkupType').value;
-    const doctorName = document.getElementById('doctorName').value || 'د. أحمد محمد';
-    
-    const symptoms = document.getElementById('symptoms').value;
-    const diagnosis = document.getElementById('diagnosis').value;
-    const treatmentPlan = document.getElementById('treatmentPlan').value;
-    const additionalNotes = document.getElementById('additionalNotes').value;
-    
-    // Validate required fields
-    if (!symptoms || !diagnosis) {
-        Swal.fire({
-            title: 'حقول مطلوبة',
-            text: 'يرجى ملء الحقول المطلوبة (الأعراض، التشخيص)',
-            icon: 'warning',
-            confirmButtonText: 'موافق'
-        });
-        return;
-    }
-    
-    // Collect medications data
-    const medications = [];
-    const medicationItems = document.querySelectorAll('#medicationsList > div');
-    
-    medicationItems.forEach(item => {
-        const name = item.querySelector('.medication-name').value.trim();
-        const dosage = item.querySelector('.medication-dosage').value.trim();
-        const duration = item.querySelector('.medication-duration').value.trim();
-        const insurance = item.querySelector('.medication-insurance').value;
-        const doses = item.querySelector('.medication-doses').value;
-        const instructions = item.querySelector('.medication-instructions').value.trim();
-        
-        if (name && dosage && duration) {
-            medications.push({
-                name,
-                dosage,
-                duration,
-                insurance: insurance || "غير محدد",
-                doses: doses || null,
-                instructions: instructions || "حسب إرشادات الطبيب"
-            });
-        }
-    });
-    
-    try {
-        // Show loading with custom styling
-        Swal.fire({
-            title: 'جاري حفظ الكشف الطبي...',
-            html: '<div class="loading"></div>',
-            didOpen: () => { Swal.showLoading(); },
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        });
-        
-        // Prepare checkup data
-        const checkupData = {
-            patientName,
-            patientAge,
-            patientGender,
-            patientDOB,
-            patientPhone,
-            patientNID,
-            checkupDate,
-            checkupType,
-            doctorName,
-            symptoms,
-            diagnosis,
-            treatmentPlan,
-            additionalNotes,
-            medications,
-            doctorId: "د. أحمد محمد",
-            date: new Date().toISOString(),
-            status: "مكتمل"
-        };
-        
-        // Save data to Firebase
-        const newCheckupRef = await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
-        checkupData.id = newCheckupRef.key;
-        
-        // Update patient status
-        await update(ref(db, `patients/emergency/${patientId}`), {
-            lastCheckup: new Date().toISOString(),
-            serviceType: checkupType,
-            lastCheckupBy: "د. أحمد محمد"
-        });
-        
-        // Show success message
-        Swal.fire({
-            title: 'تم الحفظ بنجاح!',
-            text: 'تم حفظ الكشف الطبي في ملف المريض',
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-        });
-        
-        // Add success animation to save button
-        const saveBtn = document.querySelector('.save-btn');
-        saveBtn.classList.add('success-animation');
-        
-        // Close modal and refresh data
-        setTimeout(() => {
-            closeCheckupModal();
-            loadCheckups(); // Refresh the checkups list
-        }, 1500);
-        
-    } catch (error) {
-        console.error('Error saving checkup:', error);
-        Swal.fire("خطأ", "فشل حفظ الكشف: " + error.message, "error");
-    }
-};
-// Show/hide fields based on selected department
-document.getElementById("transferDepartment").addEventListener("change", function() {
-    const department = this.value;
-    const deviceSelect = document.getElementById("radiologyDevice");
-    const deviceDiv = document.getElementById("radiologyDeviceDiv");
-    const pharmacyFields = document.getElementById("pharmacyFields");
-    const transferTypeInput = document.getElementById("transferType");
-    
-    // Hide all specialized fields first
-    deviceDiv.classList.add("hidden");
-    pharmacyFields.classList.add("hidden");
-    
-    // Show appropriate fields based on department
-    if (department === "radiology") {
-        deviceDiv.classList.remove("hidden");
-        transferTypeInput.placeholder = "نوع الأشعة";
-    } else if (department === "الصيدلية") {
-        pharmacyFields.classList.remove("hidden");
-        transferTypeInput.placeholder = "طلب دواء";
-        transferTypeInput.value = "طلب صرف دواء"; // Default value
-    } else if (department === "التحاليل") {
-        transferTypeInput.placeholder = "نوع التحليل";
-    } else {
-        transferTypeInput.placeholder = "نوع الإجراء";
-    }
-});
-// Register a new transfer
-window.addTransfer = async function() {
-    if (!validatePatientId()) return;
-    
-    const department = document.getElementById("transferDepartment").value;
-    const type = document.getElementById("transferType").value.trim();
-    const notes = document.getElementById("transferNotes").value.trim();
-    const device = document.getElementById("radiologyDevice").value;
-    
-    // Pharmacy data
-    const medicationName = document.getElementById("medicationName").value.trim();
-    const dosage = document.getElementById("dosage").value.trim();
-    const duration = document.getElementById("duration").value.trim();
-    const insuranceType = document.getElementById("insuranceType").value;
-    const dosesCount = document.getElementById("dosesCount").value;
-    const administration = document.getElementById("administration").value.trim();
-    
-    // Validate required fields
-    if (!department || !type) {
-        Swal.fire("تنبيه", "يرجى ملء جميع الحقول", "warning");
-        return;
-    }
-    
-    // Pharmacy-specific validation
-    if (department === "الصيدلية") {
-        if (!medicationName || !dosage || !duration) {
-            Swal.fire("تنبيه", "يرجى ملء حقول الدواء الأساسية (الاسم، الجرعة، المدة)", "warning");
-            return;
-        }
-    }
-    
-    // Radiology-specific validation
-    if (department === "radiology" && !device) {
-        Swal.fire("تنبيه", "يرجى اختيار جهاز الأشعة", "warning");
-        return;
-    }
-    
-    const newTransfer = {
-        department,
-        type,
-        notes,
-        device: department === "radiology" ? device : "",
-        // Pharmacy data
-        medication: department === "الصيدلية" ? {
-            name: medicationName,
-            dosage: dosage,
-            duration: duration,
-            insuranceType: insuranceType || "غير محدد",
-            dosesCount: dosesCount || null,
-            administration: administration || "حسب إرشادات الطبيب"
-        } : null,
-        date: new Date().toLocaleString('ar-EG'),
-        status: "قيد الانتظار",
-        requestedBy: "د. أحمد محمد" // In real system: use doctor name from authentication
+    // Close medical checkup modal
+    window.closeCheckupModal = function() {
+        const modal = document.getElementById('checkupModal');
+        modal.classList.remove('active');
     };
     
-    try {
-        showLoading("جاري تسجيل التحويل...");
-        await push(ref(db, `patients/emergency/${patientId}/transfers`), newTransfer);
+    // Select template
+    window.selectTemplate = function(templateType) {
+        // Update active template
+        document.querySelectorAll('.template-option').forEach(option => {
+            option.classList.remove('active');
+        });
+        event.target.classList.add('active');
         
-        // Reset form
-        document.getElementById("transferDepartment").value = "";
-        document.getElementById("transferType").value = "";
-        document.getElementById("transferNotes").value = "";
-        document.getElementById("radiologyDevice").value = "";
-        document.getElementById("pharmacyFields").classList.add("hidden");
-        
-        // Reset pharmacy fields
-        document.getElementById("medicationName").value = "";
-        document.getElementById("dosage").value = "";
-        document.getElementById("duration").value = "";
-        document.getElementById("insuranceType").value = "";
-        document.getElementById("dosesCount").value = "";
-        document.getElementById("administration").value = "";
-        
-        showResult("تم", "تم تسجيل التحويل بنجاح");
-    } catch (error) {
-        Swal.fire("خطأ", "حدث خطأ أثناء التسجيل: " + error.message, "error");
-    }
-};
-// Delete a transfer record
-window.deleteTransfer = function(transferKey) {
-    Swal.fire({
-        title: 'تأكيد الحذف',
-        text: "هل أنت متأكد أنك تريد حذف هذا السجل؟",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، احذف',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            remove(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`))
-            .then(() => {
-                showResult("تم الحذف!", "تم حذف السجل بنجاح");
-            })
-            .catch((error) => {
-                Swal.fire("خطأ", "حدث خطأ أثناء الحذف: " + error.message, "error");
-            });
-        }
-    });
-};
-// Load transfers data
-function loadTransfers() {
-    if (!validatePatientId()) return;
-    
-    const list = document.getElementById("transferList");
-    const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
-    
-    onValue(transfersRef, (snapshot) => {
-        list.innerHTML = "";
-        
-        if (!snapshot.exists()) {
-            list.innerHTML = "<p class='text-gray-500 text-center py-4'>لا توجد تحويلات مسجلة</p>";
-            return;
+        // Update form based on template type
+        switch(templateType) {
+            case 'pediatric':
+                document.getElementById('checkupType').value = 'كشف أطفال';
+                break;
+            case 'cardiac':
+                document.getElementById('checkupType').value = 'كشف قلب';
+                break;
+            case 'orthopedic':
+                document.getElementById('checkupType').value = 'كشف عظام';
+                break;
+            case 'dental':
+                document.getElementById('checkupType').value = 'كشف أسنان';
+                break;
+            case 'eye':
+                document.getElementById('checkupType').value = 'كشف عيون';
+                break;
+            default:
+                document.getElementById('checkupType').value = 'كشف عام';
         }
         
-        snapshot.forEach((child) => {
-            const t = child.val();
-            const key = child.key;
-            let resultText = "";
-            
-            // Display medication details if transfer is to pharmacy
-            if (t.department === "الصيدلية" && t.medication) {
-                const med = t.medication;
-                resultText += `
-                    <div class="bg-green-50 p-3 rounded-lg mt-2 border border-green-200">
-                        <div class="font-semibold text-green-800 mb-2">تفاصيل الدواء:</div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                            <div><span class="font-medium">الدواء:</span> ${med.name}</div>
-                            <div><span class="font-medium">الجرعة:</span> ${med.dosage}</div>
-                            <div><span class="font-medium">المدة:</span> ${med.duration}</div>
-                            <div><span class="font-medium">التأمين:</span> ${med.insuranceType}</div>
-                            ${med.dosesCount ? `<div><span class="font-medium">عدد الجرعات:</span> ${med.dosesCount}</div>` : ''}
-                            <div class="md:col-span-2"><span class="font-medium">طريقة الإعطاء:</span> ${med.administration}</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            if (t.report) {
-                resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
-            }
-            if (t.technician) {
-                resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${t.technician}</span>`;
-            }
-            if (t.device) {
-                resultText += ` | <span class="text-purple-700">الجهاز: ${t.device}</span>`;
-            }
-            
-            let actionBtns = "";
-            if (t.department === "radiology") {
-                if (t.status === "قيد الانتظار") {
-                    actionBtns += `<button onclick='editRadiology("${key}", ${JSON.stringify(t)})' class="btn btn-primary text-sm ml-2">تعديل</button>`;
-                }
-                if (t.status === "تم التنفيذ") {
-                    actionBtns += `<button onclick='showRadiologyReport(${JSON.stringify(t)})' class="btn btn-success text-sm ml-2">عرض النتيجة</button>`;
-                }
-                actionBtns += `<button onclick='deleteTransfer("${key}")' class="btn btn-danger text-sm ml-2">حذف</button>`;
-            } else if (t.department === "الصيدلية") {
-                // Pharmacy-specific buttons
-                if (t.status === "قيد الانتظار") {
-                    actionBtns += `
-                        <button onclick='updateMedicationStatus("${key}", "تم الصرف")' class="btn btn-success text-sm ml-2">
-                            <i class="fas fa-check"></i>تأكيد الصرف
-                        </button>
-                        <button onclick='updateMedicationStatus("${key}", "مرفوض")' class="btn btn-danger text-sm ml-2">
-                            <i class="fas fa-times"></i>رفض
-                        </button>
-                    `;
-                } else if (t.status === "تم الصرف") {
-                    actionBtns += `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">تم الصرف</span>`;
-                } else if (t.status === "مرفوض") {
-                    actionBtns += `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">مرفوض</span>`;
-                }
-                actionBtns += `<button onclick='deleteTransfer("${key}")' class="btn btn-danger text-sm ml-2">
+        // Update report preview
+        generateReport();
+    };
+    
+    // Function to add a new medication
+    window.addMedication = function() {
+        const medicationsList = document.getElementById("medicationsList");
+        const noMedications = document.getElementById("noMedications");
+        
+        // Hide "no medications" message
+        noMedications.style.display = 'none';
+        
+        medicationCounter++;
+        const medicationId = `medication-${medicationCounter}`;
+        
+        const medicationItem = document.createElement('div');
+        medicationItem.className = 'medication-item';
+        medicationItem.id = medicationId;
+        
+        medicationItem.innerHTML = `
+            <div class="medication-header">
+                <h4 class="medication-title">الدواء #${medicationsList.children.length + 1}</h4>
+                <button type="button" onclick="removeMedication('${medicationId}')" class="remove-medication">
                     <i class="fas fa-trash"></i>
-                </button>`;
-            }
-            
-            const statusColor = {
-                "قيد الانتظار": "text-yellow-600 bg-yellow-50",
-                "تم التنفيذ": "text-green-600 bg-green-50",
-                "تم الصرف": "text-green-600 bg-green-50",
-                "مرفوض": "text-red-600 bg-red-50"
-            };
-            
-            const item = document.createElement("div");
-            item.className = "medical-record-item";
-            item.innerHTML = `
-                <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
-                    <div class="mb-2 md:mb-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-semibold text-lg">${getDepartmentIcon(t.department)} ${t.department}</span>
-                            <span class="mx-1">•</span>
-                            <span>${t.type}</span>
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            ${t.date}
-                        </div>
-                    </div>
-                    <div class="px-3 py-1 rounded-full text-sm font-medium ${statusColor[t.status] || 'text-gray-600 bg-gray-50'}">
-                        ${t.status}
-                    </div>
-                </div>
-                ${resultText}
-                <div class="mt-3 flex flex-wrap gap-2">
-                    ${actionBtns}
-                </div>
-            `;
-            list.appendChild(item);
-        });
-    });
-}
-// Helper function to get department icon
-function getDepartmentIcon(department) {
-    const icons = {
-        "radiology": "📡",
-        "التحاليل": "🔬",
-        "العناية المركزة": "🏥",
-        "العمليات": "🔪",
-        "الصيدلية": "💊"
-    };
-    return icons[department] || "📋";
-}
-// Function to update medication status
-window.updateMedicationStatus = async function(transferKey, newStatus) {
-    try {
-        showLoading("جاري تحديث الحالة...");
-        await update(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`), {
-            status: newStatus,
-            updatedAt: new Date().toISOString(),
-            processedBy: "موظف الصيدلية" // In real system: use username from authentication
-        });
-        showResult("تم!", `تم تحديث حالة الطلب إلى: ${newStatus}`);
-    } catch (error) {
-        Swal.fire("خطأ", "فشل تحديث الحالة: " + error.message, "error");
-    }
-};
-// Show radiology report
-window.showRadiologyReport = function(transfer) {
-    let fileHtml = '';
-    if (transfer.fileUrl) {
-        const ext = transfer.fileUrl.split('.').pop().toLowerCase();
-        if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext)) {
-            fileHtml = `<img src="${transfer.fileUrl}" alt="صورة الأشعة" style="max-width:100%;max-height:40vh;display:block;margin:10px auto;">`;
-        } else if (ext === "pdf") {
-            fileHtml = `<iframe src="${transfer.fileUrl}" style="width:100%;height:40vh;" frameborder="0"></iframe>`;
-        } else {
-            fileHtml = `<a href="${transfer.fileUrl}" target="_blank" class="text-blue-700 underline">تحميل الملف</a>`;
-        }
-    } else {
-        fileHtml = `<span class="text-gray-500">لا يوجد ملف مرفق</span>`;
-    }
-    
-    Swal.fire({
-        title: "نتيجة الأشعة",
-        html: `
-            <div class="text-right">
-                <p><b>نوع الأشعة:</b> ${transfer.type || "-"}</p>
-                <p><b>الجهاز:</b> ${transfer.device || "-"}</p>
-                <p><b>منفذ الأشعة:</b> ${transfer.technician || "-"}</p>
-                <p><b>تقرير الفني:</b> ${transfer.report || "لا يوجد تقرير"}</p>
-                <p><b>تاريخ التنفيذ:</b> ${transfer.executionDate || "-"}</p>
-                <div class="mt-4">
-                    ${fileHtml}
-                </div>
+                </button>
             </div>
-        `,
-        width: "60vw",
-        showCloseButton: true,
-        confirmButtonText: "إغلاق"
-    });
-};
-// Load medical checkups with improved error handling and display
-function loadCheckups() {
-    if (!validatePatientId()) {
-        console.log("Patient ID validation failed");
-        return;
-    }
-    
-    console.log("Loading checkups for patient:", patientId);
-    
-    const checkupsList = document.getElementById("checkupsList");
-    const checkupsRef = ref(db, `patients/emergency/${patientId}/checkups`);
-    
-    // Show loading state
-    checkupsList.innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
-            <p>جاري تحميل الكشوفات الطبية...</p>
-        </div>
-    `;
-    
-    try {
-        onValue(checkupsRef, (snapshot) => {
-            console.log("Checkups snapshot received:", snapshot.exists());
             
-            checkupsList.innerHTML = ""; // Clear loading state
-            
-            if (!snapshot.exists()) {
-                checkupsList.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-file-medical text-4xl mb-3"></i>
-                        <p class="text-lg font-medium">لا توجد كشوفات طبية مسجلة</p>
-                        <p class="text-sm">اضغط على "كشف طبي جديد" لتسجيل أول كشف</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const checkupsArray = [];
-            snapshot.forEach((child) => {
-                const checkup = child.val();
-                checkup.id = child.key; // Add the ID to the checkup object
-                checkupsArray.push(checkup);
-            });
-            
-            console.log("Found checkups:", checkupsArray.length);
-            
-            if (checkupsArray.length === 0) {
-                checkupsList.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-file-medical text-4xl mb-3"></i>
-                        <p class="text-lg font-medium">لا توجد كشوفات طبية مسجلة</p>
-                        <p class="text-sm">اضغط على "كشف طبي جديد" لتسجيل أول كشف</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Sort checkups by date (newest first)
-            checkupsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            checkupsArray.forEach((checkup) => {
-                const checkupEl = document.createElement("div");
-                checkupEl.className = "checkup-item";
-                
-                // Format date
-                const checkupDate = new Date(checkup.date);
-                const formattedDate = checkupDate.toLocaleDateString('ar-EG', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                // Build medications HTML
-                let medicationsHtml = '';
-                if (checkup.medications && checkup.medications.length > 0) {
-                    const medicationsList = checkup.medications.map((med, index) => `
-                        <div class="medication-list-item">
-                            <div class="medication-name">${index + 1}. ${med.name}</div>
-                            <div class="medication-details">
-                                <div><span class="font-medium">الجرعة:</span> ${med.dosage}</div>
-                                <div><span class="font-medium">المدة:</span> ${med.duration}</div>
-                                <div><span class="font-medium">التأمين:</span> ${med.insurance}</div>
-                                ${med.doses ? `<div><span class="font-medium">الجرعات:</span> ${med.doses}</div>` : ''}
-                                <div><span class="font-medium">التعليمات:</span> ${med.instructions}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    medicationsHtml = `
-                        <div class="checkup-section">
-                            <div class="checkup-section-title">
-                                <i class="fas fa-pills text-green-600"></i>
-                                الأدوية الموصوفة (${checkup.medications.length})
-                            </div>
-                            <div class="medications-list">
-                                ${medicationsList}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                checkupEl.innerHTML = `
-                    <div class="checkup-header-info">
-                        <div>
-                            <div class="checkup-meta">
-                                <span class="checkup-type-badge">${checkup.checkupType || checkup.visitType || 'كشف'}</span>
-                                <span class="checkup-date">${formattedDate}</span>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-500">
-                            <i class="fas fa-user-md"></i> ${checkup.doctorName || checkup.doctorId || 'طبيب'}
-                        </div>
-                    </div>
-                    
-                    <div class="checkup-section">
-                        <div class="checkup-section-title">
-                            <i class="fas fa-notes-medical text-red-500"></i>
-                            الأعراض
-                        </div>
-                        <div class="checkup-section-content">${checkup.symptoms || 'لا توجد أعراض مسجلة'}</div>
-                    </div>
-                    
-                    <div class="checkup-section">
-                        <div class="checkup-section-title">
-                            <i class="fas fa-diagnoses text-purple-600"></i>
-                            التشخيص
-                        </div>
-                        <div class="checkup-section-content">${checkup.diagnosis || 'لا يوجد تشخيص مسجل'}</div>
-                    </div>
-                    
-                    <div class="checkup-section">
-                        <div class="checkup-section-title">
-                            <i class="fas fa-heartbeat text-blue-600"></i>
-                            الخطة العلاجية
-                        </div>
-                        <div class="checkup-section-content">${checkup.treatmentPlan || 'لا توجد خطة علاجية مسجلة'}</div>
-                    </div>
-                    
-                    ${medicationsHtml}
-                `;
-                
-                checkupsList.appendChild(checkupEl);
-            });
-            
-            console.log("Successfully rendered", checkupsArray.length, "checkups");
-            
-        }, (error) => {
-            console.error("Error loading checkups:", error);
-            checkupsList.innerHTML = `
-                <div class="text-center py-8 text-red-500">
-                    <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
-                    <p class="text-lg font-medium">خطأ في تحميل الكشوفات الطبية</p>
-                    <p class="text-sm">${error.message}</p>
+            <div class="medication-grid">
+                <div class="form-group">
+                    <label class="form-label required">اسم الدواء</label>
+                    <input type="text" class="medication-name form-input" placeholder="اسم الدواء" required>
                 </div>
-            `;
-        });
-        
-    } catch (error) {
-        console.error("Critical error in loadCheckups:", error);
-        checkupsList.innerHTML = `
-            <div class="text-center py-8 text-red-500">
-                <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
-                <p class="text-lg font-medium">خطأ غير متوقع</p>
-                <p class="text-sm">يرجى تحديث الصفحة والمحاولة مرة أخرى</p>
+                <div class="form-group">
+                    <label class="form-label required">الجرعة</label>
+                    <input type="text" class="medication-dosage form-input" placeholder="مثال: 500 مجم" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">المدة</label>
+                    <input type="text" class="medication-duration form-input" placeholder="مثال: 7 أيام" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">نوع التأمين</label>
+                    <select class="medication-insurance form-select">
+                        <option value="">اختر نوع التأمين</option>
+                        <option value="تأمين أساسي">تأمين أساسي</option>
+                        <option value="تأمين تكميلي">تأمين تكميلي</option>
+                        <option value="خاص">خاص</option>
+                        <option value="غير مؤمن">غير مؤمن</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">عدد الجرعات</label>
+                    <input type="number" class="medication-doses form-input" placeholder="مثال: 3" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تعليمات الإعطاء</label>
+                    <input type="text" class="medication-instructions form-input" placeholder="مثال: بعد الأكل">
+                </div>
             </div>
         `;
-    }
-}
-// Load statistics data
-function loadStatistics() {
-    // Show loading state
-    document.getElementById('totalPatients').textContent = "...";
-    document.getElementById('totalCheckups').textContent = "...";
-    document.getElementById('totalTransfers').textContent = "...";
-    document.getElementById('criticalPatients').textContent = "...";
+        
+        medicationsList.appendChild(medicationItem);
+        
+        // Add animation
+        medicationItem.style.opacity = '0';
+        medicationItem.style.transform = 'translateY(30px)';
+        setTimeout(() => {
+            medicationItem.style.transition = 'all 0.5s ease';
+            medicationItem.style.opacity = '1';
+            medicationItem.style.transform = 'translateY(0)';
+        }, 10);
+        
+        // Add event listeners to update preview on change
+        const inputs = medicationItem.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', generateReport);
+            input.addEventListener('change', generateReport);
+        });
+    };
     
-    // Get all patients data
-    const patientsRef = ref(db, 'patients/emergency');
-    
-    onValue(patientsRef, (snapshot) => {
-        if (!snapshot.exists()) {
-            // Set default values if no data
-            document.getElementById('totalPatients').textContent = "0";
-            document.getElementById('totalCheckups').textContent = "0";
-            document.getElementById('totalTransfers').textContent = "0";
-            document.getElementById('criticalPatients').textContent = "0";
+    // Function to remove a medication
+    window.removeMedication = function(medicationId) {
+        const medicationItem = document.getElementById(`medication-${medicationId}`);
+        if (medicationItem) {
+            medicationItem.style.transition = 'all 0.3s ease';
+            medicationItem.style.opacity = '0';
+            medicationItem.style.transform = 'translateX(-30px)';
             
-            // Show empty charts
-            initializeEmptyCharts();
+            setTimeout(() => {
+                medicationItem.remove();
+                
+                // Check if no medications left
+                const medicationsList = document.getElementById('medicationsList');
+                if (medicationsList.children.length === 0) {
+                    document.getElementById('noMedications').style.display = 'block';
+                }
+                
+                // Update preview
+                generateReport();
+            }, 300);
+        }
+    };
+    
+    // Generate report preview
+    window.generateReport = function() {
+        // Get form values
+        const patientName = document.getElementById('patientName').value || '-';
+        const patientAge = document.getElementById('patientAge').value || '-';
+        const patientGender = document.getElementById('patientGender').value || '-';
+        const patientDOB = document.getElementById('patientDOB').value || '-';
+        const patientPhone = document.getElementById('patientPhone').value || '-';
+        const patientNID = document.getElementById('patientNID').value || '-';
+        
+        const checkupDate = document.getElementById('checkupDate').value || '-';
+        const checkupType = document.getElementById('checkupType').value || '-';
+        const doctorName = document.getElementById('doctorName').value || 'د. أحمد محمد';
+        
+        const symptoms = document.getElementById('symptoms').value || '-';
+        const diagnosis = document.getElementById('diagnosis').value || '-';
+        const treatmentPlan = document.getElementById('treatmentPlan').value || '-';
+        const additionalNotes = document.getElementById('additionalNotes').value || '-';
+        
+        // Update preview
+        document.getElementById('previewPatientName').textContent = patientName;
+        document.getElementById('previewPatientAge').textContent = patientAge;
+        document.getElementById('previewPatientGender').textContent = patientGender;
+        document.getElementById('previewPatientDOB').textContent = patientDOB;
+        document.getElementById('previewPatientPhone').textContent = patientPhone;
+        document.getElementById('previewPatientNID').textContent = patientNID;
+        
+        document.getElementById('previewCheckupDate').textContent = checkupDate;
+        document.getElementById('previewCheckupType').textContent = checkupType;
+        document.getElementById('previewDoctorName').textContent = doctorName;
+        
+        document.getElementById('previewSymptoms').textContent = symptoms;
+        document.getElementById('previewDiagnosis').textContent = diagnosis;
+        document.getElementById('previewTreatmentPlan').textContent = treatmentPlan;
+        document.getElementById('previewAdditionalNotes').textContent = additionalNotes;
+        
+        // Update medications
+        const medicationsList = document.getElementById('medicationsList');
+        const medications = medicationsList.querySelectorAll('.medication-item');
+        const previewMedications = document.getElementById('previewMedications');
+        
+        if (medications.length > 0) {
+            let medicationsHTML = '';
+            medications.forEach((medication, index) => {
+                const medicationId = medication.id;
+                const name = medication.querySelector('.medication-name').value || '-';
+                const dosage = medication.querySelector('.medication-dosage').value || '-';
+                const duration = medication.querySelector('.medication-duration').value || '-';
+                const instructions = medication.querySelector('.medication-instructions').value || '-';
+                
+                medicationsHTML += `
+                    <div class="medication-item">
+                        <div class="medication-header">
+                            <div class="medication-name">${index + 1}. ${name}</div>
+                        </div>
+                        <div class="medication-details">
+                            <div class="info-item">
+                                <div class="info-label">الجرعة</div>
+                                <div class="info-value">${dosage}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">المدة</div>
+                                <div class="info-value">${duration}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">التعليمات</div>
+                                <div class="info-value">${instructions}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            previewMedications.innerHTML = medicationsHTML;
+        } else {
+            previewMedications.innerHTML = '<div class="info-value">لا توجد أدوية موصوفة</div>';
+        }
+        
+        // Generate QR code
+        const qrCodeContainer = document.getElementById('qrCodeReport');
+        qrCodeContainer.innerHTML = '';
+        QRCode.toCanvas(qrCodeContainer, patientNID, function (error) {
+            if (error) console.error(error);
+        });
+    };
+    
+    // Download PDF
+    window.downloadPDF = function() {
+        const element = document.getElementById('reportPreview');
+        const opt = {
+            margin: 10,
+            filename: `تقرير_كشف_طبي_${document.getElementById('patientName').value || 'غير_محدد'}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        html2pdf().set(opt).from(element).save();
+    };
+    
+    // Save medical checkup data
+    window.saveVisit = async function() {
+        if (!validatePatientId()) return;
+        
+        // Collect form data
+        const patientName = document.getElementById('patientName').value;
+        const patientAge = document.getElementById('patientAge').value;
+        const patientGender = document.getElementById('patientGender').value;
+        const patientDOB = document.getElementById('patientDOB').value;
+        const patientPhone = document.getElementById('patientPhone').value;
+        const patientNID = document.getElementById('patientNID').value;
+        
+        const checkupDate = document.getElementById('checkupDate').value;
+        const checkupType = document.getElementById('checkupType').value;
+        const doctorName = document.getElementById('doctorName').value || 'د. أحمد محمد';
+        
+        const symptoms = document.getElementById('symptoms').value;
+        const diagnosis = document.getElementById('diagnosis').value;
+        const treatmentPlan = document.getElementById('treatmentPlan').value;
+        const additionalNotes = document.getElementById('additionalNotes').value;
+        
+        // Validate required fields
+        if (!symptoms || !diagnosis) {
+            Swal.fire({
+                title: 'حقول مطلوبة',
+                text: 'يرجى ملء الحقول المطلوبة (الأعراض، التشخيص)',
+                icon: 'warning',
+                confirmButtonText: 'موافق'
+            });
             return;
         }
         
-        const patients = snapshot.val();
-        const patientIds = Object.keys(patients);
+        // Collect medications data
+        const medications = [];
+        const medicationItems = document.querySelectorAll('#medicationsList > div');
         
-        // Calculate basic statistics
-        let totalCheckups = 0;
-        let totalTransfers = 0;
-        let criticalCount = 0;
-        const departmentCounts = {};
-        const statusCounts = {
-            critical: 0,
-            stable: 0,
-            improving: 0,
-            deteriorating: 0
-        };
+        medicationItems.forEach(item => {
+            const name = item.querySelector('.medication-name').value.trim();
+            const dosage = item.querySelector('.medication-dosage').value.trim();
+            const duration = item.querySelector('.medication-duration').value.trim();
+            const insurance = item.querySelector('.medication-insurance').value;
+            const doses = item.querySelector('.medication-doses').value;
+            const instructions = item.querySelector('.medication-instructions').value.trim();
+            
+            if (name && dosage && duration) {
+                medications.push({
+                    name,
+                    dosage,
+                    duration,
+                    insurance: insurance || "غير محدد",
+                    doses: doses || null,
+                    instructions: instructions || "حسب إرشادات الطبيب"
+                });
+            }
+        });
         
-        // Calculate monthly activity
-        const monthlyActivity = {};
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
-        
-        // Initialize last 6 months
-        for (let i = 5; i >= 0; i--) {
-            const month = new Date(currentYear, currentMonth - i, 1);
-            const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
-            monthlyActivity[monthKey] = {
-                month: month.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' }),
-                patients: 0,
-                checkups: 0,
-                transfers: 0
+        try {
+            // Show loading with custom styling
+            Swal.fire({
+                title: 'جاري حفظ الكشف الطبي...',
+                html: '<div class="loading"></div>',
+                didOpen: () => { Swal.showLoading(); },
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+            
+            // Prepare checkup data
+            const checkupData = {
+                patientName,
+                patientAge,
+                patientGender,
+                patientDOB,
+                patientPhone,
+                patientNID,
+                checkupDate,
+                checkupType,
+                doctorName,
+                symptoms,
+                diagnosis,
+                treatmentPlan,
+                additionalNotes,
+                medications,
+                doctorId: "د. أحمد محمد",
+                date: new Date().toISOString(),
+                status: "مكتمل"
             };
-        }
-        
-        // Process each patient
-        patientIds.forEach(patientId => {
-            const patient = patients[patientId];
             
-            // Count by status
-            if (patient.status) {
-                statusCounts[patient.status] = (statusCounts[patient.status] || 0) + 1;
-                if (patient.status === 'critical') {
-                    criticalCount++;
-                }
-            }
+            // In a real application, you would save data to Firebase
+            // const newCheckupRef = await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
+            // checkupData.id = newCheckupRef.key;
             
-            // Count by department
-            if (patient.department) {
-                departmentCounts[patient.department] = (departmentCounts[patient.department] || 0) + 1;
-            }
+            // Update patient status
+            // await update(ref(db, `patients/emergency/${patientId}`), {
+            //     lastCheckup: new Date().toISOString(),
+            //     serviceType: checkupType,
+            //     lastCheckupBy: "د. أحمد محمد"
+            // });
             
-            // Count monthly activity
-            if (patient.timestamp) {
-                const entryDate = new Date(patient.timestamp);
-                const monthKey = `${entryDate.getFullYear()}-${entryDate.getMonth()}`;
-                if (monthlyActivity[monthKey]) {
-                    monthlyActivity[monthKey].patients++;
-                }
-            }
-            
-            // Count checkups
-            if (patient.checkups) {
-                const checkupIds = Object.keys(patient.checkups);
-                totalCheckups += checkupIds.length;
-                
-                // Count checkups by month
-                checkupIds.forEach(checkupId => {
-                    const checkup = patient.checkups[checkupId];
-                    if (checkup.date) {
-                        const checkupDate = new Date(checkup.date);
-                        const monthKey = `${checkupDate.getFullYear()}-${checkupDate.getMonth()}`;
-                        if (monthlyActivity[monthKey]) {
-                            monthlyActivity[monthKey].checkups++;
-                        }
-                    }
-                });
-            }
-            
-            // Count transfers
-            if (patient.transfers) {
-                const transferIds = Object.keys(patient.transfers);
-                totalTransfers += transferIds.length;
-                
-                // Count transfers by month
-                transferIds.forEach(transferId => {
-                    const transfer = patient.transfers[transferId];
-                    if (transfer.date) {
-                        // Parse date string in format "DD/MM/YYYY, HH:MM:SS"
-                        const dateParts = transfer.date.split(',')[0].split('/');
-                        const transferDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-                        const monthKey = `${transferDate.getFullYear()}-${transferDate.getMonth()}`;
-                        if (monthlyActivity[monthKey]) {
-                            monthlyActivity[monthKey].transfers++;
-                        }
-                    }
-                });
-            }
-        });
-        
-        // Update UI with statistics
-        document.getElementById('totalPatients').textContent = patientIds.length;
-        document.getElementById('totalCheckups').textContent = totalCheckups;
-        document.getElementById('totalTransfers').textContent = totalTransfers;
-        document.getElementById('criticalPatients').textContent = criticalCount;
-        
-        // Calculate percentage changes (mock data for demonstration)
-        document.getElementById('patientsChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
-        document.getElementById('checkupsChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
-        document.getElementById('transfersChange').textContent = Math.floor(Math.random() * 20) + 1 + '%';
-        document.getElementById('criticalChange').textContent = Math.floor(Math.random() * 10) + 1 + '%';
-        
-        // Initialize charts with data
-        initializeCharts(departmentCounts, statusCounts, monthlyActivity);
-        
-        // Load top doctors data
-        loadTopDoctors(patients);
-    });
-}
-
-// Initialize charts with data
-function initializeCharts(departmentCounts, statusCounts, monthlyActivity) {
-    // Department Distribution Chart
-    const departmentCtx = document.getElementById('departmentChart').getContext('2d');
-    new Chart(departmentCtx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(departmentCounts).length > 0 ? Object.keys(departmentCounts) : ['الأشعة', 'التحاليل', 'الصيدلية', 'العمليات', 'العناية المركزة'],
-            datasets: [{
-                data: Object.keys(departmentCounts).length > 0 ? Object.values(departmentCounts) : [15, 25, 20, 10, 30],
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 99, 132, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        font: {
-                            family: 'Tajawal',
-                            size: 12
-                        },
-                        padding: 15
-                    }
-                }
-            }
-        }
-    });
-    
-    // Patient Status Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'bar',
-        data: {
-            labels: ['حرجة', 'مستقرة', 'في تحسن', 'في تدهور'],
-            datasets: [{
-                label: 'عدد المرضى',
-                data: [
-                    statusCounts.critical || 0,
-                    statusCounts.stable || 0,
-                    statusCounts.improving || 0,
-                    statusCounts.deteriorating || 0
-                ],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-    
-    // Monthly Activity Chart
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    const monthLabels = Object.values(monthlyActivity).map(month => month.month);
-    const patientsData = Object.values(monthlyActivity).map(month => month.patients);
-    const checkupsData = Object.values(monthlyActivity).map(month => month.checkups);
-    const transfersData = Object.values(monthlyActivity).map(month => month.transfers);
-    
-    new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-            labels: monthLabels,
-            datasets: [
-                {
-                    label: 'المرضى الجدد',
-                    data: patientsData,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'الكشوفات الطبية',
-                    data: checkupsData,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'التحويلات',
-                    data: transfersData,
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    backgroundColor: 'rgba(255, 206, 86, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        font: {
-                            family: 'Tajawal',
-                            size: 12
-                        },
-                        padding: 15
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Initialize empty charts
-function initializeEmptyCharts() {
-    // Department Distribution Chart
-    const departmentCtx = document.getElementById('departmentChart').getContext('2d');
-    new Chart(departmentCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['الأشعة', 'التحاليل', 'الصيدلية', 'العمليات', 'العناية المركزة'],
-            datasets: [{
-                data: [0, 0, 0, 0, 0],
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 99, 132, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        font: {
-                            family: 'Tajawal',
-                            size: 12
-                        },
-                        padding: 15
-                    }
-                }
-            }
-        }
-    });
-    
-    // Patient Status Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'bar',
-        data: {
-            labels: ['حرجة', 'مستقرة', 'في تحسن', 'في تدهور'],
-            datasets: [{
-                label: 'عدد المرضى',
-                data: [0, 0, 0, 0],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-    
-    // Monthly Activity Chart
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    const monthLabels = [];
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
-    // Generate last 6 months labels
-    for (let i = 5; i >= 0; i--) {
-        const month = new Date(currentYear, currentMonth - i, 1);
-        monthLabels.push(month.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' }));
-    }
-    
-    new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-            labels: monthLabels,
-            datasets: [
-                {
-                    label: 'المرضى الجدد',
-                    data: [0, 0, 0, 0, 0, 0],
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'الكشوفات الطبية',
-                    data: [0, 0, 0, 0, 0, 0],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'التحويلات',
-                    data: [0, 0, 0, 0, 0, 0],
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    backgroundColor: 'rgba(255, 206, 86, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        font: {
-                            family: 'Tajawal',
-                            size: 12
-                        },
-                        padding: 15
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Load top doctors data
-function loadTopDoctors(patients) {
-    const doctorsTable = document.getElementById('doctorsTable');
-    const doctorsStats = {};
-    
-    // Process each patient to collect doctor statistics
-    Object.keys(patients).forEach(patientId => {
-        const patient = patients[patientId];
-        
-        // Count checkups by doctor
-        if (patient.checkups) {
-            Object.keys(patient.checkups).forEach(checkupId => {
-                const checkup = patient.checkups[checkupId];
-                const doctorName = checkup.doctorName || checkup.doctorId || 'غير محدد';
-                
-                if (!doctorsStats[doctorName]) {
-                    doctorsStats[doctorName] = {
-                        name: doctorName,
-                        checkups: 0,
-                        transfers: 0,
-                        rating: 0
-                    };
-                }
-                
-                doctorsStats[doctorName].checkups++;
+            // Show success message
+            Swal.fire({
+                title: 'تم الحفظ بنجاح!',
+                text: 'تم حفظ الكشف الطبي في ملف المريض',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
             });
+            
+            // Add success animation to save button
+            const saveBtn = document.querySelector('.save-btn');
+            saveBtn.classList.add('success-animation');
+            
+            // Close modal
+            setTimeout(() => {
+                closeCheckupModal();
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Error saving checkup:', error);
+            Swal.fire("خطأ", "فشل حفظ الكشف: " + error.message, "error");
         }
-        
-        // Count transfers by doctor
-        if (patient.transfers) {
-            Object.keys(patient.transfers).forEach(transferId => {
-                const transfer = patient.transfers[transferId];
-                const doctorName = transfer.requestedBy || 'غير محدد';
-                
-                if (!doctorsStats[doctorName]) {
-                    doctorsStats[doctorName] = {
-                        name: doctorName,
-                        checkups: 0,
-                        transfers: 0,
-                        rating: 0
-                    };
-                }
-                
-                doctorsStats[doctorName].transfers++;
-            });
-        }
-    });
+    };
     
-    // Generate random ratings for doctors
-    Object.keys(doctorsStats).forEach(doctorName => {
-        doctorsStats[doctorName].rating = (Math.random() * 2 + 3).toFixed(1); // Random rating between 3.0 and 5.0
-    });
-    
-    // Sort doctors by total activity (checkups + transfers)
-    const sortedDoctors = Object.values(doctorsStats).sort((a, b) => 
-        (b.checkups + b.transfers) - (a.checkups + a.transfers)
-    ).slice(0, 5); // Get top 5 doctors
-    
-    // Clear table
-    doctorsTable.innerHTML = '';
-    
-    // If no doctors data, show mock data
-    if (sortedDoctors.length === 0) {
-        const mockDoctors = [
-            { name: 'د. أحمد محمد', checkups: 25, transfers: 15, rating: 4.8 },
-            { name: 'د. فاطمة أحمد', checkups: 22, transfers: 12, rating: 4.7 },
-            { name: 'د. محمد علي', checkups: 20, transfers: 18, rating: 4.6 },
-            { name: 'د. سارة حسن', checkups: 18, transfers: 14, rating: 4.9 },
-            { name: 'د. عمر خالد', checkups: 15, transfers: 10, rating: 4.5 }
-        ];
-        
-        mockDoctors.forEach(doctor => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                <i class="fas fa-user-md text-blue-600"></i>
-                            </div>
-                        </div>
-                        <div class="mr-4">
-                            <div class="text-sm font-medium text-gray-900">${doctor.name}</div>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${doctor.checkups}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${doctor.transfers}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <span class="text-sm text-gray-900 mr-2">${doctor.rating}</span>
-                        <div class="flex">
-                            ${generateStarRating(doctor.rating)}
-                        </div>
-                    </div>
-                </td>
-            `;
-            doctorsTable.appendChild(row);
+    // Add event listeners to update preview on change
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners to all form inputs to update preview
+        const formInputs = document.querySelectorAll('#checkupModal input, #checkupModal select, #checkupModal textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('input', generateReport);
+            input.addEventListener('change', generateReport);
         });
+    });
+    
+    // Load data when page opens
+    if (patientId) {
+        console.log("Page loaded with patient ID:", patientId);
+        loadPatientData();
     } else {
-        // Display real data
-        sortedDoctors.forEach(doctor => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                <i class="fas fa-user-md text-blue-600"></i>
-                            </div>
-                        </div>
-                        <div class="mr-4">
-                            <div class="text-sm font-medium text-gray-900">${doctor.name}</div>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${doctor.checkups}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">${doctor.transfers}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <span class="text-sm text-gray-900 mr-2">${doctor.rating}</span>
-                        <div class="flex">
-                            ${generateStarRating(doctor.rating)}
-                        </div>
-                    </div>
-                </td>
-            `;
-            doctorsTable.appendChild(row);
-        });
-    }
-}
-
-// Generate star rating HTML
-function generateStarRating(rating) {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    let starsHTML = '';
-    
-    for (let i = 0; i < fullStars; i++) {
-        starsHTML += '<i class="fas fa-star text-yellow-400 text-xs"></i>';
+        console.error("No patient ID found in URL");
+        Swal.fire("خطأ", "معرف المريض غير موجود في الرابط", "error");
     }
     
-    if (hasHalfStar) {
-        starsHTML += '<i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>';
+    // Link monitor button
+    const monitorBtn = document.getElementById('monitorBtn');
+    if (monitorBtn && patientId) {
+        monitorBtn.href = `monitor.html?id=${patientId}`;
     }
-    
-    const emptyStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < emptyStars; i++) {
-        starsHTML += '<i class="far fa-star text-yellow-400 text-xs"></i>';
-    }
-    
-    return starsHTML;
-}
-
-// Tab switching functionality
-function showTab(tabName) {
-    // Hide all tabs
-    document.getElementById('transfersTab').classList.add('hidden');
-    document.getElementById('checkupsTab').classList.add('hidden');
-    document.getElementById('statisticsTab').classList.add('hidden');
-    
-    // Remove active class from all tab buttons
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Show selected tab
-    document.getElementById(tabName + 'Tab').classList.remove('hidden');
-    
-    // Add active class to clicked tab
-    event.target.classList.add('active');
-    
-    // Load data for the selected tab
-    if (tabName === 'checkups') {
-        loadCheckups();
-    } else if (tabName === 'statistics') {
-        loadStatistics();
-    }
-}
-// Add keyboard shortcut for save (Ctrl+S)
-document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        if (document.getElementById('checkupModal').classList.contains('active')) {
-            saveVisit();
-        }
-    }
-});
-// Add event listeners to update preview on change
-document.addEventListener('DOMContentLoaded', function() {
-    // Add event listeners to all form inputs to update preview
-    const formInputs = document.querySelectorAll('#checkupModal input, #checkupModal select, #checkupModal textarea');
-    formInputs.forEach(input => {
-        input.addEventListener('input', generateReport);
-        input.addEventListener('change', generateReport);
-    });
-});
-// Load data when page opens
-if (patientId) {
-    console.log("Page loaded with patient ID:", patientId);
-    loadPatientData();
-    loadTransfers();
-    loadCheckups(); // Initial load of checkups
-} else {
-    console.error("No patient ID found in URL");
-    Swal.fire("خطأ", "معرف المريض غير موجود في الرابط", "error");
-}
-// Link monitor button
-const monitorBtn = document.getElementById('monitorBtn');
-if (monitorBtn && patientId) {
-    monitorBtn.href = `monitor.html?id=${patientId}`;
-}
 </script>
 </body>
 </html>
