@@ -1184,119 +1184,29 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-// Local Storage Database Manager
-class LocalDatabase {
-    constructor() {
-        this.init();
-    }
-    
-    init() {
-        // Initialize default data if not exists
-        if (!localStorage.getItem('patients')) {
-            const defaultPatients = {
-                'PAT001': {
-                    name: 'أحمد محمد علي',
-                    age: '45',
-                    nid: '29501011234567',
-                    timestamp: new Date().toISOString(),
-                    department: 'الطوارئ',
-                    doctors: 'د. محمد أحمد',
-                    serviceType: 'طوارئ',
-                    status: 'stable'
-                },
-                'PAT002': {
-                    name: 'فاطمة عبدالله سالم',
-                    age: '32',
-                    nid: '29802021234567',
-                    timestamp: new Date().toISOString(),
-                    department: 'الباطنة',
-                    doctors: 'د. سارة أحمد',
-                    serviceType: 'متابعة',
-                    status: 'improving'
-                }
-            };
-            localStorage.setItem('patients', JSON.stringify(defaultPatients));
-        }
-        
-        if (!localStorage.getItem('transfers')) {
-            localStorage.setItem('transfers', JSON.stringify({}));
-        }
-        
-        if (!localStorage.getItem('checkups')) {
-            localStorage.setItem('checkups', JSON.stringify({}));
-        }
-    }
-    
-    getPatient(patientId) {
-        const patients = JSON.parse(localStorage.getItem('patients') || '{}');
-        return patients[patientId];
-    }
-    
-    updatePatient(patientId, data) {
-        const patients = JSON.parse(localStorage.getItem('patients') || '{}');
-        patients[patientId] = { ...patients[patientId], ...data };
-        localStorage.setItem('patients', JSON.stringify(patients));
-    }
-    
-    addTransfer(patientId, transfer) {
-        const transfers = JSON.parse(localStorage.getItem('transfers') || '{}');
-        if (!transfers[patientId]) {
-            transfers[patientId] = [];
-        }
-        transfer.id = Date.now().toString();
-        transfers[patientId].push(transfer);
-        localStorage.setItem('transfers', JSON.stringify(transfers));
-        return transfer.id;
-    }
-    
-    getTransfers(patientId) {
-        const transfers = JSON.parse(localStorage.getItem('transfers') || '{}');
-        return transfers[patientId] || [];
-    }
-    
-    deleteTransfer(patientId, transferId) {
-        const transfers = JSON.parse(localStorage.getItem('transfers') || '{}');
-        if (transfers[patientId]) {
-            transfers[patientId] = transfers[patientId].filter(t => t.id !== transferId);
-            localStorage.setItem('transfers', JSON.stringify(transfers));
-        }
-    }
-    
-    updateTransfer(patientId, transferId, data) {
-        const transfers = JSON.parse(localStorage.getItem('transfers') || '{}');
-        if (transfers[patientId]) {
-            const index = transfers[patientId].findIndex(t => t.id === transferId);
-            if (index !== -1) {
-                transfers[patientId][index] = { ...transfers[patientId][index], ...data };
-                localStorage.setItem('transfers', JSON.stringify(transfers));
-            }
-        }
-    }
-    
-    addCheckup(patientId, checkup) {
-        const checkups = JSON.parse(localStorage.getItem('checkups') || '{}');
-        if (!checkups[patientId]) {
-            checkups[patientId] = [];
-        }
-        checkup.id = Date.now().toString();
-        checkups[patientId].push(checkup);
-        localStorage.setItem('checkups', JSON.stringify(checkups));
-        return checkup.id;
-    }
-    
-    getCheckups(patientId) {
-        const checkups = JSON.parse(localStorage.getItem('checkups') || '{}');
-        return checkups[patientId] || [];
-    }
-}
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-// Initialize database
-const db = new LocalDatabase();
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyB4glqZb0hz1uvERtq0pSZZzeBy3_grAnQ",
+  authDomain: "smart-life-hospital-ef64c.firebaseapp.com",
+  databaseURL: "https://smart-life-hospital-ef64c-default-rtdb.firebaseio.com",
+  projectId: "smart-life-hospital-ef64c",
+  storageBucket: "smart-life-hospital-ef64c.firebasestorage.app",
+  messagingSenderId: "851045891087",
+  appId: "1:851045891087:web:8e0f6e42f8c7fed17bf77a",
+  measurementId: "G-QE5BL3MTY7"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 // Get patient ID from URL
 const urlParams = new URLSearchParams(window.location.search);
-const patientId = urlParams.get("id") || 'PAT001'; // Default to first patient if no ID
+const patientId = urlParams.get("id");
 
 // Helper function to validate patient ID
 function validatePatientId() {
@@ -1384,7 +1294,7 @@ window.changePatientStatus = async function() {
     if (newStatus) {
         try {
             showLoading("جاري تحديث الحالة...");
-            db.updatePatient(patientId, { status: newStatus });
+            await update(ref(db, `patients/emergency/${patientId}`), { status: newStatus });
             updateStatusUI(newStatus);
             showResult("تم!", "تم تغيير حالة المريض بنجاح");
         } catch (error) {
@@ -1401,9 +1311,10 @@ async function loadPatientData() {
     const qrCanvas = document.getElementById("qrCode");
     
     try {
-        const patient = db.getPatient(patientId);
+        const snapshot = await get(ref(db, `patients/emergency/${patientId}`));
         
-        if (patient) {
+        if (snapshot.exists()) {
+            const patient = snapshot.val();
             infoTable.innerHTML = `
                 <tr><td class="py-2 px-3 font-semibold text-gray-700 w-1/3">الاسم:</td><td class="py-2 px-3">${patient.name || '-'}</td></tr>
                 <tr><td class="py-2 px-3 font-semibold text-gray-700">العمر:</td><td class="py-2 px-3">${patient.age || '-'}</td></tr>
@@ -1459,9 +1370,10 @@ async function loadPatientDataToForm() {
     if (!validatePatientId()) return;
     
     try {
-        const patient = db.getPatient(patientId);
+        const snapshot = await get(ref(db, `patients/emergency/${patientId}`));
         
-        if (patient) {
+        if (snapshot.exists()) {
+            const patient = snapshot.val();
             document.getElementById('patientName').value = patient.name || '';
             document.getElementById('patientAge').value = patient.age || '';
             document.getElementById('patientNID').value = patient.nid || '';
@@ -1551,12 +1463,12 @@ window.addTransfer = async function() {
         } : null,
         date: new Date().toLocaleString('ar-EG'),
         status: "قيد الانتظار",
-        requestedBy: "د. أحمد محمد"
+        requestedBy: "د. أحمد محمد" // In real system: use doctor name from authentication
     };
     
     try {
         showLoading("جاري تسجيل التحويل...");
-        db.addTransfer(patientId, newTransfer);
+        await push(ref(db, `patients/emergency/${patientId}/transfers`), newTransfer);
         
         // Reset form
         document.getElementById("transferDepartment").value = "";
@@ -1574,14 +1486,13 @@ window.addTransfer = async function() {
         document.getElementById("administration").value = "";
         
         showResult("تم", "تم تسجيل التحويل بنجاح");
-        loadTransfers(); // Refresh transfers list
     } catch (error) {
         Swal.fire("خطأ", "حدث خطأ أثناء التسجيل: " + error.message, "error");
     }
 };
 
 // Delete a transfer record
-window.deleteTransfer = function(transferId) {
+window.deleteTransfer = function(transferKey) {
     Swal.fire({
         title: 'تأكيد الحذف',
         text: "هل أنت متأكد أنك تريد حذف هذا السجل؟",
@@ -1591,13 +1502,13 @@ window.deleteTransfer = function(transferId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            try {
-                db.deleteTransfer(patientId, transferId);
+            remove(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`))
+            .then(() => {
                 showResult("تم الحذف!", "تم حذف السجل بنجاح");
-                loadTransfers(); // Refresh transfers list
-            } catch (error) {
+            })
+            .catch((error) => {
                 Swal.fire("خطأ", "حدث خطأ أثناء الحذف: " + error.message, "error");
-            }
+            });
         }
     });
 };
@@ -1607,22 +1518,24 @@ function loadTransfers() {
     if (!validatePatientId()) return;
     
     const list = document.getElementById("transferList");
+    const transfersRef = ref(db, `patients/emergency/${patientId}/transfers`);
     
-    try {
-        const transfers = db.getTransfers(patientId);
+    onValue(transfersRef, (snapshot) => {
         list.innerHTML = "";
         
-        if (transfers.length === 0) {
+        if (!snapshot.exists()) {
             list.innerHTML = "<p class='text-gray-500 text-center py-4'>لا توجد تحويلات مسجلة</p>";
             return;
         }
         
-        transfers.forEach((transfer) => {
+        snapshot.forEach((child) => {
+            const t = child.val();
+            const key = child.key;
             let resultText = "";
             
             // Display medication details if transfer is to pharmacy
-            if (transfer.department === "الصيدلية" && transfer.medication) {
-                const med = transfer.medication;
+            if (t.department === "الصيدلية" && t.medication) {
+                const med = t.medication;
                 resultText += `
                     <div class="bg-green-50 p-3 rounded-lg mt-2 border border-green-200">
                         <div class="font-semibold text-green-800 mb-2">تفاصيل الدواء:</div>
@@ -1638,42 +1551,42 @@ function loadTransfers() {
                 `;
             }
             
-            if (transfer.report) {
-                resultText += ` | <span class="text-green-700">النتيجة: ${transfer.report}</span>`;
+            if (t.report) {
+                resultText += ` | <span class="text-green-700">النتيجة: ${t.report}</span>`;
             }
-            if (transfer.technician) {
-                resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${transfer.technician}</span>`;
+            if (t.technician) {
+                resultText += ` | <span class="text-blue-700">منفذ الأشعة: ${t.technician}</span>`;
             }
-            if (transfer.device) {
-                resultText += ` | <span class="text-purple-700">الجهاز: ${transfer.device}</span>`;
+            if (t.device) {
+                resultText += ` | <span class="text-purple-700">الجهاز: ${t.device}</span>`;
             }
             
             let actionBtns = "";
-            if (transfer.department === "radiology") {
-                if (transfer.status === "قيد الانتظار") {
-                    actionBtns += `<button onclick='editRadiology("${transfer.id}")' class="btn btn-primary text-sm ml-2">تعديل</button>`;
+            if (t.department === "radiology") {
+                if (t.status === "قيد الانتظار") {
+                    actionBtns += `<button onclick='editRadiology("${key}", ${JSON.stringify(t)})' class="btn btn-primary text-sm ml-2">تعديل</button>`;
                 }
-                if (transfer.status === "تم التنفيذ") {
-                    actionBtns += `<button onclick='showRadiologyReport(${JSON.stringify(transfer).replace(/"/g, '&quot;')})' class="btn btn-success text-sm ml-2">عرض النتيجة</button>`;
+                if (t.status === "تم التنفيذ") {
+                    actionBtns += `<button onclick='showRadiologyReport(${JSON.stringify(t)})' class="btn btn-success text-sm ml-2">عرض النتيجة</button>`;
                 }
-                actionBtns += `<button onclick='deleteTransfer("${transfer.id}")' class="btn btn-danger text-sm ml-2">حذف</button>`;
-            } else if (transfer.department === "الصيدلية") {
+                actionBtns += `<button onclick='deleteTransfer("${key}")' class="btn btn-danger text-sm ml-2">حذف</button>`;
+            } else if (t.department === "الصيدلية") {
                 // Pharmacy-specific buttons
-                if (transfer.status === "قيد الانتظار") {
+                if (t.status === "قيد الانتظار") {
                     actionBtns += `
-                        <button onclick='updateMedicationStatus("${transfer.id}", "تم الصرف")' class="btn btn-success text-sm ml-2">
+                        <button onclick='updateMedicationStatus("${key}", "تم الصرف")' class="btn btn-success text-sm ml-2">
                             <i class="fas fa-check"></i>تأكيد الصرف
                         </button>
-                        <button onclick='updateMedicationStatus("${transfer.id}", "مرفوض")' class="btn btn-danger text-sm ml-2">
+                        <button onclick='updateMedicationStatus("${key}", "مرفوض")' class="btn btn-danger text-sm ml-2">
                             <i class="fas fa-times"></i>رفض
                         </button>
                     `;
-                } else if (transfer.status === "تم الصرف") {
+                } else if (t.status === "تم الصرف") {
                     actionBtns += `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">تم الصرف</span>`;
-                } else if (transfer.status === "مرفوض") {
+                } else if (t.status === "مرفوض") {
                     actionBtns += `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">مرفوض</span>`;
                 }
-                actionBtns += `<button onclick='deleteTransfer("${transfer.id}")' class="btn btn-danger text-sm ml-2">
+                actionBtns += `<button onclick='deleteTransfer("${key}")' class="btn btn-danger text-sm ml-2">
                     <i class="fas fa-trash"></i>
                 </button>`;
             }
@@ -1691,16 +1604,16 @@ function loadTransfers() {
                 <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
                     <div class="mb-2 md:mb-0">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="font-semibold text-lg">${getDepartmentIcon(transfer.department)} ${transfer.department}</span>
+                            <span class="font-semibold text-lg">${getDepartmentIcon(t.department)} ${t.department}</span>
                             <span class="mx-1">•</span>
-                            <span>${transfer.type}</span>
+                            <span>${t.type}</span>
                         </div>
                         <div class="text-sm text-gray-500">
-                            ${transfer.date}
+                            ${t.date}
                         </div>
                     </div>
-                    <div class="px-3 py-1 rounded-full text-sm font-medium ${statusColor[transfer.status] || 'text-gray-600 bg-gray-50'}">
-                        ${transfer.status}
+                    <div class="px-3 py-1 rounded-full text-sm font-medium ${statusColor[t.status] || 'text-gray-600 bg-gray-50'}">
+                        ${t.status}
                     </div>
                 </div>
                 ${resultText}
@@ -1710,10 +1623,7 @@ function loadTransfers() {
             `;
             list.appendChild(item);
         });
-    } catch (error) {
-        console.error("Error loading transfers:", error);
-        list.innerHTML = "<p class='text-red-500 text-center py-4'>خطأ في تحميل التحويلات</p>";
-    }
+    });
 }
 
 // Helper function to get department icon
@@ -1729,16 +1639,15 @@ function getDepartmentIcon(department) {
 }
 
 // Function to update medication status
-window.updateMedicationStatus = async function(transferId, newStatus) {
+window.updateMedicationStatus = async function(transferKey, newStatus) {
     try {
         showLoading("جاري تحديث الحالة...");
-        db.updateTransfer(patientId, transferId, {
+        await update(ref(db, `patients/emergency/${patientId}/transfers/${transferKey}`), {
             status: newStatus,
             updatedAt: new Date().toISOString(),
-            processedBy: "موظف الصيدلية"
+            processedBy: "موظف الصيدلية" // In real system: use username from authentication
         });
         showResult("تم!", `تم تحديث حالة الطلب إلى: ${newStatus}`);
-        loadTransfers(); // Refresh transfers list
     } catch (error) {
         Swal.fire("خطأ", "فشل تحديث الحالة: " + error.message, "error");
     }
@@ -1790,6 +1699,7 @@ function loadCheckups() {
     console.log("Loading checkups for patient:", patientId);
     
     const checkupsList = document.getElementById("checkupsList");
+    const checkupsRef = ref(db, `patients/emergency/${patientId}/checkups`);
     
     // Show loading state
     checkupsList.innerHTML = `
@@ -1800,112 +1710,143 @@ function loadCheckups() {
     `;
     
     try {
-        const checkups = db.getCheckups(patientId);
-        checkupsList.innerHTML = ""; // Clear loading state
-        
-        if (checkups.length === 0) {
-            checkupsList.innerHTML = `
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-file-medical text-4xl mb-3"></i>
-                    <p class="text-lg font-medium">لا توجد كشوفات طبية مسجلة</p>
-                    <p class="text-sm">لا توجد كشوفات طبية مسجلة لهذا المريض</p>
-                </div>
-            `;
-            return;
-        }
-        
-        console.log("Found checkups:", checkups.length);
-        
-        // Sort checkups by date (newest first)
-        checkups.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        checkups.forEach((checkup) => {
-            const checkupEl = document.createElement("div");
-            checkupEl.className = "checkup-item";
+        onValue(checkupsRef, (snapshot) => {
+            console.log("Checkups snapshot received:", snapshot.exists());
             
-            // Format date
-            const checkupDate = new Date(checkup.date);
-            const formattedDate = checkupDate.toLocaleDateString('ar-EG', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            checkupsList.innerHTML = ""; // Clear loading state
             
-            // Build medications HTML
-            let medicationsHtml = '';
-            if (checkup.medications && checkup.medications.length > 0) {
-                const medicationsList = checkup.medications.map((med, index) => `
-                    <div class="medication-list-item">
-                        <div class="medication-name">${index + 1}. ${med.name}</div>
-                        <div class="medication-details">
-                            <div><span class="font-medium">الجرعة:</span> ${med.dosage}</div>
-                            <div><span class="font-medium">المدة:</span> ${med.duration}</div>
-                            <div><span class="font-medium">التأمين:</span> ${med.insurance}</div>
-                            ${med.doses ? `<div><span class="font-medium">الجرعات:</span> ${med.doses}</div>` : ''}
-                            <div><span class="font-medium">التعليمات:</span> ${med.instructions}</div>
-                        </div>
-                    </div>
-                `).join('');
-                
-                medicationsHtml = `
-                    <div class="checkup-section">
-                        <div class="checkup-section-title">
-                            <i class="fas fa-pills text-green-600"></i>
-                            الأدوية الموصوفة (${checkup.medications.length})
-                        </div>
-                        <div class="medications-list">
-                            ${medicationsList}
-                        </div>
+            if (!snapshot.exists()) {
+                checkupsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-file-medical text-4xl mb-3"></i>
+                        <p class="text-lg font-medium">لا توجد كشوفات طبية مسجلة</p>
+                        <p class="text-sm">لا توجد كشوفات طبية مسجلة لهذا المريض</p>
                     </div>
                 `;
+                return;
             }
             
-            checkupEl.innerHTML = `
-                <div class="checkup-header-info">
-                    <div>
-                        <div class="checkup-meta">
-                            <span class="checkup-type-badge">${checkup.visitType || 'كشف'}</span>
-                            <span class="checkup-date">${formattedDate}</span>
+            const checkupsArray = [];
+            snapshot.forEach((child) => {
+                const checkup = child.val();
+                checkup.id = child.key; // Add the ID to the checkup object
+                checkupsArray.push(checkup);
+            });
+            
+            console.log("Found checkups:", checkupsArray.length);
+            
+            if (checkupsArray.length === 0) {
+                checkupsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-file-medical text-4xl mb-3"></i>
+                        <p class="text-lg font-medium">لا توجد كشوفات طبية مسجلة</p>
+                        <p class="text-sm">لا توجد كشوفات طبية مسجلة لهذا المريض</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort checkups by date (newest first)
+            checkupsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            checkupsArray.forEach((checkup) => {
+                const checkupEl = document.createElement("div");
+                checkupEl.className = "checkup-item";
+                
+                // Format date
+                const checkupDate = new Date(checkup.date);
+                const formattedDate = checkupDate.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Build medications HTML
+                let medicationsHtml = '';
+                if (checkup.medications && checkup.medications.length > 0) {
+                    const medicationsList = checkup.medications.map((med, index) => `
+                        <div class="medication-list-item">
+                            <div class="medication-name">${index + 1}. ${med.name}</div>
+                            <div class="medication-details">
+                                <div><span class="font-medium">الجرعة:</span> ${med.dosage}</div>
+                                <div><span class="font-medium">المدة:</span> ${med.duration}</div>
+                                <div><span class="font-medium">التأمين:</span> ${med.insurance}</div>
+                                ${med.doses ? `<div><span class="font-medium">الجرعات:</span> ${med.doses}</div>` : ''}
+                                <div><span class="font-medium">التعليمات:</span> ${med.instructions}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    medicationsHtml = `
+                        <div class="checkup-section">
+                            <div class="checkup-section-title">
+                                <i class="fas fa-pills text-green-600"></i>
+                                الأدوية الموصوفة (${checkup.medications.length})
+                            </div>
+                            <div class="medications-list">
+                                ${medicationsList}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                checkupEl.innerHTML = `
+                    <div class="checkup-header-info">
+                        <div>
+                            <div class="checkup-meta">
+                                <span class="checkup-type-badge">${checkup.visitType || 'كشف'}</span>
+                                <span class="checkup-date">${formattedDate}</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <i class="fas fa-user-md"></i> ${checkup.doctorName || checkup.doctorId || 'طبيب'}
                         </div>
                     </div>
-                    <div class="text-xs text-gray-500">
-                        <i class="fas fa-user-md"></i> ${checkup.doctorName || checkup.doctorId || 'طبيب'}
+                    
+                    <div class="checkup-section">
+                        <div class="checkup-section-title">
+                            <i class="fas fa-notes-medical text-red-500"></i>
+                            الأعراض
+                        </div>
+                        <div class="checkup-section-content">${checkup.symptoms || 'لا توجد أعراض مسجلة'}</div>
                     </div>
-                </div>
-                
-                <div class="checkup-section">
-                    <div class="checkup-section-title">
-                        <i class="fas fa-notes-medical text-red-500"></i>
-                        الأعراض
+                    
+                    <div class="checkup-section">
+                        <div class="checkup-section-title">
+                            <i class="fas fa-diagnoses text-purple-600"></i>
+                            التشخيص
+                        </div>
+                        <div class="checkup-section-content">${checkup.diagnosis || 'لا يوجد تشخيص مسجل'}</div>
                     </div>
-                    <div class="checkup-section-content">${checkup.symptoms || 'لا توجد أعراض مسجلة'}</div>
-                </div>
-                
-                <div class="checkup-section">
-                    <div class="checkup-section-title">
-                        <i class="fas fa-diagnoses text-purple-600"></i>
-                        التشخيص
+                    
+                    <div class="checkup-section">
+                        <div class="checkup-section-title">
+                            <i class="fas fa-heartbeat text-blue-600"></i>
+                            الخطة العلاجية
+                        </div>
+                        <div class="checkup-section-content">${checkup.treatmentPlan || 'لا توجد خطة علاجية مسجلة'}</div>
                     </div>
-                    <div class="checkup-section-content">${checkup.diagnosis || 'لا يوجد تشخيص مسجل'}</div>
-                </div>
+                    
+                    ${medicationsHtml}
+                `;
                 
-                <div class="checkup-section">
-                    <div class="checkup-section-title">
-                        <i class="fas fa-heartbeat text-blue-600"></i>
-                        الخطة العلاجية
-                    </div>
-                    <div class="checkup-section-content">${checkup.treatmentPlan || 'لا توجد خطة علاجية مسجلة'}</div>
-                </div>
-                
-                ${medicationsHtml}
-            `;
+                checkupsList.appendChild(checkupEl);
+            });
             
-            checkupsList.appendChild(checkupEl);
+            console.log("Successfully rendered", checkupsArray.length, "checkups");
+            
+        }, (error) => {
+            console.error("Error loading checkups:", error);
+            checkupsList.innerHTML = `
+                <div class="text-center py-8 text-red-500">
+                    <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                    <p class="text-lg font-medium">خطأ في تحميل الكشوفات الطبية</p>
+                    <p class="text-sm">${error.message}</p>
+                </div>
+            `;
         });
-        
-        console.log("Successfully rendered", checkups.length, "checkups");
         
     } catch (error) {
         console.error("Critical error in loadCheckups:", error);
@@ -2226,11 +2167,12 @@ window.saveCheckupToDatabase = async function() {
             status: "مكتمل"
         };
         
-        // Save data to local storage
-        const checkupId = db.addCheckup(patientId, checkupData);
+        // Save data to Firebase
+        const newCheckupRef = await push(ref(db, `patients/emergency/${patientId}/checkups`), checkupData);
+        checkupData.id = newCheckupRef.key;
         
         // Update patient status
-        db.updatePatient(patientId, {
+        await update(ref(db, `patients/emergency/${patientId}`), {
             lastCheckup: new Date().toISOString(),
             serviceType: visitType,
             lastCheckupBy: "د. أحمد محمد"
