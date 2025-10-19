@@ -98,6 +98,8 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            cursor: pointer;
+            border: none;
         }
         
         .btn-primary {
@@ -1897,8 +1899,10 @@ function loadCheckups() {
     }
 }
 
-// Tab switching functionality
-function showTab(tabName) {
+// Tab switching functionality - FIXED VERSION
+window.showTab = function(tabName) {
+    console.log("showTab called with:", tabName);
+    
     // Hide all tabs
     document.getElementById('transfersTab').classList.add('hidden');
     document.getElementById('checkupsTab').classList.add('hidden');
@@ -1909,13 +1913,19 @@ function showTab(tabName) {
     });
     
     // Show selected tab
-    document.getElementById(tabName + 'Tab').classList.remove('hidden');
+    const selectedTab = document.getElementById(tabName + 'Tab');
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
+    }
     
     // Add active class to clicked tab
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
     
     // Load data for the selected tab
     if (tabName === 'checkups') {
+        console.log("Loading checkups for tab:", tabName);
         loadCheckups();
     }
 }
