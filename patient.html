@@ -379,13 +379,15 @@
             font-weight: bold;
         }
         
-        /* Medical Report Styles */
+        /* Medical Report Styles - Updated for More Official Look */
         .medical-report {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             overflow: hidden;
             margin-bottom: 2rem;
+            position: relative;
+            border: 1px solid #e2e8f0;
         }
         
         .report-header {
@@ -721,6 +723,170 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* Official Report Styles - New additions */
+        .official-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 2px solid var(--primary);
+            background-color: #f8fafc;
+        }
+        
+        .hospital-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        
+        .hospital-info {
+            text-align: center;
+        }
+        
+        .hospital-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .hospital-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .report-number {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .report-date {
+            font-weight: 500;
+            color: #64748b;
+        }
+        
+        .official-stamp {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--danger);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--danger);
+            font-weight: 700;
+            transform: rotate(-15deg);
+            opacity: 0.7;
+            z-index: 10;
+        }
+        
+        .stamp-text-top {
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--danger);
+            padding-bottom: 0.25rem;
+            margin-bottom: 0.25rem;
+            width: 80%;
+            text-align: center;
+        }
+        
+        .stamp-text-bottom {
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+        }
+        
+        .confidential-notice {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            text-align: center;
+            color: #b91c1c;
+            font-weight: 600;
+        }
+        
+        .patient-photo {
+            width: 100px;
+            height: 120px;
+            border: 1px solid #e2e8f0;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .vital-signs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .vital-item {
+            text-align: center;
+        }
+        
+        .vital-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+        
+        .vital-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .medical-history {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .history-checkbox {
+            margin-left: 0.5rem;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -935,7 +1101,7 @@
         <!-- Modal Header -->
         <div class="header flex justify-between items-center">
             <div>
-                <h1 class="text-2xl md:text-3xl font-bold">قالب كشف طبي</h1>
+                <h1 class="text-2xl md:text-3xl font-bold">قالب كشف طبي رسمي</h1>
                 <p class="opacity-90">مستشفى الحياة الذكية</p>
             </div>
             <button onclick="closeCheckupModal()" class="text-white hover:text-gray-200">
@@ -1059,7 +1225,7 @@
         <!-- Preview Container -->
         <div class="preview-container">
             <div class="preview-header">
-                <h3 class="preview-title">معاينة التقرير</h3>
+                <h3 class="preview-title">معاينة التقرير الرسمي</h3>
                 <div class="preview-actions">
                     <button onclick="downloadPDF()" class="btn btn-primary">
                         <i class="fas fa-download"></i> تحميل PDF
@@ -1071,22 +1237,35 @@
             </div>
             
             <div id="reportPreview" class="medical-report print-break">
-                <!-- Watermark -->
-                <div class="watermark">مستشفى الحياة الذكية</div>
-                
-                <!-- Report Header -->
-                <div class="report-header">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h1 class="report-title">تقرير كشف طبي</h1>
-                            <p class="report-subtitle">مستشفى الحياة الذكية</p>
-                        </div>
-                        <div class="qr-code-container">
-                            <div id="qrCode" class="qr-code"></div>
-                            <div class="qr-label">رمز المريض</div>
-                        </div>
+                <!-- Official Header -->
+                <div class="official-header">
+                    <img src="https://t90121098672.p.clickup-attachments.com/t90121098672/aab7a4bd-0c9c-438c-8bfa-b5b1ec339843/generated-image-05102b72-8a2a-485a-9362-1371947b2a5a.png?view=open" class="hospital-logo" alt="شعار المستشفى">
+                    <div class="hospital-info">
+                        <div class="hospital-name">مستشفى الحياة الذكية</div>
+                        <div class="hospital-subtitle">مركز طبي متخصص - ترخيص رقم: 12345</div>
+                        <div class="hospital-subtitle">العنوان: 123 شارع الطب، القاهرة، مصر</div>
+                        <div class="hospital-subtitle">هاتف: +20 123 456 7890 | فاكس: +20 123 456 7891</div>
+                    </div>
+                    <div class="qr-code-container">
+                        <div id="qrCode" class="qr-code"></div>
+                        <div class="qr-label">رمز المريض</div>
                     </div>
                 </div>
+                
+                <!-- Report Meta Information -->
+                <div class="report-meta">
+                    <div class="report-number">رقم التقرير: <span id="reportNumber">MED-2023-</span></div>
+                    <div class="report-date" id="reportDate"></div>
+                </div>
+                
+                <!-- Confidential Notice -->
+                <div class="confidential-notice">
+                    <i class="fas fa-lock ml-2"></i>
+                    هذا التقرير يحتوي على معلومات طبية سرية ومحمية بموجب قوانين الخصوصية
+                </div>
+                
+                <!-- Watermark -->
+                <div class="watermark">مستشفى الحياة الذكية</div>
                 
                 <!-- Patient Information -->
                 <div class="report-section">
@@ -1118,6 +1297,10 @@
                             <div class="info-label">الرقم القومي</div>
                             <div class="info-value" id="previewPatientNID">-</div>
                         </div>
+                        <div class="info-item">
+                            <div class="info-label">صورة المريض</div>
+                            <img src="https://picsum.photos/seed/patient/100/120.jpg" class="patient-photo" alt="صورة المريض">
+                        </div>
                     </div>
                 </div>
                 
@@ -1138,6 +1321,80 @@
                         <div class="info-item">
                             <div class="info-label">الطبيب المعالج</div>
                             <div class="info-value" id="previewDoctorName">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">القسم</div>
+                            <div class="info-value">الطب العام</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">رقم الملف الطبي</div>
+                            <div class="info-value" id="previewPatientNID">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">كود التأمين</div>
+                            <div class="info-value">INS-2023-45678</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Vital Signs -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-heartbeat"></i> العلامات الحيوية
+                    </h2>
+                    <div class="vital-signs">
+                        <div class="vital-item">
+                            <div class="vital-label">ضغط الدم</div>
+                            <div class="vital-value">120/80</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">معدل النبض</div>
+                            <div class="vital-value">72 نبضة/دقيقة</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">درجة الحرارة</div>
+                            <div class="vital-value">36.8°م</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">معدل التنفس</div>
+                            <div class="vital-value">16 نفس/دقيقة</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">الأكسجين في الدم</div>
+                            <div class="vital-value">98%</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">مؤشر كتلة الجسم</div>
+                            <div class="vital-value">24.5</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Medical History -->
+                <div class="report-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i> التاريخ المرضي
+                    </h2>
+                    <div class="medical-history">
+                        <div class="history-item">
+                            <input type="checkbox" class="history-checkbox" id="chronicDiseases">
+                            <label for="chronicDiseases">أمراض مزمنة</label>
+                        </div>
+                        <div class="history-item">
+                            <input type="checkbox" class="history-checkbox" id="allergies">
+                            <label for="allergies">حساسية</label>
+                        </div>
+                        <div class="history-item">
+                            <input type="checkbox" class="history-checkbox" id="surgeries">
+                            <label for="surgeries">عمليات جراحية سابقة</label>
+                        </div>
+                        <div class="history-item">
+                            <input type="checkbox" class="history-checkbox" id="medications">
+                            <label for="medications">أدوية حالية</label>
+                        </div>
+                        <div class="history-item">
+                            <input type="checkbox" class="history-checkbox" id="familyHistory">
+                            <label for="familyHistory">تاريخ عائلي للمرض</label>
                         </div>
                     </div>
                 </div>
@@ -1200,6 +1457,20 @@
                             <div class="signature-text">التاريخ</div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Official Stamp -->
+                <div class="official-stamp">
+                    <div class="stamp-text-top">مستشفى الحياة الذكية</div>
+                    <div>رسمي</div>
+                    <div class="stamp-text-bottom">معتمد</div>
+                </div>
+                
+                <!-- Footer Information -->
+                <div class="footer-info">
+                    <div>© 2023 مستشفى الحياة الذكية - جميع الحقوق محفوظة</div>
+                    <div>هذا التقرير صادر عن نظام إدارة الملفات الطبية الإلكترونية</div>
+                    <div>للاستفسار: info@smartlifehospital.com | www.smartlifehospital.com</div>
                 </div>
             </div>
         </div>
@@ -2029,6 +2300,20 @@ window.generateReport = function() {
     const diagnosis = document.getElementById('diagnosis').value || '-';
     const treatmentPlan = document.getElementById('treatmentPlan').value || '-';
     const additionalNotes = document.getElementById('additionalNotes').value || '-';
+    
+    // Generate report number
+    const reportNumber = document.getElementById('reportNumber');
+    reportNumber.textContent = `MED-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    
+    // Update report date
+    const reportDate = document.getElementById('reportDate');
+    reportDate.textContent = new Date().toLocaleDateString('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
     
     // Update preview
     document.getElementById('previewPatientName').textContent = patientName;
