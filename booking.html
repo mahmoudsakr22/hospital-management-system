@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الحجوزات - مستشفى الأمل (متصل بـ Firebase)</title>
+    <!-- Google Fonts - Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- ============ CSS Code ============ -->
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --font-family: 'Cairo', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #f4f7f6;
+            color: var(--dark-color);
+            direction: rtl;
+            text-align: right;
+        }
+
+        header { background-color: var(--dark-color); color: white; padding: 1rem 2rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        header h1 { font-weight: 700; }
+        header i { margin-left: 10px; }
+
+        main { padding: 2rem; }
+
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .search-filter-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .search-bar { position: relative; }
+        .search-bar i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--secondary-color); }
+        .search-bar input, select { padding: 10px 15px 10px 40px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 1rem; font-family: var(--font-family); outline: none; transition: border-color 0.3s; }
+        .search-bar input:focus, select:focus { border-color: var(--primary-color); }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-family: var(--font-family); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background-color 0.3s; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+
+        .table-container { background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: right; border-bottom: 1px solid var(--border-color); }
+        thead { background-color: var(--light-color); font-weight: 700; }
+        tbody tr:hover { background-color: #f1f1f1; }
+        .status-badge { padding: 5px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; }
+        .status-confirmed { background-color: #d4edda; color: #155724; }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-cancelled { background-color: #f8d7da; color: #721c24; }
+        .actions a { text-decoration: none; color: var(--primary-color); margin: 0 5px; cursor: pointer; }
+        .actions a:hover { text-decoration: underline; }
+        .actions a.delete { color: var(--danger-color); }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; position: relative; }
+        .close { color: #aaa; position: absolute; top: 10px; left: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; font-family: var(--font-family); }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            main { padding: 1rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .search-filter-group { flex-direction: column; }
+            .search-bar input, select { width: 100%; }
+            th, td { padding: 10px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-hospital"></i> لوحة تحكم الحجوزات</h1>
+    </header>
+
+    <main>
+        <section class="controls">
+            <div class="search-filter-group">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="ابحث باسم المريض...">
+                </div>
+                <!-- يمكنك إضافة فلتر الحالة والطبيب لاحقًا -->
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> إضافة حجز جديد</button>
+        </section>
+
+        <section class="table-container">
+            <table id="bookingsTable">
+                <thead>
+                    <tr>
+                        <th>رقم الحجز</th>
+                        <th>اسم المريض</th>
+                        <th>رقم الهاتف</th>
+                        <th>تاريخ الحجز</th>
+                        <th>الوقت</th>
+                        <th>الطبيب / القسم</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingsTableBody">
+                    <!-- سيتم إضافة الصفوف هنا بواسطة JavaScript -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- The Modal for Add/Edit -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">إضافة حجز جديد</h2>
+            <form id="bookingForm">
+                <input type="hidden" id="bookingId">
+                <div class="form-group">
+                    <label for="patientName">اسم المريض</label>
+                    <input type="text" id="patientName" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">رقم الهاتف</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">تاريخ الحجز</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="time">الوقت</label>
+                    <input type="time" id="time" required>
+                </div>
+                <div class="form-group">
+                    <label for="doctor">الطبيب</label>
+                    <select id="doctor" required>
+                        <option value="">اختر طبيب</option>
+                        <option value="د. سارة محمد">د. سارة محمد</option>
+                        <option value="د. محمود حسن">د. محمود حسن</option>
+                        <option value="د. نادر أحمد">د. نادر أحمد</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="department">القسم</label>
+                    <input type="text" id="department" required>
+                </div>
+                <div class="form-group">
+                    <label for="status">الحالة</label>
+                    <select id="status" required>
+                        <option value="في الانتظار">في الانتظار</option>
+                        <option value="مؤكد">مؤكد</option>
+                        <option value="ملغي">ملغي</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-success">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============ JavaScript Code ============ -->
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+
+    <script>
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwmbyO0VV0-spbPlbt6c7N7bxscXj1HMc",
+            authDomain: "hospital-management-syst-39f9a.firebaseapp.com",
+            databaseURL: "https://hospital-management-syst-39f9a-default-rtdb.firebaseio.com",
+            projectId: "hospital-management-syst-39f9a",
+            storageBucket: "hospital-management-syst-39f9a.firebasestorage.app",
+            messagingSenderId: "926789219756",
+            appId: "1:926789219756:web:fdb03a4a00d28e60673609",
+            measurementId: "G-GNKZVYV76S"
+        };
+
+        // تهيئة Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const bookingsRef = database.ref('bookings');
+
+        // عناصر DOM
+        const tableBody = document.getElementById('bookingsTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const modal = document.getElementById('bookingModal');
+        const form = document.getElementById('bookingForm');
+        const modalTitle = document.getElementById('modalTitle');
+
+        let allBookings = []; // لتخزين جميع الحجوزات للبحث والفلترة
+
+        // دالة لعرض البيانات في الجدول
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">لا توجد حجوزات لعرضها</td></tr>';
+                return;
+            }
+            data.forEach(booking => {
+                const row = document.createElement('tr');
+                let statusClass = booking.status === 'مؤكد' ? 'status-confirmed' : 
+                                   booking.status === 'ملغي' ? 'status-cancelled' : 'status-pending';
+
+                row.innerHTML = `
+                    <td>${booking.id || 'N/A'}</td>
+                    <td>${booking.patientName}</td>
+                    <td>${booking.phone}</td>
+                    <td>${booking.date}</td>
+                    <td>${booking.time}</td>
+                    <td>${booking.doctor} / ${booking.department}</td>
+                    <td><span class="status-badge ${statusClass}">${booking.status}</span></td>
+                    <td class="actions">
+                        <a href="#" onclick="openEditModal('${booking.key}')"><i class="fas fa-edit"></i> تعديل</a>
+                        <a href="#" class="delete" onclick="deleteBooking('${booking.key}')"><i class="fas fa-trash"></i> حذف</a>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // الاستماع للتغييرات في قاعدة البيانات (Read)
+        bookingsRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            allBookings = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    allBookings.push({ key: key, id: '#' + key.slice(1,5), ...data[key] });
+                });
+            }
+            renderTable(allBookings);
+        });
+
+        // البحث
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredData = allBookings.filter(booking =>
+                booking.patientName.toLowerCase().includes(searchTerm)
+            );
+            renderTable(filteredData);
+        });
+
+        // === دوال التعامل مع النافذة المنبثقة (Modal) ===
+        function openAddModal() {
+            modalTitle.innerText = 'إضافة حجز جديد';
+            form.reset();
+            document.getElementById('bookingId').value = '';
+            modal.style.display = 'block';
+        }
+
+        function openEditModal(key) {
+            const bookingToEdit = allBookings.find(b => b.key === key);
+            if (bookingToEdit) {
+                modalTitle.innerText = 'تعديل حجز';
+                document.getElementById('bookingId').value = bookingToEdit.key;
+                document.getElementById('patientName').value = bookingToEdit.patientName;
+                document.getElementById('phone').value = bookingToEdit.phone;
+                document.getElementById('date').value = bookingToEdit.date;
+                document.getElementById('time').value = bookingToEdit.time;
+                document.getElementById('doctor').value = bookingToEdit.doctor;
+                document.getElementById('department').value = bookingToEdit.department;
+                document.getElementById('status').value = bookingToEdit.status;
+                modal.style.display = 'block';
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // === دوال الإضافة والتعديل والحذف (Create, Update, Delete) ===
+
+        // إرسال النموذج (إضافة أو تعديل)
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bookingId = document.getElementById('bookingId').value;
+            const bookingData = {
+                patientName: document.getElementById('patientName').value,
+                phone: document.getElementById('phone').value,
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                doctor: document.getElementById('doctor').value,
+                department: document.getElementById('department').value,
+                status: document.getElementById('status').value,
+            };
+
+            if (bookingId) {
+                // Update
+                bookingsRef.child(bookingId).update(bookingData);
+            } else {
+                // Create
+                bookingsRef.push(bookingData);
+            }
+            closeModal();
+        });
+
+        // حذف حجز
+        function deleteBooking(key) {
+            if (confirm('هل أنت متأكد من أنك تريد حذف هذا الحجز؟')) {
+                bookingsRef.child(key).remove();
+            }
+        }
+
+        // إغلاق النافذة عند الضغط خارجها
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
