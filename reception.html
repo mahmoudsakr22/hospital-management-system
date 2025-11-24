@@ -1519,7 +1519,7 @@
             الفواتير والمحاسبة
           </h2>
           <div class="flex gap-3 mt-4 lg:mt-0">
-            <button id="generateInvoiceBtn" class="btn-medical" onclick="openInvoiceModal()">
+            <button id="generateInvoiceBtn" class="btn-medical">
               <i class="fas fa-plus"></i>
               إنشاء فاتورة جديدة
             </button>
@@ -1799,7 +1799,7 @@
     <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
       <div class="modal-header bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-2xl">
         <div class="flex justify-between items-center">
-                  <h2 class="text-2xl font-bold">إنشاء فاتورة جديدة</h2>
+          <h2 class="text-2xl font-bold">إنشاء فاتورة جديدة</h2>
           <button id="closeInvoiceModal" class="text-white hover:bg-white/20 p-2 rounded-full transition">
             <i class="fas fa-times text-xl"></i>
           </button>
@@ -2131,7 +2131,7 @@
     </div>
   </div>
 
- <!-- Firebase SDK -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   
@@ -2152,7 +2152,6 @@ const firebaseConfig = {
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    
     
     // DOM Elements
     const loadingElement = document.getElementById('loading');
@@ -2285,115 +2284,6 @@ const firebaseConfig = {
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
       return `INV-${year}-${month}-${random}`;
-    }
-    
-    // Open Invoice Modal Function
-    function openInvoiceModal() {
-      console.log('Opening invoice modal...');
-      
-      // Clear previous data
-      selectedServices.clear();
-      selectedPaymentMethod = null;
-      paymentHistory = [];
-      
-      // Set today's date
-      const today = new Date();
-      document.getElementById('invoiceDate').value = today.toISOString().split('T')[0];
-      document.getElementById('paymentDate').value = today.toISOString().split('T')[0];
-      
-      // Update displays
-      updateSelectedServices();
-      updatePaymentHistoryDisplay();
-      
-      // Show modal
-      const modal = document.getElementById('invoiceModal');
-      if (modal) {
-        modal.classList.remove('hidden');
-        console.log('Modal should be visible now');
-        
-        // Load patients and services for modal
-        loadPatientsForInvoiceModal();
-        loadServicesForInvoiceModal();
-      } else {
-        console.error('Invoice modal not found');
-        Swal.fire({
-          icon: 'error',
-          title: 'خطأ',
-          text: 'لم يتم العثور على نافذة الفاتورة'
-        });
-      }
-    }
-    
-    // Load patients specifically for invoice modal
-    function loadPatientsForInvoiceModal() {
-      console.log('Loading patients for invoice modal...');
-      
-      const patientsRef = database.ref("patients");
-      const invoicePatient = document.getElementById('invoicePatient');
-      
-      if (!invoicePatient) {
-        console.error('Invoice patient select not found');
-        return;
-      }
-      
-      patientsRef.once('value').then((snapshot) => {
-        const data = snapshot.val() || {};
-        let allPatients = {};
-        
-        Object.entries(data).forEach(([dept, patients]) => {
-          Object.entries(patients).forEach(([id, patient]) => {
-            if (!allPatients[id]) {
-              allPatients[id] = { ...patient, department: dept, id: id };
-            }
-          });
-        });
-        
-        // Clear and update select
-        invoicePatient.innerHTML = '<option value="">-- اختر المريض --</option>';
-        
-        Object.entries(allPatients).forEach(([id, patient]) => {
-          const option = document.createElement("option");
-          option.value = id;
-          option.textContent = `${patient.name} - ${patient.nid}`;
-          invoicePatient.appendChild(option);
-        });
-        
-        console.log('Patients loaded successfully');
-      }).catch(error => {
-        console.error('Error loading patients:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'خطأ في تحميل المرضى',
-          text: 'حدث خطأ أثناء تحميل قائمة المرضى'
-        });
-      });
-    }
-    
-    // Load services specifically for invoice modal
-    function loadServicesForInvoiceModal() {
-      console.log('Loading services for invoice modal...');
-      
-      const servicesRef = database.ref("services");
-      
-      servicesRef.once('value').then((snapshot) => {
-        const services = snapshot.val() || {};
-        
-        if (Object.keys(services).length === 0) {
-          console.log('No services found, adding default services...');
-          addDefaultServices();
-          return;
-        }
-        
-        loadServicesForSelection(services);
-        console.log('Services loaded successfully');
-      }).catch(error => {
-        console.error('Error loading services:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'خطأ في تحميل الخدمات',
-          text: 'حدث خطأ أثناء تحميل قائمة الخدمات'
-        });
-      });
     }
     
     // Check if doctor is available at current time
@@ -2674,8 +2564,9 @@ const firebaseConfig = {
     // Update selected services display
     function updateSelectedServices() {
       const container = document.getElementById('selectedServices');
-      if (!container) return
-	        if (selectedServices.size === 0) {
+      if (!container) return;
+      
+      if (selectedServices.size === 0) {
         container.innerHTML = '<p class="text-gray-500 text-center py-4">لم يتم اختيار أي خدمات بعد</p>';
         updateInvoiceSummary();
         return;
@@ -2711,7 +2602,7 @@ const firebaseConfig = {
     }
     
     // Remove service from selection
-    window.removeService = function(serviceId) {
+    function removeService(serviceId) {
       selectedServices.delete(serviceId);
       
       // Uncheck the checkbox
@@ -3994,7 +3885,6 @@ const firebaseConfig = {
         }
       });
     }
-	    }
     
     // View patient details
     window.viewPatient = function(id, department, patient) {
@@ -5328,7 +5218,7 @@ const firebaseConfig = {
                 <td class="font-semibold">${formatCurrency(invoice.totalAmount)}</td>
                 <td class="text-green-600">${formatCurrency(invoice.paidAmount || 0)}</td>
                 <td class="text-orange-600">${formatCurrency((invoice.totalAmount || 0) - (invoice.paidAmount || 0))}</td>
-                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
               `;
               
               reportTable.appendChild(row);
@@ -5450,7 +5340,7 @@ const firebaseConfig = {
       const dailyRevenue = {};
       const servicesRevenue = {};
       
-      // Initialize daily revenue for period
+      // Initialize daily revenue for the period
       for (let i = 0; i < period; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -5577,7 +5467,7 @@ const firebaseConfig = {
     
     // Verify insurance function
     async function verifyInsurance(insuranceNumber, company) {
-      // In a real application, you would make an API call to insurance company
+      // In a real application, you would make an API call to the insurance company
       // For this demo, we'll return a mock response
       
       return new Promise((resolve) => {
@@ -5794,18 +5684,6 @@ const firebaseConfig = {
     
     // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOM loaded, initializing...');
-      
-      // Make sure button exists and add event listener
-      const invoiceBtn = document.getElementById('generateInvoiceBtn');
-      if (invoiceBtn) {
-        console.log('Invoice button found, adding click listener...');
-        invoiceBtn.addEventListener('click', openInvoiceModal);
-      } else {
-        console.error('Invoice button not found!');
-      }
-      
-      // Setup other data listeners
       setupDataListeners();
       initializeCharts();
       loadAvailableDoctorsForPatientForm();
@@ -5813,46 +5691,6 @@ const firebaseConfig = {
       loadPatientsForForms();
       loadServices();
       loadInvoices();
-      
-      // Close modal listeners
-      const closeInvoiceModal = document.getElementById('closeInvoiceModal');
-      if (closeInvoiceModal) {
-        closeInvoiceModal.addEventListener('click', () => {
-          document.getElementById('invoiceModal').classList.add('hidden');
-        });
-      }
-      
-      // Payment method listeners
-      document.querySelectorAll('.payment-method').forEach(method => {
-        method.addEventListener('click', () => {
-          document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
-          method.classList.add('selected');
-          selectedPaymentMethod = method.dataset.method;
-          
-          const insuranceDetails = document.getElementById('insuranceDetails');
-          if (selectedPaymentMethod === 'insurance') {
-            insuranceDetails.classList.remove('hidden');
-          } else {
-            insuranceDetails.classList.add('hidden');
-          }
-          
-          updateInvoiceSummary();
-        });
-      });
-      
-      console.log('Initialization complete');
-    });
-    
-    // Also add a backup click handler in case first one doesn't work
-    document.addEventListener('click', function(e) {
-      if (e.target && e.target.id === 'generateInvoiceBtn') {
-        e.preventDefault();
-        openInvoiceModal();
-      }
-      if (e.target && e.target.closest('#generateInvoiceBtn')) {
-        e.preventDefault();
-        openInvoiceModal();
-      }
     });
   </script>
 </body>
