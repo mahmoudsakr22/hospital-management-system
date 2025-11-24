@@ -1829,6 +1829,18 @@
             </div>
           </div>
           
+          <!-- Patient Type for Discount -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-user-tag ml-1"></i>
+              نوع المريض
+            </label>
+            <select id="patientType" class="form-input form-select">
+              <option value="returning">مريض عائد</option>
+              <option value="new">مريض جديد</option>
+            </select>
+          </div>
+          
           <!-- Services Selection -->
           <div class="form-group">
             <label class="form-label">
@@ -1902,6 +1914,44 @@
             </div>
           </div>
           
+          <!-- Installment Options (shown for large invoices) -->
+          <div id="installmentOptions" class="installment-options" style="display: none;">
+            <label class="form-label">
+              <i class="fas fa-calendar-alt ml-1"></i>
+              خيارات التقسيط
+            </label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">عدد الأقساط</label>
+                <select id="installmentCount" class="form-input form-select">
+                  <option value="0">بدون تقسيط</option>
+                  <option value="3">3 أشهر</option>
+                  <option value="6">6 أشهر</option>
+                  <option value="12">12 شهر</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">مبلغ القسط الأول</label>
+                <input type="number" id="firstInstallment" class="form-input" readonly />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Payment History -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-receipt ml-1"></i>
+              سجل المدفوعات
+            </label>
+            <div id="paymentHistory" class="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-4">
+              <!-- سيتم عرض المدفوعات هنا -->
+            </div>
+            <button type="button" id="addPaymentBtn" class="btn-medical mt-2">
+              <i class="fas fa-plus"></i>
+              إضافة دفعة
+            </button>
+          </div>
+          
           <!-- Invoice Summary -->
           <div class="invoice-summary">
             <div class="summary-row">
@@ -1922,15 +1972,15 @@
             </div>
           </div>
           
-          <!-- Notes -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-sticky-note ml-1"></i>
-              ملاحظات
-            </label>
-            <textarea id="invoiceNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
+          <!-- QR Code -->
+          <div class="qr-container">
+            <div id="qrcode" class="qr-code"></div>
+            <div class="qr-instructions">
+              امسح رمز QR للدفع الإلكتروني
+            </div>
           </div>
           
+          <!-- Invoice Actions -->
           <div class="flex gap-4">
             <button type="submit" class="btn-success flex-1">
               <i class="fas fa-save"></i>
@@ -1940,13 +1990,30 @@
               <i class="fas fa-print"></i>
               طباعة
             </button>
+            <button type="button" id="emailInvoiceBtn" class="btn-medical flex-1">
+              <i class="fas fa-envelope"></i>
+              إرسال عبر البريد
+            </button>
+            <button type="button" id="whatsappInvoiceBtn" class="btn-medical flex-1">
+              <i class="fab fa-whatsapp"></i>
+              إرسال عبر واتساب
+            </button>
+          </div>
+          
+          <!-- Notes -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات
+            </label>
+            <textarea id="invoiceNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
           </div>
         </form>
       </div>
     </div>
   </div>
 
- <!-- Discharge Modal -->
+  <!-- Discharge Modal -->
   <div id="dischargeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
       <div class="modal-header bg-gradient-to-r from-orange-500 to-red-500 text-white p-6 rounded-t-2xl">
@@ -2004,6 +2071,59 @@
             <button type="button" id="createInvoiceFromDischarge" class="btn-success flex-1">
               <i class="fas fa-file-invoice"></i>
               إنشاء فاتورة
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full">
+      <div class="modal-header bg-gradient-to-r from-green-500 to-teal-500 text-white p-6 rounded-t-2xl">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold">إضافة دفعة جديدة</h2>
+          <button id="closePaymentModal" class="text-white hover:bg-white/20 p-2 rounded-full transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <form id="paymentForm" class="space-y-4">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-money-bill-wave ml-1"></i>
+              مبلغ الدفعة
+            </label>
+            <input type="number" id="paymentAmount" class="form-input" placeholder="أدخل المبلغ" min="0" step="0.01" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-calendar ml-1"></i>
+              تاريخ الدفعة
+            </label>
+            <input type="date" id="paymentDate" class="form-input" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات الدفعة
+            </label>
+            <textarea id="paymentNotes" rows="3" class="form-input" placeholder="ملاحظات حول الدفعة"></textarea>
+          </div>
+          
+          <div class="flex gap-4">
+            <button type="submit" class="btn-success flex-1">
+              <i class="fas fa-save"></i>
+              حفظ الدفعة
+            </button>
+            <button type="button" id="cancelPayment" class="btn-outline flex-1">
+              <i class="fas fa-times"></i>
+              إلغاء
             </button>
           </div>
         </form>
