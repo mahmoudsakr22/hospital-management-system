@@ -1511,12 +1511,12 @@
       </div>
     </div>
 
-    <div id="billingTab" class="tab-content">
+        <div id="billingTab" class="tab-content">
       <div class="medical-card p-6">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
           <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
             <i class="fas fa-file-invoice-dollar text-purple-600"></i>
-                  الفواتير والمحاسبة
+            الفواتير والمحاسبة
           </h2>
           <div class="flex gap-3 mt-4 lg:mt-0">
             <button id="generateInvoiceBtn" class="btn-medical">
@@ -1687,284 +1687,157 @@
     </div>
   </main>
 
-    <div id="reportsTab" class="tab-content">
-      <div class="medical-card p-6">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <i class="fas fa-chart-pie text-blue-600"></i>
-            التقارير المالية المتقدمة
-          </h2>
-          <div class="flex gap-3 mt-4 lg:mt-0">
-            <select id="reportPeriod" class="form-input form-select">
-              <option value="7">آخر 7 أيام</option>
-              <option value="30">آخر 30 يوم</option>
-              <option value="90">آخر 3 أشهر</option>
-              <option value="365">آخر سنة</option>
-            </select>
-            <button id="generateReportBtn" class="btn-medical">
-              <i class="fas fa-sync-alt"></i>
-              إنشاء تقرير
-            </button>
-            <button id="exportReportBtn" class="btn-medical btn-outline">
-              <i class="fas fa-file-export"></i>
-              تصدير التقرير
-            </button>
-          </div>
-        </div>
-        
-        <div id="financialReport" class="financial-report">
-          <div class="report-header">
-            <h3>تقرير مالي - مستشفى الحياة الذكية</h3>
-            <div id="reportDateRange">--</div>
-          </div>
-          
-          <div class="report-stats">
-            <div class="report-stat">
-              <div class="report-stat-value" id="reportTotalRevenue">0 ج.م</div>
-              <div class="report-stat-label">إجمالي الإيرادات</div>
-            </div>
-            <div class="report-stat">
-              <div class="report-stat-value" id="reportPendingRevenue">0 ج.م</div>
-              <div class="report-stat-label">الإيرادات المعلقة</div>
-            </div>
-            <div class="report-stat">
-              <div class="report-stat-value" id="reportTotalInvoices">0</div>
-              <div class="report-stat-label">إجمالي الفواتير</div>
-            </div>
-            <div class="report-stat">
-              <div class="report-stat-value" id="reportPaidInvoices">0</div>
-              <div class="report-stat-label">الفواتير المدفوعة</div>
-            </div>
-            <div class="report-stat">
-              <div class="report-stat-value" id="reportPendingInvoices">0</div>
-              <div class="report-stat-label">الفواتير المعلقة</div>
-            </div>
-            <div class="report-stat">
-              <div class="report-stat-value" id="reportAvgInvoice">0 ج.م</div>
-              <div class="report-stat-label">متوسط قيمة الفاتورة</div>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h3 class="chart-title">
-                <i class="fas fa-chart-line"></i>
-                الإيرادات اليومية
-              </h3>
-              <div style="height: 250px;">
-                <canvas id="revenueChart"></canvas>
-              </div>
-            </div>
-            <div>
-              <h3 class="chart-title">
-                <i class="fas fa-chart-pie"></i>
-                توزيع الإيرادات حسب الخدمات
-              </h3>
-              <div style="height: 250px;">
-                <canvas id="servicesRevenueChart"></canvas>
-              </div>
-            </div>
-          </div>
-          
-          <div class="mt-6">
-            <h3 class="chart-title">
-              <i class="fas fa-list"></i>
-              تفاصيل الفواتير
-            </h3>
-            <div class="overflow-x-auto">
-              <table class="invoice-table">
-                <thead>
-                  <tr>
-                    <th>رقم الفاتورة</th>
-                    <th>اسم المريض</th>
-                    <th>التاريخ</th>
-                    <th>المبلغ الإجمالي</th>
-                    <th>المدفوع</th>
-                    <th>المتبقي</th>
-                    <th>الحالة</th>
-                  </tr>
-                </thead>
-                <tbody id="reportInvoicesTable">
-                  <!-- Report invoices will be loaded here -->
-                </tbody>
-              </table>
-            </div>
-          </div>
+  <!-- Invoice Modal -->
+  <div id="invoiceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="modal-header bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-2xl">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold">إنشاء فاتورة جديدة</h2>
+          <button id="closeInvoiceModal" class="text-white hover:bg-white/20 p-2 rounded-full transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
       </div>
-    </div>
-  </main>
-
-        الفواتير والمحاسبة
-          </h2>
-          <div class="flex gap-3 mt-4 lg:mt-0">
-            <button id="generateInvoiceBtn" class="btn-medical">
-              <i class="fas fa-plus"></i>
-              إنشاء فاتورة جديدة
-            </button>
-            <button id="printAllInvoicesBtn" class="btn-medical btn-outline">
-              <i class="fas fa-print"></i>
-              طباعة جميع الفواتير
-            </button>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-          <div class="medical-card p-4 text-center">
-            <div class="text-3xl font-bold text-purple-600" id="totalInvoices">0</div>
-            <div class="text-sm text-gray-600">إجمالي الفواتير</div>
-          </div>
-          <div class="medical-card p-4 text-center">
-            <div class="text-3xl font-bold text-green-600" id="paidInvoices">0</div>
-            <div class="text-sm text-gray-600">الفواتير المدفوعة</div>
-          </div>
-          <div class="medical-card p-4 text-center">
-            <div class="text-3xl font-bold text-orange-600" id="pendingInvoices">0</div>
-            <div class="text-sm text-gray-600">الفواتير المعلقة</div>
-          </div>
-          <div class="medical-card p-4 text-center">
-            <div class="text-3xl font-bold text-blue-600" id="totalRevenue">0</div>
-            <div class="text-sm text-gray-600">إجمالي الإيرادات (ج.م)</div>
-          </div>
-        </div>
-        
-        <div class="overflow-x-auto">
-          <table class="invoice-table">
-            <thead>
-              <tr>
-                <th>رقم الفاتورة</th>
-                <th>اسم المريض</th>
-                <th>التاريخ</th>
-                <th>المبلغ الإجمالي</th>
-                <th>المدفوع</th>
-                <th>المتبقي</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="invoicesTableBody">
-              <!-- Invoices will be loaded here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="servicesTab" class="tab-content">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Services Management -->
-        <div class="lg:col-span-1 fade-in">
-          <div class="medical-card p-6">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white">
-                <i class="fas fa-concierge-bell"></i>
-              </div>
-              <h2 class="text-xl font-bold text-gray-800">إدارة الخدمات</h2>
+      
+      <div class="p-6">
+        <form id="invoiceForm" class="space-y-6">
+          <!-- Patient Selection -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-user ml-1"></i>
+                اختر المريض
+              </label>
+              <select id="invoicePatient" class="form-input form-select" required>
+                <option value="">-- اختر المريض --</option>
+              </select>
             </div>
             
-            <form id="serviceForm" class="space-y-4">
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-tag ml-1"></i>
-                  اسم الخدمة
-                </label>
-                <input type="text" id="serviceName" class="form-input" placeholder="أدخل اسم الخدمة" required />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-list ml-1"></i>
-                  نوع الخدمة
-                </label>
-                <select id="serviceType" class="form-input form-select" required>
-                  <option value="">-- اختر النوع --</option>
-                  <option value="consultation">كشف طبي</option>
-                  <option value="xray">أشعة</option>
-                  <option value="lab">تحاليل</option>
-                  <option value="ecg">موجات صوتية</option>
-                  <option value="ultrasound">سونار</option>
-                  <option value="surgery">عملية جراحية</option>
-                  <option value="medication">أدوية</option>
-                  <option value="other">أخرى</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-hospital ml-1"></i>
-                  القسم
-                </label>
-                <select id="serviceDepartment" class="form-input form-select" required>
-                  <option value="">-- اختر القسم --</option>
-                  <option value="emergency">الطوارئ</option>
-                  <option value="radiology">الأشعة</option>
-                  <option value="lab">المختبر</option>
-                  <option value="icu">العناية المركزة</option>
-                  <option value="operations">العمليات</option>
-                  <option value="cardiology">القلب</option>
-                  <option value="general">داخلي</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-money-bill-wave ml-1"></i>
-                  السعر (ج.م)
-                </label>
-                <input type="number" id="servicePrice" class="form-input" placeholder="أدخل السعر" min="0" step="0.01" required />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-info-circle ml-1"></i>
-                  وصف الخدمة
-                </label>
-                <textarea id="serviceDescription" rows="3" class="form-input" placeholder="وصف تفصيلي للخدمة"></textarea>
-              </div>
-
-              <button type="submit" class="btn-medical w-full">
-                <i class="fas fa-save"></i>
-                إضافة الخدمة
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Services List -->
-        <div class="lg:col-span-2 fade-in">
-          <div class="medical-card p-6">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-list text-purple-600"></i>
-                قائمة الخدمات
-              </h2>
-              <div class="flex gap-3">
-                <select id="filterServiceType" class="form-input form-select">
-                  <option value="all">جميع الأنواع</option>
-                  <option value="consultation">كشف طبي</option>
-                  <option value="xray">أشعة</option>
-                  <option value="lab">تحاليل</option>
-                  <option value="ecg">موجات صوتية</option>
-                  <option value="ultrasound">سونار</option>
-                  <option value="surgery">عملية جراحية</option>
-                  <option value="medication">أدوية</option>
-                  <option value="other">أخرى</option>
-                </select>
-                <div class="search-container">
-                  <input type="text" id="searchService" placeholder="بحث عن خدمة..." class="form-input search-input" />
-                  <i class="fas fa-search search-icon"></i>
-                </div>
-              </div>
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-calendar ml-1"></i>
+                تاريخ الفاتورة
+              </label>
+              <input type="date" id="invoiceDate" class="form-input" required />
             </div>
-            
-            <div id="servicesList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+          </div>
+          
+          <!-- Services Selection -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-concierge-bell ml-1"></i>
+              اختر الخدمات
+            </label>
+            <div id="servicesSelection" class="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-4">
               <!-- Services will be loaded here -->
             </div>
           </div>
-        </div>
+          
+          <!-- Selected Services -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-shopping-cart ml-1"></i>
+              الخدمات المختارة
+            </label>
+            <div id="selectedServices" class="space-y-2">
+              <!-- Selected services will appear here -->
+            </div>
+          </div>
+          
+          <!-- Payment Method -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-credit-card ml-1"></i>
+              طريقة الدفع
+            </label>
+            <div class="payment-methods">
+              <div class="payment-method" data-method="cash">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>نقدي</span>
+              </div>
+              <div class="payment-method" data-method="card">
+                <i class="fas fa-credit-card"></i>
+                <span>بطاقة ائتمان</span>
+              </div>
+              <div class="payment-method" data-method="insurance">
+                <i class="fas fa-shield-alt"></i>
+                <span>تأمين</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Insurance Details (shown when insurance is selected) -->
+          <div id="insuranceDetails" class="hidden space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-building ml-1"></i>
+                  شركة التأمين
+                </label>
+                <input type="text" id="insuranceCompany" class="form-input" placeholder="اسم شركة التأمين" />
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-id-card ml-1"></i>
+                  رقم التأمين
+                </label>
+                <input type="text" id="insuranceNumber" class="form-input" placeholder="رقم بوليصة التأمين" />
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-percentage ml-1"></i>
+                نسبة التغطية (%)
+              </label>
+              <input type="number" id="coveragePercentage" class="form-input" placeholder="نسبة التغطية" min="0" max="100" />
+            </div>
+          </div>
+          
+          <!-- Invoice Summary -->
+          <div class="invoice-summary">
+            <div class="summary-row">
+              <span>المجموع الفرعي:</span>
+              <span id="subtotal">0 ج.م</span>
+            </div>
+            <div class="summary-row" id="discountRow" style="display: none;">
+              <span>الخصم:</span>
+              <span id="discount">0 ج.م</span>
+            </div>
+            <div class="summary-row" id="coverageRow" style="display: none;">
+              <span>تغطية التأمين:</span>
+              <span id="coverage">0 ج.م</span>
+            </div>
+            <div class="summary-row">
+              <span>المبلغ الإجمالي:</span>
+              <span id="totalAmount">0 ج.م</span>
+            </div>
+          </div>
+          
+          <!-- Notes -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات
+            </label>
+            <textarea id="invoiceNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
+          </div>
+          
+          <div class="flex gap-4">
+            <button type="submit" class="btn-success flex-1">
+              <i class="fas fa-save"></i>
+              حفظ الفاتورة
+            </button>
+            <button type="button" id="printInvoice" class="btn-outline flex-1">
+              <i class="fas fa-print"></i>
+              طباعة
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  </main>
+  </div>
 
   <!-- Discharge Modal -->
   <div id="dischargeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
@@ -2024,59 +1897,6 @@
             <button type="button" id="createInvoiceFromDischarge" class="btn-success flex-1">
               <i class="fas fa-file-invoice"></i>
               إنشاء فاتورة
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Payment Modal -->
-  <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full">
-      <div class="modal-header bg-gradient-to-r from-green-500 to-teal-500 text-white p-6 rounded-t-2xl">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-bold">إضافة دفعة جديدة</h2>
-          <button id="closePaymentModal" class="text-white hover:bg-white/20 p-2 rounded-full transition">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-      </div>
-      
-      <div class="p-6">
-        <form id="paymentForm" class="space-y-4">
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-money-bill-wave ml-1"></i>
-              مبلغ الدفعة
-            </label>
-            <input type="number" id="paymentAmount" class="form-input" placeholder="أدخل المبلغ" min="0" step="0.01" required />
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-calendar ml-1"></i>
-              تاريخ الدفعة
-            </label>
-            <input type="date" id="paymentDate" class="form-input" required />
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-sticky-note ml-1"></i>
-              ملاحظات الدفعة
-            </label>
-            <textarea id="paymentNotes" rows="3" class="form-input" placeholder="ملاحظات حول الدفعة"></textarea>
-          </div>
-          
-          <div class="flex gap-4">
-            <button type="submit" class="btn-success flex-1">
-              <i class="fas fa-save"></i>
-              حفظ الدفعة
-            </button>
-            <button type="button" id="cancelPayment" class="btn-outline flex-1">
-              <i class="fas fa-times"></i>
-              إلغاء
             </button>
           </div>
         </form>
