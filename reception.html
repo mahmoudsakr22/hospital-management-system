@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -336,6 +336,16 @@
       color: white;
     }
     
+    .btn-view {
+      background: rgba(0, 201, 167, 0.1);
+      color: var(--accent-color);
+    }
+    
+    .btn-view:hover {
+      background: var(--accent-color);
+      color: white;
+    }
+    
     /* Search Box */
     .search-container {
       position: relative;
@@ -437,6 +447,48 @@
       color: #0EA5E9;
     }
     
+    /* Tabs */
+    .tabs-container {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--border-color);
+      overflow-x: auto;
+    }
+    
+    .tab-btn {
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .tab-btn:hover {
+      color: var(--primary-color);
+    }
+    
+    .tab-btn.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
     /* Responsive */
     @media (max-width: 768px) {
       .stat-card {
@@ -446,6 +498,10 @@
       .patient-details {
         flex-direction: column;
         gap: 8px;
+      }
+      
+      .tabs-container {
+        overflow-x: scroll;
       }
     }
     
@@ -621,158 +677,207 @@
       </div>
     </section>
 
-    <!-- Main Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Patient Registration Form -->
-      <div class="lg:col-span-1 fade-in">
-        <div class="medical-card p-6">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white">
-              <i class="fas fa-user-plus"></i>
+    <!-- Tabs Navigation -->
+    <div class="tabs-container mb-6">
+      <button class="tab-btn active" data-tab="patients">
+        <i class="fas fa-users"></i>
+        المرضى
+      </button>
+      <button class="tab-btn" data-tab="appointments">
+        <i class="fas fa-calendar-alt"></i>
+        المواعيد
+      </button>
+      <button class="tab-btn" data-tab="doctors">
+        <i class="fas fa-user-md"></i>
+        الأطباء
+      </button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div id="patientsTab" class="tab-content active">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Patient Registration Form -->
+        <div class="lg:col-span-1 fade-in">
+          <div class="medical-card p-6">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <h2 class="text-xl font-bold text-gray-800">تسجيل مريض جديد</h2>
             </div>
-            <h2 class="text-xl font-bold text-gray-800">تسجيل مريض جديد</h2>
+            
+            <form id="patientForm" class="space-y-4">
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-user ml-1"></i>
+                  اسم المريض الكامل
+                </label>
+                <input type="text" id="name" class="form-input" placeholder="أدخل اسم المريض" required />
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-birthday-cake ml-1"></i>
+                    العمر
+                  </label>
+                  <input type="number" id="age" min="0" max="120" class="form-input" placeholder="العمر" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-id-card ml-1"></i>
+                    الرقم القومي
+                  </label>
+                  <input type="text" id="nid" maxlength="14" class="form-input" placeholder="14 رقم" required />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-venus-mars ml-1"></i>
+                    الجنس
+                  </label>
+                  <select id="gender" class="form-input form-select" required>
+                    <option value="">اختر</option>
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-tint ml-1"></i>
+                    فصيلة الدم
+                  </label>
+                  <select id="bloodType" class="form-input form-select" required>
+                    <option value="">اختر</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-phone ml-1"></i>
+                  رقم الهاتف
+                </label>
+                <input type="tel" id="phone" class="form-input" placeholder="رقم الهاتف" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-map-marker-alt ml-1"></i>
+                  العنوان
+                </label>
+                <input type="text" id="address" class="form-input" placeholder="العنوان الكامل" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-notes-medical ml-1"></i>
+                  الأمراض المزمنة / ملاحظات
+                </label>
+                <textarea id="diseases" rows="3" class="form-input" placeholder="أي أمراض مزمنة أو ملاحظات هامة"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-hospital ml-1"></i>
+                  القسم الطبي
+                </label>
+                <select id="department" class="form-input form-select" required>
+                  <option value="">-- اختر القسم --</option>
+                  <option value="emergency">الطوارئ</option>
+                  <option value="radiology">الأشعة</option>
+                  <option value="icu">العناية المركزة</option>
+                  <option value="operations">العمليات</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-user-md ml-1"></i>
+                  الطبيب المعالج
+                </label>
+                <select id="doctorSelect" class="form-input form-select">
+                  <option value="">-- اختر الطبيب --</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn-medical w-full">
+                <i class="fas fa-save"></i>
+                تسجيل المريض
+              </button>
+            </form>
           </div>
-          
-          <form id="patientForm" class="space-y-4">
-            <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-user ml-1"></i>
-                اسم المريض الكامل
-              </label>
-              <input type="text" id="name" class="form-input" placeholder="أدخل اسم المريض" required />
-            </div>
+        </div>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-birthday-cake ml-1"></i>
-                  العمر
-                </label>
-                <input type="number" id="age" min="0" max="120" class="form-input" placeholder="العمر" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-id-card ml-1"></i>
-                  الرقم القومي
-                </label>
-                <input type="text" id="nid" maxlength="14" class="form-input" placeholder="14 رقم" required />
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-venus-mars ml-1"></i>
-                  الجنس
-                </label>
-                <select id="gender" class="form-input form-select" required>
-                  <option value="">اختر</option>
-                  <option value="male">ذكر</option>
-                  <option value="female">أنثى</option>
+        <!-- Patients List -->
+        <div class="lg:col-span-2 fade-in">
+          <div class="medical-card p-6">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
+              <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-list-ul text-blue-600"></i>
+                قائمة المرضى المسجلين
+              </h2>
+              <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0">
+                <select id="filterDepartment" class="form-input form-select">
+                  <option value="all">جميع الأقسام</option>
+                  <option value="emergency">الطوارئ</option>
+                  <option value="icu">العناية المركزة</option>
+                  <option value="surgery">العمليات</option>
+                  <option value="care">الرعاية</option>
+                  <option value="admin">الإدارة</option>
+                  <option value="radiology">الأشعة</option>
                 </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-tint ml-1"></i>
-                  فصيلة الدم
-                </label>
-                <select id="bloodType" class="form-input form-select" required>
-                  <option value="">اختر</option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                </select>
+                <div class="search-container">
+                  <input type="text" id="searchPatient" placeholder="بحث عن مريض..." class="form-input search-input" />
+                  <i class="fas fa-search search-icon"></i>
+                </div>
               </div>
             </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-map-marker-alt ml-1"></i>
-                العنوان
-              </label>
-              <input type="text" id="address" class="form-input" placeholder="العنوان الكامل" required />
+            
+            <div id="patientsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+              <!-- Patients will be loaded here -->
             </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-notes-medical ml-1"></i>
-                الأمراض المزمنة / ملاحظات
-              </label>
-              <textarea id="diseases" rows="3" class="form-input" placeholder="أي أمراض مزمنة أو ملاحظات هامة"></textarea>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-hospital ml-1"></i>
-                القسم الطبي
-              </label>
-              <select id="department" class="form-input form-select" required>
-                <option value="">-- اختر القسم --</option>
-                <option value="emergency">الطوارئ</option>
-                <option value="radiology">الأشعة</option>
-                <option value="icu">العناية المركزة</option>
-                <option value="operations">العمليات</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-user-md ml-1"></i>
-                الطبيب المعالج
-              </label>
-              <select id="doctorSelect" class="form-input form-select">
-                <option value="">-- اختر الطبيب --</option>
-              </select>
-            </div>
-
-            <button type="submit" class="btn-medical w-full">
-              <i class="fas fa-save"></i>
-              تسجيل المريض
-            </button>
-          </form>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Patients List -->
-      <div class="lg:col-span-2 fade-in">
-        <div class="medical-card p-6">
-          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <i class="fas fa-list-ul text-blue-600"></i>
-              قائمة المرضى المسجلين
-            </h2>
-            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0">
-              <select id="filterDepartment" class="form-input form-select">
-                <option value="all">جميع الأقسام</option>
-                <option value="emergency">الطوارئ</option>
-                <option value="icu">العناية المركزة</option>
-                <option value="surgery">العمليات</option>
-                <option value="care">الرعاية</option>
-                <option value="admin">الإدارة</option>
-                <option value="radiology">الأشعة</option>
-              </select>
-              <div class="search-container">
-                <input type="text" id="searchPatient" placeholder="بحث عن مريض..." class="form-input search-input" />
-                <i class="fas fa-search search-icon"></i>
-              </div>
-            </div>
-          </div>
-          
-          <div id="patientsList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-            <!-- Patients will be loaded here -->
-          </div>
+    <div id="appointmentsTab" class="tab-content">
+      <div class="medical-card p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">قائمة المواعيد</h2>
+        <div id="appointmentsList" class="space-y-4">
+          <!-- Appointments will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="doctorsTab" class="tab-content">
+      <div class="medical-card p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">قائمة الأطباء</h2>
+        <div id="doctorsList" class="space-y-4">
+          <!-- Doctors will be loaded here -->
         </div>
       </div>
     </div>
   </main>
 
-  <script type="module">
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
+  <script>
+    // Initialize Firebase
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAwmbyO0VV0-spbPlbt6c7N7bxscXj1HMc",
   authDomain: "hospital-management-syst-39f9a.firebaseapp.com",
@@ -785,17 +890,16 @@ const firebaseConfig = {
 };
     
     // Initialize Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
     
     // DOM Elements
     const loadingElement = document.getElementById('loading');
     const currentDateElement = document.getElementById('currentDate');
     const patientForm = document.getElementById('patientForm');
     const patientsList = document.getElementById('patientsList');
+    const appointmentsList = document.getElementById('appointmentsList');
+    const doctorsList = document.getElementById('doctorsList');
     const filterDepartment = document.getElementById('filterDepartment');
     const searchPatient = document.getElementById('searchPatient');
     const totalPatientsElement = document.getElementById('totalPatients');
@@ -832,9 +936,9 @@ const firebaseConfig = {
     
     // Load doctors from database
     function loadDoctors() {
-      const doctorsRef = ref(db, "doctors");
+      const doctorsRef = database.ref("doctors");
       
-      onValue(doctorsRef, (snapshot) => {
+      doctorsRef.on('value', (snapshot) => {
         const doctors = snapshot.val() || {};
         
         // Clear current options except the default one
@@ -847,24 +951,9 @@ const firebaseConfig = {
           option.textContent = `${doctor.name} - ${getDepartmentName(doctor.department)}`;
           doctorSelect.appendChild(option);
         });
-      });
-    }
-    
-    // Add sample doctors (run once)
-    function addSampleDoctors() {
-      const doctorsRef = ref(db, "doctors");
-      
-      const sampleDoctors = [
-        { name: "د. أحمد محمد", department: "emergency", specialization: "طب الطوارئ" },
-        { name: "د. فاطمة علي", department: "icu", specialization: "العناية المركزة" },
-        { name: "د. محمد خالد", department: "operations", specialization: "جراحة عامة" },
-        { name: "د. نورة سعيد", department: "radiology", specialization: "الأشعة التشخيصية" },
-        { name: "د. يوسف عمر", department: "emergency", specialization: "طب الطوارئ" },
-        { name: "د. مريم حسن", department: "icu", specialization: "العناية المركزة" }
-      ];
-      
-      sampleDoctors.forEach(doctor => {
-        push(doctorsRef, doctor);
+        
+        // Update doctors list
+        renderDoctors(doctors);
       });
     }
     
@@ -922,6 +1011,12 @@ const firebaseConfig = {
                 <i class="fas fa-tint"></i>
                 <span>${patient.bloodType}</span>
               </div>
+              ${patient.phone ? `
+              <div class="detail-item">
+                <i class="fas fa-phone"></i>
+                <span>${patient.phone}</span>
+              </div>
+              ` : ''}
               ${doctorInfo}
             </div>
             
@@ -941,10 +1036,67 @@ const firebaseConfig = {
                 <span>${formatDate(patient.timestamp)}</span>
               </div>
               <div class="flex gap-2">
+                <button class="action-btn btn-view" onclick="viewPatient('${id}', '${department}', ${JSON.stringify(patient).replace(/"/g, '&quot;')})">
+                  <i class="fas fa-eye"></i>
+                </button>
                 <button class="action-btn btn-edit" onclick="editPatient('${id}', '${department}', ${JSON.stringify(patient).replace(/"/g, '&quot;')})">
                   <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn btn-delete" onclick="deletePatient('${id}', '${department}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      return card;
+    }
+    
+    // Create doctor card
+    function createDoctorCard(doctor, id) {
+      const card = document.createElement('div');
+      card.className = 'patient-card';
+      
+      // Get department badge class
+      const deptClass = `dept-${doctor.department}`;
+      
+      card.innerHTML = `
+        <div class="flex items-start gap-4">
+          <div class="patient-avatar">
+            <i class="fas fa-user-md"></i>
+          </div>
+          <div class="patient-info flex-1">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="patient-name">د. ${doctor.name}</h3>
+              <span class="dept-badge ${deptClass}">
+                ${getDepartmentIcon(doctor.department)}
+                ${getDepartmentName(doctor.department)}
+              </span>
+            </div>
+            
+            <div class="patient-details">
+              <div class="detail-item">
+                <i class="fas fa-stethoscope"></i>
+                <span>${doctor.specialization}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-clock"></i>
+                <span>${doctor.workFrom || '--'} - ${doctor.workTo || '--'}</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between mt-3">
+              <div class="detail-item text-xs">
+                <i class="fas fa-clock"></i>
+                <span>${formatDate(doctor.timestamp)}</span>
+              </div>
+              <div class="flex gap-2">
+                <button class="action-btn btn-edit" onclick="editDoctor('${id}', ${JSON.stringify(doctor).replace(/"/g, '&quot;')})">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn btn-delete" onclick="deleteDoctor('${id}')">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -1012,7 +1164,8 @@ const firebaseConfig = {
         filteredPatients = filteredPatients.filter(([_, patient]) => 
           patient.name.toLowerCase().includes(term) || 
           patient.nid.includes(term) || 
-          patient.address.toLowerCase().includes(term)
+          (patient.address && patient.address.toLowerCase().includes(term)) ||
+          (patient.phone && patient.phone.includes(term))
         );
       }
       
@@ -1034,6 +1187,44 @@ const firebaseConfig = {
       });
     }
     
+    // Render doctors list
+    function renderDoctors(doctors) {
+      doctorsList.innerHTML = '';
+      
+      if (!doctors || Object.keys(doctors).length === 0) {
+        doctorsList.innerHTML = `
+          <div class="text-center py-12">
+            <i class="fas fa-user-md text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">لا يوجد أطباء مسجلين</p>
+            <p class="text-gray-400 text-sm mt-2">سيتم إضافة أطباء افتراضيين</p>
+          </div>
+        `;
+        
+        // Add default doctors
+        addDefaultDoctors();
+        return;
+      }
+      
+      Object.entries(doctors).forEach(([id, doctor]) => {
+        const card = createDoctorCard(doctor, id);
+        doctorsList.appendChild(card);
+      });
+    }
+    
+    // Add default doctors
+    function addDefaultDoctors() {
+      const defaultDoctors = [
+        { name: "د. أحمد محمد", specialization: "طب الطوارئ", department: "emergency", workFrom: "08:00", workTo: "20:00", timestamp: new Date().toISOString() },
+        { name: "د. فاطمة علي", specialization: "العناية المركزة", department: "icu", workFrom: "08:00", workTo: "20:00", timestamp: new Date().toISOString() },
+        { name: "د. محمد خالد", specialization: "جراحة عامة", department: "operations", workFrom: "08:00", workTo: "20:00", timestamp: new Date().toISOString() },
+        { name: "د. نورة سعيد", specialization: "الأشعة التشخيصية", department: "radiology", workFrom: "08:00", workTo: "20:00", timestamp: new Date().toISOString() }
+      ];
+      
+      defaultDoctors.forEach(doctor => {
+        database.ref('doctors').push(doctor);
+      });
+    }
+    
     // Delete patient
     window.deletePatient = function(id, department) {
       Swal.fire({
@@ -1048,31 +1239,100 @@ const firebaseConfig = {
         customClass: {
           popup: 'medical-card'
         }
-      }).then(async (result) => {
+      }).then((result) => {
         if (result.isConfirmed) {
-          try {
-            showLoading();
-            const patientRef = ref(db, `patients/${department}/${id}`);
-            await remove(patientRef);
-            hideLoading();
-            
-            Swal.fire({
-              icon: 'success',
-              title: 'تم الحذف بنجاح',
-              text: 'تم حذف بيانات المريض',
-              timer: 2000,
-              showConfirmButton: false,
-              position: 'top-end',
-              toast: true
+          showLoading();
+          database.ref(`patients/${department}/${id}`).remove()
+            .then(() => {
+              hideLoading();
+              Swal.fire({
+                icon: 'success',
+                title: 'تم الحذف بنجاح',
+                text: 'تم حذف بيانات المريض',
+                timer: 2000,
+                showConfirmButton: false,
+                position: 'top-end',
+                toast: true
+              });
+            })
+            .catch((error) => {
+              hideLoading();
+              Swal.fire({
+                icon: 'error',
+                title: 'خطأ',
+                text: 'حدث خطأ أثناء الحذف'
+              });
             });
-          } catch (error) {
-            hideLoading();
-            Swal.fire({
-              icon: 'error',
-              title: 'خطأ',
-              text: 'حدث خطأ أثناء الحذف'
+        }
+      });
+    }
+    
+    // Delete doctor
+    window.deleteDoctor = function(id) {
+      Swal.fire({
+        title: 'تأكيد الحذف',
+        text: "هل أنت متأكد من حذف بيانات هذا الطبيب؟",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#FF6B6B',
+        cancelButtonColor: '#6C757D',
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء',
+        customClass: {
+          popup: 'medical-card'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          showLoading();
+          database.ref(`doctors/${id}`).remove()
+            .then(() => {
+              hideLoading();
+              Swal.fire({
+                icon: 'success',
+                title: 'تم الحذف بنجاح',
+                text: 'تم حذف بيانات الطبيب',
+                timer: 2000,
+                showConfirmButton: false,
+                position: 'top-end',
+                toast: true
+              });
+            })
+            .catch((error) => {
+              hideLoading();
+              Swal.fire({
+                icon: 'error',
+                title: 'خطأ',
+                text: 'حدث خطأ أثناء الحذف'
+              });
             });
-          }
+        }
+      });
+    }
+    
+    // View patient details
+    window.viewPatient = function(id, department, patient) {
+      Swal.fire({
+        title: 'تفاصيل المريض',
+        html: `
+          <div class="text-right">
+            <div class="mb-4">
+              <strong>الاسم:</strong> ${patient.name}<br>
+              <strong>العمر:</strong> ${patient.age} سنة<br>
+              <strong>الجنس:</strong> ${patient.gender === 'male' ? 'ذكر' : 'أنثى'}<br>
+              <strong>فصيلة الدم:</strong> ${patient.bloodType}<br>
+              <strong>الرقم القومي:</strong> ${patient.nid}<br>
+              <strong>الهاتف:</strong> ${patient.phone || '---'}<br>
+              <strong>العنوان:</strong> ${patient.address}<br>
+              <strong>القسم:</strong> ${getDepartmentName(department)}<br>
+              <strong>الطبيب:</strong> ${patient.doctorName || '---'}<br>
+              <strong>تاريخ التسجيل:</strong> ${formatDate(patient.timestamp)}<br>
+              ${patient.diseases ? `<strong>ملاحظات:</strong> ${patient.diseases}` : ''}
+            </div>
+          </div>
+        `,
+        confirmButtonText: 'إغلاق',
+        customClass: {
+          popup: 'medical-card'
         }
       });
     }
@@ -1105,6 +1365,10 @@ const firebaseConfig = {
             </select>
           </div>
           <div class="form-group">
+            <label class="form-label">رقم الهاتف</label>
+            <input type="tel" id="edit-phone" value="${patient.phone || ''}" class="form-input" />
+          </div>
+          <div class="form-group">
             <label class="form-label">العنوان</label>
             <input type="text" id="edit-address" value="${patient.address}" class="form-input" required />
           </div>
@@ -1134,12 +1398,12 @@ const firebaseConfig = {
         showCancelButton: true,
         confirmButtonText: 'حفظ التعديلات',
         cancelButtonText: 'إلغاء',
-        showLoaderOnConfirm: true,
         preConfirm: () => {
           const name = document.getElementById('edit-name').value.trim();
           const age = document.getElementById('edit-age').value.trim();
           const nid = document.getElementById('edit-nid').value.trim();
           const gender = document.getElementById('edit-gender').value;
+          const phone = document.getElementById('edit-phone').value.trim();
           const address = document.getElementById('edit-address').value.trim();
           const bloodType = document.getElementById('edit-bloodType').value;
           
@@ -1149,22 +1413,20 @@ const firebaseConfig = {
           }
           
           return {
-            name, age, nid, gender, address, bloodType,
+            name, age, nid, gender, phone, address, bloodType,
             diseases: document.getElementById('edit-diseases').value.trim()
           };
         }
-      }).then(async (result) => {
+      }).then((result) => {
         if (result.isConfirmed) {
           const updatedData = result.value;
           
-          try {
-            showLoading();
-            const patientRef = ref(db, `patients/${department}/${id}`);
-            await update(patientRef, {
-              ...updatedData,
-              timestamp: new Date().toISOString()
-            });
-            
+          showLoading();
+          database.ref(`patients/${department}/${id}`).update({
+            ...updatedData,
+            timestamp: new Date().toISOString()
+          })
+          .then(() => {
             hideLoading();
             Swal.fire({
               icon: 'success',
@@ -1175,14 +1437,105 @@ const firebaseConfig = {
               position: 'top-end',
               toast: true
             });
-          } catch (error) {
+          })
+          .catch((error) => {
             hideLoading();
             Swal.fire({
               icon: 'error',
               title: 'خطأ',
               text: 'حدث خطأ أثناء التحديث'
             });
+          });
+        }
+      });
+    }
+    
+    // Edit doctor
+    window.editDoctor = function(id, doctor) {
+      const editForm = document.createElement('form');
+      editForm.className = 'space-y-4';
+      
+      editForm.innerHTML = `
+        <h3 class="text-lg font-bold mb-4 text-gray-800">تعديل بيانات الطبيب</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">الاسم</label>
+            <input type="text" id="edit-doctor-name" value="${doctor.name}" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">التخصص</label>
+            <input type="text" id="edit-doctor-specialization" value="${doctor.specialization}" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">القسم</label>
+            <select id="edit-doctor-department" class="form-input form-select" required>
+              <option value="emergency" ${doctor.department === 'emergency' ? 'selected' : ''}>الطوارئ</option>
+              <option value="radiology" ${doctor.department === 'radiology' ? 'selected' : ''}>الأشعة</option>
+              <option value="icu" ${doctor.department === 'icu' ? 'selected' : ''}>العناية المركزة</option>
+              <option value="operations" ${doctor.department === 'operations' ? 'selected' : ''}>العمليات</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ساعات العمل</label>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="time" id="edit-work-from" value="${doctor.workFrom || ''}" class="form-input" required />
+              <input type="time" id="edit-work-to" value="${doctor.workTo || ''}" class="form-input" required />
+            </div>
+          </div>
+        </div>
+      `;
+      
+      Swal.fire({
+        title: '',
+        html: editForm,
+        showCancelButton: true,
+        confirmButtonText: 'حفظ التعديلات',
+        cancelButtonText: 'إلغاء',
+        preConfirm: () => {
+          const name = document.getElementById('edit-doctor-name').value.trim();
+          const specialization = document.getElementById('edit-doctor-specialization').value.trim();
+          const department = document.getElementById('edit-doctor-department').value;
+          const workFrom = document.getElementById('edit-work-from').value;
+          const workTo = document.getElementById('edit-work-to').value;
+          
+          if (!name || !specialization || !department || !workFrom || !workTo) {
+            Swal.showValidationMessage('يرجى ملء جميع الحقول الإلزامية');
+            return false;
           }
+          
+          return {
+            name, specialization, department, workFrom, workTo
+          };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const updatedData = result.value;
+          
+          showLoading();
+          database.ref(`doctors/${id}`).update({
+            ...updatedData,
+            timestamp: new Date().toISOString()
+          })
+          .then(() => {
+            hideLoading();
+            Swal.fire({
+              icon: 'success',
+              title: 'تم التحديث',
+              text: 'تم تحديث بيانات الطبيب بنجاح',
+              timer: 2000,
+              showConfirmButton: false,
+              position: 'top-end',
+              toast: true
+            });
+          })
+          .catch((error) => {
+            hideLoading();
+            Swal.fire({
+              icon: 'error',
+              title: 'خطأ',
+              text: 'حدث خطأ أثناء التحديث'
+            });
+          });
         }
       });
     }
@@ -1210,7 +1563,7 @@ const firebaseConfig = {
       doc.setFontSize(10);
       let y = 50;
       
-      onValue(ref(db, "patients"), (snapshot) => {
+      database.ref('patients').once('value', (snapshot) => {
         const data = snapshot.val() || {};
         let patientCount = 0;
         
@@ -1234,22 +1587,22 @@ const firebaseConfig = {
     function updateStats() {
       showLoading();
       const todayDate = new Date().toDateString();
-      let total = 0, today = 0, emergency = 0, surgery = 0;
+      let total = 0, todayCount = 0, emergency = 0, surgery = 0;
       
-      onValue(ref(db, "patients"), (snapshot) => {
+      database.ref('patients').once('value', (snapshot) => {
         const data = snapshot.val() || {};
         
         Object.values(data).forEach(dept => {
           Object.values(dept).forEach(patient => {
             total++;
-            if (new Date(patient.timestamp).toDateString() === todayDate) today++;
+            if (new Date(patient.timestamp).toDateString() === todayDate) todayCount++;
             if (patient.department === 'emergency') emergency++;
             if (patient.department === 'surgery' || patient.department === 'operations') surgery++;
           });
         });
         
         totalPatientsElement.textContent = total;
-        todayPatientsElement.textContent = today;
+        todayPatientsElement.textContent = todayCount;
         emergencyPatientsElement.textContent = emergency;
         surgeryPatientsElement.textContent = surgery;
         
@@ -1403,7 +1756,7 @@ const firebaseConfig = {
       });
       
       // Update charts with real data
-      onValue(ref(db, "patients"), (snapshot) => {
+      database.ref('patients').on('value', (snapshot) => {
         const data = snapshot.val() || {};
         const deptCounts = [0, 0, 0, 0, 0, 0];
         const bloodCounts = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -1452,7 +1805,7 @@ const firebaseConfig = {
       return bloodTypes.indexOf(bloodType);
     }
     
-    // Form submission
+    // Form submission for patient
     patientForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
@@ -1470,6 +1823,7 @@ const firebaseConfig = {
         age: document.getElementById("age").value.trim(),
         nid: document.getElementById("nid").value.trim(),
         gender: document.getElementById("gender").value,
+        phone: document.getElementById("phone").value.trim(),
         address: document.getElementById("address").value.trim(),
         bloodType: document.getElementById("bloodType").value,
         diseases: document.getElementById("diseases").value.trim(),
@@ -1492,8 +1846,7 @@ const firebaseConfig = {
       
       try {
         showLoading();
-        const patientsRef = ref(db, `patients/${formData.department}`);
-        await push(patientsRef, formData);
+        await database.ref(`patients/${formData.department}`).push(formData);
         
         Swal.fire({
           icon: 'success',
@@ -1517,9 +1870,28 @@ const firebaseConfig = {
       }
     });
     
+    // Tab navigation
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabName = button.getAttribute('data-tab');
+        
+        // Remove active class from all tabs and buttons
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding content
+        button.classList.add('active');
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+      });
+    });
+    
     // Real-time data listeners
     function setupDataListeners() {
-      onValue(ref(db, "patients"), (snapshot) => {
+      // Patients listener
+      database.ref('patients').on('value', (snapshot) => {
         const data = snapshot.val() || {};
         const filter = filterDepartment.value;
         const searchTerm = searchPatient.value;
@@ -1534,9 +1906,115 @@ const firebaseConfig = {
         });
         
         renderPatients(allPatients, filter, searchTerm);
+        updateStats();
       });
       
-      updateStats();
+      // Appointments listener
+      database.ref('appointments').on('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        renderAppointments(data);
+      });
+    }
+    
+    // Render appointments
+    function renderAppointments(appointments) {
+      appointmentsList.innerHTML = '';
+      
+      if (!appointments || Object.keys(appointments).length === 0) {
+        appointmentsList.innerHTML = `
+          <div class="text-center py-12">
+            <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">لا توجد مواعيد مسجلة</p>
+          </div>
+        `;
+        return;
+      }
+      
+      Object.entries(appointments).forEach(([id, appointment]) => {
+        const card = document.createElement('div');
+        card.className = 'patient-card';
+        
+        card.innerHTML = `
+          <div class="flex items-start gap-4">
+            <div class="patient-avatar">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="patient-info flex-1">
+              <h3 class="patient-name">${appointment.patientName}</h3>
+              <div class="patient-details">
+                <div class="detail-item">
+                  <i class="fas fa-user-md"></i>
+                  <span>د. ${appointment.doctorName}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-calendar-day"></i>
+                  <span>${appointment.date}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-clock"></i>
+                  <span>${appointment.time}</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between mt-3">
+                <div class="detail-item text-xs">
+                  <i class="fas fa-clock"></i>
+                  <span>${formatDate(appointment.timestamp)}</span>
+                </div>
+                <div class="flex gap-2">
+                  <button class="action-btn btn-delete" onclick="deleteAppointment('${id}')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        appointmentsList.appendChild(card);
+      });
+    }
+    
+    // Delete appointment
+    window.deleteAppointment = function(id) {
+      Swal.fire({
+        title: 'تأكيد الحذف',
+        text: "هل أنت متأكد من حذف هذا الموعد؟",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#FF6B6B',
+        cancelButtonColor: '#6C757D',
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء',
+        customClass: {
+          popup: 'medical-card'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          showLoading();
+          database.ref(`appointments/${id}`).remove()
+            .then(() => {
+              hideLoading();
+              Swal.fire({
+                icon: 'success',
+                title: 'تم الحذف بنجاح',
+                text: 'تم حذف الموعد',
+                timer: 2000,
+                showConfirmButton: false,
+                position: 'top-end',
+                toast: true
+              });
+            })
+            .catch((error) => {
+              hideLoading();
+              Swal.fire({
+                icon: 'error',
+                title: 'خطأ',
+                text: 'حدث خطأ أثناء الحذف'
+              });
+            });
+        }
+      });
     }
     
     // Filter and search listeners
@@ -1544,7 +2022,7 @@ const firebaseConfig = {
       const filter = filterDepartment.value;
       const searchTerm = searchPatient.value;
       
-      onValue(ref(db, "patients"), (snapshot) => {
+      database.ref('patients').once('value', (snapshot) => {
         const data = snapshot.val() || {};
         let allPatients = {};
         
@@ -1564,7 +2042,7 @@ const firebaseConfig = {
       const filter = filterDepartment.value;
       const searchTerm = searchPatient.value;
       
-      onValue(ref(db, "patients"), (snapshot) => {
+      database.ref('patients').once('value', (snapshot) => {
         const data = snapshot.val() || {};
         let allPatients = {};
         
@@ -1585,9 +2063,6 @@ const firebaseConfig = {
       setupDataListeners();
       initializeCharts();
       loadDoctors();
-      
-      // Uncomment the line below to add sample doctors (run once)
-      // addSampleDoctors();
     });
   </script>
 </body>
