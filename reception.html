@@ -1805,6 +1805,7 @@
           </button>
         </div>
       </div>
+      
       <div class="p-6">
         <form id="invoiceForm" class="space-y-6">
           <!-- Patient Selection -->
@@ -1826,18 +1827,6 @@
               </label>
               <input type="date" id="invoiceDate" class="form-input" required />
             </div>
-          </div>
-          
-          <!-- Patient Type for Discount -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-user-tag ml-1"></i>
-              نوع المريض
-            </label>
-            <select id="patientType" class="form-input form-select">
-              <option value="returning">مريض عائد</option>
-              <option value="new">مريض جديد</option>
-            </select>
           </div>
           
           <!-- Services Selection -->
@@ -1913,44 +1902,6 @@
             </div>
           </div>
           
-          <!-- Installment Options (shown for large invoices) -->
-          <div id="installmentOptions" class="installment-options" style="display: none;">
-            <label class="form-label">
-              <i class="fas fa-calendar-alt ml-1"></i>
-              خيارات التقسيط
-            </label>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="form-label">عدد الأقساط</label>
-                <select id="installmentCount" class="form-input form-select">
-                  <option value="0">بدون تقسيط</option>
-                  <option value="3">3 أشهر</option>
-                  <option value="6">6 أشهر</option>
-                  <option value="12">12 شهر</option>
-                </select>
-              </div>
-              <div>
-                <label class="form-label">مبلغ القسط الأول</label>
-                <input type="number" id="firstInstallment" class="form-input" readonly />
-              </div>
-            </div>
-          </div>
-          
-          <!-- Payment History -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-receipt ml-1"></i>
-              سجل المدفوعات
-            </label>
-            <div id="paymentHistory" class="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-4">
-              <!-- سيتم عرض المدفوعات هنا -->
-            </div>
-            <button type="button" id="addPaymentBtn" class="btn-medical mt-2">
-              <i class="fas fa-plus"></i>
-              إضافة دفعة
-            </button>
-          </div>
-          
           <!-- Invoice Summary -->
           <div class="invoice-summary">
             <div class="summary-row">
@@ -1971,15 +1922,15 @@
             </div>
           </div>
           
-          <!-- QR Code -->
-          <div class="qr-container">
-            <div id="qrcode" class="qr-code"></div>
-            <div class="qr-instructions">
-              امسح رمز QR للدفع الإلكتروني
-            </div>
+          <!-- Notes -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات
+            </label>
+            <textarea id="invoiceNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
           </div>
           
-          <!-- Invoice Actions -->
           <div class="flex gap-4">
             <button type="submit" class="btn-success flex-1">
               <i class="fas fa-save"></i>
@@ -1989,23 +1940,6 @@
               <i class="fas fa-print"></i>
               طباعة
             </button>
-            <button type="button" id="emailInvoiceBtn" class="btn-medical flex-1">
-              <i class="fas fa-envelope"></i>
-              إرسال عبر البريد
-            </button>
-            <button type="button" id="whatsappInvoiceBtn" class="btn-medical flex-1">
-              <i class="fab fa-whatsapp"></i>
-              إرسال عبر واتساب
-            </button>
-          </div>
-          
-          <!-- Notes -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-sticky-note ml-1"></i>
-              ملاحظات
-            </label>
-            <textarea id="invoiceNotes" rows="3" class="form-input" placeholder="أي ملاحظات إضافية"></textarea>
           </div>
         </form>
       </div>
