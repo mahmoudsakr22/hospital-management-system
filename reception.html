@@ -1686,187 +1686,123 @@
         </div>
     </div>
 
-    <!-- Notification Element -->
-    <div id="notification" class="notification"></div>
+   <!-- Discharge Modal -->
+  <div id="dischargeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="modal-header bg-gradient-to-r from-orange-500 to-red-500 text-white p-6 rounded-t-2xl">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold">تسجيل خروج المريض</h2>
+          <button id="closeDischargeModal" class="text-white hover:bg-white/20 p-2 rounded-full transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <div id="dischargePatientInfo" class="mb-6 p-4 bg-gray-50 rounded-lg">
+          <!-- Patient info will be loaded here -->
+        </div>
+        
+        <form id="dischargeForm" class="space-y-6">
+          <!-- Services for Discharge -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-concierge-bell ml-1"></i>
+              الخدمات المستخدمة
+            </label>
+            <div id="dischargeServices" class="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-4">
+              <!-- Services will be loaded here -->
+            </div>
+          </div>
+          
+          <!-- Discharge Summary -->
+          <div class="invoice-summary">
+            <div class="summary-row">
+              <span>المجموع الفرعي:</span>
+              <span id="dischargeSubtotal">0 ج.م</span>
+            </div>
+            <div class="summary-row">
+              <span>المبلغ الإجمالي:</span>
+              <span id="dischargeTotal">0 ج.م</span>
+            </div>
+          </div>
+          
+          <!-- Discharge Notes -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات الخروج
+            </label>
+            <textarea id="dischargeNotes" rows="3" class="form-input" placeholder="ملاحظات حول حالة المريض عند الخروج"></textarea>
+          </div>
+          
+          <div class="flex gap-4">
+            <button type="submit" class="btn-warning flex-1">
+              <i class="fas fa-sign-out-alt"></i>
+              تسجيل الخروج
+            </button>
+            <button type="button" id="createInvoiceFromDischarge" class="btn-success flex-1">
+              <i class="fas fa-file-invoice"></i>
+              إنشاء فاتورة
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- Element Selection ---
-            const generateInvoiceBtn = document.getElementById('generateInvoiceBtn');
-            const invoiceModal = document.getElementById('invoiceModal');
-            const closeInvoiceModal = document.getElementById('closeInvoiceModal');
-            const cancelInvoiceBtn = document.getElementById('cancelInvoiceBtn');
-            const invoiceForm = document.getElementById('invoiceForm');
-            const notification = document.getElementById('notification');
-            
-            // --- Modal Control ---
-            function openModal() {
-                invoiceModal.classList.add('active');
-                loadPatients(); // Load patients when modal opens
-                loadServices(); // Load services when modal opens
-                document.getElementById('invoiceDate').valueAsDate = new Date(); // Set today's date
-            }
-
-            function closeModal() {
-                invoiceModal.classList.remove('active');
-                invoiceForm.reset(); // Reset form on close
-                document.getElementById('selectedServicesSummary').innerHTML = ''; // Clear summary
-                updateInvoiceSummary(0); // Reset summary
-            }
-
-            generateInvoiceBtn.addEventListener('click', openModal);
-            closeInvoiceModal.addEventListener('click', closeModal);
-            cancelInvoiceBtn.addEventListener('click', closeModal);
-
-            // Close modal when clicking outside the content
-            invoiceModal.addEventListener('click', function(e) {
-                if (e.target === invoiceModal) {
-                    closeModal();
-                }
-            });
-
-            // --- Data Loading (Using Sample Data) ---
-            function loadPatients() {
-                const patientSelect = document.getElementById('invoicePatient');
-                patientSelect.innerHTML = '<option value="">-- اختر المريض --</option>';
-                
-                // Sample data - in a real app, this would be from an API
-                const patients = [
-                    { id: 1, name: 'أحمد محمد علي' },
-                    { id: 2, name: 'فاطمة أحمد خالد' },
-                    { id: 3, name: 'محمود سعيد عبدالله' },
-                    { id: 4, name: 'منى نور الدين' }
-                ];
-                
-                patients.forEach(patient => {
-                    const option = document.createElement('option');
-                    option.value = patient.id;
-                    option.textContent = patient.name;
-                    patientSelect.appendChild(option);
-                });
-            }
-
-            function loadServices() {
-                const servicesSelection = document.getElementById('servicesSelection');
-                servicesSelection.innerHTML = '<p>جاري تحميل الخدمات...</p>';
-                
-                // Sample data
-                const services = [
-                    { id: 'svc1', name: 'كشف طبي عام', price: 150 },
-                    { id: 'svc2', name: 'أشعة سينية (صدر)', price: 250 },
-                    { id: 'svc3', name: 'تحليل دم شامل (CBC)', price: 120 },
-                    { id: 'svc4', name: 'موجات صوتية على القلب', price: 400 },
-                    { id: 'svc5', name: 'سونار على البطن', price: 350 }
-                ];
-                
-                servicesSelection.innerHTML = ''; // Clear loading text
-                services.forEach(service => {
-                    const serviceItem = document.createElement('div');
-                    serviceItem.className = 'flex items-center justify-between p-2 border rounded hover:bg-gray-50';
-                    serviceItem.innerHTML = `
-                        <div class="flex items-center">
-                            <input type="checkbox" id="service-${service.id}" value="${service.id}" class="service-checkbox ml-2">
-                            <label for="service-${service.id}" class="cursor-pointer">${service.name}</label>
-                        </div>
-                        <span class="font-bold">${service.price} ج.م</span>
-                    `;
-                    servicesSelection.appendChild(serviceItem);
-                });
-
-                // Add event listeners to the new checkboxes
-                document.querySelectorAll('.service-checkbox').forEach(checkbox => {
-                    checkbox.addEventListener('change', handleServiceSelection);
-                });
-            }
-            
-            // --- Service Selection Logic ---
-            function handleServiceSelection() {
-                const selectedServicesDiv = document.getElementById('selectedServicesSummary');
-                selectedServicesDiv.innerHTML = ''; // Clear previous summary
-                
-                let subtotal = 0;
-                const selectedServices = [];
-
-                document.querySelectorAll('.service-checkbox:checked').forEach(checkbox => {
-                    const serviceId = checkbox.id.replace('service-', '');
-                    const serviceLabel = document.querySelector(`label[for="service-${serviceId}"]`).textContent;
-                    const servicePriceText = checkbox.closest('.flex').querySelector('span.font-bold').textContent;
-                    const servicePrice = parseFloat(servicePriceText.replace(' ج.م', ''));
-                    
-                    subtotal += servicePrice;
-                    selectedServices.push({ id: serviceId, name: serviceLabel, price: servicePrice });
-
-                    const summaryItem = document.createElement('div');
-                    summaryItem.className = 'flex justify-between items-center p-2 bg-gray-50 rounded';
-                    summaryItem.innerHTML = `<span>${serviceLabel}</span><span>${servicePriceText}</span>`;
-                    selectedServicesDiv.appendChild(summaryItem);
-                });
-                
-                updateInvoiceSummary(subtotal);
-            }
-
-            function updateInvoiceSummary(subtotal) {
-                document.getElementById('subtotal').textContent = `${subtotal.toFixed(2)} ج.م`;
-                document.getElementById('totalAmount').textContent = `${subtotal.toFixed(2)} ج.م`;
-            }
-
-            // --- Payment Method Selection ---
-            document.querySelectorAll('.payment-method').forEach(method => {
-                method.addEventListener('click', function() {
-                    document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-
-            // --- Form Submission ---
-            invoiceForm.addEventListener('submit', function(e) {
-                e.preventDefault(); // Prevent default form submission
-                
-                // Collect form data
-                const formData = {
-                    patientId: document.getElementById('invoicePatient').value,
-                    date: document.getElementById('invoiceDate').value,
-                    services: [],
-                    paymentMethod: document.querySelector('.payment-method.active').dataset.method,
-                    totalAmount: document.getElementById('totalAmount').textContent
-                };
-
-                document.querySelectorAll('.service-checkbox:checked').forEach(checkbox => {
-                    const serviceId = checkbox.id.replace('service-', '');
-                    const serviceLabel = document.querySelector(`label[for="service-${serviceId}"]`).textContent;
-                    const servicePriceText = checkbox.closest('.flex').querySelector('span.font-bold').textContent;
-                    formData.services.push({ id: serviceId, name: serviceLabel, price: servicePriceText });
-                });
-
-                // Here you would normally send `formData` to your server
-                console.log('Invoice Data:', formData);
-                
-                // Show success notification
-                showNotification('تم إنشاء الفاتورة بنجاح!');
-                
-                // Close the modal
-                closeModal();
-
-                // Optionally, reload the invoices table
-                // loadInvoicesTable();
-            });
-
-            // --- Notification System ---
-            function showNotification(message, type = 'success') {
-                notification.textContent = message;
-                notification.style.backgroundColor = type === 'success' ? 'var(--success-color)' : 'var(--danger-color)';
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
-            }
-
-            // --- Initial Load ---
-            // You could load the initial invoices table here if needed
-            // loadInvoicesTable();
-        });
-
+  <!-- Payment Modal -->
+  <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full">
+      <div class="modal-header bg-gradient-to-r from-green-500 to-teal-500 text-white p-6 rounded-t-2xl">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold">إضافة دفعة جديدة</h2>
+          <button id="closePaymentModal" class="text-white hover:bg-white/20 p-2 rounded-full transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <form id="paymentForm" class="space-y-4">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-money-bill-wave ml-1"></i>
+              مبلغ الدفعة
+            </label>
+            <input type="number" id="paymentAmount" class="form-input" placeholder="أدخل المبلغ" min="0" step="0.01" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-calendar ml-1"></i>
+              تاريخ الدفعة
+            </label>
+            <input type="date" id="paymentDate" class="form-input" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-sticky-note ml-1"></i>
+              ملاحظات الدفعة
+            </label>
+            <textarea id="paymentNotes" rows="3" class="form-input" placeholder="ملاحظات حول الدفعة"></textarea>
+          </div>
+          
+          <div class="flex gap-4">
+            <button type="submit" class="btn-success flex-1">
+              <i class="fas fa-save"></i>
+              حفظ الدفعة
+            </button>
+            <button type="button" id="cancelPayment" class="btn-outline flex-1">
+              <i class="fas fa-times"></i>
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
