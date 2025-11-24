@@ -2287,35 +2287,7 @@ const firebaseConfig = {
       }
     }
     
-    // Load available doctors for patient form
-    function loadAvailableDoctorsForPatientForm() {
-      const doctorsRef = database.ref("doctors");
-      
-      doctorsRef.on('value', (snapshot) => {
-        const doctors = snapshot.val() || {};
-        
-        doctorSelect.innerHTML = '<option value="">-- اختر الطبيب --</option>';
-        
-        const availableDoctors = Object.entries(doctors).filter(([_, doctor]) => 
-          isDoctorAvailableNow(doctor)
-        );
-        
-        if (availableDoctors.length === 0) {
-          noDoctorsWarning.classList.remove('hidden');
-          doctorAvailabilityInfo.style.display = 'none';
-        } else {
-          noDoctorsWarning.classList.add('hidden');
-          doctorAvailabilityInfo.style.display = 'block';
-          
-          availableDoctors.forEach(([id, doctor]) => {
-            const option = document.createElement("option");
-            option.value = id;
-            option.textContent = `${doctor.name} - ${doctor.specialization}`;
-            doctorSelect.appendChild(option);
-          });
-        }
-      });
-    }
+ 
     
     // Load doctors for appointment form
     function loadDoctorsForAppointmentForm() {
