@@ -3052,7 +3052,7 @@ const firebaseConfig = {
       let filteredDoctors = Object.entries(doctors);
       
       if (filter !== 'all') {
-        filteredDoctors = filteredDoctors.filter(([_, doctor]) => doctor.department === filter);
+        filteredDoctors = filteredDoctors.filter(([_, doctors]) => doctors.department === filter);
       }
       
       if (searchTerm) {
@@ -3074,40 +3074,27 @@ const firebaseConfig = {
         return;
       }
       
-      filteredDoctors.forEach(([id, doctor]) => {
-        const card = createDoctorCard(doctor, id, false);
+      filteredDoctors.forEach(([id, doctors]) => {
+        const card = createDoctorCard(doctors, id, false);
         doctorsList.appendChild(card);
       });
     }
     
-    // Render available doctors list
-    function renderAvailableDoctors(doctors, specializationFilter = 'all', searchTerm = '') {
-      availableDoctorsList.innerHTML = '';
+  
       
-      if (!doctors || Object.keys(doctors).length === 0) {
-        availableDoctorsList.innerHTML = `
-          <div class="text-center py-12">
-            <i class="fas fa-user-md text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">لا يوجد أطباء متاحين حالياً</p>
-            <p class="text-gray-400 text-sm mt-2">جرب التحقق لاحقاً</p>
-          </div>
-        `;
-        return;
-      }
-      
-      let availableDoctors = Object.entries(doctors).filter(([_, doctor]) => 
+      let availableDoctors = Object.entries(doctors).filter(([_, doctors]) => 
         isDoctorAvailableNow(doctor)
       );
       
       if (specializationFilter !== 'all') {
-        availableDoctors = availableDoctors.filter(([_, doctor]) => 
+        availableDoctors = availableDoctors.filter(([_, doctors]) => 
           doctor.specialization === specializationFilter
         );
       }
       
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
-        availableDoctors = availableDoctors.filter(([_, doctor]) => 
+        availableDoctors = availableDoctors.filter(([_, doctors]) => 
           doctor.name.toLowerCase().includes(term) || 
           doctor.specialization.toLowerCase().includes(term)
         );
@@ -3124,7 +3111,7 @@ const firebaseConfig = {
         return;
       }
       
-      availableDoctors.forEach(([id, doctor]) => {
+      availableDoctors.forEach(([id, doctors]) => {
         const card = createDoctorCard(doctor, id, true);
         availableDoctorsList.appendChild(card);
       });
