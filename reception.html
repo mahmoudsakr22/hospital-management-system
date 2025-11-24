@@ -1315,10 +1315,10 @@
                   <i class="fas fa-user-md ml-1"></i>
                   الطبيب المعالج (المتاحين الآن)
                 </label>
-                <select id="doctorSelect" class="form-input form-select">
+                <select id="doctorsSelect" class="form-input form-select">
                   <option value="">-- اختر الطبيب --</option>
                 </select>
-                <div id="doctorAvailabilityInfo" class="doctor-availability-info">
+                <div id="doctorsAvailabilityInfo" class="doctors-availability-info">
                   <i class="fas fa-info-circle"></i>
                   يتم عرض الأطباء المتاحين في الوقت الحالي فقط
                 </div>
@@ -3052,7 +3052,7 @@ const firebaseConfig = {
       let filteredDoctors = Object.entries(doctors);
       
       if (filter !== 'all') {
-        filteredDoctors = filteredDoctors.filter(([_, doctors]) => doctors.department === filter);
+        filteredDoctors = filteredDoctors.filter(([_, doctors]) => doctor.department === filter);
       }
       
       if (searchTerm) {
@@ -3080,7 +3080,20 @@ const firebaseConfig = {
       });
     }
     
-  
+    // Render available doctors list
+    function renderAvailableDoctors(doctors, specializationFilter = 'all', searchTerm = '') {
+      availableDoctorsList.innerHTML = '';
+      
+      if (!doctors || Object.keys(doctors).length === 0) {
+        availableDoctorsList.innerHTML = `
+          <div class="text-center py-12">
+            <i class="fas fa-user-md text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">لا يوجد أطباء متاحين حالياً</p>
+            <p class="text-gray-400 text-sm mt-2">جرب التحقق لاحقاً</p>
+          </div>
+        `;
+        return;
+      }
       
       let availableDoctors = Object.entries(doctors).filter(([_, doctors]) => 
         isDoctorAvailableNow(doctor)
@@ -3112,7 +3125,7 @@ const firebaseConfig = {
       }
       
       availableDoctors.forEach(([id, doctors]) => {
-        const card = createDoctorCard(doctor, id, true);
+        const card = createDoctorCard(doctosr, id, true);
         availableDoctorsList.appendChild(card);
       });
     }
@@ -3124,8 +3137,8 @@ const firebaseConfig = {
         return;
       }
       
-      const availableCount = Object.values(doctors).filter(doctor => 
-        isDoctorAvailableNow(doctor)
+      const availableCount = Object.values(doctors).filter(doctors => 
+        isDoctorAvailableNow(doctors)
       ).length;
       
       availableDoctorsElement.textContent = availableCount;
