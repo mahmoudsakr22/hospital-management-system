@@ -1311,14 +1311,22 @@
               </div>
 
               <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-user-md ml-1"></i>
-                الطبيب المعالج
-              </label>
-              <select id="doctorSelect" class="form-input form-select">
-                <option value="">-- اختر الطبيب --</option>
-              </select>
-            </div>
+                <label class="form-label">
+                  <i class="fas fa-user-md ml-1"></i>
+                  الطبيب المعالج (المتاحين الآن)
+                </label>
+                <select id="doctorSelect" class="form-input form-select">
+                  <option value="">-- اختر الطبيب --</option>
+                </select>
+                <div id="doctorAvailabilityInfo" class="doctor-availability-info">
+                  <i class="fas fa-info-circle"></i>
+                  يتم عرض الأطباء المتاحين في الوقت الحالي فقط
+                </div>
+                <div id="noDoctorsWarning" class="no-doctors-warning hidden">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  لا يوجد أطباء متاحين حالياً. يمكنك ترك الحقل فارغاً أو المحاولة لاحقاً.
+                </div>
+              </div>
 
               <button type="submit" class="btn-medical w-full">
                 <i class="fas fa-save"></i>
@@ -1396,14 +1404,14 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-user-md ml-1"></i>
-                  اختر الطبيب (المتاحين الآن)
-                </label>
-                <select id="appointmentDoctor" class="form-input form-select" required>
-                  <option value="">-- اختر الطبيب --</option>
-                </select>
-              </div>
+              <label class="form-label">
+                <i class="fas fa-user-md ml-1"></i>
+                الطبيب المعالج
+              </label>
+              <select id="doctorSelect" class="form-input form-select">
+                <option value="">-- اختر الطبيب --</option>
+              </select>
+            </div>
 
               <div class="form-group">
                 <label class="form-label">
@@ -2287,25 +2295,58 @@ const firebaseConfig = {
       }
     }
     
-  // Load doctors from database
-    function loadDoctors() {
-      const doctorsRef = ref(db, "doctors");
+    // Load available doctors for patient form
+    function loadAvailableDoctorsForPatientForm() {
+      const doctorsRef = database.ref("doctors");
       
-      onValue(doctorsRef, (snapshot) => {
+      doctorsRef.on('value', (snapshot) => {
         const doctors = snapshot.val() || {};
         
-        // Clear current options except the default one
         doctorSelect.innerHTML = '<option value="">-- اختر الطبيب --</option>';
         
-        // Add doctors to the select
-        Object.entries(doctors).forEach(([id, doctor]) => {
+        const availableDoctors = Object.entries(doctors).filter(([_, doctor]) => 
+          isDoctorAvailableNow(doctor)
+        );
+        
+        if (availableDoctors.length === 0) {
+          noDoctorsWarning.classList.remove('hidden');
+          doctorAvailabilityInfo.style.display = 'none';
+        } else {
+          noDoctorsWarning.classList.add('hidden');
+          doctorAvailabilityInfo.style.display = 'block';
+          
+          availableDoctors.forEach(([id, doctor]) => {
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent = `${doctor.name} - ${doctor.specialization}`;
+            doctorSelect.appendChild(option);
+          });
+        }
+      });
+    }
+    
+    // Load doctors for appointment form
+    function loadDoctorsForAppointmentForm() {
+      const doctorsRef = database.ref("doctors");
+      
+      doctorsRef.on('value', (snapshot) => {
+        const doctors = snapshot.val() || {};
+        
+        appointmentDoctor.innerHTML = '<option value="">-- اختر الطبيب --</option>';
+        
+        const availableDoctors = Object.entries(doctors).filter(([_, doctor]) => 
+          isDoctorAvailableNow(doctor)
+        );
+        
+        availableDoctors.forEach(([id, doctor]) => {
           const option = document.createElement("option");
           option.value = id;
-          option.textContent = `${doctor.name} - ${getDepartmentName(doctor.department)}`;
-          doctorSelect.appendChild(option);
+          option.textContent = `${doctor.name} - ${doctor.specialization}`;
+          appointmentDoctor.appendChild(option);
         });
       });
     }
+    
     // Load patients for forms
     function loadPatientsForForms() {
       const patientsRef = database.ref("patients");
