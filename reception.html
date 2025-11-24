@@ -2289,24 +2289,22 @@ const firebaseConfig = {
     
     
     
-    // Load doctors for appointment form
-    function loadDoctorsForAppointmentForm() {
-      const doctorsRef = database.ref("doctors");
+    // Load doctors from database
+    function loadDoctors() {
+      const doctorsRef = ref(db, "doctors");
       
-      doctorsRef.on('value', (snapshot) => {
+      onValue(doctorsRef, (snapshot) => {
         const doctors = snapshot.val() || {};
         
-        appointmentDoctor.innerHTML = '<option value="">-- اختر الطبيب --</option>';
+        // Clear current options except the default one
+        doctorSelect.innerHTML = '<option value="">-- اختر الطبيب --</option>';
         
-        const availableDoctors = Object.entries(doctors).filter(([_, doctor]) => 
-          isDoctorAvailableNow(doctor)
-        );
-        
-        availableDoctors.forEach(([id, doctor]) => {
+        // Add doctors to the select
+        Object.entries(doctors).forEach(([id, doctor]) => {
           const option = document.createElement("option");
           option.value = id;
-          option.textContent = `${doctor.name} - ${doctor.specialization}`;
-          appointmentDoctor.appendChild(option);
+          option.textContent = `${doctor.name} - ${getDepartmentName(doctor.department)}`;
+          doctorSelect.appendChild(option);
         });
       });
     }
