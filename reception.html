@@ -363,7 +363,7 @@ textarea.fc{min-height:75px;resize:vertical}
       </div>
 
       <div class="card">
-        <div class="ch"><h3><i class="fas fa-user-plus" style="color:var(--p)"></i> تسجيل مريض جديد</h3><button type="button" onclick="autoFill()" class="btn bghost bsm"><i class="fas fa-magic"></i> ملء تجريبي</button></div>
+        <div class="ch"><h3><i class="fas fa-user-plus" style="color:var(--p)"></i> تسجيل مريض جديد</h3></div>
         <div class="cb">
           <form id="patientForm">
             <!-- STEP 1 -->
@@ -396,7 +396,7 @@ textarea.fc{min-height:75px;resize:vertical}
             <!-- STEP 2 -->
             <div id="formStep2" style="display:none">
               <div style="background:rgba(239,68,68,.06);border-radius:9px;padding:.7rem 1rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:#DC2626"><i class="fas fa-heartbeat" style="margin-left:6px"></i>البيانات الطبية والتريج</div>
-              <div class="fg"><label class="fl">القسم <span class="req">*</span></label><select id="p-dept" class="fc" required><option value="">اختر القسم</option><option value="emergency">الطوارئ</option><option value="radiology">الأشعة</option><option value="icu">العناية المركزة</option><option value="operations">العمليات</option><option value="care">الرعاية</option><option value="cardiology">القلب</option><option value="lab">المختبر</option></select></div>
+              <div class="fg"><label class="fl">القسم <span class="req">*</span></label><select id="p-dept" class="fc" required onchange="filterDrsByDept()"><option value="">اختر القسم</option><option value="emergency">الطوارئ</option><option value="radiology">الأشعة</option><option value="icu">العناية المركزة</option><option value="operations">العمليات</option><option value="care">الرعاية</option><option value="cardiology">القلب</option><option value="lab">المختبر</option></select></div>
               <div class="fg"><label class="fl">درجة الأولوية (Triage) <span class="req">*</span></label>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
                   <button type="button" onclick="setTriage(1,this)" class="btn bsm" style="flex:1;min-width:80px;border:2px solid #FCA5A5;color:#DC2626;background:#FEF2F2"><span style="font-size:.9rem">🔴</span> خطر داهم</button>
@@ -407,25 +407,20 @@ textarea.fc{min-height:75px;resize:vertical}
                 </div>
                 <input type="hidden" id="p-triage" value="3">
               </div>
-              <div style="background:rgba(0,85,204,.04);border-radius:9px;padding:.85rem;margin-bottom:.8rem">
-                <div style="font-size:.78rem;font-weight:700;color:var(--txt);margin-bottom:.6rem"><i class="fas fa-stethoscope" style="color:var(--p);margin-left:5px"></i>العلامات الحيوية (اختياري)</div>
-                <div class="vital-grid">
-                  <div class="fg" style="margin:0"><label class="fl" style="font-size:.68rem">ضغط الدم (mmHg)</label><input type="text" id="v-bp" class="fc" style="font-size:.78rem" placeholder="120/80"></div>
-                  <div class="fg" style="margin:0"><label class="fl" style="font-size:.68rem">النبض (bpm)</label><input type="number" id="v-pulse" class="fc" style="font-size:.78rem" placeholder="80"></div>
-                  <div class="fg" style="margin:0"><label class="fl" style="font-size:.68rem">الحرارة (°C)</label><input type="number" id="v-temp" class="fc" style="font-size:.78rem" placeholder="37.0" step="0.1"></div>
-                  <div class="fg" style="margin:0"><label class="fl" style="font-size:.68rem">الوزن (kg)</label><input type="number" id="v-weight" class="fc" style="font-size:.78rem" placeholder="70"></div>
-                  <div class="fg" style="margin:0"><label class="fl" style="font-size:.68rem">الطول (cm)</label><input type="number" id="v-height" class="fc" style="font-size:.78rem" placeholder="170"></div>
-                  <div class="fg" style="margin:0"><label class="fl" style="font-size:.68rem">تشبع الأكسجين %</label><input type="number" id="v-o2" class="fc" style="font-size:.78rem" placeholder="98" min="0" max="100"></div>
+              <!-- Doctor select - filtered by dept -->
+              <div class="fg">
+                <label class="fl">الطبيب المعالج</label>
+                <div id="drPickWrap">
+                  <div id="drPickEmpty" style="background:#FFF7ED;border-radius:9px;padding:.75rem;font-size:.78rem;color:#D97706;display:flex;align-items:center;gap:7px"><i class="fas fa-info-circle"></i>اختر القسم أولاً لعرض الأطباء المتاحين</div>
+                  <div id="drPickNone" style="background:#FEF2F2;border-radius:9px;padding:.75rem;font-size:.78rem;color:#DC2626;display:none"><i class="fas fa-user-times" style="margin-left:5px"></i>لا يوجد أطباء متاحون الآن في هذا القسم</div>
+                  <div id="drCardsWrap" style="display:none">
+                    <div style="font-size:.73rem;color:var(--muted);margin-bottom:.5rem;font-weight:600"><i class="fas fa-circle" style="color:#22C55E;font-size:.55rem;margin-left:4px"></i>الأطباء المتاحون الآن في القسم المختار:</div>
+                    <div id="drCards" style="display:flex;flex-direction:column;gap:.45rem"></div>
+                  </div>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.6rem;font-size:.72rem;color:var(--muted)">
-                  <span>مؤشر كتلة الجسم: <strong id="bmiDisplay">—</strong></span>
-                  <button type="button" onclick="calcBMI()" class="btn bghost bsm" style="font-size:.68rem"><i class="fas fa-calculator"></i> احسب BMI</button>
-                </div>
+                <input type="hidden" id="p-doctor" value="">
+                <input type="hidden" id="p-doctor-name" value="">
               </div>
-              <div class="fg"><label class="fl">الطبيب المعالج</label><select id="p-doctor" class="fc"><option value="">اختر الطبيب المتاح</option></select><div id="noDrWarn" style="display:none;margin-top:4px;font-size:.72rem;color:var(--err);background:#FEF2F2;padding:5px 9px;border-radius:7px"><i class="fas fa-exclamation-triangle"></i> لا يوجد أطباء متاحون الآن</div></div>
-              <div class="fg"><label class="fl">الشكوى الرئيسية / سبب الزيارة <span class="req">*</span></label><textarea id="p-complaint" class="fc" placeholder="وصف الأعراض الرئيسية..."></textarea></div>
-              <div class="fg"><label class="fl">الأدوية الحالية</label><textarea id="p-meds" class="fc" placeholder="أدخل الأدوية مفصولة بفاصلة..."></textarea><div class="drug-warn" id="drugWarn"><i class="fas fa-exclamation-triangle" style="color:var(--warn);margin-left:7px;font-size:1rem"></i><div><strong style="font-size:.78rem">تنبيه: تداخل دوائي محتمل!</strong><p style="font-size:.72rem;margin-top:2px">يرجى مراجعة الطبيب المعالج فوراً</p></div></div></div>
-              <div class="fg"><label class="fl">الحساسية من أدوية</label><input type="text" id="p-allergy" class="fc" placeholder="مثال: بنسلين، سلفا..."></div>
               <div class="fg"><label class="fl">أمراض مزمنة</label><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px" id="chronicBtns">
                 <button type="button" onclick="toggleChronic(this,'سكري')" class="btn bo bsm">🩸 سكري</button>
                 <button type="button" onclick="toggleChronic(this,'ضغط')" class="btn bo bsm">💉 ضغط</button>
@@ -994,15 +989,6 @@ window.calcAge=function(){
   const age=Math.floor((new Date()-new Date(dob))/(1000*60*60*24*365.25));
   $('p-age').value=age;
 };
-window.calcBMI=function(){
-  const w=+$('v-weight').value,h=+$('v-height').value/100;
-  if(w&&h){const bmi=(w/(h*h)).toFixed(1);let cls=bmi<18.5?'نحافة':bmi<25?'طبيعي':bmi<30?'وزن زائد':'سمنة';$('bmiDisplay').textContent=`${bmi} (${cls})`;$('bmiDisplay').style.color=bmi<18.5||bmi>=30?'#DC2626':'#16A34A';}
-};
-window.validateNID=function(){
-  const nid=$('p-nid').value;
-  if(nid.length===14){$('p-nid').style.borderColor='#22C55E';}
-  else{$('p-nid').style.borderColor=nid.length>0?'#EF4444':'var(--bdr)';}
-};
 window.toggleInsurance=function(show,btn){
   $('insuranceFields').style.display=show?'':'none';
   $('insYesBtn').className='btn bo bsm';$('insNoBtn').className='btn bo bsm';
@@ -1013,25 +999,15 @@ window.setRegPay=function(m,btn){
   document.querySelectorAll('#formStep3 .btn[onclick^="setRegPay"]').forEach(b=>{b.classList.remove('bp');b.classList.add('bo');});
   btn.classList.remove('bo');btn.classList.add('bp');
 };
-window.autoFill=function(){
-  const names=['محمد عبد الله','أحمد محمود','فاطمة علي','نور الهدى','يوسف إبراهيم'];
-  const name=names[Math.floor(Math.random()*names.length)];
-  $('p-name').value=name;$('p-age').value=Math.floor(Math.random()*60+20);
-  $('p-nid').value='2'+Math.random().toString().slice(2,15);
-  $('p-gender').value=Math.random()>.5?'male':'female';
-  const bloods=['A+','B+','O+','AB+','A-','B-'];$('p-blood').value=bloods[Math.floor(Math.random()*bloods.length)];
-  $('p-phone').value='01'+Math.floor(Math.random()*3)+''+Math.floor(Math.random()*1e8).toString().padStart(8,'0');
-  $('p-address').value='القاهرة - مصر الجديدة';
-  const depts=['emergency','icu','radiology','care','operations'];$('p-dept').value=depts[Math.floor(Math.random()*depts.length)];
-  toast('تم الملء التجريبي','info');
-};
+
 
 // ════════════════════════════════════════
 // PATIENT FORM SUBMIT
 // ════════════════════════════════════════
 $('patientForm').addEventListener('submit',async e=>{
   e.preventDefault();
-  const drSel=$('p-doctor');const drName=drSel.options[drSel.selectedIndex]?.text.split(' — ')[0]||'';
+  const doctorId=$('p-doctor').value;
+  const doctorName=$('p-doctor-name').value;
   const qsvcChecked=[...document.querySelectorAll('#quickSvcSel input[type=checkbox]:checked')].map(c=>c.value);
   const data={
     name:$('p-name').value.trim(),age:+$('p-age').value,dob:$('p-dob').value,
@@ -1040,9 +1016,7 @@ $('patientForm').addEventListener('submit',async e=>{
     emergencyPhone:$('p-emergency-phone').value.trim(),
     address:$('p-address').value.trim(),marital:$('p-marital').value,job:$('p-job').value.trim(),
     department:$('p-dept').value,triage:triageSelected,
-    complaint:$('p-complaint').value.trim(),
-    doctorId:drSel.value,doctorName:drName,
-    meds:$('p-meds').value.trim(),allergy:$('p-allergy').value.trim(),
+    doctorId,doctorName,
     diseases:$('p-diseases').value.trim(),
     visitType:document.querySelector('input[name="visitType"]:checked')?.value||'first',
     paymentMethod:regPayMethod,
@@ -1067,6 +1041,8 @@ $('patientForm').addEventListener('submit',async e=>{
   }
   hideLoad();
   $('patientForm').reset();gotoStep(1);triageSelected=3;selectedChronic=[];
+  $('p-doctor').value='';$('p-doctor-name').value='';
+  $('drPickEmpty').style.display='flex';$('drPickNone').style.display='none';$('drCardsWrap').style.display='none';
   toast(`✅ تم تسجيل ${data.name} بنجاح`);
   addAudit('تسجيل مريض جديد',data.name,'#16A34A');
   pushNotif(`مريض جديد: ${data.name} — ${getDeptN(data.department)}`,'fas fa-user-plus','#16A34A','rgba(22,163,74,.1)');
@@ -1222,14 +1198,66 @@ window.exportPatientsExcel=function(){
 // ════════════════════════════════════════
 // DOCTORS
 // ════════════════════════════════════════
-const isDrAvail=dr=>{if(!dr.workFrom||!dr.workTo)return false;const n=new Date(),c=n.getHours()*60+n.getMinutes();const[fh,fm]=dr.workFrom.split(':').map(Number);const[th,tm]=dr.workTo.split(':').map(Number);return c>=fh*60+fm&&c<=th*60+tm;};
+const isDrAvail=dr=>{
+  if(!dr.workFrom||!dr.workTo)return false;
+  const n=new Date();
+  // Egyptian local time
+  const eg=new Date(n.toLocaleString('en-US',{timeZone:'Africa/Cairo'}));
+  const c=eg.getHours()*60+eg.getMinutes();
+  const[fh,fm]=dr.workFrom.split(':').map(Number);
+  const[th,tm]=dr.workTo.split(':').map(Number);
+  return c>=fh*60+fm&&c<=th*60+tm;
+};
+// Format time to Egyptian 12h Arabic
+function fmtTimeAr(t){
+  if(!t)return'—';
+  const[h,m]=t.split(':').map(Number);
+  const suffix=h<12?'ص':'م';
+  const h12=h===0?12:h>12?h-12:h;
+  return`${h12}:${String(m).padStart(2,'0')} ${suffix}`;
+}
+// Filter doctors by selected dept and availability
+window.filterDrsByDept=function(){
+  const dept=$('p-dept').value;
+  const wrap=$('drPickWrap');
+  const empty=$('drPickEmpty');
+  const none=$('drPickNone');
+  const cardsWrap=$('drCardsWrap');
+  const cards=$('drCards');
+  // reset selection
+  $('p-doctor').value='';$('p-doctor-name').value='';
+  if(!dept){empty.style.display='flex';none.style.display='none';cardsWrap.style.display='none';return;}
+  empty.style.display='none';
+  const drs=Object.entries(allDrs).filter(([_,d])=>d.department===dept&&isDrAvail(d));
+  if(!drs.length){none.style.display='';cardsWrap.style.display='none';return;}
+  none.style.display='none';cardsWrap.style.display='';
+  cards.innerHTML=drs.map(([id,d])=>{
+    const ini=(d.name||'د').charAt(0);
+    const col=DOC_COLS[id.charCodeAt?id.charCodeAt(0)%DOC_COLS.length:0];
+    return`<div id="drcard-${id}" onclick="selectDr('${id}','${d.name}')" style="display:flex;align-items:center;gap:10px;padding:.6rem .8rem;border:2px solid var(--bdr);border-radius:10px;cursor:pointer;transition:var(--t);background:var(--card)" onmouseover="this.style.borderColor='var(--p)';this.style.background='var(--pg)'" onmouseout="if('${id}'!==document.getElementById('p-doctor').value){this.style.borderColor='var(--bdr)';this.style.background='var(--card)'}">
+      <div style="width:36px;height:36px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.88rem;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.84rem;color:var(--txt)">${d.name} ${d.grade?`<span style="font-size:.65rem;color:var(--muted)">(${d.grade})</span>`:''}</div>
+        <div style="font-size:.71rem;color:var(--muted)">${d.specialization} &nbsp;·&nbsp; <i class="fas fa-clock" style="font-size:.62rem"></i> ${fmtTimeAr(d.workFrom)} — ${fmtTimeAr(d.workTo)}</div>
+      </div>
+      <div style="font-size:.68rem;font-weight:700;color:#16A34A;background:#F0FDF4;border:1px solid #86EFAC;border-radius:6px;padding:2px 8px;white-space:nowrap"><i class="fas fa-circle" style="font-size:.5rem"></i> متاح</div>
+    </div>`;
+  }).join('');
+};
+window.selectDr=function(id,name){
+  $('p-doctor').value=id;$('p-doctor-name').value=name;
+  // highlight selected
+  document.querySelectorAll('[id^="drcard-"]').forEach(el=>{
+    el.style.borderColor='var(--bdr)';el.style.background='var(--card)';
+  });
+  const card=$(`drcard-${id}`);
+  if(card){card.style.borderColor='var(--p)';card.style.background='var(--pg)';}
+};
 function fillDrSel(selId,onlyAvail=false){
   const sel=$(selId);if(!sel)return;const cur=sel.value;
   sel.innerHTML='<option value="">اختر الطبيب</option>';
   const docs=Object.entries(allDrs).filter(([_,d])=>!onlyAvail||isDrAvail(d));
-  if(!docs.length&&onlyAvail){$('noDrWarn')&&($('noDrWarn').style.display='block');}
-  else{$('noDrWarn')&&($('noDrWarn').style.display='none');}
-  docs.forEach(([id,d])=>{const o=document.createElement('option');o.value=id;o.textContent=`${d.name} — ${d.specialization}`;sel.appendChild(o);});
+  docs.forEach(([id,d])=>{const o=document.createElement('option');o.value=id;o.textContent=`${d.name} — ${d.specialization} (${fmtTimeAr(d.workFrom)}-${fmtTimeAr(d.workTo)})`;sel.appendChild(o);});
   if(cur)sel.value=cur;
 }
 function renderDrs(){
@@ -1783,14 +1811,15 @@ function setupListeners(){
     allPts={};
     if(snap.exists())snap.forEach(ds=>ds.forEach(ps=>{allPts[ps.key]={...ps.val(),_dept:ds.key};}));
     renderPts();updateDashStats();updateKPIs();refreshDashCharts();updateRecentAct();
-    fillDrSel('p-doctor',true);
     // fill ap patient
     const aps=$('ap-patient');if(aps){aps.innerHTML='<option value="">اختر المريض</option>';Object.entries(allPts).forEach(([id,p])=>{const o=document.createElement('option');o.value=id;o.textContent=`${p.name} — ${getDeptN(p.department)}`;aps.appendChild(o);});}
   });
   db.ref('doctors').on('value',snap=>{
     allDrs=snap.val()||{};
     renderDrs();updateDashStats();updateKPIs();
-    fillDrSel('p-doctor',true);fillDrSel('ap-doctor',false);
+    fillDrSel('ap-doctor',false);
+    // re-render doctor cards if dept already chosen
+    if($('p-dept')?.value)filterDrsByDept();
   });
   db.ref('services').on('value',snap=>{
     allSvcs=snap.val()||{};
@@ -1819,7 +1848,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('ap-date').min=$('inv-date').min=new Date().toISOString().split('T')[0];
   $('ap-date').value=new Date().toISOString().split('T')[0];
   initDefaultDrs();initBeds();setupListeners();
-  setInterval(()=>{renderDrs();fillDrSel('p-doctor',true);fillDrSel('ap-doctor',false);},120000);
+  setInterval(()=>{renderDrs();fillDrSel('ap-doctor',false);if($('p-dept')?.value)filterDrsByDept();},120000);
   setTimeout(hideLoad,2800);
   addAudit('بدء الجلسة','تشغيل ناجح لنظام الاستقبال v2','#16A34A');
   pushNotif('مرحباً! النظام جاهز للعمل 🏥','fas fa-hospital-alt','#0055CC');
