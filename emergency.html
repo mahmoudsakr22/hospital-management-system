@@ -1,1132 +1,945 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>قسم الطوارئ - مستشفى الحياة الذكية</title>
-    <meta name="description" content="نظام إدارة مرضى قسم الطوارئ في مستشفى الحياة الذكية" />
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #0c4a6e;
-            --primary-light: #0284c7;
-            --secondary: #059669;
-            --danger: #dc2626;
-            --warning: #d97706;
-            --info: #0284c7;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --light-gray: #f1f5f9;
-        }
-        
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f8fafc;
-            direction: rtl;
-            color: #0f172a;
-        }
-        
-        /* Modern Header */
-        .header-container {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 1.25rem 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(12, 74, 110, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header-container::after {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);
-            transform: rotate(45deg);
-        }
-        
-        .header-container > * {
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Emergency Section - Changed to Medical Blue */
-        .emergency-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(12, 74, 110, 0.25);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .emergency-header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjEiLz48L3N2Zz4=');
-            opacity: 0.1;
-        }
-        
-        .emergency-header > * {
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Patient Cards */
-        .patient-card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .patient-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .patient-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 6px;
-            height: 100%;
-        }
-        
-        .patient-card.critical::before {
-            background: var(--danger);
-        }
-        
-        .patient-card.stable::before {
-            background: var(--secondary);
-        }
-        
-        .patient-card.improving::before {
-            background: var(--warning);
-        }
-        
-        .patient-card.deteriorating::before {
-            background: #ea580c;
-        }
-        
-        /* Status Badges */
-        .status-badge {
-            padding: 0.375rem 0.875rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-        }
-        
-        .status-badge.critical {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(220, 38, 38, 0.2);
-        }
-        
-        .status-badge.stable {
-            background: rgba(5, 150, 105, 0.1);
-            color: var(--secondary);
-            border: 1px solid rgba(5, 150, 105, 0.2);
-        }
-        
-        .status-badge.improving {
-            background: rgba(217, 119, 6, 0.1);
-            color: var(--warning);
-            border: 1px solid rgba(217, 119, 6, 0.2);
-        }
-        
-        .status-badge.deteriorating {
-            background: rgba(234, 88, 12, 0.1);
-            color: #ea580c;
-            border: 1px solid rgba(234, 88, 12, 0.2);
-        }
-        
-        /* Search and Filters */
-        .search-container, .filter-container {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            padding: 1.25rem;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            background: #f8fafc;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-            background: white;
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-            font-size: 1.125rem;
-        }
-        
-        .filter-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--gray);
-            margin-bottom: 0.5rem;
-        }
-        
-        .filter-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            background: #f8fafc;
-        }
-        
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-            background: white;
-        }
-        
-        /* Buttons */
-        .btn {
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            font-size: 0.875rem;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(12, 74, 110, 0.2);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(12, 74, 110, 0.3);
-        }
-        
-        .btn-secondary {
-            background: white;
-            color: var(--gray);
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-        }
-        
-        .btn-secondary:hover {
-            background: var(--light-gray);
-            transform: translateY(-2px);
-        }
-        
-        /* Patient Info */
-        .patient-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        
-        .patient-info:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .patient-info i {
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--light-gray);
-            border-radius: 50%;
-            color: var(--gray);
-        }
-        
-        /* Loading State */
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4rem 2rem;
-        }
-        
-        .loading-spinner {
-            width: 3rem;
-            height: 3rem;
-            border: 3px solid #e2e8f0;
-            border-top: 3px solid var(--primary-light);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            color: #cbd5e1;
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Statistics Sidebar */
-        .stats-sidebar {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            padding: 1.5rem;
-            border: 1px solid #e2e8f0;
-            height: fit-content;
-            position: sticky;
-            top: 1.5rem;
-        }
-        
-        .stats-card {
-            border-radius: 0.75rem;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #f1f5f9;
-        }
-        
-        .stats-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 6px;
-            height: 100%;
-        }
-        
-        .stats-card.critical::before {
-            background: var(--danger);
-        }
-        
-        .stats-card.stable::before {
-            background: var(--secondary);
-        }
-        
-        .stats-card.improving::before {
-            background: var(--warning);
-        }
-        
-        .stats-card.deteriorating::before {
-            background: #ea580c;
-        }
-        
-        .stats-card.total::before {
-            background: var(--primary);
-        }
-        
-        .stats-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        
-        .stats-label {
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-        
-        .stats-icon {
-            width: 3rem;
-            height: 3rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.75rem;
-            font-size: 1.25rem;
-        }
-        
-        .stats-card.critical .stats-icon {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--danger);
-        }
-        
-        .stats-card.stable .stats-icon {
-            background: rgba(5, 150, 105, 0.1);
-            color: var(--secondary);
-        }
-        
-        .stats-card.improving .stats-icon {
-            background: rgba(217, 119, 6, 0.1);
-            color: var(--warning);
-        }
-        
-        .stats-card.deteriorating .stats-icon {
-            background: rgba(234, 88, 12, 0.1);
-            color: #ea580c;
-        }
-        
-        .stats-card.total .stats-icon {
-            background: rgba(12, 74, 110, 0.1);
-            color: var(--primary);
-        }
-        
-        .stats-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 1.5rem 0;
-        }
-        
-        /* Footer */
-        .footer-section {
-            background: var(--dark);
-            color: #cbd5e1;
-            padding: 3rem 0 1.5rem;
-            margin-top: 4rem;
-        }
-        
-        .footer-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: white;
-        }
-        
-        .footer-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #94a3b8;
-            transition: all 0.2s ease;
-            margin-bottom: 0.75rem;
-            text-decoration: none;
-            font-size: 0.875rem;
-        }
-        
-        .footer-link:hover {
-            color: white;
-            transform: translateX(4px);
-        }
-        
-        .social-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.2s ease;
-            margin-left: 0.5rem;
-        }
-        
-        .social-icon:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-3px);
-        }
-        
-        /* Animations */
-        @keyframes countUp {
-            from {
-                opacity: 0.5;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .stats-number.updated {
-            animation: countUp 0.5s ease-out forwards;
-        }
-        
-        /* Responsive improvements */
-        @media (max-width: 1024px) {
-            .stats-sidebar {
-                position: static;
-                margin-bottom: 2rem;
-            }
-        }
-        
-        /* Additional styles for new fields */
-        .patient-details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-        }
-        
-        .patient-detail-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-        
-        .patient-detail-item i {
-            width: 1.5rem;
-            height: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--light-gray);
-            border-radius: 50%;
-            color: var(--gray);
-            font-size: 0.75rem;
-        }
-        
-        .chronic-diseases {
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #f1f5f9;
-        }
-        
-        .disease-tag {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: #f1f5f9;
-            color: var(--gray);
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            margin: 0.25rem 0.25rem 0.25rem 0;
-        }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>قسم الطوارئ — مستشفى الحياة الذكية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+/* ══════════════════════════════════
+   ROOT & RESET
+══════════════════════════════════ */
+:root{
+  --red:#DC2626;--red2:#EF4444;--red-glow:rgba(220,38,38,.18);
+  --orange:#EA580C;--yellow:#D97706;--green:#059669;--blue:#0055CC;
+  --navy:#03112A;--navy2:#061830;--navy3:#0A2540;--navy4:#0F3460;
+  --card:rgba(255,255,255,.04);--card2:rgba(255,255,255,.07);
+  --bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.14);
+  --txt:#F1F5F9;--muted:#94A3B8;--muted2:#64748B;
+  --sh:0 4px 24px rgba(0,0,0,.35);
+  --grd-red:linear-gradient(135deg,#7F1D1D,#DC2626);
+  --grd-nav:linear-gradient(180deg,#03112A 0%,#061830 100%);
+  --t:all .22s cubic-bezier(.4,0,.2,1);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--txt);min-height:100vh;font-size:14px}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--navy)}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+
+/* ══════════════════════════════════
+   LOADER
+══════════════════════════════════ */
+#loader{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s}
+#loader.hide{opacity:0;pointer-events:none}
+.pulse-ring{width:64px;height:64px;border-radius:50%;border:3px solid var(--red);animation:pulse-ring 1.4s ease-out infinite}
+@keyframes pulse-ring{0%{transform:scale(.85);box-shadow:0 0 0 0 rgba(220,38,38,.6)}70%{transform:scale(1);box-shadow:0 0 0 20px rgba(220,38,38,0)}100%{transform:scale(.85);box-shadow:0 0 0 0 rgba(220,38,38,0)}}
+.pulse-icon{position:absolute;font-size:1.6rem;color:var(--red)}
+
+/* ══════════════════════════════════
+   TOP NAV
+══════════════════════════════════ */
+.topnav{background:rgba(3,17,42,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:200;padding:.75rem 2rem}
+.topnav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1700px;margin:0 auto;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:42px;height:42px;background:var(--grd-red);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;box-shadow:0 0 20px rgba(220,38,38,.35)}
+.brand h1{font-size:1rem;font-weight:800;color:#fff;line-height:1.2}
+.brand p{font-size:.65rem;color:var(--muted);margin-top:1px}
+.nav-links{display:flex;gap:6px}
+.nav-link{display:flex;align-items:center;gap:6px;padding:.45rem .9rem;border-radius:8px;color:var(--muted);font-size:.78rem;font-weight:600;text-decoration:none;transition:var(--t);border:1px solid transparent}
+.nav-link:hover,.nav-link.active{color:#fff;background:var(--card2);border-color:var(--bdr2)}
+.nav-link.active{color:var(--red2)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.clock{font-family:'IBM Plex Mono',monospace;font-size:.85rem;font-weight:600;color:var(--txt);background:var(--card);border:1px solid var(--bdr);padding:.35rem .85rem;border-radius:8px;letter-spacing:.04em}
+.icon-btn{width:36px;height:36px;border-radius:8px;background:var(--card);border:1px solid var(--bdr);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--t);font-size:.85rem}
+.icon-btn:hover{background:var(--card2);color:#fff;border-color:var(--bdr2)}
+
+/* ══════════════════════════════════
+   HERO BANNER
+══════════════════════════════════ */
+.hero{background:linear-gradient(135deg,#1A0505 0%,#3B0E0E 35%,#7F1D1D 70%,#DC2626 100%);padding:2.5rem 2rem;position:relative;overflow:hidden;border-bottom:1px solid rgba(220,38,38,.2)}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero-inner{max-width:1700px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:relative;z-index:1}
+.hero-left h2{font-size:2rem;font-weight:900;color:#fff;line-height:1.2;text-shadow:0 2px 20px rgba(0,0,0,.4)}
+.hero-left p{font-size:.85rem;color:rgba(255,255,255,.7);margin-top:6px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:4px 12px;font-size:.72rem;font-weight:700;color:#fff;margin-bottom:8px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-right{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ══════════════════════════════════
+   BUTTONS
+══════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:.5rem 1.1rem;border-radius:9px;font-weight:700;font-size:.79rem;cursor:pointer;border:none;transition:var(--t);font-family:'Cairo',sans-serif;white-space:nowrap;text-decoration:none}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:none}
+.btn-red{background:var(--grd-red);color:#fff;box-shadow:0 4px 16px rgba(220,38,38,.3)}
+.btn-green{background:linear-gradient(135deg,#065F46,#059669);color:#fff;box-shadow:0 4px 16px rgba(5,150,105,.25)}
+.btn-blue{background:linear-gradient(135deg,#1E3A8A,#0055CC);color:#fff;box-shadow:0 4px 16px rgba(0,85,204,.25)}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--bdr2)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-sm{padding:.32rem .7rem;font-size:.72rem;border-radius:7px}
+
+/* ══════════════════════════════════
+   LAYOUT
+══════════════════════════════════ */
+.layout{display:grid;grid-template-columns:300px 1fr;gap:1.5rem;max-width:1700px;margin:0 auto;padding:1.5rem 2rem}
+@media(max-width:1200px){.layout{grid-template-columns:1fr}}
+@media(max-width:768px){.layout{padding:1rem}}
+
+/* ══════════════════════════════════
+   SIDEBAR
+══════════════════════════════════ */
+.sidebar{position:sticky;top:72px;height:fit-content;display:flex;flex-direction:column;gap:1rem}
+
+.glass-card{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:var(--r);backdrop-filter:blur(10px);overflow:hidden}
+.gc-hdr{padding:.8rem 1.1rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.gc-hdr h3{font-size:.82rem;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:7px;margin:0}
+.gc-body{padding:1.1rem}
+
+/* Triage stat cards */
+.tstat{border-radius:10px;padding:.85rem 1rem;margin-bottom:.6rem;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.06);transition:var(--t);cursor:default}
+.tstat:hover{transform:translateX(-3px)}
+.tstat-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.tstat-val{font-size:1.6rem;font-weight:900;line-height:1}
+.tstat-lbl{font-size:.68rem;color:var(--muted);margin-top:1px;font-weight:600}
+
+.tstat-1{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.2)}
+.tstat-1 .tstat-icon{background:rgba(220,38,38,.15);color:#F87171}
+.tstat-1 .tstat-val{color:#F87171}
+.tstat-2{background:rgba(234,88,12,.1);border-color:rgba(234,88,12,.2)}
+.tstat-2 .tstat-icon{background:rgba(234,88,12,.15);color:#FB923C}
+.tstat-2 .tstat-val{color:#FB923C}
+.tstat-3{background:rgba(217,119,6,.1);border-color:rgba(217,119,6,.2)}
+.tstat-3 .tstat-icon{background:rgba(217,119,6,.15);color:#FCD34D}
+.tstat-3 .tstat-val{color:#FCD34D}
+.tstat-4{background:rgba(5,150,105,.1);border-color:rgba(5,150,105,.2)}
+.tstat-4 .tstat-icon{background:rgba(5,150,105,.15);color:#34D399}
+.tstat-4 .tstat-val{color:#34D399}
+.tstat-5{background:rgba(2,132,199,.1);border-color:rgba(2,132,199,.2)}
+.tstat-5 .tstat-icon{background:rgba(2,132,199,.15);color:#38BDF8}
+.tstat-5 .tstat-val{color:#38BDF8}
+
+.divider{height:1px;background:var(--bdr);margin:.8rem 0}
+
+/* Chart mini */
+.chart-mini{height:150px;position:relative}
+
+/* ══════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════ */
+.main-content{display:flex;flex-direction:column;gap:1rem}
+
+/* Filters bar */
+.filters-bar{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:var(--r);padding:1rem 1.2rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:220px;position:relative}
+.search-ico{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem;pointer-events:none}
+.fi{width:100%;background:rgba(255,255,255,.05);border:1.5px solid var(--bdr);border-radius:9px;padding:.52rem .85rem;color:var(--txt);font-size:.8rem;outline:none;transition:var(--t);font-family:'Cairo',sans-serif}
+.fi:focus{border-color:rgba(220,38,38,.5);background:rgba(255,255,255,.07);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+.fi option{background:#0F1E3D;color:var(--txt)}
+.search-fi{padding-right:2.5rem}
+.fi-sm{width:auto;min-width:130px}
+
+/* Quick triage filter pills */
+.triage-pills{display:flex;gap:5px;flex-wrap:wrap}
+.tp{padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid transparent;transition:var(--t)}
+.tp:hover{transform:scale(1.05)}
+.tp.all{border-color:rgba(255,255,255,.2);color:var(--muted)}
+.tp.all.active,.tp.all:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)}
+.tp.t1{border-color:rgba(220,38,38,.35);color:#F87171}
+.tp.t1.active,.tp.t1:hover{background:rgba(220,38,38,.2)}
+.tp.t2{border-color:rgba(234,88,12,.35);color:#FB923C}
+.tp.t2.active,.tp.t2:hover{background:rgba(234,88,12,.2)}
+.tp.t3{border-color:rgba(217,119,6,.35);color:#FCD34D}
+.tp.t3.active,.tp.t3:hover{background:rgba(217,119,6,.2)}
+.tp.t4{border-color:rgba(5,150,105,.35);color:#34D399}
+.tp.t4.active,.tp.t4:hover{background:rgba(5,150,105,.2)}
+.tp.t5{border-color:rgba(2,132,199,.35);color:#38BDF8}
+.tp.t5.active,.tp.t5:hover{background:rgba(2,132,199,.2)}
+
+/* Results info bar */
+.results-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.78rem;color:var(--muted)}
+.results-bar strong{color:var(--txt)}
+.sort-btns{display:flex;gap:5px}
+.sort-btn{padding:3px 10px;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--muted);transition:var(--t);font-family:'Cairo',sans-serif}
+.sort-btn.active,.sort-btn:hover{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.3);color:#F87171}
+
+/* Patients grid */
+.pts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem}
+
+/* ══════════════════════════════════
+   PATIENT CARD
+══════════════════════════════════ */
+.pcard{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;transition:var(--t);position:relative;cursor:default}
+.pcard:hover{transform:translateY(-3px);background:rgba(255,255,255,.06);border-color:var(--bdr2);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.pcard::before{content:'';position:absolute;top:0;right:0;width:4px;height:100%;border-radius:0 0 0 0}
+.pcard.t1::before{background:var(--red)}
+.pcard.t2::before{background:var(--orange)}
+.pcard.t3::before{background:var(--yellow)}
+.pcard.t4::before{background:var(--green)}
+.pcard.t5::before{background:#0284C7}
+
+/* Card header with pulsing for critical */
+.pcard-hdr{padding:.9rem 1rem .9rem 1.2rem;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:1px solid var(--bdr)}
+.pcard.t1 .pcard-hdr{background:rgba(220,38,38,.06)}
+.pcard.t2 .pcard-hdr{background:rgba(234,88,12,.05)}
+.pcard-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;color:#fff}
+.pcard.t1 .pcard-avatar{background:linear-gradient(135deg,#7F1D1D,#DC2626)}
+.pcard.t2 .pcard-avatar{background:linear-gradient(135deg,#7C2D12,#EA580C)}
+.pcard.t3 .pcard-avatar{background:linear-gradient(135deg,#78350F,#D97706)}
+.pcard.t4 .pcard-avatar{background:linear-gradient(135deg,#064E3B,#059669)}
+.pcard.t5 .pcard-avatar{background:linear-gradient(135deg,#0C4A6E,#0284C7)}
+.pcard-name{font-weight:800;font-size:.95rem;color:#fff;line-height:1.3}
+.pcard-nid{font-size:.7rem;color:var(--muted);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+
+/* Triage badge */
+.tbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:.67rem;font-weight:800;white-space:nowrap;flex-shrink:0}
+.tbadge.t1{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(220,38,38,.3)}
+.tbadge.t2{background:rgba(234,88,12,.15);color:#FB923C;border:1px solid rgba(234,88,12,.3)}
+.tbadge.t3{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(217,119,6,.3)}
+.tbadge.t4{background:rgba(5,150,105,.15);color:#34D399;border:1px solid rgba(5,150,105,.3)}
+.tbadge.t5{background:rgba(2,132,199,.15);color:#38BDF8;border:1px solid rgba(2,132,199,.3)}
+.tbadge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.t1 .tbadge-dot{background:#F87171}
+.t2 .tbadge-dot{background:#FB923C}
+.t3 .tbadge-dot{background:#FCD34D}
+.t4 .tbadge-dot{background:#34D399}
+.t5 .tbadge-dot{background:#38BDF8}
+
+/* Critical pulsing */
+.pcard.t1 .pcard-avatar{animation:card-pulse 2s infinite}
+@keyframes card-pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}50%{box-shadow:0 0 0 8px rgba(220,38,38,0)}}
+
+/* Card body */
+.pcard-body{padding:.85rem 1rem .85rem 1.2rem}
+.pcard-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.7rem}
+.pinfo{display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--muted)}
+.pinfo i{width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:.62rem;color:var(--muted2);flex-shrink:0}
+.pinfo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pinfo.full{grid-column:1/-1}
+.pinfo.highlight span{color:var(--txt);font-weight:600}
+
+/* Status badge */
+.sbadge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:.65rem;font-weight:700}
+.sb-active{background:rgba(34,197,94,.12);color:#4ADE80;border:1px solid rgba(34,197,94,.25)}
+.sb-discharged{background:rgba(100,116,139,.12);color:var(--muted);border:1px solid rgba(100,116,139,.2)}
+.sb-pending{background:rgba(245,158,11,.12);color:#FCD34D;border:1px solid rgba(245,158,11,.25)}
+.sb-critical{background:rgba(220,38,38,.12);color:#F87171;border:1px solid rgba(220,38,38,.25)}
+
+/* Diseases tags */
+.dtags{display:flex;flex-wrap:wrap;gap:4px;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--bdr)}
+.dtag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;background:rgba(255,255,255,.06);border:1px solid var(--bdr);border-radius:999px;font-size:.65rem;color:var(--muted)}
+
+/* Wait time */
+.wait-chip{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:7px}
+.wait-chip.ok{background:rgba(5,150,105,.12);color:#4ADE80}
+.wait-chip.warn{background:rgba(217,119,6,.12);color:#FCD34D}
+.wait-chip.danger{background:rgba(220,38,38,.12);color:#F87171}
+
+/* Card footer */
+.pcard-ftr{padding:.65rem 1rem .65rem 1.2rem;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,.12)}
+.pcard-ts{font-size:.67rem;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+
+/* ══════════════════════════════════
+   EMPTY / LOADING STATES
+══════════════════════════════════ */
+.empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.empty i{font-size:2.5rem;opacity:.25;display:block;margin-bottom:12px}
+.empty h3{font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:6px}
+.spin-wrap{display:flex;justify-content:center;align-items:center;padding:4rem}
+.spin{width:44px;height:44px;border:3px solid rgba(220,38,38,.2);border-top-color:var(--red);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══════════════════════════════════
+   MODAL
+══════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--navy3);border:1px solid var(--bdr2);border-radius:18px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:slideUp .25s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-hdr{padding:1.1rem 1.4rem;background:var(--grd-red);display:flex;align-items:center;justify-content:space-between;border-radius:18px 18px 0 0;position:sticky;top:0;z-index:5}
+.modal-hdr h2{font-size:1rem;font-weight:800;color:#fff;margin:0;display:flex;align-items:center;gap:8px}
+.close-btn{width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--t)}
+.close-btn:hover{background:rgba(255,255,255,.28)}
+.modal-body{padding:1.4rem}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:1rem}
+.mrow.full{grid-template-columns:1fr}
+.mfield{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:10px;padding:.8rem 1rem}
+.mfield label{display:block;font-size:.67rem;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.mfield .mval{font-size:.88rem;font-weight:600;color:var(--txt)}
+.mfield .mval.big{font-size:1.1rem;font-weight:800;color:#fff}
+.msec-title{font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:.5rem 0 .7rem;padding-right:3px;border-right:3px solid var(--red);padding-right:8px}
+.modal-foot{padding:.9rem 1.4rem;border-top:1px solid var(--bdr);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--navy3)}
+
+/* Status update select */
+.status-sel{background:rgba(255,255,255,.07);border:1.5px solid var(--bdr2);border-radius:8px;padding:.45rem .8rem;color:var(--txt);font-size:.8rem;outline:none;font-family:'Cairo',sans-serif;cursor:pointer}
+.status-sel:focus{border-color:rgba(220,38,38,.5)}
+.status-sel option{background:#0F3460}
+
+/* Insurance card */
+.ins-box{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:.85rem 1rem}
+
+/* Vital signs grid */
+.vitals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.vital-item{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:9px;padding:.65rem;text-align:center}
+.vital-val{font-size:1rem;font-weight:800;color:var(--red2)}
+.vital-lbl{font-size:.62rem;color:var(--muted);margin-top:2px;font-weight:600}
+
+/* ══════════════════════════════════
+   PRINT RECEIPT
+══════════════════════════════════ */
+.print-receipt{display:none}
+@media print{
+  .topnav,.hero,.sidebar,.filters-bar,.results-bar,.pcard-ftr .btn,.modal-overlay,#loader{display:none!important}
+  body{background:#fff;color:#000}
+  .layout{display:block;padding:0}
+  .main-content{display:block}
+  .pcard{break-inside:avoid;border:1px solid #ddd;margin-bottom:12px;color:#000;background:#fff}
+  .pcard-name,.pinfo span{color:#000!important}
+  .pinfo i,.pcard-hdr{background:#f5f5f5!important}
+}
+
+/* ══════════════════════════════════
+   NOTIFICATION TOAST
+══════════════════════════════════ */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#0F3460;border:1px solid var(--bdr2);border-radius:10px;padding:.7rem 1.3rem;font-size:.82rem;font-weight:600;color:#fff;box-shadow:var(--sh);z-index:1000;display:none;gap:8px;align-items:center}
+.toast.show{display:flex;animation:slideUp .25s ease}
+
+/* ══════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════ */
+@media(max-width:640px){
+  .pts-grid{grid-template-columns:1fr}
+  .pcard-grid{grid-template-columns:1fr}
+  .pinfo.full{grid-column:1}
+  .topnav-inner{flex-wrap:wrap}
+  .nav-links{display:none}
+  .hero-left h2{font-size:1.4rem}
+  .mrow{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
-    <!-- Header Section -->
-    <header class="container mx-auto px-4 py-6">
-        <div class="header-container flex flex-col md:flex-row justify-between items-center">
-            <div class="flex items-center space-x-4 space-x-reverse mb-4 md:mb-0">
-                <div class="bg-white p-1 rounded-lg shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="#0c4a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
-                        <path d="M9 12l2 2 4-4"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold">مستشفى الحياة الذكية</h1>
-                    <p class="text-sm text-blue-100">رعاية طبية متكاملة باستخدام أحدث التقنيات</p>
-                </div>
-            </div>
-            <nav>
-                <ul class="flex space-x-6 space-x-reverse">
-                    <li>
-                        <a href="index.html" class="text-white hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-home"></i> الرئيسية</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-hospital"></i> الأقسام</a
-                        >
-                    </li>
-                    <li>
-                        <a href="#" class="hover:text-blue-200 font-medium flex items-center gap-2"
-                            ><i class="fas fa-chart-bar"></i> الإحصائيات</a
-                        >
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-    
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Statistics Sidebar -->
-            <div class="lg:col-span-1">
-                <div class="stats-sidebar">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <i class="fas fa-chart-pie text-blue-600"></i>
-                        إحصائيات قسم الطوارئ
-                    </h2>
-                    
-                    <!-- Total Patients Card -->
-                    <div class="stats-card total">
-                        <div class="stats-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="totalPatients">0</div>
-                            <div class="stats-label">إجمالي المرضى</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Critical Patients Card -->
-                    <div class="stats-card critical">
-                        <div class="stats-icon">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="criticalPatients">0</div>
-                            <div class="stats-label">حالات حرجة</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Deteriorating Patients Card -->
-                    <div class="stats-card deteriorating">
-                        <div class="stats-icon">
-                            <i class="fas fa-arrow-trend-down"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="deterioratingPatients">0</div>
-                            <div class="stats-label">في تدهور</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Improving Patients Card -->
-                    <div class="stats-card improving">
-                        <div class="stats-icon">
-                            <i class="fas fa-arrow-trend-up"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="improvingPatients">0</div>
-                            <div class="stats-label">في تحسن</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Stable Patients Card -->
-                    <div class="stats-card stable">
-                        <div class="stats-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div>
-                            <div class="stats-number" id="stablePatients">0</div>
-                            <div class="stats-label">حالات مستقرة</div>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-divider"></div>
-                    
-                    <!-- Status Change -->
-                    <div class="flex justify-between items-center">
-                        <div class="text-sm text-gray-600">آخر تحديث</div>
-                        <div class="text-sm text-gray-600" id="lastUpdate">-</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Patients List Section -->
-            <div class="lg:col-span-3">
-                <div class="emergency-header mb-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center">
-                        <div class="mb-4 md:mb-0">
-                            <h1 class="text-3xl font-bold flex items-center">
-                                <i class="fas fa-ambulance ml-3"></i>
-                                قسم الطوارئ
-                            </h1>
-                            <p class="text-white text-opacity-90 mt-1">إدارة حالات الطوارئ بكفاءة واحترافية</p>
-                        </div>
-                        <button
-                            class="btn btn-primary"
-                            onclick="window.location.href='add_patient.html'"
-                        >
-                            <i class="fas fa-plus"></i>
-                            إضافة مريض جديد
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Filters Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="lg:col-span-1">
-                        <div class="search-container">
-                            <div class="filter-label">البحث عن مريض</div>
-                            <div class="relative">
-                                <i class="fas fa-search search-icon"></i>
-                                <input
-                                    id="searchInput"
-                                    type="text"
-                                    placeholder="ابحث باسم المريض أو الرقم القومي..."
-                                    class="search-input"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="filter-container">
-                            <div class="filter-label">التاريخ</div>
-                            <input
-                                id="dateFilter"
-                                type="date"
-                                class="filter-input"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <div class="filter-container">
-                            <div class="filter-label">الحالة</div>
-                            <select id="statusFilter" class="filter-input">
-                                <option value="">جميع الحالات</option>
-                                <option value="critical">حالات حرجة</option>
-                                <option value="stable">حالات مستقرة</option>
-                                <option value="improving">في تحسن</option>
-                                <option value="deteriorating">في تدهور</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="filter-container">
-                            <div class="filter-label">ترتيب حسب</div>
-                            <select id="sortFilter" class="filter-input">
-                                <option value="newest">الأحدث أولاً</option>
-                                <option value="oldest">الأقدم أولاً</option>
-                                <option value="critical">الأكثر أهمية</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Patients List -->
-                <div id="patientsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Patient cards will be dynamically inserted here -->
-                    <div class="col-span-full">
-                        <div class="loading-container">
-                            <div class="loading-spinner"></div>
-                            <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                            <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <!-- Footer Section -->
-    <footer class="footer-section">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 class="footer-title">مستشفى الحياة الذكية</h3>
-                    <p class="text-gray-400 mb-4">
-                        نقدم رعاية طبية متكاملة باستخدام أحدث التقنيات الطبية
-                        والكوادر الطبية المتخصصة.
-                    </p>
-                    <div class="flex">
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="footer-title">روابط سريعة</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>المواعيد</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-user-md"></i>
-                        <span>الأطباء</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-hand-holding-usd"></i>
-                        <span>الأسعار</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-info-circle"></i>
-                        <span>عن المستشفى</span>
-                    </a>
-                </div>
-                <div>
-                    <h3 class="footer-title">اتصل بنا</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-phone-alt"></i>
-                        <span>1234</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-envelope"></i>
-                        <span>info@alhayah-smart.com</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>شارع الطبيعة، الرياض</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-clock"></i>
-                        <span>24 ساعة طوال أيام الأسبوع</span>
-                    </a>
-                </div>
-                <div>
-                    <h3 class="footer-title">خدماتنا</h3>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-procedures"></i>
-                        <span>الطوارئ</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-stethoscope"></i>
-                        <span>العيادات الخارجية</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-x-ray"></i>
-                        <span>الأشعة والتصوير</span>
-                    </a>
-                    <a href="#" class="footer-link">
-                        <i class="fas fa-flask"></i>
-                        <span>المختبرات الطبية</span>
-                    </a>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 pt-6 text-center">
-                <p class="text-gray-400">© 2025 مستشفى الحياة الذكية. جميع الحقوق محفوظة.</p>
-            </div>
-        </div>
-    </footer>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyC2EbXOHj6jcQ8UQ-x8nwRJXQLIEvpvZdM",
-  authDomain: "hospital-management-syst-2d586.firebaseapp.com",
-  projectId: "hospital-management-syst-2d586",
-  storageBucket: "hospital-management-syst-2d586.firebasestorage.app",
-  messagingSenderId: "300870740500",
-  appId: "1:300870740500:web:6005e0bdebc5637433d501",
-  measurementId: "G-MHV62CGG3B"
+<!-- LOADER -->
+<div id="loader">
+  <div style="position:relative;display:flex;align-items:center;justify-content:center">
+    <div class="pulse-ring"></div>
+    <i class="fas fa-hospital pulse-icon"></i>
+  </div>
+  <p style="color:rgba(255,255,255,.7);font-weight:700;font-size:.85rem">قسم الطوارئ — جاري التحميل</p>
+</div>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">
+      <div class="brand-icon"><i class="fas fa-hospital-alt"></i></div>
+      <div>
+        <h1>مستشفى الحياة الذكية</h1>
+        <p>نظام إدارة المرضى المتكامل</p>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link"><i class="fas fa-home"></i> الرئيسية</a>
+      <a href="#" class="nav-link active"><i class="fas fa-ambulance"></i> الطوارئ</a>
+      <a href="#" class="nav-link"><i class="fas fa-bed"></i> الأقسام</a>
+      <a href="#" class="nav-link"><i class="fas fa-chart-bar"></i> الإحصائيات</a>
+    </div>
+    <div class="nav-right">
+      <div class="clock" id="liveClock">--:--:--</div>
+      <div class="icon-btn" id="printAllBtn" title="طباعة الكل" onclick="printAll()"><i class="fas fa-print"></i></div>
+      <div class="icon-btn" title="تصدير Excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i></div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO BANNER -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge"><span class="live-dot"></span> مباشر — يتحدث تلقائياً</div>
+      <h2><i class="fas fa-ambulance" style="margin-left:10px;font-size:1.6rem"></i>قسم الطوارئ</h2>
+      <p>متابعة حالات الطوارئ في الوقت الفعلي مع التحديث التلقائي</p>
+    </div>
+    <div class="hero-right">
+      <button class="btn btn-ghost" onclick="refreshData()"><i class="fas fa-sync"></i> تحديث</button>
+      <button class="btn btn-red" onclick="window.location.href='index.html'"><i class="fas fa-user-plus"></i> إضافة مريض</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Triage stats -->
+    <div class="glass-card">
+      <div class="gc-hdr">
+        <h3><i class="fas fa-chart-pie" style="color:var(--red)"></i> إحصائيات التريج</h3>
+        <span id="lastUpdate" style="font-size:.67rem;color:var(--muted)">—</span>
+      </div>
+      <div class="gc-body">
+        <!-- Total -->
+        <div style="background:rgba(255,255,255,.06);border:1px solid var(--bdr2);border-radius:10px;padding:.85rem 1rem;margin-bottom:.8rem;display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff;flex-shrink:0"><i class="fas fa-users"></i></div>
+          <div>
+            <div style="font-size:1.8rem;font-weight:900;color:#fff;line-height:1" id="st-total">0</div>
+            <div style="font-size:.68rem;color:var(--muted);font-weight:600">إجمالي المرضى</div>
+          </div>
+        </div>
+        <!-- Triage levels -->
+        <div class="tstat tstat-1"><div class="tstat-icon"><i class="fas fa-skull-crossbones"></i></div><div><div class="tstat-val" id="st-t1">0</div><div class="tstat-lbl">🔴 خطر داهم</div></div></div>
+        <div class="tstat tstat-2"><div class="tstat-icon"><i class="fas fa-exclamation-triangle"></i></div><div><div class="tstat-val" id="st-t2">0</div><div class="tstat-lbl">🟠 حرج</div></div></div>
+        <div class="tstat tstat-3"><div class="tstat-icon"><i class="fas fa-bolt"></i></div><div><div class="tstat-val" id="st-t3">0</div><div class="tstat-lbl">🟡 عاجل</div></div></div>
+        <div class="tstat tstat-4"><div class="tstat-icon"><i class="fas fa-check-circle"></i></div><div><div class="tstat-val" id="st-t4">0</div><div class="tstat-lbl">🟢 أقل إلحاحاً</div></div></div>
+        <div class="tstat tstat-5"><div class="tstat-icon"><i class="fas fa-info-circle"></i></div><div><div class="tstat-val" id="st-t5">0</div><div class="tstat-lbl">🔵 غير عاجل</div></div></div>
+
+        <div class="divider"></div>
+
+        <!-- Status stats -->
+        <div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">حسب حالة المريض</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:.78rem">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#4ADE80;display:inline-block"></span>نشط</span>
+            <strong style="color:#4ADE80" id="ss-active">0</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:.78rem">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#F87171;display:inline-block"></span>حرج</span>
+            <strong style="color:#F87171" id="ss-critical">0</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:.78rem">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block"></span>خرج</span>
+            <strong style="color:var(--muted)" id="ss-discharged">0</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:.78rem">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#FCD34D;display:inline-block"></span>انتظار دفع</span>
+            <strong style="color:#FCD34D" id="ss-pending">0</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini Chart -->
+    <div class="glass-card">
+      <div class="gc-hdr"><h3><i class="fas fa-chart-donut" style="color:var(--red)"></i> توزيع التريج</h3></div>
+      <div class="gc-body"><div class="chart-mini"><canvas id="triChart"></canvas></div></div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="glass-card">
+      <div class="gc-hdr"><h3><i class="fas fa-bolt" style="color:var(--yellow)"></i> إجراءات سريعة</h3></div>
+      <div class="gc-body" style="display:flex;flex-direction:column;gap:.5rem">
+        <button class="btn btn-red" style="width:100%;justify-content:center" onclick="filterByTriage(1)"><i class="fas fa-skull-crossbones"></i> عرض الخطر الداهم فقط</button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="filterByTriage(0)"><i class="fas fa-list"></i> عرض الكل</button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="exportExcel()"><i class="fas fa-file-excel" style="color:#4ADE80"></i> تصدير Excel</button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="printAll()"><i class="fas fa-print"></i> طباعة القائمة</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+
+    <!-- Filters bar -->
+    <div class="filters-bar">
+      <div class="search-wrap">
+        <i class="fas fa-search search-ico"></i>
+        <input type="text" id="searchInp" class="fi search-fi" placeholder="بحث بالاسم، الرقم القومي، الهاتف، الطبيب..."/>
+      </div>
+      <select id="statusSel" class="fi fi-sm">
+        <option value="">كل الحالات</option>
+        <option value="active">نشط</option>
+        <option value="critical">حرج</option>
+        <option value="discharged">خرج</option>
+        <option value="pending">انتظار دفع</option>
+      </select>
+      <input type="date" id="dateInp" class="fi fi-sm"/>
+      <div class="triage-pills">
+        <span class="tp all active" onclick="setTriPill(this,0)">الكل</span>
+        <span class="tp t1" onclick="setTriPill(this,1)">🔴</span>
+        <span class="tp t2" onclick="setTriPill(this,2)">🟠</span>
+        <span class="tp t3" onclick="setTriPill(this,3)">🟡</span>
+        <span class="tp t4" onclick="setTriPill(this,4)">🟢</span>
+        <span class="tp t5" onclick="setTriPill(this,5)">🔵</span>
+      </div>
+    </div>
+
+    <!-- Results bar -->
+    <div class="results-bar">
+      <span>عرض <strong id="showCount">0</strong> من <strong id="totalCount">0</strong> مريض</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span>ترتيب:</span>
+        <div class="sort-btns">
+          <button class="sort-btn active" onclick="setSortBtn(this,'triage')" data-sort="triage">الأولوية</button>
+          <button class="sort-btn" onclick="setSortBtn(this,'newest')" data-sort="newest">الأحدث</button>
+          <button class="sort-btn" onclick="setSortBtn(this,'oldest')" data-sort="oldest">الأقدم</button>
+          <button class="sort-btn" onclick="setSortBtn(this,'name')" data-sort="name">الاسم</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards grid -->
+    <div id="ptsGrid" class="pts-grid">
+      <div style="grid-column:1/-1"><div class="spin-wrap"><div class="spin"></div></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PATIENT DETAIL MODAL -->
+<div class="modal-overlay" id="ptModal">
+  <div class="modal" id="modalBox">
+    <div class="modal-hdr">
+      <h2><i class="fas fa-id-card"></i> <span id="mTitle">ملف المريض</span></h2>
+      <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">إغلاق</button>
+      <button class="btn btn-ghost btn-sm" id="mPrintBtn"><i class="fas fa-print"></i> طباعة الملف</button>
+      <button class="btn btn-red btn-sm" id="mDischargeBtn"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><i class="fas fa-check-circle" style="color:#4ADE80"></i><span id="toastMsg">—</span></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+// ══════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════
+const FC={
+  apiKey:"AIzaSyC2EbXOHj6jcQ8UQ-x8nwRJXQLIEvpvZdM",
+  authDomain:"hospital-management-syst-2d586.firebaseapp.com",
+  projectId:"hospital-management-syst-2d586",
+  storageBucket:"hospital-management-syst-2d586.firebasestorage.app",
+  messagingSenderId:"300870740500",
+  appId:"1:300870740500:web:6005e0bdebc5637433d501",
+  databaseURL:"https://hospital-management-syst-2d586-default-rtdb.firebaseio.com"
 };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        let allPatients = {};
-        
-        window.addEventListener("DOMContentLoaded", () => {
-            const emergencyRef = ref(db, "patients/emergency");
-            const container = document.getElementById("patientsList");
-            const searchInput = document.getElementById("searchInput");
-            const dateFilter = document.getElementById("dateFilter");
-            const statusFilter = document.getElementById("statusFilter");
-            const sortFilter = document.getElementById("sortFilter");
-            
-            // Statistics elements
-            const totalPatientsEl = document.getElementById("totalPatients");
-            const criticalPatientsEl = document.getElementById("criticalPatients");
-            const deterioratingPatientsEl = document.getElementById("deterioratingPatients");
-            const improvingPatientsEl = document.getElementById("improvingPatients");
-            const stablePatientsEl = document.getElementById("stablePatients");
-            const lastUpdateEl = document.getElementById("lastUpdate");
-            
-            // Initialize with loading state
-            container.innerHTML = `
-                <div class="col-span-full">
-                    <div class="loading-container">
-                        <div class="loading-spinner"></div>
-                        <h3 class="text-xl font-bold text-gray-700 mt-4">جاري تحميل بيانات المرضى...</h3>
-                        <p class="text-gray-500">يرجى الانتظار قليلاً بينما نقوم بتحميل البيانات</p>
-                    </div>
-                </div>
-            `;
-            
-            // Initialize statistics
-            updateStatistics(allPatients);
-            
-            // Listen for changes in the database
-            onValue(emergencyRef, (snapshot) => {
-                allPatients = snapshot.val() || {};
-                
-                // Update statistics first
-                updateStatistics(allPatients);
-                
-                // Then render patients list
-                renderPatients(allPatients);
-            });
-            
-            searchInput.addEventListener("input", () => {
-                applyFilters();
-            });
-            
-            dateFilter.addEventListener("change", () => {
-                applyFilters();
-            });
-            
-            statusFilter.addEventListener("change", () => {
-                applyFilters();
-            });
-            
-            sortFilter.addEventListener("change", () => {
-                applyFilters();
-            });
-            
-            function updateStatistics(patients) {
-                const counts = {
-                    total: Object.keys(patients).length,
-                    critical: 0,
-                    deteriorating: 0,
-                    improving: 0,
-                    stable: 0
-                };
-                
-                Object.values(patients).forEach(patient => {
-                    if (patient.status) {
-                        counts[patient.status]++;
-                    }
-                });
-                
-                // Add animation class before updating
-                const statsElements = [
-                    totalPatientsEl,
-                    criticalPatientsEl,
-                    deterioratingPatientsEl,
-                    improvingPatientsEl,
-                    stablePatientsEl
-                ];
-                
-                statsElements.forEach(el => {
-                    el.classList.add('updated');
-                    setTimeout(() => {
-                        el.classList.remove('updated');
-                    }, 500);
-                });
-                
-                // Update statistics
-                totalPatientsEl.textContent = counts.total;
-                criticalPatientsEl.textContent = counts.critical;
-                deterioratingPatientsEl.textContent = counts.deteriorating;
-                improvingPatientsEl.textContent = counts.improving;
-                stablePatientsEl.textContent = counts.stable;
-                
-                // Update last update time
-                const now = new Date();
-                lastUpdateEl.textContent = now.toLocaleTimeString("ar-EG");
-            }
-            
-            function applyFilters() {
-                const term = searchInput.value.toLowerCase();
-                const selectedDate = dateFilter.value;
-                const selectedStatus = statusFilter.value;
-                const sortOption = sortFilter.value;
-                
-                let filtered = Object.fromEntries(
-                    Object.entries(allPatients).filter(([id, patient]) => {
-                        const matchSearch = 
-                            (patient.name && patient.name.toLowerCase().includes(term)) ||
-                            id.toLowerCase().includes(term) ||
-                            (patient.nid && patient.nid.toLowerCase().includes(term)) ||
-                            (patient.doctor && patient.doctor.toLowerCase().includes(term)) ||
-                            (patient.address && patient.address.toLowerCase().includes(term));
-                            
-                        const matchDate = selectedDate && patient.timestamp
-                            ? new Date(patient.timestamp).toISOString().split("T")[0] === selectedDate
-                            : true;
-                            
-                        const matchStatus = selectedStatus
-                            ? patient.status === selectedStatus
-                            : true;
-                            
-                        return matchSearch && matchDate && matchStatus;
-                    })
-                );
-                
-                // Sort the results
-                if (sortOption === 'newest') {
-                    filtered = Object.fromEntries(
-                        Object.entries(filtered).sort(([, a], [, b]) => b.timestamp - a.timestamp)
-                    );
-                } else if (sortOption === 'oldest') {
-                    filtered = Object.fromEntries(
-                        Object.entries(filtered).sort(([, a], [, b]) => a.timestamp - b.timestamp)
-                    );
-                } else if (sortOption === 'critical') {
-                    filtered = Object.fromEntries(
-                        Object.entries(filtered).sort(([, a], [, b]) => {
-                            const statusOrder = { critical: 0, deteriorating: 1, improving: 2, stable: 3 };
-                            return statusOrder[a.status] - statusOrder[b.status];
-                        })
-                    );
-                }
-                
-                renderPatients(filtered);
-            }
-            
-            function renderPatients(data) {
-                container.innerHTML = "";
-                
-                if (Object.keys(data).length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full">
-                            <div class="empty-state">
-                                <i class="fas fa-search text-5xl"></i>
-                                <h3 class="text-xl font-bold text-gray-700 mb-2">لا توجد نتائج مطابقة</h3>
-                                <p class="text-gray-500">لم نتمكن من العثور على مرضى يطابقون معايير البحث.</p>
-                            </div>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                Object.entries(data).forEach(([id, patient]) => {
-                    const card = document.createElement("div");
-                    card.className = `patient-card ${patient.status}`;
-                    
-                    const statusText = {
-                        critical: "حالة حرجة",
-                        stable: "حالة مستقرة",
-                        improving: "في تحسن",
-                        deteriorating: "في تدهور"
-                    };
-                    
-                    const statusIcon = {
-                        critical: "fa-heartbeat",
-                        stable: "fa-check-circle",
-                        improving: "fa-arrow-trend-up",
-                        deteriorating: "fa-arrow-trend-down"
-                    };
-                    
-                    // Get gender icon
-                    const genderIcon = patient.gender === 'male' ? 'fa-mars' : (patient.gender === 'female' ? 'fa-venus' : 'fa-genderless');
-                    const genderText = patient.gender === 'male' ? 'ذكر' : (patient.gender === 'female' ? 'أنثى' : 'غير محدد');
-                    
-                    // Format chronic diseases
-                    let diseasesHtml = '';
-                    if (patient.chronicDiseases && Array.isArray(patient.chronicDiseases) && patient.chronicDiseases.length > 0) {
-                        diseasesHtml = `
-                            <div class="chronic-diseases">
-                                <div class="patient-info">
-                                    <i class="fas fa-notes-medical"></i>
-                                    <span><strong>الأمراض المزمنة:</strong></span>
-                                </div>
-                                <div class="mt-2">
-                                    ${patient.chronicDiseases.map(disease => `<span class="disease-tag">${disease}</span>`).join('')}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    card.innerHTML = `
-                        <div class="p-6">
-                            <div class="flex justify-between items-start mb-4">
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-800">${patient.name || 'غير معروف'}</h2>
-                                    <p class="text-sm text-gray-500">الرقم القومي: ${patient.nid || 'غير متوفر'}</p>
-                                </div>
-                                <span class="status-badge ${patient.status}">
-                                    <i class="fas ${statusIcon[patient.status]}"></i>
-                                    ${statusText[patient.status]}
-                                </span>
-                            </div>
-                            
-                            <div class="space-y-3 text-gray-600 mb-4">
-                                <div class="patient-info">
-                                    <i class="fas fa-birthday-cake"></i>
-                                    <span>العمر: ${patient.age || 'غير متوفر'} سنة</span>
-                                </div>
-                                <div class="patient-info">
-                                    <i class="fas fa-calendar-day"></i>
-                                    <span>تاريخ التسجيل: ${patient.timestamp ? new Date(patient.timestamp).toLocaleDateString("ar-EG") : 'غير متوفر'}</span>
-                                </div>
-                                <div class="patient-info">
-                                    <i class="fas fa-clock"></i>
-                                    <span>الوقت: ${patient.timestamp ? new Date(patient.timestamp).toLocaleTimeString("ar-EG") : 'غير متوفر'}</span>
-                                </div>
-                            </div>
-                            
-                            <!-- New patient details grid -->
-                            <div class="patient-details-grid mb-4">
-                                <div class="patient-detail-item">
-                                    <i class="fas ${genderIcon}"></i>
-                                    <span>${genderText}</span>
-                                </div>
-                                <div class="patient-detail-item">
-                                    <i class="fas fa-tint"></i>
-                                    <span>${patient.bloodType || 'غير محدد'}</span>
-                                </div>
-                                <div class="patient-detail-item" style="grid-column: 1 / -1;">
-                                    <i class="fas fa-user-md"></i>
-                                    <span>الدكتور: ${patient.doctors || 'غير محدد'}</span>
-                                </div>
-                                <div class="patient-detail-item" style="grid-column: 1 / -1;">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>${patient.address || 'غير محدد'}</span>
-                                </div>
-                            </div>
-                            
-                            ${diseasesHtml}
-                            
-                            <div class="mt-4 flex justify-end space-x-3 space-x-reverse">
-                                <button onclick="viewPatient('${id}')" class="btn btn-primary">
-                                    <i class="fas fa-eye"></i>
-                                    عرض التفاصيل
-                                </button>
-                                <button onclick="printCard('${id}')" class="btn btn-secondary">
-                                    <i class="fas fa-print"></i>
-                                    طباعة
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    container.appendChild(card);
-                });
-            }
-        });
-        
-        window.viewPatient = function (id) {
-            window.location.href = `patient.html?id=${id}`;
-        };
-        
-        window.printCard = function (id) {
-            alert("ميزة الطباعة سيتم تنفيذها مستقبلاً للبطاقة ID: " + id);
-        };
-    </script>
+firebase.initializeApp(FC);
+const db=firebase.database();
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let allPts={};
+let currentSort='triage';
+let currentTriage=0;
+let triChart=null;
+const $=id=>document.getElementById(id);
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const getCairoTime=()=>new Date().toLocaleTimeString('ar-EG',{timeZone:'Africa/Cairo',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const fmtDate=ts=>ts?new Date(ts).toLocaleDateString('ar-EG',{year:'numeric',month:'2-digit',day:'2-digit'}):'—';
+const fmtTime=ts=>ts?new Date(ts).toLocaleTimeString('ar-EG',{timeZone:'Africa/Cairo',hour:'2-digit',minute:'2-digit'}):'—';
+const fmtDateTime=ts=>ts?`${fmtDate(ts)} ${fmtTime(ts)}`:'—';
+const waitMins=ts=>ts?Math.floor((Date.now()-new Date(ts))/ 60000):0;
+const fmtWait=ts=>{const m=waitMins(ts);return m<60?`${m} د`:`${Math.floor(m/60)}س ${m%60}د`;};
+const waitClass=ts=>{const m=waitMins(ts);return m>60?'danger':m>30?'warn':'ok';};
+
+const TRIAGE_LABEL={1:'خطر داهم',2:'حرج',3:'عاجل',4:'أقل إلحاحاً',5:'غير عاجل'};
+const TRIAGE_COLOR={1:'#F87171',2:'#FB923C',3:'#FCD34D',4:'#34D399',5:'#38BDF8'};
+const TRIAGE_ICON={1:'fa-skull-crossbones',2:'fa-exclamation-triangle',3:'fa-bolt',4:'fa-check-circle',5:'fa-info-circle'};
+const STATUS_LABEL={active:'نشط',critical:'حرج',discharged:'خرج',pending:'انتظار دفع'};
+const STATUS_CSS={active:'sb-active',critical:'sb-critical',discharged:'sb-discharged',pending:'sb-pending'};
+const DEPT_LABEL={emergency:'الطوارئ',icu:'العناية',operations:'العمليات',radiology:'الأشعة',care:'الرعاية',cardiology:'القلب',lab:'المختبر',general:'عام'};
+
+function showToast(msg,icon='fa-check-circle',color='#4ADE80'){
+  const t=$('toast');t.innerHTML=`<i class="fas ${icon}" style="color:${color}"></i><span>${msg}</span>`;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ══════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════
+setInterval(()=>$('liveClock').textContent=getCairoTime(),1000);
+
+// ══════════════════════════════════════════
+// FIREBASE LISTENER
+// ══════════════════════════════════════════
+db.ref('patients/emergency').on('value',snap=>{
+  allPts=snap.val()||{};
+  updateStats();
+  renderChart();
+  applyFilters();
+  $('lastUpdate').textContent=getCairoTime();
+});
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+function updateStats(){
+  const pts=Object.values(allPts);
+  $('st-total').textContent=pts.length;
+  [1,2,3,4,5].forEach(t=>$(`st-t${t}`).textContent=pts.filter(p=>+p.triage===t).length);
+  $('ss-active').textContent=pts.filter(p=>p.status==='active').length;
+  $('ss-critical').textContent=pts.filter(p=>p.status==='critical').length;
+  $('ss-discharged').textContent=pts.filter(p=>p.status==='discharged').length;
+  $('ss-pending').textContent=pts.filter(p=>p.status==='pending').length;
+}
+
+// ══════════════════════════════════════════
+// CHART
+// ══════════════════════════════════════════
+function renderChart(){
+  const pts=Object.values(allPts);
+  const data=[1,2,3,4,5].map(t=>pts.filter(p=>+p.triage===t).length);
+  const ctx=$('triChart').getContext('2d');
+  if(triChart)triChart.destroy();
+  triChart=new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['خطر داهم','حرج','عاجل','أقل','غير عاجل'],
+      datasets:[{data,backgroundColor:['#DC2626','#EA580C','#D97706','#059669','#0284C7'],borderWidth:0,hoverOffset:6}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',font:{size:10,family:'Cairo'},boxWidth:10,padding:8}}}
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// FILTER & SORT
+// ══════════════════════════════════════════
+function applyFilters(){
+  const q=($('searchInp').value||'').toLowerCase().trim();
+  const st=$('statusSel').value;
+  const dt=$('dateInp').value;
+
+  let arr=Object.entries(allPts).filter(([id,p])=>{
+    const matchQ=!q||(p.name||'').toLowerCase().includes(q)||(p.nid||'').includes(q)||(p.phone||'').includes(q)||(p.doctorName||'').toLowerCase().includes(q)||(p.address||'').toLowerCase().includes(q);
+    const matchSt=!st||p.status===st;
+    const matchDt=!dt||(p.timestamp&&new Date(p.timestamp).toISOString().split('T')[0]===dt);
+    const matchTri=!currentTriage||+p.triage===currentTriage;
+    return matchQ&&matchSt&&matchDt&&matchTri;
+  });
+
+  // Sort
+  if(currentSort==='triage')arr.sort((a,b)=>(+a[1].triage||5)-(+b[1].triage||5));
+  else if(currentSort==='newest')arr.sort((a,b)=>new Date(b[1].timestamp)-new Date(a[1].timestamp));
+  else if(currentSort==='oldest')arr.sort((a,b)=>new Date(a[1].timestamp)-new Date(b[1].timestamp));
+  else if(currentSort==='name')arr.sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||'','ar'));
+
+  $('showCount').textContent=arr.length;
+  $('totalCount').textContent=Object.keys(allPts).length;
+  renderCards(arr);
+}
+
+$('searchInp').addEventListener('input',applyFilters);
+$('statusSel').addEventListener('change',applyFilters);
+$('dateInp').addEventListener('change',applyFilters);
+
+window.setSortBtn=function(btn,s){
+  currentSort=s;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+};
+
+window.setTriPill=function(pill,t){
+  currentTriage=t;
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  applyFilters();
+};
+
+window.filterByTriage=function(t){
+  currentTriage=t;
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  const pillMap={0:'.tp.all',1:'.tp.t1',2:'.tp.t2',3:'.tp.t3',4:'.tp.t4',5:'.tp.t5'};
+  document.querySelector(pillMap[t])?.classList.add('active');
+  applyFilters();
+};
+
+window.refreshData=()=>{showToast('جاري التحديث...','fa-sync','#38BDF8');};
+
+// ══════════════════════════════════════════
+// RENDER CARDS
+// ══════════════════════════════════════════
+function renderCards(arr){
+  const grid=$('ptsGrid');
+  if(!arr.length){
+    grid.innerHTML=`<div style="grid-column:1/-1"><div class="empty"><i class="fas fa-search"></i><h3>لا توجد نتائج مطابقة</h3><p style="font-size:.8rem">جرب تغيير فلاتر البحث</p></div></div>`;
+    return;
+  }
+  grid.innerHTML=arr.map(([id,p])=>cardHTML(id,p)).join('');
+}
+
+function cardHTML(id,p){
+  const t=+p.triage||3;
+  const ini=(p.name||'؟').charAt(0);
+  const genderIco=p.gender==='male'?'fa-mars':'fa-venus';
+  const genderLbl=p.gender==='male'?'ذكر':p.gender==='female'?'أنثى':'غير محدد';
+  const wm=waitMins(p.timestamp);
+  const wc=waitClass(p.timestamp);
+
+  // Diseases
+  let disHtml='';
+  if(p.diseases&&p.diseases.trim()){
+    const dis=p.diseases.split(/[،,]/).map(d=>d.trim()).filter(Boolean);
+    disHtml=`<div class="dtags">${dis.map(d=>`<span class="dtag"><i class="fas fa-notes-medical" style="font-size:.55rem"></i>${d}</span>`).join('')}</div>`;
+  }
+
+  return`<div class="pcard t${t}" id="pc-${id}">
+    <div class="pcard-hdr">
+      <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:0">
+        <div class="pcard-avatar">${ini}</div>
+        <div style="flex:1;min-width:0">
+          <div class="pcard-name">${p.name||'غير معروف'}</div>
+          <div class="pcard-nid">${p.nid||'—'}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <div class="tbadge t${t}"><span class="tbadge-dot"></span>${TRIAGE_LABEL[t]}</div>
+        <span class="sbadge ${STATUS_CSS[p.status]||'sb-active'}">${STATUS_LABEL[p.status]||'نشط'}</span>
+      </div>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-grid">
+        <div class="pinfo highlight"><i class="fas fa-birthday-cake"></i><span>${p.age||'—'} سنة</span></div>
+        <div class="pinfo"><i class="fas ${genderIco}"></i><span>${genderLbl}</span></div>
+        <div class="pinfo highlight"><i class="fas fa-tint"></i><span>${p.bloodType||'—'}</span></div>
+        <div class="pinfo"><i class="fas fa-flag"></i><span>${p.nationality||'—'}</span></div>
+        <div class="pinfo full"><i class="fas fa-user-md"></i><span>${p.doctorName?`د. ${p.doctorName}`:'طبيب غير محدد'}</span></div>
+        ${p.phone?`<div class="pinfo full"><i class="fas fa-phone"></i><span>${p.phone}</span></div>`:''}
+        ${p.address?`<div class="pinfo full"><i class="fas fa-map-marker-alt"></i><span>${p.address}</span></div>`:''}
+        <div class="pinfo"><i class="fas fa-calendar"></i><span>${fmtDate(p.timestamp)}</span></div>
+        <div class="pinfo"><i class="fas fa-clock"></i><span>${fmtTime(p.timestamp)}</span></div>
+        ${p.visitType?`<div class="pinfo full"><i class="fas fa-tag"></i><span>${p.visitType==='first'?'أول زيارة':p.visitType==='followup'?'متابعة':'طوارئ'}</span></div>`:''}
+        ${p.hasInsurance?`<div class="pinfo full"><i class="fas fa-shield-alt" style="color:rgba(124,58,237,.8)"></i><span style="color:rgba(167,139,250,.9)">${p.insuranceCompany||'تأمين صحي'} — ${p.insuranceCoverage||0}%</span></div>`:''}
+      </div>
+      ${disHtml}
+    </div>
+    <div class="pcard-ftr">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="wait-chip ${wc}"><i class="fas fa-hourglass-half"></i> ${fmtWait(p.timestamp)}</span>
+        <span class="pcard-ts">${fmtTime(p.timestamp)}</span>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="openModal('${id}')"><i class="fas fa-eye"></i> تفاصيل</button>
+        ${p.status==='active'?`<button class="btn btn-sm" style="background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(220,38,38,.25)" onclick="updateStatus('${id}','${p.department||'emergency'}','critical')"><i class="fas fa-exclamation"></i></button>`:''}
+        ${p.status!=='discharged'?`<button class="btn btn-sm" style="background:rgba(217,119,6,.12);color:#FCD34D;border:1px solid rgba(217,119,6,.25)" onclick="discharge('${id}','${p.department||'emergency'}')"><i class="fas fa-sign-out-alt"></i></button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// STATUS UPDATE
+// ══════════════════════════════════════════
+window.updateStatus=function(id,dept,newStatus){
+  db.ref(`patients/${dept}/${id}`).update({status:newStatus});
+  showToast(`تم تحديث الحالة إلى: ${STATUS_LABEL[newStatus]}`,'fa-check','#4ADE80');
+};
+
+window.discharge=function(id,dept){
+  if(!confirm(`تأكيد تسجيل خروج هذا المريض؟`))return;
+  db.ref(`patients/${dept}/${id}`).update({status:'discharged',dischargeDate:new Date().toISOString()});
+  showToast('تم تسجيل خروج المريض','fa-sign-out-alt','#FCD34D');
+};
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+window.openModal=function(id){
+  const p=allPts[id];if(!p)return;
+  const t=+p.triage||3;
+  $('mTitle').textContent=p.name||'ملف المريض';
+
+  const dis=p.diseases?p.diseases.split(/[،,]/).map(d=>d.trim()).filter(Boolean):[];
+
+  $('mBody').innerHTML=`
+    <!-- Triage header -->
+    <div style="background:rgba(${t===1?'220,38,38':t===2?'234,88,12':t===3?'217,119,6':t===4?'5,150,105':'2,132,199'},.1);border:1px solid rgba(${t===1?'220,38,38':t===2?'234,88,12':t===3?'217,119,6':t===4?'5,150,105':'2,132,199'},.2);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <i class="fas ${TRIAGE_ICON[t]}" style="font-size:1.3rem;color:${TRIAGE_COLOR[t]}"></i>
+        <div>
+          <div style="font-weight:800;color:${TRIAGE_COLOR[t]};font-size:.95rem">${TRIAGE_LABEL[t]}</div>
+          <div style="font-size:.7rem;color:var(--muted)">درجة الأولوية: ${t} / 5</div>
+        </div>
+      </div>
+      <div style="text-align:left">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">تحديث الحالة</div>
+        <select class="status-sel" onchange="updateStatus('${id}','${p.department||'emergency'}',this.value)">
+          <option value="active" ${p.status==='active'?'selected':''}>نشط</option>
+          <option value="critical" ${p.status==='critical'?'selected':''}>حرج</option>
+          <option value="pending" ${p.status==='pending'?'selected':''}>انتظار دفع</option>
+          <option value="discharged" ${p.status==='discharged'?'selected':''}>خرج</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="msec-title">البيانات الشخصية</div>
+    <div class="mrow">
+      <div class="mfield"><label>الاسم الكامل</label><div class="mval big">${p.name||'—'}</div></div>
+      <div class="mfield"><label>الرقم القومي</label><div class="mval" style="font-family:'IBM Plex Mono',monospace">${p.nid||'—'}</div></div>
+      <div class="mfield"><label>العمر</label><div class="mval">${p.age?p.age+' سنة':'—'}</div></div>
+      <div class="mfield"><label>الجنس</label><div class="mval">${p.gender==='male'?'ذكر':p.gender==='female'?'أنثى':'—'}</div></div>
+      <div class="mfield"><label>تاريخ الميلاد</label><div class="mval">${p.dob||'—'}</div></div>
+      <div class="mfield"><label>فصيلة الدم</label><div class="mval" style="color:#F87171;font-size:1.1rem;font-weight:800">${p.bloodType||'—'}</div></div>
+      <div class="mfield"><label>الجنسية</label><div class="mval">${p.nationality||'—'}</div></div>
+      <div class="mfield"><label>الحالة الاجتماعية</label><div class="mval">${{single:'أعزب',married:'متزوج',divorced:'مطلق',widowed:'أرمل'}[p.marital]||'—'}</div></div>
+    </div>
+    <div class="mrow full">
+      <div class="mfield"><label>العنوان</label><div class="mval">${p.address||'—'}</div></div>
+    </div>
+    <div class="mrow">
+      <div class="mfield"><label>رقم الهاتف</label><div class="mval">${p.phone||'—'}</div></div>
+      <div class="mfield"><label>هاتف الطوارئ</label><div class="mval">${p.emergencyPhone||'—'}</div></div>
+      <div class="mfield"><label>المهنة</label><div class="mval">${p.job||'—'}</div></div>
+      <div class="mfield"><label>نوع الزيارة</label><div class="mval">${{first:'أول زيارة',followup:'متابعة',emergency:'طوارئ'}[p.visitType]||'—'}</div></div>
+    </div>
+
+    <div class="msec-title">البيانات الطبية</div>
+    <div class="mrow">
+      <div class="mfield"><label>القسم</label><div class="mval">${DEPT_LABEL[p.department]||p.department||'—'}</div></div>
+      <div class="mfield"><label>الطبيب المعالج</label><div class="mval">${p.doctorName?'د. '+p.doctorName:'غير محدد'}</div></div>
+    </div>
+    ${dis.length?`
+    <div class="mrow full">
+      <div class="mfield"><label>الأمراض المزمنة</label><div class="dtags" style="margin:0;padding:0;border:none">${dis.map(d=>`<span class="dtag">${d}</span>`).join('')}</div></div>
+    </div>`:''}
+
+    <div class="msec-title">التوقيت والحالة</div>
+    <div class="mrow">
+      <div class="mfield"><label>تاريخ التسجيل</label><div class="mval">${fmtDate(p.timestamp)}</div></div>
+      <div class="mfield"><label>وقت التسجيل</label><div class="mval">${fmtTime(p.timestamp)}</div></div>
+      <div class="mfield"><label>وقت الانتظار</label><div class="mval" style="color:${waitMins(p.timestamp)>60?'#F87171':waitMins(p.timestamp)>30?'#FCD34D':'#4ADE80'}">${fmtWait(p.timestamp)}</div></div>
+      <div class="mfield"><label>الحالة الحالية</label><div class="mval"><span class="sbadge ${STATUS_CSS[p.status]||'sb-active'}">${STATUS_LABEL[p.status]||'نشط'}</span></div></div>
+    </div>
+    ${p.dischargeDate?`<div class="mrow full"><div class="mfield"><label>تاريخ الخروج</label><div class="mval">${fmtDateTime(p.dischargeDate)}</div></div></div>`:''}
+
+    ${(p.hasInsurance)?`
+    <div class="msec-title">التأمين الصحي</div>
+    <div class="ins-box" style="margin-bottom:1rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem">
+        <div><div style="font-size:.65rem;color:rgba(167,139,250,.7);font-weight:700;margin-bottom:3px">شركة التأمين</div><div style="font-size:.85rem;font-weight:700;color:rgba(196,181,253,.9)">${p.insuranceCompany||'—'}</div></div>
+        <div><div style="font-size:.65rem;color:rgba(167,139,250,.7);font-weight:700;margin-bottom:3px">رقم البوليصة</div><div style="font-size:.85rem;font-weight:700;color:rgba(196,181,253,.9)">${p.insuranceNumber||'—'}</div></div>
+        <div><div style="font-size:.65rem;color:rgba(167,139,250,.7);font-weight:700;margin-bottom:3px">نسبة التغطية</div><div style="font-size:1.1rem;font-weight:800;color:rgba(196,181,253,1)">${p.insuranceCoverage||0}%</div></div>
+      </div>
+    </div>`:''}
+
+    ${p.paymentMethod?`
+    <div class="msec-title">طريقة الدفع</div>
+    <div class="mrow full">
+      <div class="mfield"><label>طريقة الدفع</label><div class="mval">${{cash:'نقدي 💵',card:'بطاقة بنكية 💳',insurance:'تأمين صحي 🛡️',defer:'آجل ⏳'}[p.paymentMethod]||p.paymentMethod}</div></div>
+    </div>`:''}
+  `;
+
+  // Buttons
+  $('mPrintBtn').onclick=()=>printPatient(id);
+  $('mDischargeBtn').style.display=p.status==='discharged'?'none':'';
+  $('mDischargeBtn').onclick=()=>{discharge(id,p.department||'emergency');closeModal();};
+
+  $('ptModal').classList.add('open');
+};
+
+window.closeModal=()=>$('ptModal').classList.remove('open');
+$('ptModal').addEventListener('click',e=>{if(e.target===$('ptModal'))closeModal();});
+
+// ══════════════════════════════════════════
+// PRINT
+// ══════════════════════════════════════════
+window.printPatient=function(id){
+  const p=allPts[id];if(!p)return;
+  const win=window.open('','_blank');
+  const t=+p.triage||3;
+  const dis=p.diseases?p.diseases.split(/[،,]/).map(d=>d.trim()).filter(Boolean):[];
+  win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>ملف طوارئ — ${p.name}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif}body{padding:24px;color:#0F172A;background:#fff;font-size:13px}
+  .top{text-align:center;padding-bottom:16px;margin-bottom:18px;border-bottom:3px solid #DC2626}
+  .top h1{font-size:1.4rem;color:#0C4A6E;font-weight:800}.top p{font-size:.8rem;color:#64748B}
+  .tri-badge{display:inline-block;padding:4px 16px;border-radius:999px;font-weight:800;font-size:.85rem;margin:8px 0;background:${t===1?'#FEF2F2':t===2?'#FFF7ED':t===3?'#FFFBEB':t===4?'#F0FDF4':'#F0F9FF'};color:${TRIAGE_COLOR[t]};border:1px solid ${TRIAGE_COLOR[t]}}
+  h2{font-size:.85rem;color:#DC2626;border-right:3px solid #DC2626;padding-right:8px;margin:14px 0 8px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .field{background:#F8FAFC;border-radius:6px;padding:8px 10px;border:1px solid #E2E8F0}
+  .field label{font-size:.65rem;color:#64748B;font-weight:700;display:block;margin-bottom:2px;text-transform:uppercase}
+  .field .val{font-size:.88rem;font-weight:600;color:#0F172A}
+  .tags span{display:inline-block;padding:2px 8px;background:#F1F5F9;border-radius:999px;font-size:.72rem;margin:2px}
+  @media print{button{display:none}}</style></head><body>
+  <div class="top"><h1>🏥 مستشفى الحياة الذكية</h1><p>قسم الطوارئ — ملف مريض</p><div class="tri-badge"><i>🔴</i> ${TRIAGE_LABEL[t]}</div></div>
+  <h2>البيانات الشخصية</h2>
+  <div class="grid">
+    <div class="field"><label>الاسم</label><div class="val">${p.name||'—'}</div></div>
+    <div class="field"><label>الرقم القومي</label><div class="val">${p.nid||'—'}</div></div>
+    <div class="field"><label>العمر</label><div class="val">${p.age?p.age+' سنة':'—'}</div></div>
+    <div class="field"><label>الجنس</label><div class="val">${p.gender==='male'?'ذكر':'أنثى'}</div></div>
+    <div class="field"><label>فصيلة الدم</label><div class="val" style="color:#DC2626;font-size:1rem;font-weight:800">${p.bloodType||'—'}</div></div>
+    <div class="field"><label>الجنسية</label><div class="val">${p.nationality||'—'}</div></div>
+    <div class="field"><label>الهاتف</label><div class="val">${p.phone||'—'}</div></div>
+    <div class="field"><label>هاتف الطوارئ</label><div class="val">${p.emergencyPhone||'—'}</div></div>
+  </div>
+  <div class="grid"><div class="field" style="grid-column:1/-1"><label>العنوان</label><div class="val">${p.address||'—'}</div></div></div>
+  <h2>البيانات الطبية</h2>
+  <div class="grid">
+    <div class="field"><label>القسم</label><div class="val">${DEPT_LABEL[p.department]||'الطوارئ'}</div></div>
+    <div class="field"><label>الطبيب المعالج</label><div class="val">${p.doctorName?'د. '+p.doctorName:'—'}</div></div>
+    <div class="field"><label>نوع الزيارة</label><div class="val">${{first:'أول زيارة',followup:'متابعة',emergency:'طوارئ'}[p.visitType]||'—'}</div></div>
+    <div class="field"><label>طريقة الدفع</label><div class="val">${{cash:'نقدي',card:'بطاقة',insurance:'تأمين',defer:'آجل'}[p.paymentMethod]||'—'}</div></div>
+  </div>
+  ${dis.length?`<div class="field" style="margin-bottom:10px"><label>الأمراض المزمنة</label><div class="tags">${dis.map(d=>`<span>${d}</span>`).join('')}</div></div>`:''}
+  ${p.hasInsurance?`<h2>التأمين الصحي</h2><div class="grid"><div class="field"><label>شركة التأمين</label><div class="val">${p.insuranceCompany||'—'}</div></div><div class="field"><label>التغطية</label><div class="val">${p.insuranceCoverage||0}%</div></div></div>`:''}
+  <h2>التوقيت</h2>
+  <div class="grid">
+    <div class="field"><label>تاريخ التسجيل</label><div class="val">${fmtDate(p.timestamp)}</div></div>
+    <div class="field"><label>وقت التسجيل</label><div class="val">${fmtTime(p.timestamp)}</div></div>
+  </div>
+  <div style="text-align:center;margin-top:20px;font-size:.72rem;color:#94A3B8;border-top:1px solid #E2E8F0;padding-top:12px">مستشفى الحياة الذكية — قسم الطوارئ — طُبع بتاريخ ${fmtDateTime(new Date())}</div>
+  <br><button onclick="window.print()" style="padding:8px 20px;background:#DC2626;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:.85rem">طباعة</button>
+  </body></html>`);
+  win.document.close();
+};
+
+window.printAll=function(){
+  window.print();
+  showToast('جاري الطباعة...','fa-print','#38BDF8');
+};
+
+// ══════════════════════════════════════════
+// EXPORT EXCEL
+// ══════════════════════════════════════════
+window.exportExcel=function(){
+  const data=Object.values(allPts).map(p=>({
+    'الاسم':p.name||'—','الرقم القومي':p.nid||'—','العمر':p.age||'—','الجنس':p.gender==='male'?'ذكر':'أنثى',
+    'فصيلة الدم':p.bloodType||'—','الهاتف':p.phone||'—','العنوان':p.address||'—',
+    'الجنسية':p.nationality||'—','الأولوية':TRIAGE_LABEL[+p.triage]||'—',
+    'الطبيب':p.doctorName||'—','الحالة':STATUS_LABEL[p.status]||'—',
+    'نوع الزيارة':{first:'أول زيارة',followup:'متابعة',emergency:'طوارئ'}[p.visitType]||'—',
+    'الأمراض المزمنة':p.diseases||'—',
+    'تأمين':p.hasInsurance?'نعم':'لا','شركة التأمين':p.insuranceCompany||'—',
+    'نسبة التغطية':(p.insuranceCoverage||0)+'%',
+    'طريقة الدفع':{cash:'نقدي',card:'بطاقة',insurance:'تأمين',defer:'آجل'}[p.paymentMethod]||'—',
+    'تاريخ التسجيل':fmtDate(p.timestamp),'وقت التسجيل':fmtTime(p.timestamp)
+  }));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'الطوارئ');
+  XLSX.writeFile(wb,'طوارئ_مستشفى_الحياة.xlsx');
+  showToast('تم تصدير البيانات بنجاح','fa-file-excel','#4ADE80');
+};
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+setTimeout(()=>$('loader').classList.add('hide'),2500);
+</script>
 </body>
 </html>
