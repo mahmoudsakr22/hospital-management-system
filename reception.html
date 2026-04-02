@@ -1,1091 +1,70 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام استقبال المستشفى</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    :root {
-      --primary: #0EA5E9;
-      --primary-dark: #0284C7;
-      --primary-light: #E0F2FE;
-      --secondary: #10B981;
-      --secondary-light: #D1FAE5;
-      --accent: #6366F1;
-      --accent-light: #EDE9FE;
-      --danger: #EF4444;
-      --danger-light: #FEE2E2;
-      --warning: #F59E0B;
-      --warning-light: #FEF3C7;
-      --success: #10B981;
-      --success-light: #D1FAE5;
-      --gray-50: #F9FAFB;
-      --gray-100: #F3F4F6;
-      --gray-200: #E5E7EB;
-      --gray-300: #D1D5DB;
-      --gray-400: #9CA3AF;
-      --gray-500: #6B7280;
-      --gray-600: #4B5563;
-      --gray-700: #374151;
-      --gray-800: #1F2937;
-      --gray-900: #111827;
-      --white: #FFFFFF;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    * {
-      font-family: 'Cairo', sans-serif;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
-      color: var(--gray-800);
-      min-height: 100vh;
-    }
-
-    .main-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-
-    .header {
-      background: var(--white);
-      border-radius: 16px;
-      padding: 1.5rem 2rem;
-      box-shadow: var(--shadow-md);
-      margin-bottom: 2rem;
-      border: 1px solid var(--gray-200);
-    }
-
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .logo-section {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .logo {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.5rem;
-      box-shadow: var(--shadow-md);
-    }
-
-    .logo-text {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--gray-800);
-    }
-
-    .logo-subtitle {
-      font-size: 0.875rem;
-      color: var(--gray-500);
-      margin-top: 0.25rem;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 0.5rem;
-      background: var(--gray-100);
-      padding: 0.25rem;
-      border-radius: 12px;
-      flex-wrap: wrap;
-    }
-
-    .nav-tab {
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      background: transparent;
-      border: none;
-      color: var(--gray-600);
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .nav-tab:hover {
-      background: var(--white);
-      color: var(--primary);
-      transform: translateY(-1px);
-    }
-
-    .nav-tab.active {
-      background: var(--white);
-      color: var(--primary);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .tab-content {
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .card {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--gray-200);
-      transition: all 0.3s ease;
-    }
-
-    .card:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateY(-2px);
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .card-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--gray-800);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn {
-      padding: 0.625rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 500;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.875rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: white;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-secondary {
-      background: var(--gray-100);
-      color: var(--gray-700);
-    }
-
-    .btn-secondary:hover {
-      background: var(--gray-200);
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .btn-warning {
-      background: var(--warning);
-      color: white;
-    }
-
-    .btn-sm {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.8rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--gray-700);
-      font-size: 0.875rem;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 0.625rem 0.875rem;
-      border: 1px solid var(--gray-300);
-      border-radius: 8px;
-      font-size: 0.875rem;
-      transition: all 0.3s ease;
-      background: var(--white);
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-light);
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: var(--white);
-      padding: 1.25rem;
-      border-radius: 12px;
-      border: 1px solid var(--gray-200);
-      transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .stat-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .stat-icon.primary {
-      background: var(--primary-light);
-      color: var(--primary);
-    }
-
-    .stat-icon.success {
-      background: var(--success-light);
-      color: var(--success);
-    }
-
-    .stat-icon.warning {
-      background: var(--warning-light);
-      color: var(--warning);
-    }
-
-    .stat-icon.danger {
-      background: var(--danger-light);
-      color: var(--danger);
-    }
-
-    .stat-value {
-      font-size: 1.875rem;
-      font-weight: 700;
-      color: var(--gray-800);
-      margin-bottom: 0.25rem;
-    }
-
-    .stat-label {
-      font-size: 0.875rem;
-      color: var(--gray-500);
-    }
-
-    .table-container {
-      overflow-x: auto;
-      border-radius: 8px;
-      border: 1px solid var(--gray-200);
-    }
-
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .table th {
-      background: var(--gray-50);
-      padding: 0.75rem 1rem;
-      text-align: right;
-      font-weight: 600;
-      color: var(--gray-700);
-      font-size: 0.875rem;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .table td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--gray-100);
-      font-size: 0.875rem;
-    }
-
-    .table tr:hover {
-      background: var(--gray-50);
-    }
-
-    .badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      display: inline-block;
-    }
-
-    .badge-primary {
-      background: var(--primary-light);
-      color: var(--primary-dark);
-    }
-
-    .badge-success {
-      background: var(--success-light);
-      color: var(--success);
-    }
-
-    .badge-warning {
-      background: var(--warning-light);
-      color: var(--warning);
-    }
-
-    .badge-danger {
-      background: var(--danger-light);
-      color: var(--danger);
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .modal.open {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background: var(--white);
-      border-radius: 16px;
-      padding: 2rem;
-      max-width: 600px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: slideUp 0.3s ease;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--gray-800);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--gray-400);
-      cursor: pointer;
-      transition: color 0.3s ease;
-    }
-
-    .modal-close:hover {
-      color: var(--gray-600);
-    }
-
-    .loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.95);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    .loading-spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid var(--gray-200);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--gray-400);
-    }
-
-    .empty-state i {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 300px;
-      margin-top: 1rem;
-    }
-
-    .grid-cols-2 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-
-    .grid-cols-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-    }
-
-    @media (max-width: 768px) {
-      .grid-cols-2,
-      .grid-cols-3 {
-        grid-template-columns: 1fr;
-      }
-      
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .nav-tabs {
-        justify-content: center;
-      }
-      
-      .header-content {
-        flex-direction: column;
-        text-align: center;
-      }
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--gray-800);
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      box-shadow: var(--shadow-lg);
-      z-index: 2000;
-      animation: slideUp 0.3s ease;
-      display: none;
-    }
-
-    .toast.show {
-      display: block;
-    }
-
-    .search-box {
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-
-    .search-box input {
-      padding-right: 2.5rem;
-    }
-
-    .search-box i {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--gray-400);
-    }
-
-    .priority-high {
-      color: var(--danger);
-      font-weight: 600;
-    }
-
-    .priority-medium {
-      color: var(--warning);
-      font-weight: 500;
-    }
-
-    .priority-low {
-      color: var(--success);
-      font-weight: 500;
-    }
-
-    .doctor-card {
-      background: var(--gray-50);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      border: 1px solid var(--gray-200);
-      transition: all 0.3s ease;
-    }
-
-    .doctor-card:hover {
-      background: var(--white);
-      box-shadow: var(--shadow);
-    }
-
-    .doctor-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .doctor-name {
-      font-weight: 600;
-      color: var(--gray-800);
-      margin-bottom: 0.25rem;
-    }
-
-    .doctor-specialty {
-      font-size: 0.8rem;
-      color: var(--gray-500);
-    }
-
-    .doctor-status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .status-available {
-      background: var(--success);
-    }
-
-    .status-busy {
-      background: var(--warning);
-    }
-
-    .status-offline {
-      background: var(--gray-400);
-    }
-  </style>
-</head>
-<body>
-  <div class="loading" id="loading">
-    <div class="loading-spinner"></div>
-  </div>
-
-  <div class="main-container">
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div class="logo-section">
-          <div class="logo">
-            <i class="fas fa-hospital"></i>
-          </div>
-          <div>
-            <div class="logo-text">مستشفى الحياة</div>
-            <div class="logo-subtitle">نظام إدارة الاستقبال</div>
-          </div>
-        </div>
-        
-        <nav class="nav-tabs">
-          <button class="nav-tab active" onclick="switchTab('dashboard')">
-            <i class="fas fa-tachometer-alt"></i>
-            لوحة التحكم
-          </button>
-          <button class="nav-tab" onclick="switchTab('reception')">
-            <i class="fas fa-user-plus"></i>
-            الاستقبال
-          </button>
-          <button class="nav-tab" onclick="switchTab('patients')">
-            <i class="fas fa-users"></i>
-            المرضى
-          </button>
-          <button class="nav-tab" onclick="switchTab('doctors')">
-            <i class="fas fa-user-md"></i>
-            الأطباء
-          </button>
-          <button class="nav-tab" onclick="switchTab('appointments')">
-            <i class="fas fa-calendar-check"></i>
-            المواعيد
-          </button>
-          <button class="nav-tab" onclick="switchTab('invoices')">
-            <i class="fas fa-file-invoice"></i>
-            الفواتير
-          </button>
-        </nav>
-      </div>
-    </header>
-
-    <!-- Dashboard Tab -->
-    <div id="dashboard" class="tab-content active">
-      <!-- Statistics Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon primary">
-            <i class="fas fa-users"></i>
-          </div>
-          <div class="stat-value" id="total-patients">0</div>
-          <div class="stat-label">إجمالي المرضى</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon success">
-            <i class="fas fa-user-check"></i>
-          </div>
-          <div class="stat-value" id="today-patients">0</div>
-          <div class="stat-label">مرضى اليوم</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon warning">
-            <i class="fas fa-procedures"></i>
-          </div>
-          <div class="stat-value" id="emergency-cases">0</div>
-          <div class="stat-label">حالات الطوارئ</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon danger">
-            <i class="fas fa-user-md"></i>
-          </div>
-          <div class="stat-value" id="available-doctors">0</div>
-          <div class="stat-label">أطباء متاحون</div>
-        </div>
-      </div>
-
-      <!-- Charts Row -->
-      <div class="grid-cols-2">
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">
-              <i class="fas fa-chart-line"></i>
-              توزيع المرضى حسب القسم
-            </h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="deptChart"></canvas>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">
-              <i class="fas fa-calendar-week"></i>
-              الح اليومي للمرضى
-            </h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="dailyChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Activities -->
-      <div class="card" style="margin-top: 1.5rem;">
-        <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-history"></i>
-            آخر النشاطات
-          </h3>
-        </div>
-        <div id="recent-activities">
-          <div class="empty-state">
-            <i class="fas fa-clock"></i>
-            <p>لا توجد نشاطات حديثة</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Reception Tab -->
-    <div id="reception" class="tab-content">
-      <div class="grid-cols-2">
-        <!-- Patient Registration -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">
-              <i class="fas fa-user-plus"></i>
-              تسجيل مريض جديد
-            </h3>
-          </div>
-          
-          <form id="patient-form">
-            <div class="form-group">
-              <label class="form-label">الاسم الكامل</label>
-              <input type="text" class="form-control" id="patient-name" required>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">رقم الهوية</label>
-              <input type="text" class="form-control" id="patient-id" required>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">رقم الهاتف</label>
-              <input type="tel" class="form-control" id="patient-phone" required>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">القسم</label>
-              <select class="form-control" id="patient-dept" required>
-                <option value="">اختر القسم</option>
-                <option value="emergency">الطوارئ</option>
-                <option value="icu">العناية المركزة</option>
-                <option value="general">طب عام</option>
-                <option value="surgery">جراحة</option>
-                <option value="pediatrics">أطفال</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">درجة الأولوية</label>
-              <select class="form-control" id="patient-priority" required>
-                <option value="low">منخفضة</option>
-                <option value="medium">متوسطة</option>
-                <option value="high">عالية</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">ملاحظات</label>
-              <textarea class="form-control" id="patient-notes" rows="3"></textarea>
-            </div>
-            
-            <button type="submit" class="btn btn-primary" style="width: 100%;">
-              <i class="fas fa-save"></i>
-              تسجيل المريض
-            </button>
-          </form>
-        </div>
-        
-        <!-- Available Doctors -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">
-              <i class="fas fa-user-md"></i>
-              الأطباء المتاحون
-            </h3>
-          </div>
-          
-          <div class="search-box">
-            <input type="text" class="form-control" placeholder="بحث عن طبيب..." id="doctor-search">
-            <i class="fas fa-search"></i>
-          </div>
-          
-          <div id="doctors-list">
-            <div class="empty-state">
-              <i class="fas fa-user-md"></i>
-              <p>جاري تحميل الأطباء...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Patients Tab -->
-    <div id="patients" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-users"></i>
-            قائمة المرضى
-          </h3>
-          <button class="btn btn-primary" onclick="exportPatients()">
-            <i class="fas fa-download"></i>
-            تصدير
-          </button>
-        </div>
-        
-        <div class="search-box">
-          <input type="text" class="form-control" placeholder="بحث عن مريض..." id="patients-search">
-          <i class="fas fa-search"></i>
-        </div>
-        
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>الاسم</th>
-                <th>رقم الهوية</th>
-                <th>الهاتف</th>
-                <th>القسم</th>
-                <th>الأولوية</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="patients-table">
-              <tr>
-                <td colspan="7" class="text-center py-8">
-                  <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <p>لا يوجد مرضى مسجلين</p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Doctors Tab -->
-    <div id="doctors" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-user-md"></i>
-            قائمة الأطباء
-          </h3>
-          <button class="btn btn-primary" onclick="openDoctorModal()">
-            <i class="fas fa-plus"></i>
-            إضافة طبيب
-          </button>
-        </div>
-        
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>الاسم</th>
-                <th>التخصص</th>
-                <th>القسم</th>
-                <th>الهاتف</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="doctors-table">
-              <tr>
-                <td colspan="6" class="text-center py-8">
-                  <div class="empty-state">
-                    <i class="fas fa-user-md"></i>
-                    <p>لا يوجد أطباء مسجلين</p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Appointments Tab -->
-    <div id="appointments" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-calendar-check"></i>
-            المواعيد المحجوزة
-          </h3>
-          <button class="btn btn-primary" onclick="openAppointmentModal()">
-            <i class="fas fa-plus"></i>
-            حجز موعد
-          </button>
-        </div>
-        
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>المريض</th>
-                <th>الطبيب</th>
-                <th>التاريخ</th>
-                <th>الوقت</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="appointments-table">
-              <tr>
-                <td colspan="6" class="text-center py-8">
-                  <div class="empty-state">
-                    <i class="fas fa-calendar-check"></i>
-                    <p>لا توجد مواعيد محجوزة</p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Invoices Tab -->
-    <div id="invoices" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-file-invoice"></i>
-            الفواتير
-          </h3>
-          <button class="btn btn-primary" onclick="openInvoiceModal()">
-            <i class="fas fa-plus"></i>
-            إنشاء فاتورة
-          </button>
-        </div>
-        
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>رقم الفاتورة</th>
-                <th>المريض</th>
-                <th>التاريخ</th>
-                <th>المبلغ</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="invoices-table">
-              <tr>
-                <td colspan="6" class="text-center py-8">
-                  <div class="empty-state">
-                    <i class="fas fa-file-invoice"></i>
-                    <p>لا توجد فواتير</p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   </div>
 
-  <!-- Toast Notification -->
-  <div class="toast" id="toast"></div>
-
-  <!-- Doctor Modal -->
-  <div class="modal" id="doctor-modal">
+  <!-- Bed Management Modal -->
+  <div id="bedModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">إضافة طبيب جديد</h2>
-        <button class="modal-close" onclick="closeModal('doctor-modal')">
-          <i class="fas fa-times"></i>
-        </button>
+        <h3><i class="fas fa-bed"></i> إدارة الأسرة</h3>
+        <button class="close-btn" onclick="closeModal('bedModal')">&times;</button>
       </div>
-      
-      <form id="doctor-form">
-        <div class="form-group">
-          <label class="form-label">الاسم الكامل</label>
-          <input type="text" class="form-control" id="doctor-name" required>
+      <div class="modal-body">
+        <div class="bed-grid" id="bedGrid">
+          <!-- Beds will be dynamically added here -->
         </div>
-        
-        <div class="form-group">
-          <label class="form-label">التخصص</label>
-          <input type="text" class="form-control" id="doctor-specialty" required>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">القسم</label>
-          <select class="form-control" id="doctor-dept" required>
-            <option value="">اختر القسم</option>
-            <option value="emergency">الطوارئ</option>
-            <option value="icu">العناية المركزة</option>
-            <option value="general">طب عام</option>
-            <option value="surgery">جراحة</option>
-            <option value="pediatrics">أطفال</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">رقم الهاتف</label>
-          <input type="tel" class="form-control" id="doctor-phone" required>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">البريد الإلكتروني</label>
-          <input type="email" class="form-control" id="doctor-email">
-        </div>
-        
-        <button type="submit" class="btn btn-primary" style="width: 100%;">
-          <i class="fas fa-save"></i>
-          حفظ البيانات
-        </button>
-      </form>
+      </div>
     </div>
   </div>
 
+  <!-- Audit Trail Modal -->
+  <div id="auditModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-history"></i> سجل النشاطات</h3>
+        <button class="close-btn" onclick="closeModal('auditModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="audit-list" id="auditList">
+          <!-- Audit entries will be dynamically added here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>جاري التحميل...</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2024 مستشفى الحياة الذكية - جميع الحقوق محفوظة</p>
+      <p>نظام إدارة الاستقبال المتقدم v2.0</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
     // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDummyKeyForDemo",
-      authDomain: "hospital-demo.firebaseapp.com",
-      databaseURL: "https://hospital-demo-default-rtdb.firebaseio.com",
-      projectId: "hospital-demo",
-      storageBucket: "hospital-demo.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:abcdef123456"
+      authDomain: "smart-hospital-demo.firebaseapp.com",
+      databaseURL: "https://smart-hospital-demo-default-rtdb.firebaseio.com",
+      projectId: "smart-hospital-demo",
+      storageBucket: "smart-hospital-demo.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:abcdef1234567890"
     };
 
     // Initialize Firebase
@@ -1093,460 +72,1244 @@
     const database = firebase.database();
 
     // Global Variables
-    let currentTab = 'dashboard';
+    let currentUser = null;
     let patients = [];
     let doctors = [];
     let appointments = [];
     let invoices = [];
+    let beds = [];
+    let waitingList = [];
+    let auditTrail = [];
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
+    // Utility Functions
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('ar-EG', {
+        style: 'currency',
+        currency: 'EGP'
+      }).format(amount);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    function formatTime(timeString) {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      const period = hour >= 12 ? 'م' : 'ص';
+      const displayHour = hour > 12 ? hour - 12 : hour;
+      return `${displayHour}:${minutes} ${period}`;
+    }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+      `;
+      
+      const container = document.getElementById('toastContainer');
+      container.appendChild(toast);
+      
       setTimeout(() => {
-        document.getElementById('loading').style.display = 'none';
-        loadDashboardData();
-      }, 1500);
+        toast.classList.add('show');
+      }, 100);
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
 
-      // Form Submissions
-      document.getElementById('patient-form').addEventListener('submit', handlePatientSubmit);
-      document.getElementById('doctor-form').addEventListener('submit', handleDoctorSubmit);
-    });
+    function showLoading() {
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    }
 
-    // Tab Switching
+    function hideLoading() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    function addAuditLog(action, details, userId) {
+      const log = {
+        id: generateId(),
+        action: action,
+        details: details,
+        userId: userId || currentUser?.id || 'system',
+        timestamp: new Date().toISOString()
+      };
+      
+      database.ref('audit').push(log);
+    }
+
+    // Tab Navigation
     function switchTab(tabName) {
-      // Update nav tabs
-      document.querySelectorAll('.nav-tab').forEach(tab => {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
       });
-      event.target.closest('.nav-tab').classList.add('active');
-
-      // Update tab content
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-      });
-      document.getElementById(tabName).classList.add('active');
-
-      currentTab = tabName;
-
-      // Load data based on tab
-      switch(tabName) {
-        case 'dashboard':
-          loadDashboardData();
-          break;
-        case 'patients':
-          loadPatients();
-          break;
-        case 'doctors':
-          loadDoctors();
-          break;
-        case 'appointments':
-          loadAppointments();
-          break;
-        case 'invoices':
-          loadInvoices();
-          break;
-        case 'reception':
-          loadAvailableDoctors();
-          break;
-      }
-    }
-
-    // Dashboard Functions
-    function loadDashboardData() {
-      // Simulate loading data
-      document.getElementById('total-patients').textContent = '156';
-      document.getElementById('today-patients').textContent = '23';
-      document.getElementById('emergency-cases').textContent = '5';
-      document.getElementById('available-doctors').textContent = '12';
-
-      // Initialize charts
-      initializeCharts();
       
-      // Load recent activities
-      loadRecentActivities();
+      // Remove active class from all nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      
+      // Add active class to selected nav item
+      document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
     }
 
+    // Patient Management
+    function registerPatient() {
+      const patient = {
+        id: generateId(),
+        name: document.getElementById('patientName').value,
+        nationalId: document.getElementById('nationalId').value,
+        phone: document.getElementById('patientPhone').value,
+        age: document.getElementById('patientAge').value,
+        gender: document.getElementById('patientGender').value,
+        bloodType: document.getElementById('bloodType').value,
+        department: document.getElementById('department').value,
+        doctor: document.getElementById('doctor').value,
+        emergencyContact: document.getElementById('emergencyContact').value,
+        insurance: document.getElementById('insurance').value,
+        notes: document.getElementById('patientNotes').value,
+        status: 'active',
+        registrationDate: new Date().toISOString(),
+        registeredBy: currentUser?.id || 'reception'
+      };
+
+      showLoading();
+      database.ref('patients').child(patient.id).set(patient)
+        .then(() => {
+          showToast('تم تسجيل المريض بنجاح');
+          document.getElementById('patientForm').reset();
+          addAuditLog('تسجيل مريض جديد', `المريض: ${patient.name}`, currentUser?.id);
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء التسجيل', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function loadPatients() {
+      showLoading();
+      database.ref('patients').once('value')
+        .then(snapshot => {
+          patients = [];
+          snapshot.forEach(childSnapshot => {
+            patients.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+            });
+          });
+          renderPatients();
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء تحميل المرضى', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function renderPatients() {
+      const tbody = document.getElementById('patientsList');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      patients.forEach(patient => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${patient.name}</td>
+          <td>${patient.nationalId}</td>
+          <td>${patient.phone}</td>
+          <td>${patient.age}</td>
+          <td>${patient.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
+          <td>${patient.bloodType}</td>
+          <td>${getDepartmentName(patient.department)}</td>
+          <td>
+            <span class="status-badge status-${patient.status}">
+              ${patient.status === 'active' ? 'نشط' : patient.status === 'discharged' ? 'مخرج' : 'تحت الملاحظة'}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="viewPatient('${patient.id}')">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-warning" onclick="editPatient('${patient.id}')">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="dischargePatient('${patient.id}')">
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function getDepartmentName(deptId) {
+      const departments = {
+        'emergency': 'الطوارئ',
+        'icu': 'العناية المركزة',
+        'surgery': 'الجراحة',
+        'pediatrics': 'الأطفال',
+        'cardiology': 'القلب',
+        'neurology': 'الأعصاب',
+        'orthopedics': 'العظام',
+        'radiology': 'الأشعة'
+      };
+      return departments[deptId] || deptId;
+    }
+
+    function viewPatient(patientId) {
+      const patient = patients.find(p => p.id === patientId);
+      if (!patient) return;
+      
+      // Show patient details modal
+      openModal('patientDetailsModal');
+      // Populate modal with patient details
+    }
+
+    function editPatient(patientId) {
+      const patient = patients.find(p => p.id === patientId);
+      if (!patient) return;
+      
+      // Populate form with patient data
+      document.getElementById('patientName').value = patient.name;
+      document.getElementById('nationalId').value = patient.nationalId;
+      // ... other fields
+      
+      // Change form submit handler to update instead of create
+      document.getElementById('patientForm').onsubmit = function(e) {
+        e.preventDefault();
+        updatePatient(patientId);
+      };
+    }
+
+    function updatePatient(patientId) {
+      const updatedPatient = {
+        name: document.getElementById('patientName').value,
+        nationalId: document.getElementById('nationalId').value,
+        phone: document.getElementById('patientPhone').value,
+        age: document.getElementById('patientAge').value,
+        gender: document.getElementById('patientGender').value,
+        bloodType: document.getElementById('bloodType').value,
+        department: document.getElementById('department').value,
+        doctor: document.getElementById('doctor').value,
+        emergencyContact: document.getElementById('emergencyContact').value,
+        insurance: document.getElementById('insurance').value,
+        notes: document.getElementById('patientNotes').value
+      };
+
+      showLoading();
+      database.ref('patients').child(patientId).update(updatedPatient)
+        .then(() => {
+          showToast('تم تحديث بيانات المريض بنجاح');
+          document.getElementById('patientForm').reset();
+          addAuditLog('تحديث بيانات مريض', `المريض: ${updatedPatient.name}`, currentUser?.id);
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء التحديث', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function dischargePatient(patientId) {
+      if (!confirm('هل أنت متأكد من تسجيل خروج المريض؟')) return;
+      
+      showLoading();
+      database.ref('patients').child(patientId).update({
+        status: 'discharged',
+        dischargeDate: new Date().toISOString()
+      })
+      .then(() => {
+        showToast('تم تسجيل خروج المريض بنجاح');
+        addAuditLog('تسجيل خروج مريض', `معرف المريض: ${patientId}`, currentUser?.id);
+      })
+      .catch(error => {
+        showToast('حدث خطأ أثناء تسجيل الخروج', 'error');
+        console.error(error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    }
+
+    // Doctor Management
+    function loadDoctors() {
+      showLoading();
+      database.ref('doctors').once('value')
+        .then(snapshot => {
+          doctors = [];
+          snapshot.forEach(childSnapshot => {
+            doctors.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+            });
+          });
+          renderDoctors();
+          populateDoctorSelects();
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء تحميل الأطباء', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function renderDoctors() {
+      const tbody = document.getElementById('doctorsList');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      doctors.forEach(doctor => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${doctor.name}</td>
+          <td>${doctor.specialization}</td>
+          <td>${getDepartmentName(doctor.department)}</td>
+          <td>${formatTime(doctor.workFrom)} - ${formatTime(doctor.workTo)}</td>
+          <td>
+            <span class="status-badge status-${doctor.available ? 'available' : 'busy'}">
+              ${doctor.available ? 'متاح' : 'مشغول'}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="viewDoctor('${doctor.id}')">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-warning" onclick="editDoctor('${doctor.id}')">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-${doctor.available ? 'danger' : 'success'}" 
+                    onclick="toggleDoctorAvailability('${doctor.id}')">
+              <i class="fas fa-${doctor.available ? 'pause' : 'play'}"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function populateDoctorSelects() {
+      const selects = document.querySelectorAll('select[id="doctor"]');
+      selects.forEach(select => {
+        select.innerHTML = '<option value="">اختر الطبيب</option>';
+        doctors.filter(d => d.available).forEach(doctor => {
+          const option = document.createElement('option');
+          option.value = doctor.id;
+          option.textContent = `${doctor.name} - ${doctor.specialization}`;
+          select.appendChild(option);
+        });
+      });
+    }
+
+    function toggleDoctorAvailability(doctorId) {
+      const doctor = doctors.find(d => d.id === doctorId);
+      if (!doctor) return;
+      
+      showLoading();
+      database.ref('doctors').child(doctorId).update({
+        available: !doctor.available
+      })
+      .then(() => {
+        showToast(`تم ${doctor.available ? 'إيقاف' : 'تفعيل'} الطبيب بنجاح`);
+        addAuditLog('تغيير توفر طبيب', `الطبيب: ${doctor.name}`, currentUser?.id);
+      })
+      .catch(error => {
+        showToast('حدث خطأ', 'error');
+        console.error(error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    }
+
+    // Appointment Management
+    function scheduleAppointment() {
+      const appointment = {
+        id: generateId(),
+        patientId: document.getElementById('appointmentPatient').value,
+        doctorId: document.getElementById('appointmentDoctor').value,
+        date: document.getElementById('appointmentDate').value,
+        time: document.getElementById('appointmentTime').value,
+        type: document.getElementById('appointmentType').value,
+        notes: document.getElementById('appointmentNotes').value,
+        status: 'scheduled',
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser?.id || 'reception'
+      };
+
+      showLoading();
+      database.ref('appointments').child(appointment.id).set(appointment)
+        .then(() => {
+          showToast('تم حجز الموعد بنجاح');
+          document.getElementById('appointmentForm').reset();
+          addAuditLog('حجز موعد جديد', `الموعد: ${appointment.date} ${appointment.time}`, currentUser?.id);
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء حجز الموعد', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function loadAppointments() {
+      showLoading();
+      database.ref('appointments').once('value')
+        .then(snapshot => {
+          appointments = [];
+          snapshot.forEach(childSnapshot => {
+            appointments.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+            });
+          });
+          renderAppointments();
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء تحميل المواعيد', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function renderAppointments() {
+      const tbody = document.getElementById('appointmentsList');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      appointments.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time))
+        .forEach(appointment => {
+          const patient = patients.find(p => p.id === appointment.patientId);
+          const doctor = doctors.find(d => d.id === appointment.doctorId);
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${formatDate(appointment.date)}</td>
+            <td>${formatTime(appointment.time)}</td>
+            <td>${patient ? patient.name : 'N/A'}</td>
+            <td>${doctor ? doctor.name : 'N/A'}</td>
+            <td>${getAppointmentTypeName(appointment.type)}</td>
+            <td>
+              <span class="status-badge status-${appointment.status}">
+                ${getAppointmentStatusName(appointment.status)}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="viewAppointment('${appointment.id}')">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-success" onclick="confirmAppointment('${appointment.id}')">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="cancelAppointment('${appointment.id}')">
+                <i class="fas fa-times"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+    }
+
+    function getAppointmentTypeName(type) {
+      const types = {
+        'consultation': 'استشارة',
+        'followup': 'متابعة',
+        'emergency': 'طوارئ',
+        'surgery': 'جراحة',
+        'checkup': 'فحص دوري'
+      };
+      return types[type] || type;
+    }
+
+    function getAppointmentStatusName(status) {
+      const statuses = {
+        'scheduled': 'مجدول',
+        'confirmed': 'مؤكد',
+        'completed': 'مكتمل',
+        'cancelled': 'ملغي',
+        'no-show': 'لم يحضر'
+      };
+      return statuses[status] || status;
+    }
+
+    function confirmAppointment(appointmentId) {
+      showLoading();
+      database.ref('appointments').child(appointmentId).update({
+        status: 'confirmed',
+        confirmedAt: new Date().toISOString()
+      })
+      .then(() => {
+        showToast('تم تأكيد الموعد بنجاح');
+        addAuditLog('تأكيد موعد', `معرف الموعد: ${appointmentId}`, currentUser?.id);
+      })
+      .catch(error => {
+        showToast('حدث خطأ', 'error');
+        console.error(error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    }
+
+    function cancelAppointment(appointmentId) {
+      if (!confirm('هل أنت متأكد من إلغاء الموعد؟')) return;
+      
+      showLoading();
+      database.ref('appointments').child(appointmentId).update({
+        status: 'cancelled',
+        cancelledAt: new Date().toISOString()
+      })
+      .then(() => {
+        showToast('تم إلغاء الموعد بنجاح');
+        addAuditLog('إلغاء موعد', `معرف الموعد: ${appointmentId}`, currentUser?.id);
+      })
+      .catch(error => {
+        showToast('حدث خطأ', 'error');
+        console.error(error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    }
+
+    // Billing Management
+    function createInvoice() {
+      const invoice = {
+        id: generateId(),
+        patientId: document.getElementById('invoicePatient').value,
+        services: getSelectedServices(),
+        subtotal: calculateSubtotal(),
+        discount: parseFloat(document.getElementById('discount').value) || 0,
+        tax: calculateTax(),
+        total: calculateTotal(),
+        paymentMethod: document.getElementById('paymentMethod').value,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser?.id || 'reception'
+      };
+
+      showLoading();
+      database.ref('invoices').child(invoice.id).set(invoice)
+        .then(() => {
+          showToast('تم إنشاء الفاتورة بنجاح');
+          document.getElementById('invoiceForm').reset();
+          addAuditLog('إنشاء فاتورة', `المبلغ: ${formatCurrency(invoice.total)}`, currentUser?.id);
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء إنشاء الفاتورة', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function loadInvoices() {
+      showLoading();
+      database.ref('invoices').once('value')
+        .then(snapshot => {
+          invoices = [];
+          snapshot.forEach(childSnapshot => {
+            invoices.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+            });
+          });
+          renderInvoices();
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء تحميل الفواتير', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function renderInvoices() {
+      const tbody = document.getElementById('invoicesList');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      invoices.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .forEach(invoice => {
+          const patient = patients.find(p => p.id === invoice.patientId);
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>#${invoice.id.substr(-6)}</td>
+            <td>${patient ? patient.name : 'N/A'}</td>
+            <td>${formatDate(invoice.createdAt)}</td>
+            <td>${formatCurrency(invoice.total)}</td>
+            <td>
+              <span class="status-badge status-${invoice.status}">
+                ${invoice.status === 'paid' ? 'مدفوعة' : invoice.status === 'pending' ? 'معلقة' : 'ملغاة'}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="viewInvoice('${invoice.id}')">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-success" onclick="payInvoice('${invoice.id}')">
+                <i class="fas fa-money-bill"></i>
+              </button>
+              <button class="btn btn-sm btn-info" onclick="printInvoice('${invoice.id}')">
+                <i class="fas fa-print"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+    }
+
+    function payInvoice(invoiceId) {
+      const invoice = invoices.find(i => i.id === invoiceId);
+      if (!invoice) return;
+      
+      showLoading();
+      database.ref('invoices').child(invoiceId).update({
+        status: 'paid',
+        paidAt: new Date().toISOString()
+      })
+      .then(() => {
+        showToast('تم سداد الفاتورة بنجاح');
+        addAuditLog('سداد فاتورة', `المبلغ: ${formatCurrency(invoice.total)}`, currentUser?.id);
+      })
+      .catch(error => {
+        showToast('حدث خطأ أثناء السداد', 'error');
+        console.error(error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    }
+
+    function printInvoice(invoiceId) {
+      const invoice = invoices.find(i => i.id === invoiceId);
+      if (!invoice) return;
+      
+      // Create print window
+      const printWindow = window.open('', '_blank');
+      const patient = patients.find(p => p.id === invoice.patientId);
+      
+      printWindow.document.write(`
+        <html dir="rtl">
+        <head>
+          <title>فاتورة - #${invoice.id.substr(-6)}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .invoice-details { margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+            th { background-color: #f5f5f5; }
+            .total { font-weight: bold; font-size: 18px; }
+            .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>مستشفى الحياة الذكية</h1>
+            <h2>فاتورة</h2>
+            <p>#${invoice.id.substr(-6)}</p>
+          </div>
+          
+          <div class="invoice-details">
+            <p><strong>المريض:</strong> ${patient ? patient.name : 'N/A'}</p>
+            <p><strong>التاريخ:</strong> ${formatDate(invoice.createdAt)}</p>
+            <p><strong>طريقة الدفع:</strong> ${invoice.paymentMethod}</p>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>الخدمة</th>
+                <th>السعر</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.services.map(service => `
+                <tr>
+                  <td>${service.name}</td>
+                  <td>${formatCurrency(service.price)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div class="total">
+            <p>الإجمالي: ${formatCurrency(invoice.total)}</p>
+          </div>
+          
+          <div class="footer">
+            <p>شكراً لثقتكم بنا</p>
+            <p>مستشفى الحياة الذكية - جميع الحقوق محفوظة</p>
+          </div>
+        </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    // Bed Management
+    function initializeBeds() {
+      const bedData = [];
+      const departments = ['emergency', 'icu', 'surgery', 'pediatrics', 'cardiology'];
+      const bedsPerDept = 20;
+      
+      departments.forEach(dept => {
+        for (let i = 1; i <= bedsPerDept; i++) {
+          bedData.push({
+            id: `${dept}-${i}`,
+            department: dept,
+            number: i,
+            status: 'available',
+            patientId: null,
+            assignedAt: null
+          });
+        }
+      });
+      
+      showLoading();
+      database.ref('beds').set(bedData)
+        .then(() => {
+          showToast('تم تهيئة الأسرة بنجاح');
+          loadBeds();
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء تهيئة الأسرة', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function loadBeds() {
+      showLoading();
+      database.ref('beds').once('value')
+        .then(snapshot => {
+          beds = [];
+          snapshot.forEach(childSnapshot => {
+            beds.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+            });
+          });
+          renderBeds();
+        })
+        .catch(error => {
+          showToast('حدث خطأ أثناء تحميل الأسرة', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function renderBeds() {
+      const grid = document.getElementById('bedGrid');
+      if (!grid) return;
+      
+      grid.innerHTML = '';
+      
+      const departments = [...new Set(beds.map(bed => bed.department))];
+      
+      departments.forEach(dept => {
+        const deptBeds = beds.filter(bed => bed.department === dept);
+        const deptDiv = document.createElement('div');
+        deptDiv.className = 'bed-department';
+        deptDiv.innerHTML = `
+          <h4>${getDepartmentName(dept)}</h4>
+          <div class="beds-container">
+            ${deptBeds.map(bed => `
+              <div class="bed bed-${bed.status}" onclick="assignBed('${bed.id}')">
+                <div class="bed-number">${bed.number}</div>
+                <div class="bed-status">
+                  <i class="fas fa-${bed.status === 'available' ? 'bed' : bed.status === 'occupied' ? 'user' : 'tools'}"></i>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        grid.appendChild(deptDiv);
+      });
+    }
+
+    function assignBed(bedId) {
+      const bed = beds.find(b => b.id === bedId);
+      if (!bed) return;
+      
+      if (bed.status === 'occupied') {
+        // Show patient info
+        const patient = patients.find(p => p.id === bed.patientId);
+        if (patient) {
+          showToast(`السرير محجوز للمريض: ${patient.name}`, 'info');
+        }
+        return;
+      }
+      
+      // Show available patients to assign
+      const availablePatients = patients.filter(p => p.status === 'active' && !beds.find(b => b.patientId === p.id));
+      if (availablePatients.length === 0) {
+        showToast('لا يوجد مرضى متاحين للحجز', 'warning');
+        return;
+      }
+      
+      // Create selection modal
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>اختر مريض للسرير ${bed.number}</h3>
+            <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="patient-list">
+              ${availablePatients.map(patient => `
+                <div class="patient-item" onclick="confirmBedAssignment('${bedId}', '${patient.id}')">
+                  <h4>${patient.name}</h4>
+                  <p>${patient.age} سنة - ${patient.gender === 'male' ? 'ذكر' : 'أنثى'}</p>
+                  <p>${getDepartmentName(patient.department)}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function confirmBedAssignment(bedId, patientId) {
+      showLoading();
+      database.ref('beds').child(bedId).update({
+        status: 'occupied',
+        patientId: patientId,
+        assignedAt: new Date().toISOString()
+      })
+      .then(() => {
+        showToast('تم حجز السرير بنجاح');
+        document.querySelector('.modal').remove();
+        addAuditLog('حجز سرير', `السرير: ${bedId} - المريض: ${patientId}`, currentUser?.id);
+      })
+      .catch(error => {
+        showToast('حدث خطأ أثناء حجز السرير', 'error');
+        console.error(error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    }
+
+    // Waiting List Management
+    function addToWaitingList() {
+      const patientId = document.getElementById('waitingPatient').value;
+      const priority = document.getElementById('waitingPriority').value;
+      const notes = document.getElementById('waitingNotes').value;
+      
+      const waitingItem = {
+        id: generateId(),
+        patientId: patientId,
+        priority: priority,
+        notes: notes,
+        status: 'waiting',
+        addedAt: new Date().toISOString(),
+        addedBy: currentUser?.id || 'reception'
+      };
+      
+      showLoading();
+      database.ref('waiting').child(waitingItem.id).set(waitingItem)
+        .then(() => {
+          showToast('تمت إضافة المريض لقائمة الانتظار');
+          document.getElementById('waitingForm').reset();
+          addAuditLog('إضافة لقائمة الانتظار', `المريض: ${patientId}`, currentUser?.id);
+        })
+        .catch(error => {
+          showToast('حدث خطأ', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function loadWaitingList() {
+      showLoading();
+      database.ref('waiting').once('value')
+        .then(snapshot => {
+          waitingList = [];
+          snapshot.forEach(childSnapshot => {
+            waitingList.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+            });
+          });
+          renderWaitingList();
+        })
+        .catch(error => {
+          showToast('حدث خطأ', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    function renderWaitingList() {
+      const tbody = document.getElementById('waitingList');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      waitingList.sort((a, b) => {
+        const priorityOrder = { 'critical': 0, 'high': 1, 'medium': 2, 'low': 3 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      }).forEach(item => {
+        const patient = patients.find(p => p.id === item.patientId);
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${patient ? patient.name : 'N/A'}</td>
+          <td>
+            <span class="priority-badge priority-${item.priority}">
+              ${getPriorityName(item.priority)}
+            </span>
+          </td>
+          <td>${formatDate(item.addedAt)}</td>
+          <td>${formatTime(item.addedAt)}</td>
+          <td>${item.notes || '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-success" onclick="callFromWaiting('${item.id}')">
+              <i class="fas fa-bell"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="removeFromWaiting('${item.id}')">
+              <i class="fas fa-times"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function getPriorityName(priority) {
+      const priorities = {
+        'critical': 'حرج',
+        'high': 'عالي',
+        'medium': 'متوسط',
+        'low': 'منخفض'
+      };
+      return priorities[priority] || priority;
+    }
+
+    function callFromWaiting(itemId) {
+      const item = waitingList.find(i => i.id === itemId);
+      if (!item) return;
+      
+      showLoading();
+      database.ref('waiting').child(itemId).update({
+        status: 'called',
+        calledAt: new Date().toISOString()
+      })
+      .then(() => {
+        showToast('تم استدعاء المريض');
+        addAuditLog('استدعاء من قائمة الانتظار', `المريض: ${item.patientId}`, currentUser?.id);
+      })
+      .catch(error => {
+        showToast('حدث خطأ', 'error');
+        console.error(error);
+      })
+      .finally(() => {
+        hideLoading();
+      });
+    }
+
+    function removeFromWaiting(itemId) {
+      if (!confirm('هل أنت متأكد من إزالة المريض من قائمة الانتظار؟')) return;
+      
+      showLoading();
+      database.ref('waiting').child(itemId).remove()
+        .then(() => {
+          showToast('تمت إزالة المريض من قائمة الانتظار');
+          addAuditLog('إزالة من قائمة الانتظار', `المعرف: ${itemId}`, currentUser?.id);
+        })
+        .catch(error => {
+          showToast('حدث خطأ', 'error');
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+    }
+
+    // Dashboard Charts
     function initializeCharts() {
-      // Department Distribution Chart
+      // Patients by Department Chart
       const deptCtx = document.getElementById('deptChart').getContext('2d');
       new Chart(deptCtx, {
         type: 'doughnut',
         data: {
-          labels: ['الطوارئ', 'العناية المركزة', 'طب عام', 'جراحة', 'أطفال'],
+          labels: ['الطوارئ', 'العناية المركزة', 'الجراحة', 'الأطفال', 'القلب'],
           datasets: [{
-            data: [30, 20, 25, 15, 10],
+            data: [0, 0, 0, 0, 0],
             backgroundColor: [
-              '#EF4444',
-              '#F59E0B',
-              '#10B981',
-              '#3B82F6',
-              '#8B5CF6'
-            ],
-            borderWidth: 0
+              '#FF6384',
+              '#36A2EB',
+              '#FFCE56',
+              '#4BC0C0',
+              '#9966FF'
+            ]
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                padding: 15,
-                font: {
-                  size: 12
-                }
-              }
-            }
-          }
+          maintainAspectRatio: false
         }
       });
 
-      // Daily Patients Chart
+      // Daily Admissions Chart
       const dailyCtx = document.getElementById('dailyChart').getContext('2d');
       new Chart(dailyCtx, {
         type: 'line',
         data: {
-          labels: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+          labels: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
           datasets: [{
-            label: 'عدد المرضى',
-            data: [12, 19, 15, 25, 22, 30, 28],
-            borderColor: '#0EA5E9',
-            backgroundColor: 'rgba(14, 165, 233, 0.1)',
-            tension: 0.4,
-            fill: true
+            label: 'المرضى',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#36A2EB',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.4
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)'
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
+          maintainAspectRatio: false
+        }
+      });
+
+      // Revenue Chart
+      const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+      new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+          labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+          datasets: [{
+            label: 'الإيرادات',
+            data: [0, 0, 0, 0, 0, 0],
+            backgroundColor: '#4BC0C0'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    function updateDashboard() {
+      // Update statistics
+      document.getElementById('totalPatients').textContent = patients.length;
+      document.getElementById('activePatients').textContent = patients.filter(p => p.status === 'active').length;
+      document.getElementById('todayAppointments').textContent = appointments.filter(a => 
+        a.date === new Date().toISOString().split('T')[0] && a.status === 'scheduled'
+      ).length;
+      document.getElementById('availableBeds').textContent = beds.filter(b => b.status === 'available').length;
+      
+      // Update charts
+      updateCharts();
+    }
+
+    function updateCharts() {
+      // Update department chart
+      const deptData = {};
+      patients.forEach(patient => {
+        deptData[patient.department] = (deptData[patient.department] || 0) + 1;
+      });
+      
+      // Update daily admissions chart
+      const dailyData = new Array(7).fill(0);
+      const today = new Date();
+      patients.forEach(patient => {
+        const day = new Date(patient.registrationDate).getDay();
+        dailyData[day]++;
+      });
+      
+      // Update revenue chart
+      const revenueData = new Array(6).fill(0);
+      const currentMonth = new Date().getMonth();
+      invoices.forEach(invoice => {
+        if (invoice.status === 'paid') {
+          const month = new Date(invoice.createdAt).getMonth();
+          if (month >= currentMonth - 5 && month <= currentMonth) {
+            revenueData[month - (currentMonth - 5)] += invoice.total;
           }
         }
       });
     }
 
-    function loadRecentActivities() {
-      const activities = [
-        { icon: 'fa-user-plus', text: 'تسجيل مريض جديد: أحمد محمد', time: 'منذ 5 دقائق', color: 'text-blue-500' },
-        { icon: 'fa-calendar-check', text: 'حجز موعد: سارة أحمد مع د. محمد', time: 'منذ 15 دقيقة', color: 'text-green-500' },
-        { icon: 'fa-file-invoice', text: 'إنشاء فاتورة: #1234', time: 'منذ 30 دقيقة', color: 'text-purple-500' },
-        { icon: 'fa-user-md', text: 'إضافة طبيب جديد: د. خالد علي', time: 'منذ ساعة', color: 'text-orange-500' }
-      ];
-
-      const container = document.getElementById('recent-activities');
-      container.innerHTML = activities.map(activity => `
-        <div class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-          <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-            <i class="fas ${activity.icon} ${activity.color}"></i>
-          </div>
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-800">${activity.text}</p>
-            <p class="text-xs text-gray-500">${activity.time}</p>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Patient Functions
-    function handlePatientSubmit(e) {
-      e.preventDefault();
+    // Search and Filter
+    function searchPatients() {
+      const searchTerm = document.getElementById('searchPatients').value.toLowerCase();
+      const filteredPatients = patients.filter(patient => 
+        patient.name.toLowerCase().includes(searchTerm) ||
+        patient.nationalId.includes(searchTerm) ||
+        patient.phone.includes(searchTerm)
+      );
       
-      const patient = {
-        name: document.getElementById('patient-name').value,
-        id: document.getElementById('patient-id').value,
-        phone: document.getElementById('patient-phone').value,
-        department: document.getElementById('patient-dept').value,
-        priority: document.getElementById('patient-priority').value,
-        notes: document.getElementById('patient-notes').value,
-        timestamp: new Date().toISOString(),
-        status: 'active'
-      };
-
-      // Save to Firebase
-      database.ref('patients').push(patient);
-
-      // Show success message
-      showToast('تم تسجيل المريض بنجاح', 'success');
-
-      // Reset form
-      e.target.reset();
-
-      // Update dashboard
-      if (currentTab === 'dashboard') {
-        loadDashboardData();
-      }
-    }
-
-    function loadPatients() {
-      // Simulate loading patients
-      const patientsData = [
-        { name: 'أحمد محمد', id: '1234567890', phone: '01234567890', department: 'الطوارئ', priority: 'عالية', status: 'قيد العلاج' },
-        { name: 'فاطمة أحمد', id: '2345678901', phone: '01234567891', department: 'طب عام', priority: 'متوسطة', status: 'قيد العلاج' },
-        { name: 'محمد علي', id: '3456789012', phone: '01234567892', department: 'جراحة', priority: 'منخفضة', status: 'تم الخروج' }
-      ];
-
-      const tbody = document.getElementById('patients-table');
-      tbody.innerHTML = patientsData.map(patient => `
-        <tr>
-          <td class="font-medium">${patient.name}</td>
-          <td>${patient.id}</td>
+      const tbody = document.getElementById('patientsList');
+      tbody.innerHTML = '';
+      
+      filteredPatients.forEach(patient => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${patient.name}</td>
+          <td>${patient.nationalId}</td>
           <td>${patient.phone}</td>
-          <td>${patient.department}</td>
-          <td><span class="priority-${patient.priority === 'عالية' ? 'high' : patient.priority === 'متوسطة' ? 'medium' : 'low'}">${patient.priority}</span></td>
-          <td><span class="badge ${patient.status === 'قيد العلاج' ? 'badge-primary' : 'badge-success'}">${patient.status}</span></td>
+          <td>${patient.age}</td>
+          <td>${patient.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
+          <td>${patient.bloodType}</td>
+          <td>${getDepartmentName(patient.department)}</td>
           <td>
-            <button class="btn btn-sm btn-secondary" onclick="viewPatient('${patient.id}')">
+            <span class="status-badge status-${patient.status}">
+              ${patient.status === 'active' ? 'نشط' : patient.status === 'discharged' ? 'مخرج' : 'تحت الملاحظة'}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="viewPatient('${patient.id}')">
               <i class="fas fa-eye"></i>
             </button>
-            <button class="btn btn-sm btn-primary" onclick="editPatient('${patient.id}')">
+            <button class="btn btn-sm btn-warning" onclick="editPatient('${patient.id}')">
               <i class="fas fa-edit"></i>
             </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // Doctor Functions
-    function loadAvailableDoctors() {
-      const doctorsData = [
-        { name: 'د. أحمد محمد', specialty: 'طوارئ', status: 'متاح', patients: 5 },
-        { name: 'د. فاطمة أحمد', specialty: 'عناية مركزة', status: 'مشغول', patients: 8 },
-        { name: 'د. محمد علي', specialty: 'جراحة', status: 'متاح', patients: 3 },
-        { name: 'د. سارة أحمد', specialty: 'أطفال', status: 'غير متاح', patients: 0 }
-      ];
-
-      const container = document.getElementById('doctors-list');
-      container.innerHTML = doctorsData.map(doctor => `
-        <div class="doctor-card">
-          <div class="doctor-info">
-            <div>
-              <div class="doctor-name">${doctor.name}</div>
-              <div class="doctor-specialty">${doctor.specialty} • ${doctor.patients} مرضى</div>
-            </div>
-            <div class="doctor-status">
-              <span class="status-dot ${doctor.status === 'متاح' ? 'status-available' : doctor.status === 'مشغول' ? 'status-busy' : 'status-offline'}"></span>
-              ${doctor.status}
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function loadDoctors() {
-      const doctorsData = [
-        { name: 'د. أحمد محمد', specialty: 'طوارئ', department: 'الطوارئ', phone: '01234567890', status: 'متاح' },
-        { name: 'د. فاطمة أحمد', specialty: 'عناية مركزة', department: 'العناية المركزة', phone: '01234567891', status: 'مشغول' },
-        { name: 'د. محمد علي', specialty: 'جراحة', department: 'جراحة', phone: '01234567892', status: 'متاح' }
-      ];
-
-      const tbody = document.getElementById('doctors-table');
-      tbody.innerHTML = doctorsData.map(doctor => `
-        <tr>
-          <td class="font-medium">${doctor.name}</td>
-          <td>${doctor.specialty}</td>
-          <td>${doctor.department}</td>
-          <td>${doctor.phone}</td>
-          <td><span class="badge ${doctor.status === 'متاح' ? 'badge-success' : 'badge-warning'}">${doctor.status}</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary" onclick="viewDoctor('${doctor.id}')">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" onclick="editDoctor('${doctor.id}')">
-              <i class="fas fa-edit"></i>
+            <button class="btn btn-sm btn-danger" onclick="dischargePatient('${patient.id}')">
+              <i class="fas fa-sign-out-alt"></i>
             </button>
           </td>
-        </tr>
-      `).join('');
+        `;
+        tbody.appendChild(row);
+      });
     }
 
-    function handleDoctorSubmit(e) {
-      e.preventDefault();
-      
-      const doctor = {
-        name: document.getElementById('doctor-name').value,
-        specialty: document.getElementById('doctor-specialty').value,
-        department: document.getElementById('doctor-dept').value,
-        phone: document.getElementById('doctor-phone').value,
-        email: document.getElementById('doctor-email').value,
-        status: 'متاح',
-        timestamp: new Date().toISOString()
-      };
-
-      // Save to Firebase
-      database.ref('doctors').push(doctor);
-
-      // Show success message
-      showToast('تم إضافة الطبيب بنجاح', 'success');
-
-      // Close modal and reset form
-      closeModal('doctor-modal');
-      e.target.reset();
-
-      // Reload doctors list
-      if (currentTab === 'doctors') {
-        loadDoctors();
-      }
-    }
-
-    // Appointment Functions
-    function loadAppointments() {
-      const appointmentsData = [
-        { patient: 'أحمد محمد', doctor: 'د. أحمد محمد', date: '2024-01-15', time: '10:00 AM', status: 'محجوز' },
-        { patient: 'فاطمة أحمد', doctor: 'د. فاطمة أحمد', date: '2024-01-15', time: '11:00 AM', status: 'محجوز' },
-        { patient: 'محمد علي', doctor: 'د. محمد علي', date: '2024-01-16', time: '09:00 AM', status: 'مؤكد' }
-      ];
-
-      const tbody = document.getElementById('appointments-table');
-      tbody.innerHTML = appointmentsData.map(appointment => `
-        <tr>
-          <td class="font-medium">${appointment.patient}</td>
-          <td>${appointment.doctor}</td>
-          <td>${appointment.date}</td>
-          <td>${appointment.time}</td>
-          <td><span class="badge ${appointment.status === 'مؤكد' ? 'badge-success' : 'badge-primary'}">${appointment.status}</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary" onclick="viewAppointment('${appointment.id}')">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="cancelAppointment('${appointment.id}')">
-              <i class="fas fa-times"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // Invoice Functions
-    function loadInvoices() {
-      const invoicesData = [
-        { number: 'INV-001', patient: 'أحمد محمد', date: '2024-01-15', amount: 1500, status: 'مدفوع' },
-        { number: 'INV-002', patient: 'فاطمة أحمد', date: '2024-01-15', amount: 2000, status: 'معلق' },
-        { number: 'INV-003', patient: 'محمد علي', date: '2024-01-14', amount: 3000, status: 'مدفوع' }
-      ];
-
-      const tbody = document.getElementById('invoices-table');
-      tbody.innerHTML = invoicesData.map(invoice => `
-        <tr>
-          <td class="font-medium">${invoice.number}</td>
-          <td>${invoice.patient}</td>
-          <td>${invoice.date}</td>
-          <td>${invoice.amount} ريال</td>
-          <td><span class="badge ${invoice.status === 'مدفوع' ? 'badge-success' : 'badge-warning'}">${invoice.status}</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${invoice.id}')">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" onclick="printInvoice('${invoice.id}')">
-              <i class="fas fa-print"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // Modal Functions
-    function openDoctorModal() {
-      document.getElementById('doctor-modal').classList.add('open');
-    }
-
-    function openAppointmentModal() {
-      showToast('نموذج حجز الموعد قيد التطوير', 'info');
-    }
-
-    function openInvoiceModal() {
-      showToast('نموذج إنشاء الفاتورة قيد التطوير', 'info');
-    }
-
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove('open');
-    }
-
-    // Utility Functions
-    function showToast(message, type = 'info') {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.className = 'toast show';
-      
-      if (type === 'success') {
-        toast.style.background = '#10B981';
-      } else if (type === 'error') {
-        toast.style.background = '#EF4444';
-      } else if (type === 'warning') {
-        toast.style.background = '#F59E0B';
-      } else {
-        toast.style.background = '#6B7280';
-      }
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
-
+    // Export Functions
     function exportPatients() {
-      showToast('جاري تصدير بيانات المرضى...', 'info');
-      // Implement export functionality
+      const data = patients.map(patient => ({
+        'الاسم': patient.name,
+        'الرقم القومي': patient.nationalId,
+        'الهاتف': patient.phone,
+        'العمر': patient.age,
+        'الجنس': patient.gender === 'male' ? 'ذكر' : 'أنثى',
+        'فصيلة الدم': patient.bloodType,
+        'القسم': getDepartmentName(patient.department),
+        'الحالة': patient.status === 'active' ? 'نشط' : 'مخرج'
+      }));
+      
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'المرضى');
+      XLSX.writeFile(wb, 'patients.xlsx');
     }
 
-    function viewPatient(id) {
-      showToast('عرض تفاصيل المريض', 'info');
+    function exportAppointments() {
+      const data = appointments.map(appointment => {
+        const patient = patients.find(p => p.id === appointment.patientId);
+        const doctor = doctors.find(d => d.id === appointment.doctorId);
+        return {
+          'التاريخ': formatDate(appointment.date),
+          'الوقت': formatTime(appointment.time),
+          'المريض': patient ? patient.name : 'N/A',
+          'الطبيب': doctor ? doctor.name : 'N/A',
+          'النوع': getAppointmentTypeName(appointment.type),
+          'الحالة': getAppointmentStatusName(appointment.status)
+        };
+      });
+      
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'المواعيد');
+      XLSX.writeFile(wb, 'appointments.xlsx');
     }
 
-    function editPatient(id) {
-      showToast('تعديل بيانات المريض', 'info');
+    // Initialize Application
+    function initializeApp() {
+      // Check if beds are initialized
+      database.ref('beds').once('value')
+        .then(snapshot => {
+          if (!snapshot.exists()) {
+            initializeBeds();
+          } else {
+            loadBeds();
+          }
+        });
+      
+      // Load initial data
+      loadPatients();
+      loadDoctors();
+      loadAppointments();
+      loadInvoices();
+      loadWaitingList();
+      
+      // Initialize charts
+      initializeCharts();
+      
+      // Update dashboard
+      updateDashboard();
+      
+      // Set up real-time listeners
+      database.ref('patients').on('value', loadPatients);
+      database.ref('doctors').on('value', loadDoctors);
+      database.ref('appointments').on('value', loadAppointments);
+      database.ref('invoices').on('value', loadInvoices);
+      database.ref('beds').on('value', loadBeds);
+      database.ref('waiting').on('value', loadWaitingList);
+      
+      // Auto-refresh dashboard every 30 seconds
+      setInterval(updateDashboard, 30000);
     }
 
-    function viewDoctor(id) {
-      showToast('عرض تفاصيل الطبيب', 'info');
-    }
-
-    function editDoctor(id) {
-      showToast('تعديل بيانات الطبيب', 'info');
-    }
-
-    function viewAppointment(id) {
-      showToast('عرض تفاصيل الموعد', 'info');
-    }
-
-    function cancelAppointment(id) {
-      if (confirm('هل أنت متأكد من إلغاء هذا الموعد؟')) {
-        showToast('تم إلغاء الموعد بنجاح', 'success');
-      }
-    }
-
-    function viewInvoice(id) {
-      showToast('عرض تفاصيل الفاتورة', 'info');
-    }
-
-    function printInvoice(id) {
-      showToast('جاري طباعة الفاتورة...', 'info');
-    }
-
-    // Search functionality
-    document.getElementById('doctor-search')?.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
-      // Implement search logic
-    });
-
-    document.getElementById('patients-search')?.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
-      // Implement search logic
-    });
+    // Start the application
+    document.addEventListener('DOMContentLoaded', initializeApp);
   </script>
 </body>
 </html>
